@@ -67,9 +67,17 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       }}
     >
       {/* App Header Logo Container */}
-      <div className="flex items-center h-[84px] px-5 flex-shrink-0 border-b border-gray-100/50">
-        <div className="flex items-center gap-3 min-w-0">
-          <img src="/assets/images/app_logo.png" alt="Promanage" className="h-40 w-50" />
+      <div className="flex items-center h-[90px] px-5 flex-shrink-0 border-b border-gray-100/50">
+        <div className="flex items-center gap-3 min-w-0 w-full">
+          <div className="h-12 w-12 flex-shrink-0 flex items-center justify-center relative overflow-visible">
+            <img src="/assets/images/logo.png" alt="ProManage" className="h-full w-full object-contain scale-[1.6] transition-transform duration-200" />
+          </div>
+          {!collapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-extrabold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent tracking-tight truncate">ProManage</span>
+              <span className="text-[10px] text-slate-500 font-semibold tracking-widest uppercase truncate">Project Tracking System</span>
+            </div>
+          )}
         </div>
       </div>
 

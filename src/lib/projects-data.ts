@@ -1,6 +1,6 @@
 'use client';
 
-import { Server, Smartphone, Globe, Megaphone, ShieldCheck } from 'lucide-react';
+import { Server, Smartphone, Globe, Megaphone, ShieldCheck, FolderKanban } from 'lucide-react';
 import type { ProjectFormData } from '@/components/modal';
 
 export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue';
@@ -47,6 +47,144 @@ const statusProgressColor: Record<ProjectStatus, string> = {
   'Not Started': 'bg-gray-300',
   'Overdue': 'bg-rose-500',
 };
+
+export interface ApiProject {
+  ProjectInfoID: number;
+  Description: string;
+  Priority: number;
+  PriorityName: string;
+  ProjectCode: string;
+  ProjectName: string;
+  ProjectDuration: number;
+  StartDate: string;
+  ProjectType: number;
+  ProjectTypeName: string;
+  TotalBudget: number;
+  WorkStatusID: number;
+  ClientInfoID: number;
+  ProjectHeadEmpID: number;
+  ExpenseInfoID: number;
+  DepartmentID: number;
+  WorkStatusName: string;
+  WorkStatusColor: string;
+  ProjectHeadEmpName: string;
+  ProjectHeadEmpPhoto: string;
+  BudgetSourceID: number;
+  LastDateOfSubmission: string | null;
+  Suchikrit_ServiceGroupTypeIDs: string;
+  Suchikrit_ServiceTypeIDs: string;
+  TargetVendorIDs: string;
+  ProjectOpenDate: string;
+  Attachments: string;
+  TOR: string;
+  PolicyProgramIDs: string;
+  BudgetInfoIDs: string;
+  BankGuranteeExpiryDate: string;
+  BankGuranteeIssueDate: string;
+  Status: number;
+  CanEdit: boolean;
+  CanDelete: boolean;
+  CanChangeStatus: boolean;
+}
+
+const projectTypeMap: Record<number, string> = {
+  0: 'General',
+  1: 'Development',
+  2: 'Infrastructure',
+  3: 'Design',
+};
+
+function getIconForCategory(category: string) {
+  switch (category) {
+    case 'Development':
+      return Smartphone;
+    case 'Design':
+      return Globe;
+    case 'Marketing':
+      return Megaphone;
+    case 'Infrastructure':
+      return Server;
+    case 'Security':
+      return ShieldCheck;
+    default:
+      return FolderKanban;
+  }
+}
+
+function getIconBgForCategory(category: string) {
+  switch (category) {
+    case 'Development':
+      return 'bg-emerald-100 text-emerald-600';
+    case 'Design':
+      return 'bg-blue-100 text-blue-600';
+    case 'Marketing':
+      return 'bg-amber-100 text-amber-600';
+    case 'Infrastructure':
+      return 'bg-purple-100 text-purple-600';
+    case 'Security':
+      return 'bg-purple-100 text-purple-600';
+    default:
+      return 'bg-gray-100 text-gray-500';
+  }
+}
+
+function getProgress(status: string): number {
+  if (status === 'Completed') return 100;
+  if (status === 'In Progress' || status === 'In Progress Final') return 50;
+  if (status === 'On Hold') return 20;
+  return 0;
+}
+
+function computeDaysLeft(dueDate: string): string {
+  if (!dueDate) return '';
+  const due = new Date(dueDate);
+  if (isNaN(due.getTime())) return '';
+  const now = new Date();
+  const diff = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff < 0) return 'Overdue';
+  if (diff === 0) return 'Today';
+  if (diff <= 30) return `${diff} days`;
+  return `${Math.floor(diff / 30)} months`;
+}
+
+export function mapApiProjectToProject(api: ApiProject): Project {
+  const category = projectTypeMap[api.ProjectType] ?? api.ProjectTypeName ?? 'General';
+  const status = (api.WorkStatusName === 'In Progress Final' ? 'In Progress' : api.WorkStatusName) as ProjectStatus;
+  const priority = api.PriorityName as Project['priority'];
+  const dueDate = api.ProjectOpenDate || api.StartDate || '';
+  const submissionDate =
+    api.LastDateOfSubmission && api.LastDateOfSubmission !== '0001-01-01T00:00:00'
+      ? api.LastDateOfSubmission.split('T')[0]
+      : '';
+
+  return {
+    id: String(api.ProjectInfoID),
+    name: api.ProjectName,
+    title: api.ProjectName,
+    category,
+    status,
+    progress: getProgress(status),
+    startDate: api.StartDate,
+    dueDate,
+    submissionDate,
+    targetEndDate: dueDate,
+    team: [],
+    extraTeam: 0,
+    priority,
+    starred: false,
+    description: api.Description,
+    icon: getIconForCategory(category),
+    iconBg: getIconBgForCategory(category),
+    client: api.ProjectHeadEmpName,
+    manager: api.ProjectHeadEmpName,
+    managerAvatar: api.ProjectHeadEmpPhoto,
+    progressColor: statusProgressColor[status] || 'bg-gray-300',
+    budget: `Rs. ${api.TotalBudget.toLocaleString()}`,
+    daysLeft: computeDaysLeft(dueDate),
+    tasksCompleted: 0,
+    totalTasks: 0,
+  };
+}
 
 function getDaysLeft(dueDate: string): string {
   const due = new Date(dueDate);

@@ -1,5 +1,6 @@
 import Pagination from "@/components/ui/Pagination";
-import { useState, useCallback, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo, useEffect, useRef } from "react";
+import Highcharts from "highcharts";
 import {
   Search,
   ChevronDown,
@@ -32,7 +33,7 @@ interface Task {
   progress: number;
 }
 
-const TASKS: Task[] = [
+export const TASKS: Task[] = [
   {
     id: "1",
     title: "UI/UX Design for Dashboard",
@@ -130,53 +131,53 @@ const TASKS: Task[] = [
     progress: 0,
   },
   {
-  id: "9",
-  title: "Design Landing Page",
-  description: "Create responsive landing page UI",
-  project: { name: "Website Redesign", icon: "🌐", color: "bg-sky-100 text-sky-600" },
-  assignee: { name: "Rita Shrestha", avatar: "https://i.pravatar.cc/64?img=45" },
-  status: "In Progress",
-  priority: "High",
-  dueDate: "May 22, 2025",
-  daysLeft: 9,
-  progress: 50,
-},
-{
-  id: "10",
-  title: "Optimize Database Queries",
-  description: "Improve query performance and indexing",
-  project: { name: "Data Centre Migration", icon: "🗄️", color: "bg-indigo-100 text-indigo-600" },
-  assignee: { name: "Prabin Thapa", avatar: "https://i.pravatar.cc/64?img=12" },
-  status: "To Do",
-  priority: "Medium",
-  dueDate: "May 28, 2025",
-  daysLeft: 15,
-  progress: 0,
-},
-{
-  id: "11",
-  title: "Social Media Campaign",
-  description: "Plan and schedule social media posts",
-  project: { name: "Marketing Campaign", icon: "📣", color: "bg-amber-100 text-amber-600" },
-  assignee: { name: "Kathmandu Shikshalaya", avatar: "https://i.pravatar.cc/64?img=33" },
-  status: "In Progress",
-  priority: "Low",
-  dueDate: "May 24, 2025",
-  daysLeft: 11,
-  progress: 20,
-},
-{
-  id: "12",
-  title: "User Feedback Analysis",
-  description: "Collect and analyze user feedback data",
-  project: { name: "Mobile App Development", icon: "📱", color: "bg-emerald-100 text-emerald-600" },
-  assignee: { name: "Anisha Gurung", avatar: "https://i.pravatar.cc/64?img=47" },
-  status: "To Do",
-  priority: "High",
-  dueDate: "May 27, 2025",
-  daysLeft: 14,
-  progress: 0,
-},
+    id: "9",
+    title: "Design Landing Page",
+    description: "Create responsive landing page UI",
+    project: { name: "Website Redesign", icon: "🌐", color: "bg-sky-100 text-sky-600" },
+    assignee: { name: "Rita Shrestha", avatar: "https://i.pravatar.cc/64?img=45" },
+    status: "In Progress",
+    priority: "High",
+    dueDate: "May 22, 2025",
+    daysLeft: 9,
+    progress: 50,
+  },
+  {
+    id: "10",
+    title: "Optimize Database Queries",
+    description: "Improve query performance and indexing",
+    project: { name: "Data Centre Migration", icon: "🗄️", color: "bg-indigo-100 text-indigo-600" },
+    assignee: { name: "Prabin Thapa", avatar: "https://i.pravatar.cc/64?img=12" },
+    status: "To Do",
+    priority: "Medium",
+    dueDate: "May 28, 2025",
+    daysLeft: 15,
+    progress: 0,
+  },
+  {
+    id: "11",
+    title: "Social Media Campaign",
+    description: "Plan and schedule social media posts",
+    project: { name: "Marketing Campaign", icon: "📣", color: "bg-amber-100 text-amber-600" },
+    assignee: { name: "Kathmandu Shikshalaya", avatar: "https://i.pravatar.cc/64?img=33" },
+    status: "In Progress",
+    priority: "Low",
+    dueDate: "May 24, 2025",
+    daysLeft: 11,
+    progress: 20,
+  },
+  {
+    id: "12",
+    title: "User Feedback Analysis",
+    description: "Collect and analyze user feedback data",
+    project: { name: "Mobile App Development", icon: "📱", color: "bg-emerald-100 text-emerald-600" },
+    assignee: { name: "Anisha Gurung", avatar: "https://i.pravatar.cc/64?img=47" },
+    status: "To Do",
+    priority: "High",
+    dueDate: "May 27, 2025",
+    daysLeft: 14,
+    progress: 0,
+  },
 ];
 
 const TABS = ["All Tasks", "Overdue", "Completed"];
@@ -192,15 +193,6 @@ const PRIORITY_STYLE: Record<TaskPriority, string> = {
   Medium: "bg-amber-50 text-amber-600 border-amber-200/60",
   Low: "bg-emerald-50 text-emerald-600 border-emerald-200/60",
 };
-
-
-
-const UPCOMING = [
-  { title: "UI/UX Design for Dashboard", date: "May 15, 2025", left: "2 days left", color: "bg-violet-100 text-violet-600" },
-  { title: "Testing & Bug Fixing", date: "May 16, 2025", left: "3 days left", color: "bg-orange-100 text-orange-600" },
-  { title: "API Integration", date: "May 18, 2025", left: "5 days left", color: "bg-sky-100 text-sky-600" },
-  { title: "Setup Authentication Module", date: "May 20, 2025", left: "7 days left", color: "bg-emerald-100 text-emerald-600" },
-];
 
 const progressColor = (p: number) => {
   if (p === 100) return "from-emerald-400 to-emerald-500";
@@ -226,7 +218,9 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>(TASKS);
   const [viewTask, setViewTask] = useState<Task | null>(null);
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [editForm] = Form.useForm();
+  const [createForm] = Form.useForm();
 
   const allProjects = useMemo(
     () => [...new Set(tasks.map((t) => t.project.name))].sort(),
@@ -414,6 +408,44 @@ export default function TasksPage() {
     [taskStats]
   );
 
+  const statusChartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (statusChartRef.current) {
+      Highcharts.chart(statusChartRef.current, {
+        chart: {
+          type: "pie",
+          height: 160,
+          backgroundColor: "transparent",
+          style: { fontFamily: "inherit" },
+        },
+        title: { text: undefined },
+        tooltip: {
+          pointFormat: "<b>{point.y}</b> ({point.percentage:.1f}%)",
+        },
+        plotOptions: {
+          pie: {
+            innerSize: "65%",
+            depth: 0,
+            dataLabels: { enabled: false },
+            showInLegend: false,
+            borderWidth: 0,
+          },
+        },
+        series: [
+          {
+            type: "pie",
+            data: statusSegments.map((s) => ({
+              name: s.label,
+              y: s.value,
+              color: s.color,
+            })),
+          },
+        ],
+      });
+    }
+  }, [statusSegments]);
+
   const priorityBars = useMemo(
     () => [
       { label: "High", value: taskStats.high, pct: safePct(taskStats.high, taskStats.totalPriority), color: "from-rose-400 to-red-500" },
@@ -434,7 +466,10 @@ export default function TasksPage() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
+        >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           New Task
         </button>
@@ -544,25 +579,28 @@ export default function TasksPage() {
           onDeleteTask={handleDeleteTask}
         />
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <Card title="Tasks by Status">
-            <div className="flex items-center gap-4">
-              <DonutChart segments={statusSegments} total={taskStats.total} centerLabel="Total Tasks" />
-              <div className="flex flex-1 flex-col gap-2.5 text-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div ref={statusChartRef} className="w-1/2 min-w-0" />
+              <div className="flex flex-1 flex-col gap-2 text-sm">
                 {statusSegments.map((s) => (
-                  <div key={s.label} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
-                      <span className="text-slate-600">{s.label}</span>
+                  <div key={s.label} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: s.color }} />
+                      <span className="truncate text-slate-600">{s.label}</span>
                     </div>
-                    <div className="text-right">
+                    <div className="shrink-0 text-right">
                       <span className="font-semibold text-slate-700">{s.value}</span>
-                      <span className="ml-1.5 text-xs text-slate-400">({s.pct})</span>
+                      <span className="ml-1 text-xs text-slate-400">({s.pct})</span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+            <p className="mt-3 text-xs text-slate-500 border-t border-slate-100 pt-2.5 leading-relaxed">
+              Real-time task lifecycle distribution. <span className="font-medium text-slate-700">{safePct(taskStats.inProgress, taskStats.total)}</span> of tasks are currently active, while <span className="font-medium text-rose-600">{safePct(taskStats.overdue, taskStats.total)}</span> require immediate attention due to missed deadlines.
+            </p>
           </Card>
 
           <Card title="Tasks by Priority">
@@ -570,9 +608,9 @@ export default function TasksPage() {
               {priorityBars.map((p) => (
                 <div key={p.label}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-700">{p.label}</span>
+                    <span className="font-medium text-slate-700">{p.label} Priority</span>
                     <div>
-                      <span className="font-semibold text-slate-800">{p.value}</span>
+                      <span className="font-semibold text-slate-800">{p.value} tasks</span>
                       <span className="ml-1.5 text-xs text-slate-400">({p.pct})</span>
                     </div>
                   </div>
@@ -582,26 +620,9 @@ export default function TasksPage() {
                 </div>
               ))}
             </div>
-          </Card>
-
-          <Card
-            title="Upcoming Due Dates"
-            action={<button className="text-xs font-medium text-violet-600 hover:underline">View All</button>}
-          >
-            <ul className="flex flex-col gap-3">
-              {UPCOMING.map((u) => (
-                <li key={u.title} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className={`grid h-8 w-8 place-items-center rounded-lg text-xs ${u.color}`}>📌</span>
-                    <div>
-                      <div className="text-sm font-medium leading-tight text-slate-800">{u.title}</div>
-                      <div className="text-xs text-slate-500">{u.date}</div>
-                    </div>
-                  </div>
-                  <span className="text-xs font-medium text-slate-500">{u.left}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="mt-4 text-xs text-slate-500 border-t border-slate-100 pt-2.5 leading-relaxed">
+              Workload severity breakdown across all projects. High-priority items represent <span className="font-medium text-slate-700">{safePct(taskStats.high, taskStats.totalPriority)}</span> of total tasks and should be prioritized during current sprint planning.
+            </p>
           </Card>
         </div>
       </div>
@@ -708,6 +729,64 @@ export default function TasksPage() {
             />
           </Form.Item>
           <Form.Item name="progress" label="Progress">
+            <Slider />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        open={showCreateModal}
+        title="Create New Task"
+        okText="Create"
+        cancelText="Cancel"
+        onOk={() => {
+          createForm.validateFields().then((values) => {
+            const newTask: Task = {
+              id: Date.now().toString(),
+              title: values.title,
+              description: values.description || "",
+              project: { name: values.project || "General", icon: "📋", color: "bg-slate-100 text-slate-600" },
+              assignee: { name: "Unassigned", avatar: "https://i.pravatar.cc/64?img=12" },
+              status: values.status || "To Do",
+              priority: values.priority || "Medium",
+              dueDate: values.dueDate || new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+              daysLeft: 0,
+              progress: values.progress || 0,
+            };
+            setTasks((prev) => [newTask, ...prev]);
+            setShowCreateModal(false);
+            createForm.resetFields();
+            message.success("Task created successfully");
+          });
+        }}
+        onCancel={() => setShowCreateModal(false)}
+      >
+        <Form form={createForm} layout="vertical">
+          <Form.Item name="title" label="Title" rules={[{ required: true, message: "Please enter title" }]}>
+            <Input placeholder="Enter task title" />
+          </Form.Item>
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={3} placeholder="Enter task description" />
+          </Form.Item>
+          <Form.Item name="status" label="Status" initialValue="To Do">
+            <Select
+              options={[
+                { value: "To Do", label: "To Do" },
+                { value: "In Progress", label: "In Progress" },
+                { value: "Completed", label: "Completed" },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item name="priority" label="Priority" initialValue="Medium">
+            <Select
+              options={[
+                { value: "High", label: "High" },
+                { value: "Medium", label: "Medium" },
+                { value: "Low", label: "Low" },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item name="progress" label="Progress" initialValue={0}>
             <Slider />
           </Form.Item>
         </Form>
@@ -1001,8 +1080,6 @@ function Card({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Small building blocks                                              */
-/* ------------------------------------------------------------------ */
 /*  Inline SVG charts (no deps)                                        */
 /* ------------------------------------------------------------------ */
 
@@ -1047,62 +1124,5 @@ function Sparkline({
         strokeLinejoin="round"
       />
     </svg>
-  );
-}
-
-function DonutChart({
-  segments,
-  total,
-  size = 150,
-  thickness = 20,
-  centerLabel = "Total",
-}: {
-  segments: { value: number; color: string; label: string }[];
-  total: number;
-  size?: number;
-  thickness?: number;
-  centerLabel?: string;
-}) {
-  const radius = (size - thickness) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const sum = segments.reduce((a, b) => a + b.value, 0);
-  let offset = 0;
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="#F1F5F9"
-          strokeWidth={thickness}
-        />
-        {segments.map((seg, i) => {
-          const length = (seg.value / sum) * circumference;
-          const dashArray = `${length} ${circumference - length}`;
-          const el = (
-            <circle
-              key={i}
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth={thickness}
-              strokeDasharray={dashArray}
-              strokeDashoffset={-offset}
-            />
-          );
-          offset += length;
-          return el;
-        })}
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="text-2xl font-bold text-slate-800">{total}</div>
-        <div className="text-xs text-slate-500">{centerLabel}</div>
-      </div>
-    </div>
   );
 }

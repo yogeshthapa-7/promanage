@@ -14,7 +14,9 @@ import {
   Clock,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
-import { projects as fallbackProjects, type Project } from '@/lib/projects-data';
+import { projects as fallbackProjects, mapApiProjectToProject, type Project } from '@/lib/projects-data';
+
+
 
 const statusClasses: Record<string, { bg: string; text: string; border: string }> = {
   'Completed': { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
@@ -154,74 +156,37 @@ export default function ProjectDetailsPage() {
     }
     setLoading(true);
     setError(null);
+    const token = localStorage.getItem('token');
     fetch(`${(import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '')}/ProjectInfo/ServerSearch`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
         model: {
           draw: 1,
           start: 0,
           length: 1000,
           columns: [
-            { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: false } },
-            { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: false } },
-            { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: false } },
+            { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+            { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+            { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
           ],
-          search: { value: '', regex: false },
+            search: { value: '', regex: '' },
           order: [{ column: 0, dir: 'desc' }],
         },
-        param: {
-          ProjectInfoID: 0,
-          ProjectName: '',
-          ProjectCode: '',
-          ProjectDuration: 0,
-          StartDate: '',
-          ClientInfoID: 0,
-          ProjectHeadEmpID: 0,
-          Description: '',
-          Priority: 0,
-          TotalBudget: 0,
-          ClientInfoCode: '',
-          WorkStatusID: 0,
-          ProjectHeadEmpName: '',
-          ProjectHeadEmpPhoto: '',
-          WorkStatusName: '',
-          WorkStatusColor: '',
-          WorkStatusIcon: '',
-          ProjectType: 0,
-          ProjectTypeName: '',
-          ExpenseInfoID: 0,
-          Suchikrit_ServiceGroupTypeIDs: '',
-          Suchikrit_ServiceTypeIDs: '',
-          BudgetSourceID: 0,
-          LastDateOfSubmission: '',
-          TargetVendorIDs: '',
-          ProjectOpenDate: '',
-          Attachments: '',
-          PriorityName: '',
-          IsPolicyRelated: 0,
-          PolicyProgramIDs: '',
-          BudgetInfoIDs: '',
-          BudgetInfoName: '',
-          DepartmentName: '',
-          DepartmentID: 0,
-          ExpenseCode: '',
-          WorkStatusCode: '',
-          PublicAgentID: 0,
-          Tippani: '',
-          Samghauta: '',
-          Kalyades: '',
-          TOR: '',
-          BankGuranteeIssueDate: '',
-          BankGuranteeExpiryDate: '',
-        },
+          param: {
+            ProjectInfoID: 0,
+          },
       }),
       })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
         const json = await res.json();
-        const projects = (json.data ?? []).filter((p: any) => String(p.ProjectInfoID) === projectId);
-        return projects[0] ?? null;
+        const mapped = (json.data ?? []).map(mapApiProjectToProject);
+        const project = mapped.find((p: Project) => p.id === projectId) ?? null;
+        return project;
       })
       .then((p) => {
         if (!cancelled) {

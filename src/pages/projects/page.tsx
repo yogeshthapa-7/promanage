@@ -16,18 +16,12 @@ import {
   Trash2,
   X,
   ChevronDown,
-  FolderKanban,
-  Smartphone,
-  Globe,
-  Megaphone,
-  Server,
-  ShieldCheck,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import Pagination from '@/components/ui/Pagination';
 import ProjectModal from '@/components/modal';
-import { projects as fallbackProjects, toProjectFormData } from '@/lib/projects-data';
+import { projects as fallbackProjects, toProjectFormData, mapApiProjectToProject } from '@/lib/projects-data';
 import type { ProjectStatus, Project } from '@/lib/projects-data';
 import type { ProjectFormData } from '@/components/modal';
 import { getStatCards } from '@/pages/dashboard/components/statCardsData';
@@ -74,112 +68,6 @@ interface ApiProject {
 type SortField = 'name' | 'status' | 'priority' | 'progress' | 'dueDate';
 type SortDir = 'asc' | 'desc';
 
-const statusProgressColor: Record<ProjectStatus, string> = {
-  'In Progress': 'bg-blue-500',
-  'Completed': 'bg-emerald-500',
-  'On Hold': 'bg-amber-500',
-  'Not Started': 'bg-gray-300',
-  'Overdue': 'bg-rose-500',
-};
-
-const projectTypeMap: Record<number, string> = {
-  0: 'General',
-  1: 'Development',
-  2: 'Infrastructure',
-  3: 'Design',
-};
-
-function getIconForCategory(category: string) {
-  switch (category) {
-    case 'Development':
-      return Smartphone;
-    case 'Design':
-      return Globe;
-    case 'Marketing':
-      return Megaphone;
-    case 'Infrastructure':
-      return Server;
-    case 'Security':
-      return ShieldCheck;
-    default:
-      return FolderKanban;
-  }
-}
-
-function getIconBgForCategory(category: string) {
-  switch (category) {
-    case 'Development':
-      return 'bg-emerald-100 text-emerald-600';
-    case 'Design':
-      return 'bg-blue-100 text-blue-600';
-    case 'Marketing':
-      return 'bg-amber-100 text-amber-600';
-    case 'Infrastructure':
-      return 'bg-purple-100 text-purple-600';
-    case 'Security':
-      return 'bg-purple-100 text-purple-600';
-    default:
-      return 'bg-gray-100 text-gray-500';
-  }
-}
-
-function getProgress(status: string): number {
-  if (status === 'Completed') return 100;
-  if (status === 'In Progress' || status === 'In Progress Final') return 50;
-  if (status === 'On Hold') return 20;
-  return 0;
-}
-
-function computeDaysLeft(dueDate: string): string {
-  if (!dueDate) return '';
-  const due = new Date(dueDate);
-  if (isNaN(due.getTime())) return '';
-  const now = new Date();
-  const diff = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return 'Overdue';
-  if (diff === 0) return 'Today';
-  if (diff <= 30) return `${diff} days`;
-  return `${Math.floor(diff / 30)} months`;
-}
-
-function mapApiProjectToProject(api: ApiProject): Project {
-  const category = projectTypeMap[api.ProjectType] ?? api.ProjectTypeName ?? 'General';
-  const status = (api.WorkStatusName === 'In Progress Final' ? 'In Progress' : api.WorkStatusName) as ProjectStatus;
-  const priority = api.PriorityName as Project['priority'];
-  const dueDate = api.ProjectOpenDate || api.StartDate || '';
-  const submissionDate =
-    api.LastDateOfSubmission && api.LastDateOfSubmission !== '0001-01-01T00:00:00'
-      ? api.LastDateOfSubmission.split('T')[0]
-      : '';
-
-  return {
-    id: String(api.ProjectInfoID),
-    name: api.ProjectName,
-    title: api.ProjectName,
-    category,
-    status,
-    progress: getProgress(status),
-    startDate: api.StartDate,
-    dueDate,
-    submissionDate,
-    targetEndDate: dueDate,
-    team: [],
-    extraTeam: 0,
-    priority,
-    starred: false,
-    description: api.Description,
-    icon: getIconForCategory(category),
-    iconBg: getIconBgForCategory(category),
-    client: api.ProjectHeadEmpName,
-    manager: api.ProjectHeadEmpName,
-    managerAvatar: api.ProjectHeadEmpPhoto,
-    progressColor: statusProgressColor[status] || 'bg-gray-300',
-    budget: `Rs. ${api.TotalBudget.toLocaleString()}`,
-    daysLeft: computeDaysLeft(dueDate),
-    tasksCompleted: 0,
-    totalTasks: 0,
-  };
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/ProjectInfo/ServerSearch`;
@@ -190,57 +78,15 @@ const serverSearchBody = {
     start: 0,
     length: 1000,
     columns: [
-      { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: false } },
-      { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: false } },
-      { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: false } },
+      { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+      { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+      { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
     ],
-    search: { value: '', regex: false },
+      search: { value: '', regex: '' },
     order: [{ column: 0, dir: 'desc' }],
   },
   param: {
     ProjectInfoID: 0,
-    ProjectName: '',
-    ProjectCode: '',
-    ProjectDuration: 0,
-    StartDate: '',
-    ClientInfoID: 0,
-    ProjectHeadEmpID: 0,
-    Description: '',
-    Priority: 0,
-    TotalBudget: 0,
-    ClientInfoCode: '',
-    WorkStatusID: 0,
-    ProjectHeadEmpName: '',
-    ProjectHeadEmpPhoto: '',
-    WorkStatusName: '',
-    WorkStatusColor: '',
-    WorkStatusIcon: '',
-    ProjectType: 0,
-    ProjectTypeName: '',
-    ExpenseInfoID: 0,
-    Suchikrit_ServiceGroupTypeIDs: '',
-    Suchikrit_ServiceTypeIDs: '',
-    BudgetSourceID: 0,
-    LastDateOfSubmission: '',
-    TargetVendorIDs: '',
-    ProjectOpenDate: '',
-    Attachments: '',
-    PriorityName: '',
-    IsPolicyRelated: 0,
-    PolicyProgramIDs: '',
-    BudgetInfoIDs: '',
-    BudgetInfoName: '',
-    DepartmentName: '',
-    DepartmentID: 0,
-    ExpenseCode: '',
-    WorkStatusCode: '',
-    PublicAgentID: 0,
-    Tippani: '',
-    Samghauta: '',
-    Kalyades: '',
-    TOR: '',
-    BankGuranteeIssueDate: '',
-    BankGuranteeExpiryDate: '',
   },
 };
 
