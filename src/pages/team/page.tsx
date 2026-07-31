@@ -18,7 +18,7 @@ import {
   Calendar,
   CheckCircle2,
 } from "lucide-react";
-import { Modal, Form, Input, Select, Slider, message } from "antd";
+import { Modal, Form, Input, Select, Slider, message, Upload } from "antd";
 
 type MemberRole = "Admin" | "Member" | "Guest";
 type MemberStatus = "Active" | "Away" | "On Leave";
@@ -163,6 +163,8 @@ export default function TeamMembersPage() {
 
   const [editForm] = Form.useForm();
   const [inviteForm] = Form.useForm();
+  const editAvatarFileRef = useRef<File | null>(null);
+  const inviteAvatarFileRef = useRef<File | null>(null);
 
   const allDepartments = useMemo(
     () => [...new Set(members.map((m) => m.department))].sort(),
@@ -771,10 +773,16 @@ export default function TeamMembersPage() {
         cancelText="Cancel"
         onOk={() => {
           editForm.validateFields().then((values) => {
+            const avatarUrl = editAvatarFileRef.current
+              ? URL.createObjectURL(editAvatarFileRef.current)
+              : editMember!.avatar;
             setMembers((prev) =>
-              prev.map((m) => (m.id === editMember?.id ? { ...m, ...values } : m))
+              prev.map((m) =>
+                m.id === editMember?.id ? { ...m, ...values, avatar: avatarUrl } : m
+              )
             );
             setEditMember(null);
+            editAvatarFileRef.current = null;
             message.success("Member updated successfully");
           });
         }}
@@ -811,6 +819,32 @@ export default function TeamMembersPage() {
           <Form.Item name="workload" label="Workload Capacity (%)">
             <Slider />
           </Form.Item>
+          <Form.Item
+            name="profilePhoto"
+            label="Profile Photo"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => e && e.fileList}
+          >
+            <Upload
+              accept="image/*"
+              listType="picture"
+              beforeUpload={() => false}
+              maxCount={1}
+              onChange={(info) => {
+                editAvatarFileRef.current =
+                  info.fileList.length > 0 && info.fileList[0].originFileObj
+                    ? info.fileList[0].originFileObj
+                    : null;
+              }}
+            >
+              <button
+                type="button"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              >
+                Choose Photo
+              </button>
+            </Upload>
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -818,10 +852,13 @@ export default function TeamMembersPage() {
       <Modal
         open={showInviteModal}
         title="Add New Team Member"
-        okText="Send Invitation"
+        okText="Create Member"
         cancelText="Cancel"
         onOk={() => {
           inviteForm.validateFields().then((values) => {
+            const avatarUrl = inviteAvatarFileRef.current
+              ? URL.createObjectURL(inviteAvatarFileRef.current)
+              : `https://i.pravatar.cc/64?img=${Math.floor(Math.random() * 50)}`;
             const newMember: TeamMember = {
               id: Date.now().toString(),
               name: values.name,
@@ -829,7 +866,7 @@ export default function TeamMembersPage() {
               role: values.role || "Member",
               title: values.title || "Team Member",
               department: values.department || "General",
-              avatar: `https://i.pravatar.cc/64?img=${Math.floor(Math.random() * 50)}`,
+              avatar: avatarUrl,
               status: "Active",
               workload: 0,
               location: "Remote",
@@ -839,6 +876,7 @@ export default function TeamMembersPage() {
             setMembers((prev) => [newMember, ...prev]);
             setShowInviteModal(false);
             inviteForm.resetFields();
+            inviteAvatarFileRef.current = null;
             message.success("Invitation sent successfully");
           });
         }}
@@ -865,6 +903,32 @@ export default function TeamMembersPage() {
                 { value: "Guest", label: "Guest" },
               ]}
             />
+            </Form.Item>
+          <Form.Item
+            name="profilePhoto"
+            label="Profile Photo"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => e && e.fileList}
+          >
+            <Upload
+              accept="image/*"
+              listType="picture"
+              beforeUpload={() => false}
+              maxCount={1}
+              onChange={(info) => {
+                inviteAvatarFileRef.current =
+                  info.fileList.length > 0 && info.fileList[0].originFileObj
+                    ? info.fileList[0].originFileObj
+                    : null;
+              }}
+            >
+              <button
+                type="button"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              >
+                Choose Photo
+              </button>
+            </Upload>
           </Form.Item>
         </Form>
       </Modal>
@@ -926,7 +990,7 @@ function MemberTable({
         ))}
       </div>
 
-      <div className="mt-5 overflow-x-auto overflow-hidden rounded-b-xl">
+      <div className="mt-5 overflow-x-auto overflow-y-visible rounded-b-xl">
         <table className="w-full border-separate border-spacing-y-1.5">
           <thead>
             <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">

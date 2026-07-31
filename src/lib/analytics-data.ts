@@ -221,7 +221,7 @@ function computeKPIs(projectList: Project[], taskList: Task[], memberList: TeamM
     { label: 'Completed', value: completed, change: `+${Math.round(completed * 0.15)}%`, up: true, description: 'Successfully delivered projects' },
     { label: 'Overdue', value: overdue, change: `-${Math.abs(overdue)}%`, up: false, description: 'Projects past their deadline' },
     { label: 'Avg Progress', value: `${avgProgress}%`, change: `+${Math.round(avgProgress * 0.05)}%`, up: true, description: 'Average completion across all projects' },
-    { label: 'Total Budget', value: `$${(totalBudget / 1000).toFixed(0)}k`, change: `+${Math.round(totalBudget * 0.03)}%`, up: true, description: 'Allocated project budget' },
+    { label: 'Total Budget', value: `$${(totalBudget / 1000).toFixed(0)}k`, change: `+${(0.03 * 100)}%`, up: true, description: 'Allocated project budget' },
     { label: 'Tasks Done', value: taskCompletionRate, change: `+${Math.round(taskCompletionRate * 0.08)}%`, up: true, description: `${totalTasksCompleted} of ${totalTasks} tasks completed` },
     { label: 'Active Members', value: activeMembers, change: `+${Math.round(activeMembers * 0.05)}%`, up: true, description: 'Team members currently active' },
   ];

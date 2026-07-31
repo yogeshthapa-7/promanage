@@ -11,7 +11,9 @@ import {
   ChevronRight,
   LogOut,
   ChartLine,
+  Building,
 } from 'lucide-react';
+import { User } from 'lucide-react';
 
 interface NavItem {
   id: string;
@@ -28,6 +30,9 @@ const navItems: NavItem[] = [
   { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={18} />, href: '/tasks' },
   { id: 'analytics', label: 'Analytics', icon: <ChartLine size={18} />, href: '/analytics' },
   { id: 'team-members', label: 'Team Members', icon: <Users size={18} />, href: '/team', section: 'TEAM' },
+  { id: 'users', label: 'Users', icon: <Users size={18} />, href: '/users', section: 'TEAM' },
+  { id: 'employee', label: 'Employee', icon: <User size={18} />, href: '/employee', section: 'TEAM' },
+  { id: 'departments', label: 'department', icon: <Building size={18} />, href: '/departments', section: 'TEAM' },
 ];
 
 interface SidebarProps {
@@ -42,6 +47,9 @@ function getActiveNavId(pathname: string): string {
     '/tasks': 'tasks',
     '/analytics': 'analytics',
     '/team': 'team-members',
+    '/users': 'users',
+    '/employee':'employee',
+    '/departments':'departments',
   };
   return map[pathname] ?? 'dashboard';
 }

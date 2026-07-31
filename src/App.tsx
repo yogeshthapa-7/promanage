@@ -7,8 +7,11 @@ import ProjectsPage from './pages/projects/page';
 import ProjectDetailsPage from './pages/projects/projectdetails';
 import TasksPage from './pages/tasks/page';
 import TeamPage from './pages/team/page';
+import UsersPage from './pages/users/page';
 import ActivityPage from './pages/analytics/page';
+import EmployeePage from './pages/employee/page'
 import NotFound from './pages/not-found';
+import DepartmentPage from './pages/departments/page';
 
 function App() {
   return (
@@ -44,6 +47,21 @@ function App() {
         <Route path="/analytics" element={
           <ProtectedRoute>
             <AppLayout showTopbar={false}><ActivityPage /></AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/users" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><UsersPage /></AppLayout>
+          </ProtectedRoute>
+        } />
+         <Route path="/employee" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><EmployeePage /></AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/departments" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><DepartmentPage /></AppLayout>
           </ProtectedRoute>
         } />
         <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />
