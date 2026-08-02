@@ -70,6 +70,7 @@ export default function DashboardPage() {
           }
         }}
       />
+      <hr className="border-slate-200 my-6" />
 
       {/* KPI Stat Cards */}
       <StatCardsRow projects={filtered.length ? filtered : projects} />

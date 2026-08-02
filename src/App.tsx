@@ -3,8 +3,8 @@ import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/login/page';
 import DashboardPage from './pages/dashboard/page';
-import ProjectsPage from './pages/projects/page';
 import ProjectDetailsPage from './pages/projects/projectdetails';
+import ProjectsPage from './pages/projects/page';
 import TasksPage from './pages/tasks/page';
 import TeamPage from './pages/team/page';
 import UsersPage from './pages/users/page';
@@ -12,6 +12,7 @@ import ActivityPage from './pages/analytics/page';
 import EmployeePage from './pages/employee/page'
 import NotFound from './pages/not-found';
 import DepartmentPage from './pages/departments/page';
+import OrganizationPage from './pages/Organizations/page';
 
 function App() {
   return (
@@ -62,6 +63,11 @@ function App() {
         <Route path="/departments" element={
           <ProtectedRoute>
             <AppLayout showTopbar={false}><DepartmentPage /></AppLayout>
+          </ProtectedRoute>
+        } />
+         <Route path="/Organizations" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><OrganizationPage /></AppLayout>
           </ProtectedRoute>
         } />
         <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />

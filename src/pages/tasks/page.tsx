@@ -474,6 +474,7 @@ export default function TasksPage() {
           New Task
         </button>
       </div>
+      <hr className="border-slate-200 my-6" />
 
       {/* Filter bar */}
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-6 md:items-end">
@@ -936,25 +937,25 @@ const TaskRow = memo(function TaskRow({
         />
       </td>
       <td className="bg-white px-4 py-3 border-b border-slate-100">
-        <div className="font-semibold text-slate-800">{task.title}</div>
-        <div className="text-xs text-slate-500">{task.description}</div>
+        <div className="font-semibold text-slate-800 truncate">{task.title}</div>
+        <div className="text-xs text-slate-500 truncate">{task.description}</div>
       </td>
       <td className="bg-white px-4 py-3 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <div className={`grid h-7 w-7 place-items-center rounded-lg text-sm ${task.project.color}`}>
+        <div className="flex items-center gap-2 min-w-0">
+          <div className={`grid h-7 w-7 place-items-center rounded-lg text-sm ${task.project.color} shrink-0`}>
             {task.project.icon}
           </div>
-          <span className="text-sm text-slate-700">{task.project.name}</span>
+          <span className="text-sm text-slate-700 truncate">{task.project.name}</span>
         </div>
       </td>
       <td className="bg-white px-4 py-3 border-b border-slate-100">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <img
             src={task.assignee.avatar}
             alt={task.assignee.name}
-            className="h-7 w-7 rounded-full object-cover"
+            className="h-7 w-7 rounded-full object-cover shrink-0"
           />
-          <span className="text-sm text-slate-700">{task.assignee.name}</span>
+          <span className="text-sm text-slate-700 truncate">{task.assignee.name}</span>
         </div>
       </td>
       <td className="bg-white px-4 py-3 border-b border-slate-100">

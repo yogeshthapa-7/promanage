@@ -442,6 +442,7 @@ export default function TeamMembersPage() {
           Add Member
         </button>
       </div>
+      <hr className="border-slate-200 my-6" />
 
       {/* Filter and Control Bar */}
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-5 md:items-end">
@@ -637,17 +638,17 @@ export default function TeamMembersPage() {
                       key={emp.id}
                       className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 p-3"
                     >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={emp.avatar}
-                          alt={emp.name}
-                          className="h-9 w-9 rounded-full object-cover ring-2 ring-rose-100"
-                        />
-                        <div>
-                          <div className="text-sm font-semibold text-slate-800">{emp.name}</div>
-                          <div className="text-xs text-slate-500">{emp.title}</div>
-                        </div>
-                      </div>
+                       <div className="flex items-center gap-3 min-w-0 flex-1">
+                         <img
+                           src={emp.avatar}
+                           alt={emp.name}
+                           className="h-9 w-9 rounded-full object-cover ring-2 ring-rose-100 shrink-0"
+                         />
+                         <div className="min-w-0 flex-1 truncate">
+                           <div className="text-sm font-semibold text-slate-800 truncate">{emp.name}</div>
+                           <div className="text-xs text-slate-500 truncate">{emp.title}</div>
+                         </div>
+                       </div>
 
                       <div className="text-right">
                         <div className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 bg-rose-100/60 px-2 py-0.5 rounded-md">
@@ -677,18 +678,18 @@ export default function TeamMembersPage() {
 
               <div className="flex flex-col gap-3.5">
                 {members.slice(0, 4).map((m) => (
-                  <div key={m.id}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-semibold text-slate-700">{m.name}</span>
-                      <span className="font-bold text-slate-800">{m.workload}%</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className={`h-full rounded-full bg-gradient-to-r ${workloadColor(m.workload)}`}
-                        style={{ width: `${m.workload}%` }}
-                      />
-                    </div>
-                  </div>
+                   <div key={m.id}>
+                     <div className="flex items-center justify-between text-xs mb-1">
+                       <span className="font-semibold text-slate-700 truncate">{m.name}</span>
+                       <span className="font-bold text-slate-800">{m.workload}%</span>
+                     </div>
+                     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                       <div
+                         className={`h-full rounded-full bg-gradient-to-r ${workloadColor(m.workload)}`}
+                         style={{ width: `${m.workload}%` }}
+                       />
+                     </div>
+                   </div>
                 ))}
               </div>
             </div>

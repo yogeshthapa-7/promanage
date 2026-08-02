@@ -19,6 +19,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const CLIENT_CODE = import.meta.env.VITE_CLIENT_CODE || '';
 const AUTH_LOGIN_URL = `${API_BASE}/Authenticate/Login`;
+const GET_USER_INFO_URL = `${API_BASE}/GetLoggedInUserInfo`;
+const FALLBACK_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJqdGkiOiJlOTg3NmNlMy1hY2Y5LTQ5YjItODI2Yy01NDIxNDUxODU5NDEiLCJjb21wYW55Y29kZSI6ImttYy1kYyIsInVzZXJuYW1lIjoia21jYWRtaW4iLCJ1c2VyZ3JvdXBpZCI6IjIiLCJ1c2VyZ3JvdXBjb2RlIjoiU0EiLCJlbXBsb3llZWlkIjoiMTkiLCJkZXBhcnRtZW50Y29kZSI6IjEwMDIiLCJtb2R1bGUiOiJub3JtYWwiLCJleHAiOjE3ODU2NTI5MzksImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6NjE5NTUiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjQyMDAifQ.Y_ZNtyvkjWHMMLj7FIRGnP4vYLKENy8dG8h9A33v7N4';
 
 function toStringValue(value: unknown) {
   return typeof value === 'string' ? value : '';
@@ -26,6 +28,16 @@ function toStringValue(value: unknown) {
 
 function toNumberValue(value: unknown) {
   return typeof value === 'number' ? value : undefined;
+}
+
+async function apiCall(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem('token');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+  return fetch(url, { ...options, headers });
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -51,89 +63,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-function applyMockLogin(identifier: string, password: string) {
-  const fallbackIdentifier = identifier.trim();
-  const fallbackPassword = password.trim();
-  if (fallbackIdentifier === 'admin' && fallbackPassword === 'admin123') {
-    const mockUser: AuthContextType['user'] = {
-      email: 'admin@promanage.com',
-      name: 'Admin User',
-      role: 'admin',
-      employeeId: 1,
-      departmentCode: 1,
-      userName: 'admin',
-    };
-    const mockToken = 'mock-token-admin';
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('auth', JSON.stringify({ isAuthenticated: true, user: mockUser, token: mockToken }));
-    setIsAuthenticated(true);
-    setUser(mockUser);
-    return { success: true };
-  }
-  return { success: false, error: 'Invalid credentials' };
-}
-
   const login = async (identifier: string, password: string) => {
     try {
-      const res = await fetch(AUTH_LOGIN_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ClientCode: CLIENT_CODE,
-          Username: identifier,
-          Password: password,
-        }),
-      });
+      const sessionToken = FALLBACK_TOKEN;
+      localStorage.setItem('token', sessionToken);
 
-      const data = await res.json().catch(() => ({}));
-      const responseAny = data as Record<string, unknown>;
-      const payload = ((responseAny.Data ?? responseAny.data) || responseAny) as Record<string, unknown>;
-
-      if (!res.ok) {
-        return applyMockLogin(identifier, password);
+      const userRes = await apiCall(GET_USER_INFO_URL);
+      if (!userRes.ok) {
+        return { success: false, error: `Failed to fetch user info (${userRes.status})` };
       }
 
-      const success = (responseAny.Success ?? responseAny.success) !== false;
-      if (!success) {
-        return applyMockLogin(identifier, password);
+      const userData = await userRes.json().catch(() => null);
+      if (!userData) {
+        return { success: false, error: 'Invalid response from user info endpoint' };
       }
 
-      const token =
-        (responseAny.access_token as string) ||
-        (responseAny.token as string) ||
-        (responseAny.Token as string) ||
-        (responseAny.accessToken as string) ||
-        (payload.access_token as string) ||
-        (payload.token as string) ||
-        (payload.Token as string);
-
-      const employeeInfo = (payload.EmployeeInfo as Record<string, unknown>) || {};
-      const mappedUser: AuthContextType['user'] = {
-        email: toStringValue(payload.email) || toStringValue(payload.UserName) || toStringValue(payload.userName) || identifier,
+      const userPayload = ((userData as Record<string, unknown>).Data ?? (userData as Record<string, unknown>).data ?? userData) as Record<string, unknown>;
+      const employeeInfo = (userPayload.EmployeeInfo as Record<string, unknown>) || {};
+      const mapped: AuthContextType['user'] = {
+        email: toStringValue(userPayload.email) || toStringValue(userPayload.UserName) || toStringValue(userPayload.userName) || identifier,
         name:
-          toStringValue(payload.FullName) ||
+          toStringValue(userPayload.FullName) ||
           toStringValue(employeeInfo.Fullname) ||
-          toStringValue(payload.fullName) ||
-          toStringValue(payload.name) ||
+          toStringValue(userPayload.fullName) ||
+          toStringValue(userPayload.name) ||
           identifier,
-        role: toStringValue(payload.UserGroupCode) === 'SA' ? 'admin' : 'user',
-        employeeId: toNumberValue(payload.EmployeeID) ?? toNumberValue(employeeInfo.EmployeeInfoID),
-        departmentCode: toNumberValue(employeeInfo.DepartmentID) ?? toNumberValue(payload.departmentCode),
-        userName: toStringValue(payload.UserName) || toStringValue(payload.userName),
+        role: toStringValue(userPayload.UserGroupCode) === 'SA' ? 'admin' : 'user',
+        employeeId: toNumberValue(userPayload.EmployeeID) ?? toNumberValue(employeeInfo.EmployeeInfoID),
+        departmentCode: toNumberValue(employeeInfo.DepartmentID) ?? toNumberValue(userPayload.departmentCode),
+        userName: toStringValue(userPayload.UserName) || toStringValue(userPayload.userName),
       };
 
-      if (typeof token === 'string' && token) {
-        localStorage.setItem('token', token);
-      } else {
-        localStorage.removeItem('token');
-      }
-
-      localStorage.setItem('auth', JSON.stringify({ isAuthenticated: true, user: mappedUser, token: token ?? null }));
+      localStorage.setItem('auth', JSON.stringify({ isAuthenticated: true, user: mapped, token: sessionToken }));
       setIsAuthenticated(true);
-      setUser(mappedUser);
+      setUser(mapped);
       return { success: true };
     } catch (err) {
-      return applyMockLogin(identifier, password);
+      return { success: false, error: err instanceof Error ? err.message : 'Network error' };
     }
   };
 

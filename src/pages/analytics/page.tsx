@@ -294,6 +294,7 @@ export default function AnalyticsPage() {
           </button>
         </div>
       </div>
+      <hr className="border-slate-200 my-6" />
 
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         {kpis.slice(0, 4).map((c) => (

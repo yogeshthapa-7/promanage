@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useLayoutEffect, useRef, useCallback, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -20,11 +20,10 @@ import {
 import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import Pagination from '@/components/ui/Pagination';
-import ProjectModal from '@/components/modal';
-import { projects as fallbackProjects, toProjectFormData, mapApiProjectToProject } from '@/lib/projects-data';
+import { projects as fallbackProjects, mapApiProjectToProject } from '@/lib/projects-data';
 import type { ProjectStatus, Project } from '@/lib/projects-data';
-import type { ProjectFormData } from '@/components/modal';
 import { getStatCards } from '@/pages/dashboard/components/statCardsData';
+import ProjectFormModal from './Create';
 
 interface ApiProject {
   ProjectInfoID: number;
@@ -82,7 +81,7 @@ const serverSearchBody = {
       { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
       { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
     ],
-      search: { value: '', regex: '' },
+    search: { value: '', regex: '' },
     order: [{ column: 0, dir: 'desc' }],
   },
   param: {
@@ -123,32 +122,13 @@ export default function ProjectsPage() {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [sortOpen, setSortOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [modalKey, setModalKey] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const pageSize = 9;
 
-  const location = useLocation();
-  const processedEditIdRef = useRef<string | null>(null);
-
-  useLayoutEffect(() => {
-    const state = location.state as { editProjectId?: string } | null;
-    if (state?.editProjectId && state.editProjectId !== processedEditIdRef.current) {
-      processedEditIdRef.current = state.editProjectId;
-      const projectToEdit = projects.find((p) => p.id === state.editProjectId);
-      if (projectToEdit) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setEditingProject(projectToEdit);
-        setIsModalOpen(true);
-        window.history.replaceState({}, document.title);
-      }
-    }
-  }, [location.state, projects]);
-
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
     let cancelled = false;
     setLoading(true);
     fetchProjects()
@@ -167,7 +147,6 @@ export default function ProjectsPage() {
     return () => {
       cancelled = true;
     };
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   const statusOptions: (ProjectStatus | 'All')[] = [
@@ -192,31 +171,43 @@ export default function ProjectsPage() {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const openNewModal = () => {
+  const openCreateModal = () => {
     setEditingProject(null);
-    setModalKey((k) => k + 1);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (project: typeof projects[0]) => {
-    setEditingProject(project);
-    setIsModalOpen(true);
+  const openEditModal = async (project: Project) => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        ...serverSearchBody,
+        param: { ProjectInfoID: Number(project.id) },
+      }),
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    const raw = (json.data ?? []).find((p: ApiProject) => String(p.ProjectInfoID) === project.id);
+    if (raw) {
+      setEditingProject(raw);
+      setIsModalOpen(true);
+    }
   };
 
-  const closeModal = useCallback(() => {
+  const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingProject(null);
-  }, []);
+  };
 
-  const handleSave = useCallback(
-    (_data: ProjectFormData) => {
-      void _data;
-      showToast(editingProject ? 'Project updated successfully' : 'Project created successfully');
-    },
-    [editingProject]
-  );
+  const handleModalSuccess = () => {
+    fetchProjects().then(setProjects);
+  };
 
-  const handleViewProject = (project: typeof projects[0]) => {
+  const handleViewProject = (project: Project) => {
     navigate(`/projects/${project.id}`);
   };
 
@@ -445,7 +436,7 @@ export default function ProjectsPage() {
 
           {/* New Project Button */}
           <button
-            onClick={openNewModal}
+            onClick={openCreateModal}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#6366F1] text-white text-xs font-semibold shadow-md hover:shadow-purple-500/20 active:scale-95 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -453,6 +444,7 @@ export default function ProjectsPage() {
           </button>
         </div>
       </div>
+      <hr className="border-slate-200 my-6" />
 
       {loading ? (
         <Card className="p-8 text-center">
@@ -499,7 +491,7 @@ export default function ProjectsPage() {
                     <Card
                       key={project.id}
                       hover
-                      className="flex flex-col min-h-[320px] cursor-pointer"
+                      className="flex flex-col min-h-[320px] cursor-pointer overflow-hidden"
                       onClick={() => handleViewProject(project)}
                     >
                   {/* Top content grows to fill available space */}
@@ -731,12 +723,11 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      <ProjectModal
-        key={editingProject ? `edit-${editingProject.id}` : `new-${modalKey}`}
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSave={handleSave}
-        initialData={editingProject ? toProjectFormData(editingProject) : null}
+      <ProjectFormModal
+        open={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+        editingProject={editingProject}
       />
     </div>
   );

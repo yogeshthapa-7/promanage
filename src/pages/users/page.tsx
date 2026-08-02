@@ -1,53 +1,74 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
-  Search,
   UserPlus,
 } from 'lucide-react';
-import { Modal, Form, Input, Select, message } from 'antd';
 import Pagination from '@/components/ui/Pagination';
-import { fetchUsers, ROLE_STYLE } from '@/lib/users-data';
+import { fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/lib/users-data';
 import type { User } from '@/lib/users-data';
+import UserFormModal from './Create';
 
 export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [titleFilter, setTitleFilter] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [totalFiltered, setTotalFiltered] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [editUser, setEditUser] = useState<User | null>(null);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [editForm] = Form.useForm();
-  const [inviteForm] = Form.useForm();
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [userGroups, setUserGroups] = useState<{ UserGroupId: number; UserGroupName: string }[]>([]);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setLoading(true);
-    fetchUsers({ search: searchQuery, start: (currentPage - 1) * pageSize, length: pageSize })
+    fetchUsers({ search: searchQuery, start: 0, length: 10000 })
       .then((result) => {
         setUsers(result.users);
-        setTotalFiltered(result.filtered);
         setLoading(false);
       })
       .catch(() => {
         setLoading(false);
       });
-  }, [searchQuery, currentPage, pageSize]);
+  }, [searchQuery, refreshKey]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
+  useEffect(() => {
+    fetchUserGroups().then((groups) => {
+      setUserGroups(groups);
+    });
+  }, []);
 
-  const filteredUsers = users;
+  const filteredUsers = useMemo(() => {
+    let result = users;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (u) =>
+          u.name.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q)
+      );
+    }
+    if (titleFilter.trim()) {
+      const q = titleFilter.toLowerCase();
+      result = result.filter((u) => u.title.toLowerCase().includes(q));
+    }
+    if (roleFilter) {
+      result = result.filter((u) => u.role === roleFilter);
+    }
+    return result;
+  }, [users, searchQuery, titleFilter, roleFilter]);
+
+  const totalFiltered = filteredUsers.length;
+  const start = (currentPage - 1) * pageSize;
+  const paginatedUsers = filteredUsers.slice(start, start + pageSize);
 
   const handleEditUser = (user: User) => {
     setEditUser(user);
-    editForm.setFieldsValue({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      title: user.title,
-      department: user.department,
-      status: user.status,
-    });
+    setShowUserModal(true);
   };
 
   const handleDeleteUser = (user: User) => {
@@ -73,34 +94,67 @@ export default function UsersPage() {
         </div>
 
         <button
-          onClick={() => setShowInviteModal(true)}
+          onClick={() => setShowUserModal(true)}
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 shadow-sm"
         >
           <UserPlus className="h-4 w-4" strokeWidth={2.5} />
           Add User
         </button>
       </div>
+      <hr className="border-slate-200 my-6" />
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
-        <div className="md:col-span-2">
-          <div className="mb-1 text-xs font-medium text-slate-500">Search Category Group</div>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                placeholder="Search user or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-              />
-            </div>
-            <button
-              onClick={() => setSearchQuery(searchQuery)}
-              className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
-            >
-              Search
-            </button>
-          </div>
+        <div>
+          <div className="mb-1 text-xs font-medium text-slate-500">Username / Email</div>
+          <input
+            placeholder="Search by username or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          />
+        </div>
+        <div>
+          <div className="mb-1 text-xs font-medium text-slate-500">Content</div>
+          <input
+            placeholder="Search by content..."
+            value={titleFilter}
+            onChange={(e) => setTitleFilter(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          />
+        </div>
+        <div>
+          <div className="mb-1 text-xs font-medium text-slate-500">User Group</div>
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          >
+            <option value="">All Groups</option>
+            {userGroups.map((group) => (
+              <option key={group.UserGroupId} value={group.UserGroupName}>
+                {group.UserGroupName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCurrentPage(1)}
+            className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+          >
+            Search
+          </button>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setTitleFilter('');
+              setRoleFilter('');
+              setCurrentPage(1);
+            }}
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Clear
+          </button>
         </div>
       </div>
 
@@ -144,14 +198,14 @@ export default function UsersPage() {
                     Loading users...
                   </td>
                 </tr>
-              ) : filteredUsers.length === 0 ? (
+              ) : paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">
                     No users found
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => (
+                paginatedUsers.map((u) => (
                   <UserRow
                     key={u.id}
                     user={u}
@@ -177,113 +231,18 @@ export default function UsersPage() {
         />
       </div>
 
-      <Modal
-        open={editUser !== null}
-        title="Edit User"
-        okText="Save Changes"
-        cancelText="Cancel"
-        onOk={() => {
-          editForm.validateFields().then((values) => {
-            setUsers((prev) =>
-              prev.map((u) =>
-                u.id === editUser?.id ? { ...u, ...values } : u
-              )
-            );
-            setEditUser(null);
-            message.success('User updated successfully');
-          });
+      <UserFormModal
+        open={showUserModal}
+        onClose={() => {
+          setShowUserModal(false);
+          setEditUser(null);
         }}
-        onCancel={() => setEditUser(null)}
-      >
-        <Form form={editForm} layout="vertical">
-          <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="email" label="Email Address" rules={[{ required: true, type: 'email' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="title" label="Job Title" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="department" label="Department" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="role" label="Role" rules={[{ required: true }]}>
-            <Select
-              options={[
-                { value: 'Admin', label: 'Admin' },
-                { value: 'Manager', label: 'Manager' },
-                { value: 'Developer', label: 'Developer' },
-                { value: 'Designer', label: 'Designer' },
-                { value: 'Member', label: 'Member' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
-            <Select
-              options={[
-                { value: 'Active', label: 'Active' },
-                { value: 'Inactive', label: 'Inactive' },
-                { value: 'Suspended', label: 'Suspended' },
-              ]}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        open={showInviteModal}
-        title="Add New User"
-        okText="Create User"
-        cancelText="Cancel"
-        onOk={() => {
-          inviteForm.validateFields().then((values) => {
-            const newUser: User = {
-              id: Date.now().toString(),
-              name: values.name,
-              email: values.email,
-              role: values.role || 'Member',
-              title: values.title || 'Team Member',
-              department: values.department || 'General',
-              avatar: `https://i.pravatar.cc/64?img=${Math.floor(Math.random() * 50)}`,
-              status: 'Active',
-              lastActive: 'Just now',
-              projectsCount: 0,
-            };
-            setUsers((prev) => [newUser, ...prev]);
-            setShowInviteModal(false);
-            inviteForm.resetFields();
-            message.success('User created successfully');
-          });
+        editingUser={editUser}
+        onSuccess={() => {
+          setRefreshKey((k) => k + 1);
+          setCurrentPage(1);
         }}
-        onCancel={() => setShowInviteModal(false)}
-      >
-        <Form form={inviteForm} layout="vertical">
-          <Form.Item name="name" label="Full Name" rules={[{ required: true, message: 'Please enter full name' }]}>
-            <Input placeholder="e.g. Alex Rivera" />
-          </Form.Item>
-          <Form.Item name="email" label="Email Address" rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}>
-            <Input placeholder="alex.rivera@company.com" />
-          </Form.Item>
-          <Form.Item name="title" label="Job Title">
-            <Input placeholder="e.g. Senior Developer" />
-          </Form.Item>
-          <Form.Item name="department" label="Department">
-            <Input placeholder="e.g. Engineering" />
-          </Form.Item>
-          <Form.Item name="role" label="Role" initialValue="Member">
-            <Select
-              options={[
-                { value: 'Admin', label: 'Admin' },
-                { value: 'Manager', label: 'Manager' },
-                { value: 'Developer', label: 'Developer' },
-                { value: 'Designer', label: 'Designer' },
-                { value: 'Member', label: 'Member' },
-              ]}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+      />
     </div>
   );
 }
@@ -332,34 +291,5 @@ function UserRow({
         </div>
       </td>
     </tr>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  onSelect,
-  options,
-}: {
-  label: string;
-  value: string;
-  onSelect: (val: string) => void;
-  options: string[];
-}) {
-  return (
-    <div>
-      <div className="mb-1 text-xs font-medium text-slate-500">{label}</div>
-      <select
-        value={value}
-        onChange={(e) => onSelect(e.target.value)}
-        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </div>
   );
 }

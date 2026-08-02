@@ -12,6 +12,7 @@ import {
   LogOut,
   ChartLine,
   Building,
+  Building2,
 } from 'lucide-react';
 import { User } from 'lucide-react';
 
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { id: 'users', label: 'Users', icon: <Users size={18} />, href: '/users', section: 'TEAM' },
   { id: 'employee', label: 'Employee', icon: <User size={18} />, href: '/employee', section: 'TEAM' },
   { id: 'departments', label: 'department', icon: <Building size={18} />, href: '/departments', section: 'TEAM' },
+  { id: 'organizations', label: 'Organization', icon: <Building2 size={18} />, href: '/Organizations', section: 'TEAM' },
 ];
 
 interface SidebarProps {
@@ -50,6 +52,7 @@ function getActiveNavId(pathname: string): string {
     '/users': 'users',
     '/employee':'employee',
     '/departments':'departments',
+    '/organizations':'organizations',
   };
   return map[pathname] ?? 'dashboard';
 }

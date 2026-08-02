@@ -33,6 +33,34 @@ interface ApiUserResponse {
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/Users/ServerSearch`;
+export const USER_GROUP_API_URL = `${API_BASE}/UserGroup/SelectList`;
+
+export interface UserGroup {
+  UserGroupId: number;
+  UserGroupName: string;
+  UserGroupCode: string;
+  IsActive: boolean;
+  AllowWebLogin: boolean;
+}
+
+export async function fetchUserGroups(): Promise<UserGroup[]> {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(USER_GROUP_API_URL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    if (!res.ok) throw new Error(`Failed to fetch user groups: ${res.statusText}`);
+    const json = await res.json();
+    const rows = Array.isArray(json) ? (json as UserGroup[]) : [];
+    return rows;
+  } catch {
+    return [];
+  }
+}
 
 interface FetchUsersParams {
   search: string;
