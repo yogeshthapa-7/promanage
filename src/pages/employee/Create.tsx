@@ -210,8 +210,6 @@ export default function EmployeeSetupModal({
         BranchID: editingEmployee.BranchID,
         OrganizationOfficeID: editingEmployee.OrganizationOfficeID,
         EmployeeStatus: editingEmployee.EmpStatus,
-        Username: '',
-        Password: '',
       });
     } else if (!open) {
       form.resetFields();
@@ -246,7 +244,7 @@ export default function EmployeeSetupModal({
       const token = localStorage.getItem('token');
       const employeeId = isEdit ? Number(editingEmployee?.EmployeeInfoID) : 0;
 
-      const body = {
+      const body: Record<string, unknown> = {
         EmployeeInfoID: employeeId,
         Fullname: values.Fullname,
         Address: values.Address || '',
@@ -259,12 +257,18 @@ export default function EmployeeSetupModal({
         DepartmentName: '',
         BranchID: values.BranchID || 0,
         MainBranchID: values.MainBranchID || 0,
-        Username: values.Username || '',
-        Password: values.Password || '',
-        ConfirmPassword: values.confirmPassword || '',
         Photo: '',
         EmpStatus: values.EmployeeStatus || 1,
       };
+
+      if (isEdit) {
+        if (values.Username) body.Username = values.Username;
+        if (values.Password) body.Password = values.Password;
+      } else {
+        body.Username = values.Username || '';
+        body.Password = values.Password || '';
+        body.ConfirmPassword = values.confirmPassword || '';
+      }
 
       const res = await fetch('https://datacollection.kathmandu.gov.np:8080/SaveEmployeeInfo', {
         method: 'POST',
@@ -491,7 +495,7 @@ export default function EmployeeSetupModal({
               <Form.Item
                 label={<span className="text-slate-700 font-semibold text-[13px]">प्रयोगकर्ता नाम<span className="text-red-500 ml-0.5">*</span></span>}
                 name="Username"
-                rules={[{ required: true, message: 'कृपया प्रयोगकर्ता नाम प्रविष्ट गर्नुहोस्' }]}
+                rules={isEdit ? [] : [{ required: true, message: 'कृपया प्रयोगकर्ता नाम प्रविष्ट गर्नुहोस्' }]}
               >
                 <Input className="rounded-md" />
               </Form.Item>

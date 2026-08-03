@@ -1,12 +1,23 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Download, Printer, Upload } from 'lucide-react';
 import { Modal, message, Button } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 export default function EmployeePage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,52 +28,39 @@ export default function EmployeePage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalFiltered, setTotalFiltered] = useState(0);
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const fetchData = useCallback(() => {
     setLoading(true);
     fetchEmployees({
-      search: searchQuery,
-      start: 0,
-      length: 10000,
+      search: debouncedSearch,
+      start: (currentPage - 1) * pageSize,
+      length: pageSize,
+      fullname: fullnameFilter,
+      address: addressFilter,
+      phone: phoneFilter,
     })
       .then((result) => {
         setEmployees(result.employees);
+        setTotalFiltered(result.filtered);
         setLoading(false);
       })
       .catch((err) => {
         console.error('Failed to fetch employees:', err);
         setLoading(false);
       });
-  }, [searchQuery, refreshKey]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [debouncedSearch, currentPage, pageSize, fullnameFilter, addressFilter, phoneFilter]);
 
-  const filteredEmployees = useMemo(() => {
-    let result = employees;
-    if (fullnameFilter.trim()) {
-      const q = fullnameFilter.toLowerCase();
-      result = result.filter((e) => e.Fullname.toLowerCase().includes(q));
-    }
-    if (addressFilter.trim()) {
-      const q = addressFilter.toLowerCase();
-      result = result.filter((e) => e.Address.toLowerCase().includes(q));
-    }
-    if (phoneFilter.trim()) {
-      const q = phoneFilter;
-      result = result.filter((e) => e.Phone.includes(q));
-    }
-    return result;
-  }, [employees, fullnameFilter, addressFilter, phoneFilter]);
-
-  const totalFiltered = filteredEmployees.length;
-  const start = (currentPage - 1) * pageSize;
-  const paginatedEmployees = filteredEmployees.slice(start, start + pageSize);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleEditEmployee = (employee: Employee) => {
     setEditEmployee(employee);
@@ -89,6 +87,7 @@ export default function EmployeePage() {
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
       setEmployees((prev) => prev.filter((e) => e.EmployeeInfoID !== deleteTarget.EmployeeInfoID));
+      setTotalFiltered((prev) => prev - 1);
       message.success('Employee removed successfully');
       setDeleteTarget(null);
     } catch (err) {
@@ -114,7 +113,7 @@ export default function EmployeePage() {
 
   const handleCopy = () => {
     const headers = ['S.N.', 'Full Name', 'Address', 'Phone', 'Email', 'DOB', 'Department Name', 'Branch Name'];
-    const rows = filteredEmployees.map((emp) => [
+    const rows = employees.map((emp) => [
       emp.SN,
       emp.Fullname,
       emp.Address,
@@ -134,7 +133,7 @@ export default function EmployeePage() {
 
   const handleCSVExport = () => {
     const headers = ['S.N.', 'Full Name', 'Address', 'Phone', 'Email', 'DOB', 'Department Name', 'Branch Name'];
-    const rows = filteredEmployees.map((emp) => [
+    const rows = employees.map((emp) => [
       emp.SN,
       emp.Fullname,
       emp.Address,
@@ -156,7 +155,7 @@ export default function EmployeePage() {
   };
 
   const handleExcelExport = () => {
-    const data = filteredEmployees.map((emp) => ({
+    const data = employees.map((emp) => ({
       'S.N.': emp.SN,
       'Full Name': emp.Fullname,
       Address: emp.Address,
@@ -359,6 +358,9 @@ export default function EmployeePage() {
             </button>
           </div>
         </div>
+        <div className="mb-2 text-sm text-slate-500">
+          Showing {employees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + employees.length} of {totalFiltered} entries
+        </div>
         <div className="overflow-x-auto rounded-xl bg-white border border-slate-200">
           <table className="w-full border-separate border-spacing-y-1.5">
             <thead>
@@ -381,14 +383,14 @@ export default function EmployeePage() {
                     Loading employees...
                   </td>
                 </tr>
-              ) : paginatedEmployees.length === 0 ? (
+              ) : employees.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-400">
                     No employees found
                   </td>
                 </tr>
               ) : (
-                paginatedEmployees.map((emp) => (
+                employees.map((emp) => (
                   <tr key={emp.EmployeeInfoID} className="text-sm text-slate-700">
                     <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
                       {emp.SN}
@@ -459,21 +461,7 @@ export default function EmployeePage() {
           setEditEmployee(null);
         }}
         editingEmployee={editEmployee}
-        onSuccess={async (savedEmployee) => {
-          if (savedEmployee?.EmployeeInfoID) {
-            setEmployees((prev) => {
-              if (prev.some((e) => e.EmployeeInfoID === savedEmployee.EmployeeInfoID)) {
-                return prev;
-              }
-              return [...prev, savedEmployee];
-            });
-          } else {
-            setRefreshKey((k) => k + 1);
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            setRefreshKey((k) => k + 1);
-          }
-          setCurrentPage(1);
-        }}
+        onSuccess={fetchData}
       />
 
       <Modal

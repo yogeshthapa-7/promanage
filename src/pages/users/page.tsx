@@ -1,13 +1,25 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   UserPlus,
 } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
-import { fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/lib/users-data';
+import { fetchUsers, ROLE_STYLE, fetchUserGroups, deleteUser } from '@/lib/users-data';
 import type { User } from '@/lib/users-data';
 import UserFormModal from './Create';
+import { message, Modal } from 'antd';
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,24 +29,36 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalFiltered, setTotalFiltered] = useState(0);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [userGroups, setUserGroups] = useState<{ UserGroupId: number; UserGroupName: string }[]>([]);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const fetchData = useCallback(() => {
     setLoading(true);
-    fetchUsers({ search: searchQuery, start: 0, length: 10000 })
+    fetchUsers({
+      search: debouncedSearch,
+      start: (currentPage - 1) * pageSize,
+      length: pageSize,
+      theme: titleFilter,
+      role: roleFilter,
+    })
       .then((result) => {
         setUsers(result.users);
+        setTotalFiltered(result.filtered);
         setLoading(false);
       })
       .catch(() => {
         setLoading(false);
+        message.error('Failed to load users');
       });
-  }, [searchQuery, refreshKey]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [debouncedSearch, currentPage, pageSize, titleFilter, roleFilter]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     fetchUserGroups().then((groups) => {
@@ -42,29 +66,7 @@ export default function UsersPage() {
     });
   }, []);
 
-  const filteredUsers = useMemo(() => {
-    let result = users;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (u) =>
-          u.name.toLowerCase().includes(q) ||
-          u.email.toLowerCase().includes(q)
-      );
-    }
-    if (titleFilter.trim()) {
-      const q = titleFilter.toLowerCase();
-      result = result.filter((u) => u.title.toLowerCase().includes(q));
-    }
-    if (roleFilter) {
-      result = result.filter((u) => u.role === roleFilter);
-    }
-    return result;
-  }, [users, searchQuery, titleFilter, roleFilter]);
-
-  const totalFiltered = filteredUsers.length;
-  const start = (currentPage - 1) * pageSize;
-  const paginatedUsers = filteredUsers.slice(start, start + pageSize);
+  const paginatedUsers = users;
 
   const handleEditUser = (user: User) => {
     setEditUser(user);
@@ -77,8 +79,15 @@ export default function UsersPage() {
       content: `Are you sure you want to remove ${user.name} from the workspace?`,
       okText: 'Remove',
       okType: 'danger',
-      onOk: () => {
-        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      onOk: async () => {
+        const userId = Number(user.id);
+        const result = await deleteUser(userId);
+        if (result.success) {
+          setUsers((prev) => prev.filter((u) => u.id !== user.id));
+          setTotalFiltered((prev) => prev - 1);
+        } else {
+          message.error(result.message || 'Failed to delete user');
+        }
       },
     });
   };
@@ -114,13 +123,13 @@ export default function UsersPage() {
           />
         </div>
         <div>
-          <div className="mb-1 text-xs font-medium text-slate-500">Content</div>
-          <input
-            placeholder="Search by content..."
-            value={titleFilter}
-            onChange={(e) => setTitleFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          />
+<div className="mb-1 text-xs font-medium text-slate-500">Theme</div>
+           <input
+             placeholder="Search by theme..."
+             value={titleFilter}
+             onChange={(e) => setTitleFilter(e.target.value)}
+             className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
+           />
         </div>
         <div>
           <div className="mb-1 text-xs font-medium text-slate-500">User Group</div>
@@ -187,7 +196,7 @@ export default function UsersPage() {
                 <th className="rounded-l-xl bg-slate-50 px-5 py-3">Username</th>
                 <th className="bg-slate-50 px-4 py-3">Full name</th>
                 <th className="bg-slate-50 px-4 py-3">User Group</th>
-                <th className="bg-slate-50 px-4 py-3">Content</th>
+                <th className="bg-slate-50 px-4 py-3">Theme</th>
                 <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Action</th>
               </tr>
             </thead>
@@ -238,10 +247,8 @@ export default function UsersPage() {
           setEditUser(null);
         }}
         editingUser={editUser}
-        onSuccess={() => {
-          setRefreshKey((k) => k + 1);
-          setCurrentPage(1);
-        }}
+        existingUsers={users}
+        onSuccess={fetchData}
       />
     </div>
   );
@@ -272,7 +279,7 @@ function UserRow({
         </span>
       </td>
       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-        {user.title}
+        {user.theme}
       </td>
       <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
         <div className="flex items-center justify-end gap-2">

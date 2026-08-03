@@ -12,6 +12,9 @@ export interface User {
   status: UserStatus;
   lastActive: string;
   projectsCount: number;
+  userGroupId: number;
+  organizationId: number;
+  theme: string;
 }
 
 interface ApiUser {
@@ -19,8 +22,10 @@ interface ApiUser {
   UserName: string;
   FullName: string;
   UserGroupId: number;
+  UserGroupCode: string;
   UserGroupName: string;
   Theme: string;
+  OrganizationID: number;
   [key: string]: unknown;
 }
 
@@ -34,6 +39,8 @@ interface ApiUserResponse {
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/Users/ServerSearch`;
 export const USER_GROUP_API_URL = `${API_BASE}/UserGroup/SelectList`;
+export const SAVE_USER_URL = `${API_BASE}/SaveUserPublic`;
+export const DELETE_USER_URL = `${API_BASE}/DeleteUser`;
 
 export interface UserGroup {
   UserGroupId: number;
@@ -66,6 +73,8 @@ interface FetchUsersParams {
   search: string;
   start: number;
   length: number;
+  theme?: string;
+  role?: string;
 }
 
 interface FetchUsersResult {
@@ -82,14 +91,14 @@ function buildSearchBody(params: FetchUsersParams) {
       length: params.length,
       search: { value: params.search, regex: '' },
     },
-    param: {
+param: {
       UserId: 0,
       UserName: '',
       FullName: '',
       Password: '',
       UserGroupId: 0,
-      UserGroupName: '',
-      Theme: '',
+      UserGroupName: params.role || '',
+      Theme: params.theme || '',
     },
   };
 }
@@ -125,15 +134,18 @@ export async function fetchUsers(
 function mapApiUserToUser(apiUser: ApiUser): User {
   return {
     id: String(apiUser.UserId),
-    name: '',
+    name: apiUser.FullName || '',
     email: apiUser.UserName,
     role: (apiUser.UserGroupName || 'Employee') as UserRole,
-    title: apiUser.Theme || '',
+    title: '',
     department: '',
     avatar: '',
     status: 'Active',
     lastActive: '',
     projectsCount: 0,
+    userGroupId: apiUser.UserGroupId,
+    organizationId: apiUser.OrganizationID || 0,
+    theme: apiUser.Theme || 'Facebook',
   };
 }
 
@@ -142,6 +154,102 @@ export const STATUS_STYLE: Record<UserStatus, string> = {
   Inactive: 'bg-slate-50 text-slate-600 border-slate-200/60',
   Suspended: 'bg-rose-50 text-rose-600 border-rose-200/60',
 };
+
+export interface OrganizationSelect {
+  OrganizationID: number;
+  Title: string;
+}
+
+export const ORGANIZATION_API_URL = `${API_BASE}/Organization/SelectList`;
+
+export async function fetchOrganizations(): Promise<OrganizationSelect[]> {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(ORGANIZATION_API_URL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    if (!res.ok) throw new Error(`Failed to fetch organizations: ${res.statusText}`);
+    const json = await res.json();
+    const rows = Array.isArray(json) ? (json as OrganizationSelect[]) : [];
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+export interface SaveUserPayload {
+  UserId: number;
+  UserName: string;
+  FullName: string;
+  Password: string;
+  CPassword: string;
+  OrganizationID: number;
+  Theme: string;
+  UserGroupCode: string;
+  UserGroupId: number;
+}
+
+export interface SaveUserResult {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export async function saveUser(payload: SaveUserPayload): Promise<SaveUserResult> {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(SAVE_USER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (json.Success === false) {
+      const msg = json.Message || '';
+      return { success: false, message: msg ? `Save failed: ${msg}` : 'Save failed. Check the payload or user group permissions.', data: json.Data };
+    }
+    if (!res.ok) throw new Error(`Failed to save user: ${res.statusText}`);
+    return { success: true, message: 'User saved successfully', data: json.Data };
+  } catch (err) {
+    if (err instanceof Error) {
+      return { success: false, message: err.message };
+    }
+    return { success: false, message: 'An unknown error occurred' };
+  }
+}
+
+export async function deleteUser(userId: number): Promise<SaveUserResult> {
+  try {
+    const token = localStorage.getItem('token');
+    const url = `${DELETE_USER_URL}?userid=${userId}`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    const json = await res.json();
+    if (json.Success === false) {
+      const msg = json.Message || '';
+      return { success: false, message: msg ? `Delete failed: ${msg}` : 'Delete failed. The user may have dependent records.', data: json.Data };
+    }
+    if (!res.ok) throw new Error(`Failed to delete user: ${res.statusText}`);
+    return { success: true, message: 'User deleted successfully', data: json.Data };
+  } catch (err) {
+    if (err instanceof Error) {
+      return { success: false, message: err.message };
+    }
+    return { success: false, message: 'An unknown error occurred' };
+  }
+}
 
 export const ROLE_STYLE: Record<UserRole, string> = {
   Admin: 'bg-violet-50 text-violet-600 border-violet-200/60',
