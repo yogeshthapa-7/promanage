@@ -6,7 +6,6 @@ import { Modal, Form, Input, Select, DatePicker, Upload, Button, Row, Col, messa
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { Employee } from '@/lib/employees-data';
-import { API_URL } from '@/lib/employees-data';
 
 interface EmployeeSetupModalProps {
   open: boolean;
@@ -16,9 +15,9 @@ interface EmployeeSetupModalProps {
 }
 
 const GENDER_OPTIONS = [
-  { value: 1, label: 'पुरुष (Male)' },
-  { value: 2, label: 'महिला (Female)' },
-  { value: 3, label: 'अन्य (Other)' },
+  { value: 1, label: 'Male' },
+  { value: 2, label: 'Female' },
+  { value: 3, label: 'Other' },
 ];
 
 const STATUS_OPTIONS = [
@@ -59,164 +58,178 @@ export default function EmployeeSetupModal({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+
   const [orgOffices, setOrgOffices] = useState<OrgOfficeItem[]>([]);
   const [departments, setDepartments] = useState<DepartmentItem[]>([]);
   const [mainBranches, setMainBranches] = useState<MainBranchItem[]>([]);
   const [branches, setBranches] = useState<BranchItem[]>([]);
-  const [orgOfficesLoading, setOrgOfficesLoading] = useState(false);
-  const [departmentsLoading, setDepartmentsLoading] = useState(false);
-  const [mainBranchesLoading, setMainBranchesLoading] = useState(false);
-  const [branchesLoading, setBranchesLoading] = useState(false);
+
+  const [fetchingData, setFetchingData] = useState(false);
+
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | null>(null);
   const [selectedMainBranchId, setSelectedMainBranchId] = useState<number | null>(null);
+
   const isEdit = !!editingEmployee;
 
+  // Initialize and load data sequence
   useEffect(() => {
-    if (open) {
-      fetchOrgOffices();
-      fetchDepartments();
-      fetchMainBranches();
-      fetchBranches();
-      setSelectedDepartmentId(null);
-      setSelectedMainBranchId(null);
-    }
-  }, [open]);
+    if (!open) return;
 
-  const fetchOrgOffices = async () => {
-    setOrgOfficesLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('https://datacollection.kathmandu.gov.np:8080/OrganizationOffice/SelectList', {
-        headers: {
+    let isMounted = true;
+
+    const initializeModal = async () => {
+      setFetchingData(true);
+      try {
+        const token = localStorage.getItem('token');
+        const headers = {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      if (!res.ok) throw new Error(`Failed to fetch organization offices: ${res.statusText}`);
-      const data: OrgOfficeItem[] = await res.json();
-      setOrgOffices(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message);
-      }
-    } finally {
-      setOrgOfficesLoading(false);
-    }
-  };
+        };
 
-  const fetchDepartments = async () => {
-    setDepartmentsLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('https://datacollection.kathmandu.gov.np:8080/Department/SelectList', {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      if (!res.ok) throw new Error(`Failed to fetch departments: ${res.statusText}`);
-      const data: DepartmentItem[] = await res.json();
-      setDepartments(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message);
-      }
-    } finally {
-      setDepartmentsLoading(false);
-    }
-  };
+        const [resOrg, resDept, resMB, resBranch] = await Promise.all([
+          fetch('https://datacollection.kathmandu.gov.np:8080/OrganizationOffice/SelectList', { headers }),
+          fetch('https://datacollection.kathmandu.gov.np:8080/Department/SelectList', { headers }),
+          fetch('https://datacollection.kathmandu.gov.np:8080/MainBranch/SelectList', { headers }),
+          fetch('https://datacollection.kathmandu.gov.np:8080/Branch/SelectList', { headers }),
+        ]);
 
-  const fetchMainBranches = async () => {
-    setMainBranchesLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('https://datacollection.kathmandu.gov.np:8080/MainBranch/SelectList', {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      if (!res.ok) throw new Error(`Failed to fetch main branches: ${res.statusText}`);
-      const data: MainBranchItem[] = await res.json();
-      setMainBranches(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message);
-      }
-    } finally {
-      setMainBranchesLoading(false);
-    }
-  };
+        const orgData = resOrg.ok ? await resOrg.json() : [];
+        const deptData = resDept.ok ? await resDept.json() : [];
+        const mbData = resMB.ok ? await resMB.json() : [];
+        const branchData = resBranch.ok ? await resBranch.json() : [];
 
-  const fetchBranches = async () => {
-    setBranchesLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('https://datacollection.kathmandu.gov.np:8080/Branch/SelectList', {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      if (!res.ok) throw new Error(`Failed to fetch branches: ${res.statusText}`);
-      const data: BranchItem[] = await res.json();
-      setBranches(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message);
-      }
-    } finally {
-      setBranchesLoading(false);
-    }
-  };
+        if (!isMounted) return;
 
+        setOrgOffices(orgData);
+        setDepartments(deptData);
+        setMainBranches(mbData);
+        setBranches(branchData);
+
+        if (editingEmployee) {
+          // Helper to safely parse numbers and return undefined if 0/null/empty so input stays blank
+          const parseValidId = (val: string | number | null | undefined) => {
+            if (!val) return undefined;
+            const num = Number(val);
+            return isNaN(num) || num === 0 ? undefined : num;
+          };
+
+          const deptId = parseValidId(editingEmployee.DepartmentID);
+          const mainBranchId = parseValidId(editingEmployee.MainBranchID);
+          const branchId = parseValidId(editingEmployee.BranchID);
+          const orgOfficeId = parseValidId(editingEmployee.OrganizationOfficeID);
+
+          setSelectedDepartmentId(deptId ?? null);
+          setSelectedMainBranchId(mainBranchId ?? null);
+
+          form.setFieldsValue({
+            Fullname: editingEmployee.Fullname || '',
+            Address: editingEmployee.Address || '',
+            Phone: editingEmployee.Phone || '',
+            Email: editingEmployee.Email || '',
+            Gender: parseValidId(editingEmployee.Gender) ?? 1,
+            DOB: editingEmployee.DOB ? dayjs(editingEmployee.DOB, ['YYYY/M/D', 'YYYY-MM-DD']) : null,
+            OrganizationOfficeID: orgOfficeId,
+            DepartmentID: deptId,
+            MainBranchID: mainBranchId,
+            BranchID: branchId,
+            EmployeeStatus: parseValidId(editingEmployee.EmpStatus) ?? 1,
+            Username: '',
+            Password: '',
+            confirmPassword: '',
+          });
+        } else {
+          form.resetFields();
+          setSelectedDepartmentId(null);
+          setSelectedMainBranchId(null);
+        }
+      } catch (err) {
+        if (err instanceof Error) message.error(err.message);
+      } finally {
+        if (isMounted) setFetchingData(false);
+      }
+    };
+
+    initializeModal();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open, editingEmployee, form]);
+
+  // Option lists with label protection
   const orgOfficeOptions = orgOffices.map((item) => ({
-    value: item.OrganizationOfficeID,
+    value: Number(item.OrganizationOfficeID),
     label: item.OrganizationOfficeName,
   }));
 
   const departmentOptions = departments.map((item) => ({
-    value: item.DepartmentInfoID,
+    value: Number(item.DepartmentInfoID),
     label: item.DepartmentName,
   }));
 
+  // Preserve named fallback for Department if not in main list
+  if (
+    editingEmployee?.DepartmentID &&
+    Number(editingEmployee.DepartmentID) !== 0 &&
+    !departmentOptions.some((opt) => opt.value === Number(editingEmployee.DepartmentID))
+  ) {
+    departmentOptions.push({
+      value: Number(editingEmployee.DepartmentID),
+      label: editingEmployee.DepartmentName || `Department ${editingEmployee.DepartmentID}`,
+    });
+  }
+
+  // Filter Main Branches with Edit Mode fallback
   const filteredMainBranchOptions = mainBranches
-    .filter((item) => !selectedDepartmentId || item.DepartmentID === selectedDepartmentId)
+    .filter((item) => {
+      if (!selectedDepartmentId) return true;
+      if (Number(item.DepartmentID) === Number(selectedDepartmentId)) return true;
+      if (editingEmployee && Number(item.MainBranchID) === Number(editingEmployee.MainBranchID)) {
+        return true;
+      }
+      return false;
+    })
     .map((item) => ({
-      value: item.MainBranchID,
+      value: Number(item.MainBranchID),
       label: item.MainBranchName,
     }));
 
+  if (
+    editingEmployee?.MainBranchID &&
+    Number(editingEmployee.MainBranchID) !== 0 &&
+    !filteredMainBranchOptions.some((opt) => opt.value === Number(editingEmployee.MainBranchID))
+  ) {
+    filteredMainBranchOptions.push({
+      value: Number(editingEmployee.MainBranchID),
+      label: editingEmployee.MainBranchName || `Main Branch ${editingEmployee.MainBranchID}`,
+    });
+  }
+
+  // Filter Branches with Edit Mode fallback
   const filteredBranchOptions = branches
-    .filter((item) => !selectedMainBranchId || item.MainBranchID === selectedMainBranchId)
+    .filter((item) => {
+      if (!selectedMainBranchId) return true;
+      if (Number(item.MainBranchID) === Number(selectedMainBranchId)) return true;
+      if (editingEmployee && Number(item.BranchID) === Number(editingEmployee.BranchID)) {
+        return true;
+      }
+      return false;
+    })
     .map((item) => ({
-      value: item.BranchID,
+      value: Number(item.BranchID),
       label: item.BranchName,
     }));
 
-  useEffect(() => {
-    if (open && editingEmployee) {
-      setSelectedDepartmentId(editingEmployee.DepartmentID || null);
-      setSelectedMainBranchId(editingEmployee.MainBranchID || null);
-      form.setFieldsValue({
-        Fullname: editingEmployee.Fullname,
-        Address: editingEmployee.Address,
-        Phone: editingEmployee.Phone,
-        Email: editingEmployee.Email,
-        Gender: editingEmployee.Gender,
-        DOB: editingEmployee.DOB ? dayjs(editingEmployee.DOB) : null,
-        DepartmentID: editingEmployee.DepartmentID,
-        MainBranchID: editingEmployee.MainBranchID,
-        BranchID: editingEmployee.BranchID,
-        OrganizationOfficeID: editingEmployee.OrganizationOfficeID,
-        EmployeeStatus: editingEmployee.EmpStatus,
-      });
-    } else if (!open) {
-      form.resetFields();
-      setSelectedDepartmentId(null);
-      setSelectedMainBranchId(null);
-    }
-  }, [open, editingEmployee, form]);
+  if (
+    editingEmployee?.BranchID &&
+    Number(editingEmployee.BranchID) !== 0 &&
+    !filteredBranchOptions.some((opt) => opt.value === Number(editingEmployee.BranchID))
+  ) {
+    filteredBranchOptions.push({
+      value: Number(editingEmployee.BranchID),
+      label: editingEmployee.BranchName || `Branch ${editingEmployee.BranchID}`,
+    });
+  }
 
   const handleDepartmentChange = (value: number) => {
     setSelectedDepartmentId(value);
@@ -244,6 +257,10 @@ export default function EmployeeSetupModal({
       const token = localStorage.getItem('token');
       const employeeId = isEdit ? Number(editingEmployee?.EmployeeInfoID) : 0;
 
+      const selectedDept = departments.find((d) => Number(d.DepartmentInfoID) === Number(values.DepartmentID));
+      const selectedMainBranch = mainBranches.find((mb) => Number(mb.MainBranchID) === Number(values.MainBranchID));
+      const selectedBranch = branches.find((b) => Number(b.BranchID) === Number(values.BranchID));
+
       const body: Record<string, unknown> = {
         EmployeeInfoID: employeeId,
         Fullname: values.Fullname,
@@ -254,9 +271,11 @@ export default function EmployeeSetupModal({
         DOB: values.DOB ? values.DOB.format('YYYY-MM-DD') : '',
         OrganizationOfficeID: values.OrganizationOfficeID || 1,
         DepartmentID: values.DepartmentID || 0,
-        DepartmentName: '',
+        DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
         BranchID: values.BranchID || 0,
+        BranchName: selectedBranch ? selectedBranch.BranchName : '',
         MainBranchID: values.MainBranchID || 0,
+        MainBranchName: selectedMainBranch ? selectedMainBranch.MainBranchName : '',
         Photo: '',
         EmpStatus: values.EmployeeStatus || 1,
       };
@@ -285,7 +304,7 @@ export default function EmployeeSetupModal({
       try {
         savedEmployee = await res.json();
       } catch {
-        // response is not JSON, fall back to refetching
+        // Fallback for non-JSON responses
       }
 
       message.success(
@@ -314,9 +333,10 @@ export default function EmployeeSetupModal({
   return (
     <Modal
       open={open}
+      destroyOnClose
       title={
         <div className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-3">
-          {isEdit ? 'कर्मचारी सम्पादन' : 'कर्मचारी सेटअप फारम'}
+          Employee Setup Form
         </div>
       }
       onCancel={() => {
@@ -353,10 +373,12 @@ export default function EmployeeSetupModal({
       }}
     >
       <Form
+        key={editingEmployee ? editingEmployee.EmployeeInfoID : 'new'}
         form={form}
         layout="vertical"
         size="middle"
         requiredMark={false}
+        autoComplete="off"
         className="employee-setup-form"
       >
         <Row gutter={12}>
@@ -442,11 +464,17 @@ export default function EmployeeSetupModal({
           <Col span={12} className="flex flex-col gap-3">
             <div className="bg-white p-4 rounded-lg border border-slate-200 space-y-2">
               <Form.Item
-                label={<span className="text-slate-700 font-semibold text-[13px]">Organization Office<span className="text-red-500 ml-0.5">*</span></span>}
+                label={<span className="text-slate-700 font-semibold text-[13px]">Organization Offce<span className="text-red-500 ml-0.5">*</span></span>}
                 name="OrganizationOfficeID"
                 rules={[{ required: true, message: 'Please select organization office' }]}
               >
-                <Select placeholder="Select Office" options={orgOfficeOptions} className="rounded-md" loading={orgOfficesLoading} />
+                <Select
+                  placeholder="Select Office"
+                  options={orgOfficeOptions}
+                  className="rounded-md"
+                  loading={fetchingData}
+                  allowClear
+                />
               </Form.Item>
 
               <Form.Item
@@ -458,8 +486,9 @@ export default function EmployeeSetupModal({
                   placeholder="विभाग चयन गर्नुहोस्"
                   options={departmentOptions}
                   className="rounded-md"
-                  loading={departmentsLoading}
+                  loading={fetchingData}
                   onChange={handleDepartmentChange}
+                  allowClear
                 />
               </Form.Item>
 
@@ -472,8 +501,9 @@ export default function EmployeeSetupModal({
                   placeholder="मुख्य शाखा चयन गर्नुहोस्"
                   options={filteredMainBranchOptions}
                   className="rounded-md"
-                  loading={mainBranchesLoading}
+                  loading={fetchingData}
                   onChange={handleMainBranchChange}
+                  allowClear
                 />
               </Form.Item>
 
@@ -486,7 +516,8 @@ export default function EmployeeSetupModal({
                   placeholder="शाखा चयन गर्नुहोस्"
                   options={filteredBranchOptions}
                   className="rounded-md"
-                  loading={branchesLoading}
+                  loading={fetchingData}
+                  allowClear
                 />
               </Form.Item>
             </div>
@@ -497,7 +528,7 @@ export default function EmployeeSetupModal({
                 name="Username"
                 rules={isEdit ? [] : [{ required: true, message: 'कृपया प्रयोगकर्ता नाम प्रविष्ट गर्नुहोस्' }]}
               >
-                <Input className="rounded-md" />
+                <Input className="rounded-md" autoComplete="off" />
               </Form.Item>
 
               <Form.Item
@@ -512,7 +543,7 @@ export default function EmployeeSetupModal({
                       ]
                 }
               >
-                <Input.Password className="rounded-md" />
+                <Input.Password className="rounded-md" autoComplete="new-password" />
               </Form.Item>
 
               {!isEdit && (
@@ -525,14 +556,14 @@ export default function EmployeeSetupModal({
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (!value || getFieldValue('Password') === value) {
-                           return Promise.resolve();
+                          return Promise.resolve();
                         }
                         return Promise.reject(new Error('पासवर्ड मिलेन'));
                       },
                     }),
                   ]}
                 >
-                  <Input.Password className="rounded-md" />
+                  <Input.Password className="rounded-md" autoComplete="new-password" />
                 </Form.Item>
               )}
             </div>
