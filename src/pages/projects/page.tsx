@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -198,14 +198,14 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setIsModalOpen(false);
     setEditingProject(null);
-  };
+  }, []);
 
-  const handleModalSuccess = () => {
+  const handleModalSuccess = useCallback(() => {
     fetchProjects().then(setProjects);
-  };
+  }, []);
 
   const handleViewProject = (project: Project) => {
     navigate(`/projects/${project.id}`);
@@ -286,6 +286,29 @@ export default function ProjectsPage() {
     a.click();
     URL.revokeObjectURL(url);
     showToast('Export completed');
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this project?');
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+      const res = await fetch(`${API_BASE}/DeleteProjectInfo?id=${projectId}`, {
+        method: 'GET',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) throw new Error(`Failed to delete: ${res.statusText}`);
+
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      showToast('Project deleted successfully');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Delete failed');
+    }
   };
 
   return (
@@ -510,9 +533,6 @@ export default function ProjectsPage() {
                             <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0" />
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate mt-1">
-                          {project.category}
-                        </p>
                       </div>
                     </div>
 
@@ -598,6 +618,7 @@ export default function ProjectsPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        handleDeleteProject(project.id);
                       }}
                       className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-600 text-xs font-semibold hover:bg-rose-100 transition-all cursor-pointer"
                     >
@@ -626,17 +647,14 @@ export default function ProjectsPage() {
                     <Icon className="w-5 h-5" />
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-sm font-bold text-foreground truncate">{projectTitle}</h3>
-                      {project.starred && (
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-sm font-bold text-foreground truncate">{projectTitle}</h3>
+                        {project.starred && (
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                        )}
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {project.category} · {project.client}
-                    </p>
-                  </div>
 
                   <span
                     className={`hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold ${
@@ -692,6 +710,7 @@ export default function ProjectsPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        handleDeleteProject(project.id);
                       }}
                       className="p-2 rounded-xl hover:bg-rose-50 text-rose-600 transition-all cursor-pointer"
                     >

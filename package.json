@@ -17,6 +17,7 @@
     "highcharts": "^13.0.0",
     "highcharts-react-official": "^3.2.3",
     "lucide-react": "^1.27.0",
+    "nepali-date-converter": "^3.4.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1",
