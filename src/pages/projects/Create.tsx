@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, memo, useCallback } from 'react';
+import { useState, useEffect, memo, useCallback,useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Form, Input, Select, InputNumber, Row, Col, Button, message } from 'antd';
 import { X, Save } from 'lucide-react';
@@ -76,16 +76,20 @@ const extractIdAndName = (obj: Record<string, unknown>): SelectListItem | null =
 };
 
 const PRIORITY_OPTIONS = [
-  { value: 'high', label: 'उच्च' },
-  { value: 'medium', label: 'मध्यम' },
-  { value: 'low', label: 'निम्न' },
+  {value: 1, label: 'Urgent'},
+  { value: 2, label: 'High' },
+  { value: 3, label: 'Medium' },
+  { value: 4, label: 'Low' },
 ];
 
 const ModalContent = memo(
   ({ open, onClose, onSuccess, editingProject }: ProjectFormModalProps) => {
     const [form] = Form.useForm();
+    //stopping the double fetching response
+    const abortControllerRef = useRef<AbortController | null>(null);
     const [loading, setLoading] = useState(false);
     const [selectedFileName, setSelectedFileName] = useState<string>('');
+    const [projectHeadEmpPhoto, setProjectHeadEmpPhoto] = useState<string>('');
     const [optionsLoading, setOptionsLoading] = useState(false);
     const [optionsError, setOptionsError] = useState<string | null>(null);
 
@@ -101,25 +105,31 @@ const ModalContent = memo(
     const isEdit = !!editingProject;
 
     const fetchOptions = useCallback(async () => {
-      setOptionsLoading(true);
-      setOptionsError(null);
-      try {
-        const token = localStorage.getItem('token');
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        };
+  if (abortControllerRef.current) {
+    abortControllerRef.current.abort();
+  }
+  const controller = new AbortController();
+  abortControllerRef.current = controller;
 
-        const results = await Promise.allSettled([
-          fetch(SELECT_LIST_ENDPOINTS.projectHead, { headers }),
-          fetch(SELECT_LIST_ENDPOINTS.status, { headers }),
-          fetch(SELECT_LIST_ENDPOINTS.policyProgram, { headers }),
-          fetch(SELECT_LIST_ENDPOINTS.budget, { headers }),
-          fetch(SELECT_LIST_ENDPOINTS.client, { headers }),
-          fetch(SELECT_LIST_ENDPOINTS.projectType, { headers }),
-          fetch(SELECT_LIST_ENDPOINTS.department, { headers }),
-          fetch(SELECT_LIST_ENDPOINTS.expenseInfo, { headers }),
-        ]);
+  setOptionsLoading(true);
+  setOptionsError(null);
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const results = await Promise.allSettled([
+      fetch(SELECT_LIST_ENDPOINTS.projectHead, { headers, signal: controller.signal }),
+      fetch(SELECT_LIST_ENDPOINTS.status, { headers, signal: controller.signal }),
+      fetch(SELECT_LIST_ENDPOINTS.policyProgram, { headers, signal: controller.signal }),
+      fetch(SELECT_LIST_ENDPOINTS.budget, { headers, signal: controller.signal }),
+      fetch(SELECT_LIST_ENDPOINTS.client, { headers, signal: controller.signal }),
+      fetch(SELECT_LIST_ENDPOINTS.projectType, { headers, signal: controller.signal }),
+      fetch(SELECT_LIST_ENDPOINTS.department, { headers, signal: controller.signal }),
+      fetch(SELECT_LIST_ENDPOINTS.expenseInfo, { headers, signal: controller.signal }),
+    ]);
 
         const parseJson = async (_label: string, result: PromiseSettledResult<Response>) => {
           if (result.status !== 'fulfilled' || !result.value.ok) {
@@ -159,20 +169,24 @@ const ModalContent = memo(
       }
     }, []);
 
-    useEffect(() => {
-      if (open) {
-        fetchOptions();
-        setSelectedFileName('');
-      }
-    }, [open, fetchOptions]);
+   useEffect(() => {
+  if (open) {
+    fetchOptions();
+  }
+  return () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+}, [open, fetchOptions]);
 
     useEffect(() => {
       if (open && editingProject) {
         const projectHeadId = projectHeadOptions.find(o => o.label === editingProject.ProjectHeadEmpName)?.value;
         const statusId = statusOptions.find(o => o.label === editingProject.WorkStatusName)?.value;
-        const clientId = clientOptions.find(o => o.label === editingProject.ProjectHeadEmpName)?.value;
+        const clientId = clientOptions.find(o => o.value === String(editingProject.ClientInfoID))?.value;
         const projectTypeId = projectTypeOptions.find(o => o.label === editingProject.ProjectTypeName)?.value;
-        const priorityValue = editingProject.PriorityName ? editingProject.PriorityName.toLowerCase() : 'medium';
+        const priorityValue = editingProject.PriorityName ? ({ urgent: 1, high: 2, medium: 3, low: 4 }[editingProject.PriorityName.toLowerCase()] ?? 3) : 3;
 
         form.setFieldsValue({
           projectName: editingProject.ProjectName,
@@ -191,17 +205,47 @@ const ModalContent = memo(
           expenseInfo: String(editingProject.ExpenseInfoID),
           bankGuaranteeIssueDate: editingProject.BankGuranteeIssueDate,
           bankGuaranteeExpiryDate: editingProject.BankGuranteeExpiryDate,
+          projectHeadEmpPhoto: editingProject.ProjectHeadEmpPhoto,
         });
+        setProjectHeadEmpPhoto(editingProject.ProjectHeadEmpPhoto || '');
+        setSelectedFileName('');
       } else if (open && !editingProject) {
         form.resetFields();
+        setProjectHeadEmpPhoto('');
+        setSelectedFileName('');
       }
     }, [open, editingProject, form, projectHeadOptions, statusOptions, clientOptions, projectTypeOptions]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
         setSelectedFileName(file.name);
-        form.setFieldValue('fileUpload', file);
+        const token = localStorage.getItem('token');
+        const uploadFormData = new FormData();
+        uploadFormData.append('Image', file);
+        uploadFormData.append('UserId', '0');
+
+        try {
+          const uploadRes = await fetch(`${API_BASE}/UploadFile`, {
+            method: 'POST',
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: uploadFormData,
+          });
+
+          if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
+
+          const uploadJson = await uploadRes.json();
+          const basePath = uploadJson?.Data?.BasePath || '';
+          const photoUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
+          setProjectHeadEmpPhoto(photoUrl);
+          form.setFieldValue('projectHeadEmpPhoto', photoUrl);
+        } catch (err) {
+          if (err instanceof Error) {
+            message.error(err.message || 'Image upload failed');
+          }
+        }
       }
     };
 
@@ -211,35 +255,33 @@ const ModalContent = memo(
         setLoading(true);
 
         const token = localStorage.getItem('token');
-        const projectId = isEdit ? Number(editingProject?.ProjectInfoID) : 0;
+        const projectId = isEdit && editingProject ? Number(editingProject.ProjectInfoID) : 0;
 
-        const priorityMap: Record<string, number> = {
-          high: 3,
-          medium: 2,
-          low: 1,
-        };
+        const formPhoto = form.getFieldValue('projectHeadEmpPhoto');
+        const photoUrl = formPhoto || projectHeadEmpPhoto || '';
 
         const body = {
           ProjectInfoID: projectId,
           ProjectName: values.projectName,
           ProjectDuration: values.projectDuration,
-          StartDate: values.startDate?.replace(/\//g, '-'),
+          StartDate: values.startDate || '',
           Description: values.description,
           TotalBudget: values.totalBudget,
-          Priority: priorityMap[values.priority1] || 2,
+          Priority: values.priority1 ? Number(values.priority1) : 2,
           WorkStatusID: Number(values.statusName),
           PolicyProgramIDs: values.policyAndProgram,
           PolicyProgramIDArray: values.policyAndProgram ? [values.policyAndProgram] : [],
           BudgetInfoIDs: values.budget,
           BudgetInfoIDArray: values.budget ? [values.budget] : [],
-          ClientInfoID: Number(values.clientName),
+          ClientInfoID: values.clientName ? Number(values.clientName) : 0,
           DepartmentID: values.department ? Number(values.department) : 0,
           ExpenseInfoID: Number(values.expenseInfo),
           ProjectType: Number(values.projectType),
           ProjectHeadEmpID: Number(values.projectHeadName),
-          BankGuranteeIssueDate: values.bankGuaranteeIssueDate?.replace(/\//g, '-'),
-          BankGuranteeExpiryDate: values.bankGuaranteeExpiryDate?.replace(/\//g, '-'),
-          IsPolicyRelated: values.policyAndProgram ? 1 : 0,
+          BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
+          BankGuranteeExpiryDate: values.bankGuaranteeExpiryDate || '',
+          IsPolicyRelated: 0,
+          ProjectHeadEmpPhoto: photoUrl,
         };
 
         const API_URL = `${API_BASE}/SaveProjectInfo`;
@@ -610,23 +652,24 @@ const ModalContent = memo(
                   <Form.Item
                     label={
                       <span className="text-xs font-semibold text-slate-700">
-                        File Upload
+                        Project Head Image
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
                     }
-                    name="fileUpload"
-                    // rules={[{ required: true, message: 'कृपया फाइल अपलोड गर्नुहोस्' }]}
+                    name="projectHeadEmpPhoto"
+                    initialValue=""
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="bg-[#e5e7eb] text-slate-700 px-3 py-1.5 rounded-md text-xs min-w-[120px] truncate border border-slate-300">
-                        {selectedFileName || 'Upload here'}
-                      </div>
-                      <label className="bg-[#6b7280] hover:bg-[#4b5563] text-white px-4 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors shadow-sm">
-                        Browse
-                        <input type="file" className="hidden" onChange={handleFileChange} />
-                      </label>
-                    </div>
+                    <input type="hidden" />
                   </Form.Item>
+                  <div className="flex items-center gap-2">
+                    <div className="bg-[#e5e7eb] text-slate-700 px-3 py-1.5 rounded-md text-xs min-w-[120px] truncate border border-slate-300">
+                      {selectedFileName || 'Upload here'}
+                    </div>
+                    <label className="bg-[#6b7280] hover:bg-[#4b5563] text-white px-4 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors shadow-sm">
+                      Browse
+                      <input type="file" className="hidden" onChange={handleFileChange} />
+                    </label>
+                  </div>
                 </Col>
               </Row>
             </Form>

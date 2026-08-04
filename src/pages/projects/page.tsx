@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Modal, Button } from 'antd';
 import {
   Search,
   Filter,
@@ -127,6 +128,8 @@ export default function ProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const pageSize = 9;
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -288,14 +291,17 @@ export default function ProjectsPage() {
     showToast('Export completed');
   };
 
-  const handleDeleteProject = async (projectId: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this project?');
-    if (!confirmed) return;
+    const handleDeleteClick = (project: Project) => {
+    setDeleteTarget(project);
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
       const token = localStorage.getItem('token');
       const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-      const res = await fetch(`${API_BASE}/DeleteProjectInfo?id=${projectId}`, {
+      const res = await fetch(`${API_BASE}/DeleteProjectInfo?id=${deleteTarget.id}`, {
         method: 'GET',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -304,10 +310,13 @@ export default function ProjectsPage() {
 
       if (!res.ok) throw new Error(`Failed to delete: ${res.statusText}`);
 
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       showToast('Project deleted successfully');
+      setDeleteTarget(null);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Delete failed');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -618,7 +627,7 @@ export default function ProjectsPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteProject(project.id);
+                        handleDeleteClick(project)
                       }}
                       className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-600 text-xs font-semibold hover:bg-rose-100 transition-all cursor-pointer"
                     >
@@ -710,7 +719,7 @@ export default function ProjectsPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteProject(project.id);
+                        handleDeleteClick(project)
                       }}
                       className="p-2 rounded-xl hover:bg-rose-50 text-rose-600 transition-all cursor-pointer"
                     >
@@ -748,6 +757,41 @@ export default function ProjectsPage() {
         onSuccess={handleModalSuccess}
         editingProject={editingProject}
       />
+            <Modal
+        open={deleteTarget !== null}
+        title="Delete Project"
+        onCancel={() => {
+          setDeleteTarget(null);
+          setDeleteLoading(false);
+        }}
+        centered
+        footer={
+          <div className="flex justify-end items-center gap-3">
+            <Button
+              onClick={() => {
+                setDeleteTarget(null);
+                setDeleteLoading(false);
+              }}
+              className="px-4 h-9 rounded-md text-sm font-medium"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              loading={deleteLoading}
+              onClick={confirmDelete}
+              className="px-4 h-9 rounded-md text-sm font-medium"
+            >
+              Delete
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm text-slate-600">
+          Are you sure you want to delete <strong>{deleteTarget?.title || deleteTarget?.name}</strong>?
+        </p>
+      </Modal>
     </div>
   );
 }

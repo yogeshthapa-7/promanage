@@ -1,5 +1,4 @@
 import type { Project, ProjectStatus, ProjectPriority } from './projects-data';
-import { TASKS } from '@/pages/tasks/page';
 import { MEMBERS } from '@/pages/team/page';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -297,14 +296,7 @@ function computeKeyMetrics(projectList: Project[], taskList: Task[]): KeyMetric[
 export async function getAnalyticsData(): Promise<AnalyticsData> {
   const projectList = await fetchProjects();
 
-  const taskList: Task[] = TASKS.map((t) => ({
-    id: t.id,
-    title: t.title,
-    project: { name: t.project?.name || 'Unknown' },
-    status: t.status,
-    priority: t.priority,
-    progress: t.progress,
-  }));
+  const taskList: Task[] = [];
 
   const memberList: TeamMember[] = MEMBERS.map((m) => ({
     id: m.id,

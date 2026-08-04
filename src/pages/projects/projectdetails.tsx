@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   Pencil,
   ExternalLink,
+  ListTodo,
+  User,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import type { ApiProject } from '@/lib/projects-data';
@@ -91,10 +93,10 @@ export default function ProjectDetailsPage() {
 
   if (loading) {
     return (
-      <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10">
+      <div className="fade-in space-y-3 max-w-screen-2xl mx-auto w-full pb-10">
         <button
           onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
@@ -108,10 +110,10 @@ export default function ProjectDetailsPage() {
 
   if (error || !project) {
     return (
-      <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10">
+      <div className="fade-in space-y-3 max-w-screen-2xl mx-auto w-full pb-10">
         <button
           onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
@@ -136,149 +138,181 @@ export default function ProjectDetailsPage() {
   };
 
   return (
-    <div className="fade-in space-y-5 max-w-screen-2xl mx-auto w-full pb-10">
-      {/* Top Navigation Bar */}
+    <div className="fade-in space-y-3 max-w-screen-2xl mx-auto w-full pb-10">
+      {/* Top Bar */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
         </button>
-        {project.CanEdit && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate('/projects/create', { state: { editingProject: project } })}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 cursor-pointer"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            Edit Project
-          </button>
-        )}
+             onClick={() => navigate('/tasks', { state: { project } })}
+             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+           >
+             <ListTodo className="w-3.5 h-3.5" />
+             View Sub-tasks
+           </button>
+          {project.CanEdit && (
+            <button
+              onClick={() => navigate('/projects/create', { state: { editingProject: project } })}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Edit Project
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Header Card */}
-      <Card className="p-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <Card padding="p-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-xl font-bold text-foreground truncate">{project.ProjectName}</h1>
-            </div>
-            <p className="text-xs text-muted-foreground font-mono">{project.ProjectCode}</p>
-            <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{project.Description}</p>
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
-              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
+            <h1 className="text-lg font-bold text-foreground truncate">{project.ProjectName}</h1>
+            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{project.ProjectCode}</p>
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{project.Description}</p>
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-current" />
                 {project.WorkStatusName}
               </span>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-semibold ${priorityStyle.bg} ${priorityStyle.text} ${priorityStyle.border}`}>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold ${priorityStyle.bg} ${priorityStyle.text} ${priorityStyle.border}`}>
                 {project.PriorityName}
               </span>
-              <span className="text-[11px] text-muted-foreground">{project.ProjectTypeName}</span>
+              <span className="text-[10px] text-muted-foreground">{project.ProjectTypeName}</span>
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Total Budget</p>
-            <p className="text-lg font-bold text-foreground">{formatCurrency(project.TotalBudget)}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Total Budget</p>
+            <p className="text-base font-bold text-foreground">{formatCurrency(project.TotalBudget)}</p>
           </div>
         </div>
       </Card>
 
-      {/* Project Information */}
-      <Card className="p-6">
-        <div className="pb-4 border-b border-border">
-          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Project Information</h3>
-          <p className="text-[11px] text-muted-foreground mt-1">Core details and metadata about this project.</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-4 mt-5 text-xs">
-          <div>
-            <span className="text-muted-foreground block mb-1">Project Code</span>
-            <span className="font-semibold text-foreground">{project.ProjectCode}</span>
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Project Information */}
+        <Card padding="p-4" className="lg:col-span-2">
+          <div className="pb-2 border-b border-border">
+            <h3 className="text-[11px] font-bold text-foreground uppercase tracking-wider">Project Information</h3>
           </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Project Type</span>
-            <span className="font-semibold text-foreground">{project.ProjectTypeName}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2.5 mt-3 text-xs">
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Code</span>
+              <span className="font-semibold text-foreground">{project.ProjectCode}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Type</span>
+              <span className="font-semibold text-foreground">{project.ProjectTypeName}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Priority</span>
+              <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold ${priorityStyle.bg} ${priorityStyle.text}`}>
+                {project.PriorityName}
+              </span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Status</span>
+              <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
+                {project.WorkStatusName}
+              </span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Start Date</span>
+              <span className="font-semibold text-foreground">{formatDate(project.StartDate)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Open Date</span>
+              <span className="font-semibold text-foreground">{formatDate(project.ProjectOpenDate)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Duration (Days)</span>
+              <span className="font-semibold text-foreground">{project.ProjectDuration}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Total Budget</span>
+              <span className="font-semibold text-foreground">{formatCurrency(project.TotalBudget)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Last Date of Submission</span>
+              <span className="font-semibold text-foreground">{formatDate(project.LastDateOfSubmission || '')}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Bank Guarantee Issue Date</span>
+              <span className="font-semibold text-foreground">{formatDate(project.BankGuranteeIssueDate)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Bank Guarantee Expiry Date</span>
+              <span className="font-semibold text-foreground">{formatDate(project.BankGuranteeExpiryDate)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Head</span>
+              <span className="font-semibold text-foreground">{project.ProjectHeadEmpName}</span>
+            </div>
           </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Priority</span>
-            <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-semibold ${priorityStyle.bg} ${priorityStyle.text}`}>
-              {project.PriorityName}
-            </span>
+          <div className="mt-3 pt-2.5 border-t border-border">
+            <span className="text-[11px] text-muted-foreground block mb-0.5">Description</span>
+            <p className="text-xs text-foreground/80 leading-relaxed">{project.Description}</p>
           </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Status</span>
-            <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
-              {project.WorkStatusName}
-            </span>
+        </Card>
+
+        {/* Project Head Card */}
+        <Card padding="p-4">
+          <div className="pb-2 border-b border-border">
+            <h3 className="text-[11px] font-bold text-foreground uppercase tracking-wider">Project Head</h3>
           </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Start Date</span>
-            <span className="font-semibold text-foreground">{formatDate(project.StartDate)}</span>
+          <div className="mt-4 flex flex-col items-center text-center">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-md bg-slate-100">
+              {project.ProjectHeadEmpPhoto ? (
+                <img
+                  src={project.ProjectHeadEmpPhoto}
+                  alt={project.ProjectHeadEmpName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                  <User className="w-10 h-10" />
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-sm font-semibold text-foreground">{project.ProjectHeadEmpName}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Project Head</p>
           </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Project Open Date</span>
-            <span className="font-semibold text-foreground">{formatDate(project.ProjectOpenDate)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Duration (Days)</span>
-            <span className="font-semibold text-foreground">{project.ProjectDuration}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Total Budget</span>
-            <span className="font-semibold text-foreground">{formatCurrency(project.TotalBudget)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Last Date of Submission</span>
-            <span className="font-semibold text-foreground">{formatDate(project.LastDateOfSubmission || '')}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Bank Guarantee Issue Date</span>
-            <span className="font-semibold text-foreground">{formatDate(project.BankGuranteeIssueDate)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Bank Guarantee Expiry Date</span>
-            <span className="font-semibold text-foreground">{formatDate(project.BankGuranteeExpiryDate)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">Project Head</span>
-            <span className="font-semibold text-foreground">{project.ProjectHeadEmpName}</span>
-          </div>
-        </div>
-        <div className="mt-5 pt-4 border-t border-border">
-          <span className="text-xs text-muted-foreground block mb-1.5">Description</span>
-          <p className="text-xs text-foreground/80 leading-relaxed">{project.Description}</p>
-        </div>
-      </Card>
+        </Card>
+      </div>
 
       {/* Documents & Links */}
-      <Card className="p-6">
-        <div className="pb-4 border-b border-border">
-          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Documents & Links</h3>
-          <p className="text-[11px] text-muted-foreground mt-1">Attachments and terms of reference.</p>
+      <Card padding="p-4">
+        <div className="pb-2 border-b border-border">
+          <h3 className="text-[11px] font-bold text-foreground uppercase tracking-wider">Documents & Links</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5 text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-3 text-xs">
           <a
             href={project.Attachments}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors"
+            className="flex items-center gap-2 p-2.5 rounded-lg border border-border hover:bg-white/60 transition-colors"
           >
-            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+            <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
             <div>
               <span className="text-[10px] text-muted-foreground block">Attachments</span>
-              <span className="font-semibold text-foreground">View Attachments</span>
+              <span className="font-semibold text-foreground text-[11px]">View Attachments</span>
             </div>
           </a>
           <a
             href={project.TOR}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors"
+            className="flex items-center gap-2 p-2.5 rounded-lg border border-border hover:bg-white/60 transition-colors"
           >
-            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+            <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
             <div>
               <span className="text-[10px] text-muted-foreground block">TOR</span>
-              <span className="font-semibold text-foreground">View TOR</span>
+              <span className="font-semibold text-foreground text-[11px]">View TOR</span>
             </div>
           </a>
         </div>
