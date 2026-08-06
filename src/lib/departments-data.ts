@@ -26,6 +26,9 @@ interface FetchDepartmentsParams {
   search: string;
   start: number;
   length: number;
+  name?: string;
+  code?: string;
+  mainDept?: string;
 }
 
 interface FetchDepartmentsResult {
@@ -40,10 +43,13 @@ function buildSearchBody(params: FetchDepartmentsParams) {
       draw: 1,
       start: params.start,
       length: params.length,
-      search: { value: '', regex: '' },
+      search: { value: params.search, regex: '' },
     },
     param: {
       search: params.search,
+      DepartmentName: params.name || '',
+      DepartmentCode: params.code || '',
+      MainDepartmentID: params.mainDept ? Number(params.mainDept) : 0,
     },
   };
 }
@@ -56,14 +62,14 @@ export async function fetchDepartments(
       method: 'POST',
       body: JSON.stringify(buildSearchBody(params)),
     });
-     
+      
     if (!res.ok) throw new Error(`Failed to fetch departments: ${res.statusText}`);
-     
+      
     const json = await res.json();
     const response = json as ApiDepartmentResponse;
     const rows = Array.isArray(response?.data) ? (response.data as ApiDepartmentRow[]) : [];
     const mapped = rows.map(mapApiRowToDepartment);
-     
+      
     return {
       departments: mapped,
       total: response.recordsTotal ?? 0,

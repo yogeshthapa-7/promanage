@@ -5,9 +5,8 @@ import StatCardsRow from './components/StatCardsRow';
 import ProjectOverviewSection from './components/ProjectOverviewSection';
 import RecentActivity from './components/RecentActivity';
 import ProjectsTable from './components/ProjectsTable';
-import { projects } from '@/lib/projects-data';
+import { projects, type ProjectStatus } from '@/lib/projects-data';
 import Topbar from '@/components/Topbar';
-import type { ProjectStatus } from '@/lib/projects-data';
 
 export default function DashboardPage() {
   const [search, setSearch] = useState('');

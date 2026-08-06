@@ -234,9 +234,9 @@ export default function TasksPage() {
     <div className="fade-in text-slate-800">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Sub-Tasks</h1>
+          <h1 className="text-3xl font-bold text-slate-800">Tasks</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Organize, prioritize and track all your projects sub-tasks in one place.
+            Organize, prioritize and track all your projects tasks in one place.
           </p>
         </div>
 
@@ -380,7 +380,7 @@ export default function TasksPage() {
         <div className="mt-6 rounded-xl border border-slate-200 bg-white">
           <div className="px-4 py-3 border-b border-slate-200">
             <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Select a project</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Choose a project to view its sub-tasks.</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Choose a project to view its tasks.</p>
           </div>
           {projectsLoading ? (
             <div className="p-6 text-sm text-muted-foreground">Loading projects...</div>

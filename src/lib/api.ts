@@ -1,6 +1,6 @@
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const REFRESH_TOKEN_URL = (import.meta.env.VITE_REFRESH_TOKEN_URL || `${API_BASE}/Authenticate/RefreshToken`).replace(/\/$/, '');
-const DEFAULT_TIMEOUT_MS = 15000;
+const DEFAULT_TIMEOUT_MS = 60000;
 
 let isRefreshing = false;
 let refreshSubscribers: Array<(token: string) => void> = [];
@@ -89,17 +89,26 @@ export async function apiCall(
       const newToken = await refreshAuthToken();
 
       if (newToken) {
-        const retryHeaders: HeadersInit = {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${newToken}`,
-          ...options.headers,
-        };
+        const retryController = new AbortController();
+        const retryTimeoutId = setTimeout(() => retryController.abort(), timeoutMs);
 
-        return fetch(url, {
-          ...options,
-          headers: retryHeaders,
-          signal: controller.signal,
-        });
+        try {
+          const retryHeaders: HeadersInit = {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${newToken}`,
+            ...options.headers,
+          };
+
+          const retryResponse = await fetch(url, {
+            ...options,
+            headers: retryHeaders,
+            signal: retryController.signal,
+          });
+          clearTimeout(retryTimeoutId);
+          return retryResponse;
+        } finally {
+          clearTimeout(retryTimeoutId);
+        }
       }
 
       clearTokenRefreshSubscribers();

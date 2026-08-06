@@ -14,6 +14,7 @@ import { projects, type Project, type ProjectStatus, type ProjectPriority } from
 
 interface ProjectsTableProps {
   projects?: Project[];
+  total?: number;
   search?: string;
   onSearchChange?: (value: string) => void;
   sortField?: string;
@@ -21,6 +22,7 @@ interface ProjectsTableProps {
   onSortChange?: (field: string) => void;
   filterStatus?: ProjectStatus | 'All';
   onFilterChange?: (status: ProjectStatus | 'All') => void;
+  onPageChange?: (page: number, pageSize: number) => void;
 }
 const statusConfig: Record<ProjectStatus, { label: string; bg: string; color: string }> = {
   'In Progress': { label: 'In Progress', bg: '#EFF6FF', color: '#3B82F6' },
@@ -133,6 +135,7 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
 
 export default function ProjectsTable({
   projects: projectsData,
+  total,
   search = '',
   onSearchChange,
   sortField: externalSortField,
@@ -140,6 +143,7 @@ export default function ProjectsTable({
   onSortChange,
   filterStatus = 'All',
   onFilterChange,
+  onPageChange,
 }: ProjectsTableProps) {
   const [internalSortKey, setInternalSortKey] = useState<SortKey | null>(null);
   const [internalSortDir, setInternalSortDir] = useState<'asc' | 'desc' | null>(null);
@@ -182,11 +186,23 @@ export default function ProjectsTable({
   const handlePageSizeChange = useCallback((size: number) => {
     setPageSize(size);
     setCurrentPage(1);
-  }, []);
+    onPageChange?.(1, size);
+  }, [onPageChange]);
 
-  const dataSource = projectsData && projectsData.length > 0 ? projectsData : projects;
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    onPageChange?.(page, pageSize);
+  }, [pageSize, onPageChange]);
+
+  const useServerPagination = total !== undefined;
+
+  const dataSource = useMemo(() => {
+    if (useServerPagination) return projects ?? [];
+    return projectsData && projectsData.length > 0 ? projectsData : projects;
+  }, [useServerPagination, projectsData]);
 
   const filtered = useMemo(() => {
+    if (useServerPagination) return dataSource;
     let data = [...dataSource];
     const q = search.trim().toLowerCase();
     if (q) {
@@ -220,11 +236,12 @@ export default function ProjectsTable({
       });
     }
     return data;
-  }, [dataSource, search, filterStatus, sortKey, sortDir]);
+  }, [dataSource, search, filterStatus, sortKey, sortDir, useServerPagination]);
 
   const paginated = useMemo(() => {
+    if (useServerPagination) return filtered;
     return filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  }, [filtered, currentPage, pageSize]);
+  }, [filtered, currentPage, pageSize, useServerPagination]);
 
   return (
     <Card>
@@ -290,10 +307,10 @@ export default function ProjectsTable({
       </div>
 
       <Pagination
-        total={filtered.length}
+        total={total ?? filtered.length}
         currentPage={currentPage}
         pageSize={pageSize}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         pageSizeOptions={PAGE_SIZE_OPTIONS}
       />
