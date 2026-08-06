@@ -6,6 +6,7 @@ import { Form, Input, Select, InputNumber, Row, Col, Button, message } from 'ant
 import { X, Save } from 'lucide-react';
 import NepaliDatePicker from '@/components/NepaliDatePicker';
 import type { ApiProject } from '@/lib/projects-data';
+import { apiCall } from '@/lib/api';
 
 interface ProjectFormModalProps {
   open: boolean;
@@ -114,22 +115,16 @@ const ModalContent = memo(
   setOptionsLoading(true);
   setOptionsError(null);
   try {
-    const token = localStorage.getItem('token');
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-
-    const results = await Promise.allSettled([
-      fetch(SELECT_LIST_ENDPOINTS.projectHead, { headers, signal: controller.signal }),
-      fetch(SELECT_LIST_ENDPOINTS.status, { headers, signal: controller.signal }),
-      fetch(SELECT_LIST_ENDPOINTS.policyProgram, { headers, signal: controller.signal }),
-      fetch(SELECT_LIST_ENDPOINTS.budget, { headers, signal: controller.signal }),
-      fetch(SELECT_LIST_ENDPOINTS.client, { headers, signal: controller.signal }),
-      fetch(SELECT_LIST_ENDPOINTS.projectType, { headers, signal: controller.signal }),
-      fetch(SELECT_LIST_ENDPOINTS.department, { headers, signal: controller.signal }),
-      fetch(SELECT_LIST_ENDPOINTS.expenseInfo, { headers, signal: controller.signal }),
-    ]);
+     const results = await Promise.allSettled([
+       apiCall(SELECT_LIST_ENDPOINTS.projectHead),
+       apiCall(SELECT_LIST_ENDPOINTS.status),
+       apiCall(SELECT_LIST_ENDPOINTS.policyProgram),
+       apiCall(SELECT_LIST_ENDPOINTS.budget),
+       apiCall(SELECT_LIST_ENDPOINTS.client),
+       apiCall(SELECT_LIST_ENDPOINTS.projectType),
+       apiCall(SELECT_LIST_ENDPOINTS.department),
+       apiCall(SELECT_LIST_ENDPOINTS.expenseInfo),
+     ]);
 
         const parseJson = async (_label: string, result: PromiseSettledResult<Response>) => {
           if (result.status !== 'fulfilled' || !result.value.ok) {
@@ -217,22 +212,18 @@ const ModalContent = memo(
     }, [open, editingProject, form, projectHeadOptions, statusOptions, clientOptions, projectTypeOptions]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        setSelectedFileName(file.name);
-        const token = localStorage.getItem('token');
-        const uploadFormData = new FormData();
-        uploadFormData.append('Image', file);
-        uploadFormData.append('UserId', '0');
+       const file = e.target.files?.[0];
+       if (file) {
+         setSelectedFileName(file.name);
+         const uploadFormData = new FormData();
+         uploadFormData.append('Image', file);
+         uploadFormData.append('UserId', '0');
 
-        try {
-          const uploadRes = await fetch(`${API_BASE}/UploadFile`, {
-            method: 'POST',
-            headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: uploadFormData,
-          });
+         try {
+           const uploadRes = await apiCall(`${API_BASE}/UploadFile`, {
+             method: 'POST',
+             body: uploadFormData,
+           });
 
           if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
 
@@ -250,49 +241,44 @@ const ModalContent = memo(
     };
 
     const handleSubmit = async () => {
-      try {
-        const values = await form.validateFields();
-        setLoading(true);
+       try {
+         const values = await form.validateFields();
+         setLoading(true);
 
-        const token = localStorage.getItem('token');
-        const projectId = isEdit && editingProject ? Number(editingProject.ProjectInfoID) : 0;
+         const projectId = isEdit && editingProject ? Number(editingProject.ProjectInfoID) : 0;
 
-        const formPhoto = form.getFieldValue('projectHeadEmpPhoto');
-        const photoUrl = formPhoto || projectHeadEmpPhoto || '';
+         const formPhoto = form.getFieldValue('projectHeadEmpPhoto');
+         const photoUrl = formPhoto || projectHeadEmpPhoto || '';
 
-        const body = {
-          ProjectInfoID: projectId,
-          ProjectName: values.projectName,
-          ProjectDuration: values.projectDuration,
-          StartDate: values.startDate || '',
-          Description: values.description,
-          TotalBudget: values.totalBudget,
-          Priority: values.priority1 ? Number(values.priority1) : 2,
-          WorkStatusID: Number(values.statusName),
-          PolicyProgramIDs: values.policyAndProgram,
-          PolicyProgramIDArray: values.policyAndProgram ? [values.policyAndProgram] : [],
-          BudgetInfoIDs: values.budget,
-          BudgetInfoIDArray: values.budget ? [values.budget] : [],
-          ClientInfoID: values.clientName ? Number(values.clientName) : 0,
-          DepartmentID: values.department ? Number(values.department) : 0,
-          ExpenseInfoID: Number(values.expenseInfo),
-          ProjectType: Number(values.projectType),
-          ProjectHeadEmpID: Number(values.projectHeadName),
-          BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
-          BankGuranteeExpiryDate: values.bankGuaranteeExpiryDate || '',
-          IsPolicyRelated: 0,
-          ProjectHeadEmpPhoto: photoUrl,
-        };
+         const body = {
+           ProjectInfoID: projectId,
+           ProjectName: values.projectName,
+           ProjectDuration: values.projectDuration,
+           StartDate: values.startDate || '',
+           Description: values.description,
+           TotalBudget: values.totalBudget,
+           Priority: values.priority1 ? Number(values.priority1) : 2,
+           WorkStatusID: Number(values.statusName),
+           PolicyProgramIDs: values.policyAndProgram,
+           PolicyProgramIDArray: values.policyAndProgram ? [values.policyAndProgram] : [],
+           BudgetInfoIDs: values.budget,
+           BudgetInfoIDArray: values.budget ? [values.budget] : [],
+           ClientInfoID: values.clientName ? Number(values.clientName) : 0,
+           DepartmentID: values.department ? Number(values.department) : 0,
+           ExpenseInfoID: Number(values.expenseInfo),
+           ProjectType: Number(values.projectType),
+           ProjectHeadEmpID: Number(values.projectHeadName),
+           BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
+           BankGuranteeExpiryDate: values.bankGuaranteeExpiryDate || '',
+           IsPolicyRelated: 0,
+           ProjectHeadEmpPhoto: photoUrl,
+         };
 
-        const API_URL = `${API_BASE}/SaveProjectInfo`;
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(body),
-        });
+         const API_URL = `${API_BASE}/SaveProjectInfo`;
+         const res = await apiCall(API_URL, {
+           method: 'POST',
+           body: JSON.stringify(body),
+         });
 
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 

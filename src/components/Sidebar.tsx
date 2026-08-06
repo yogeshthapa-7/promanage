@@ -28,7 +28,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/dashboard'},
   { id: 'projects', label: 'Projects', icon: <FolderKanban size={18} />, href: '/projects'},
-  { id: 'tasks', label: 'Sub-Tasks', icon: <CheckSquare size={18} />, href: '/tasks' },
+  { id: 'tasks', label: 'Task', icon: <CheckSquare size={18} />, href: '/tasks' },
   { id: 'analytics', label: 'Analytics', icon: <ChartLine size={18} />, href: '/analytics' },
   { id: 'team-members', label: 'Team Members', icon: <Users size={18} />, href: '/team', section: 'TEAM' },
   { id: 'users', label: 'Users', icon: <Users size={18} />, href: '/users', section: 'TEAM' },

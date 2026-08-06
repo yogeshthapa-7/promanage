@@ -1,5 +1,6 @@
 'use client';
 
+import { apiCall } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -43,49 +44,45 @@ export default function ProjectDetailsPage() {
     }
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem('token');
-    fetch(`${(import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '')}/ProjectInfo/ServerSearch`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start: 0,
-          length: 1000,
-          columns: [
-            { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          ],
-          search: { value: '', regex: '' },
-          order: [{ column: 0, dir: 'desc' }],
-        },
-        param: {
-          ProjectInfoID: 0,
-        },
-      }),
-    })
-      .then(async (res) => {
+    (async () => {
+      try {
+        const res = await apiCall(
+          `${(import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '')}/ProjectInfo/ServerSearch`,
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              model: {
+                draw: 1,
+                start: 0,
+                length: 1000,
+                columns: [
+                  { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+                  { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+                  { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
+                ],
+                search: { value: '', regex: '' },
+                order: [{ column: 0, dir: 'desc' }],
+              },
+              param: {
+                ProjectInfoID: 0,
+              },
+            }),
+          }
+        );
         if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
         const json = await res.json();
         const found = (json.data ?? []).find((p: ApiProject) => String(p.ProjectInfoID) === projectId) ?? null;
-        return found;
-      })
-      .then((p) => {
         if (!cancelled) {
-          setProject(p);
+          setProject(found);
           setLoading(false);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load project');
           setLoading(false);
         }
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -154,7 +151,7 @@ export default function ProjectDetailsPage() {
              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
            >
              <ListTodo className="w-3.5 h-3.5" />
-             View Sub-tasks
+             View Tasks
            </button>
           {project.CanEdit && (
             <button

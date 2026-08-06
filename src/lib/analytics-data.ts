@@ -1,5 +1,6 @@
 import type { Project, ProjectStatus, ProjectPriority } from './projects-data';
 import { MEMBERS } from '@/pages/team/page';
+import { apiCall } from '@/lib/api';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/ProjectInfo/ServerSearch`;
@@ -24,13 +25,8 @@ const serverSearchBody = {
 
 async function fetchProjects(): Promise<Project[]> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(API_URL, {
+    const res = await apiCall(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify(serverSearchBody),
     });
     if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);

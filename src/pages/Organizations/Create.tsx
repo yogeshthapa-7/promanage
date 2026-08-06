@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
+import { apiCall } from '@/lib/api';
 
 export interface Organization {
   id?: number;
@@ -43,13 +44,7 @@ export default function CreateOrganizationModal({
   const fetchParentOrganizations = async () => {
     setParentOrgsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('https://datacollection.kathmandu.gov.np:8080/Organization/SelectList', {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const res = await apiCall('https://datacollection.kathmandu.gov.np:8080/Organization/SelectList');
       if (!res.ok) throw new Error(`Failed to fetch parent organizations: ${res.statusText}`);
       const data: ParentOrgOption[] = await res.json();
       setParentOrgs(data);
@@ -81,28 +76,23 @@ export default function CreateOrganizationModal({
   }, [open, editingOrganization, form]);
 
   const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+     try {
+       const values = await form.validateFields();
+       setLoading(true);
 
-      const token = localStorage.getItem('token');
-      const orgId = isEdit ? Number(editingOrganization?.id) : 0;
+       const orgId = isEdit ? Number(editingOrganization?.id) : 0;
 
-      const body = {
-        OrganizationID: orgId,
-        Title: values.title,
-        ParentOrganizationID: values.parentOrganization ? Number(values.parentOrganization) : 0,
-      };
+       const body = {
+         OrganizationID: orgId,
+         Title: values.title,
+         ParentOrganizationID: values.parentOrganization ? Number(values.parentOrganization) : 0,
+       };
 
-      const API_URL = 'https://datacollection.kathmandu.gov.np:8080/SaveOrganization';
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
+       const API_URL = 'https://datacollection.kathmandu.gov.np:8080/SaveOrganization';
+       const res = await apiCall(API_URL, {
+         method: 'POST',
+         body: JSON.stringify(body),
+       });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 

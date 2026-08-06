@@ -6,6 +6,7 @@ import { Modal, Form, Input, Select, DatePicker, Upload, Button, Row, Col, messa
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { Employee } from '@/lib/employees-data';
+import { apiCall } from '@/lib/api';
 
 interface EmployeeSetupModalProps {
   open: boolean;
@@ -80,18 +81,12 @@ export default function EmployeeSetupModal({
     const initializeModal = async () => {
       setFetchingData(true);
       try {
-        const token = localStorage.getItem('token');
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        };
-
-        const [resOrg, resDept, resMB, resBranch] = await Promise.all([
-          fetch('https://datacollection.kathmandu.gov.np:8080/OrganizationOffice/SelectList', { headers }),
-          fetch('https://datacollection.kathmandu.gov.np:8080/Department/SelectList', { headers }),
-          fetch('https://datacollection.kathmandu.gov.np:8080/MainBranch/SelectList', { headers }),
-          fetch('https://datacollection.kathmandu.gov.np:8080/Branch/SelectList', { headers }),
-        ]);
+       const [resOrg, resDept, resMB, resBranch] = await Promise.all([
+         apiCall('https://datacollection.kathmandu.gov.np:8080/OrganizationOffice/SelectList'),
+         apiCall('https://datacollection.kathmandu.gov.np:8080/Department/SelectList'),
+         apiCall('https://datacollection.kathmandu.gov.np:8080/MainBranch/SelectList'),
+         apiCall('https://datacollection.kathmandu.gov.np:8080/Branch/SelectList'),
+       ]);
 
         const orgData = resOrg.ok ? await resOrg.json() : [];
         const deptData = resDept.ok ? await resDept.json() : [];
@@ -250,53 +245,48 @@ export default function EmployeeSetupModal({
   };
 
   const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+       try {
+         const values = await form.validateFields();
+         setLoading(true);
 
-      const token = localStorage.getItem('token');
-      const employeeId = isEdit ? Number(editingEmployee?.EmployeeInfoID) : 0;
+         const employeeId = isEdit ? Number(editingEmployee?.EmployeeInfoID) : 0;
 
-      const selectedDept = departments.find((d) => Number(d.DepartmentInfoID) === Number(values.DepartmentID));
-      const selectedMainBranch = mainBranches.find((mb) => Number(mb.MainBranchID) === Number(values.MainBranchID));
-      const selectedBranch = branches.find((b) => Number(b.BranchID) === Number(values.BranchID));
+         const selectedDept = departments.find((d) => Number(d.DepartmentInfoID) === Number(values.DepartmentID));
+         const selectedMainBranch = mainBranches.find((mb) => Number(mb.MainBranchID) === Number(values.MainBranchID));
+         const selectedBranch = branches.find((b) => Number(b.BranchID) === Number(values.BranchID));
 
-      const body: Record<string, unknown> = {
-        EmployeeInfoID: employeeId,
-        Fullname: values.Fullname,
-        Address: values.Address || '',
-        Phone: values.Phone || '',
-        Email: values.Email || '',
-        Gender: values.Gender || 1,
-        DOB: values.DOB ? values.DOB.format('YYYY-MM-DD') : '',
-        OrganizationOfficeID: values.OrganizationOfficeID || 1,
-        DepartmentID: values.DepartmentID || 0,
-        DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
-        BranchID: values.BranchID || 0,
-        BranchName: selectedBranch ? selectedBranch.BranchName : '',
-        MainBranchID: values.MainBranchID || 0,
-        MainBranchName: selectedMainBranch ? selectedMainBranch.MainBranchName : '',
-        Photo: '',
-        EmpStatus: values.EmployeeStatus || 1,
-      };
+         const body: Record<string, unknown> = {
+           EmployeeInfoID: employeeId,
+           Fullname: values.Fullname,
+           Address: values.Address || '',
+           Phone: values.Phone || '',
+           Email: values.Email || '',
+           Gender: values.Gender || 1,
+           DOB: values.DOB ? values.DOB.format('YYYY-MM-DD') : '',
+           OrganizationOfficeID: values.OrganizationOfficeID || 1,
+           DepartmentID: values.DepartmentID || 0,
+           DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
+           BranchID: values.BranchID || 0,
+           BranchName: selectedBranch ? selectedBranch.BranchName : '',
+           MainBranchID: values.MainBranchID || 0,
+           MainBranchName: selectedMainBranch ? selectedMainBranch.MainBranchName : '',
+           Photo: '',
+           EmpStatus: values.EmployeeStatus || 1,
+         };
 
-      if (isEdit) {
-        if (values.Username) body.Username = values.Username;
-        if (values.Password) body.Password = values.Password;
-      } else {
-        body.Username = values.Username || '';
-        body.Password = values.Password || '';
-        body.ConfirmPassword = values.confirmPassword || '';
-      }
+         if (isEdit) {
+           if (values.Username) body.Username = values.Username;
+           if (values.Password) body.Password = values.Password;
+         } else {
+           body.Username = values.Username || '';
+           body.Password = values.Password || '';
+           body.ConfirmPassword = values.confirmPassword || '';
+         }
 
-      const res = await fetch('https://datacollection.kathmandu.gov.np:8080/SaveEmployeeInfo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
+         const res = await apiCall('https://datacollection.kathmandu.gov.np:8080/SaveEmployeeInfo', {
+           method: 'POST',
+           body: JSON.stringify(body),
+         });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
+import { apiCall } from '@/lib/api';
 import { fetchDepartments, type Department } from '@/lib/departments-data';
 import DepartmentFormModal from './DepartmentFormModal';
 
@@ -95,15 +96,11 @@ export default function DepartmentPage() {
       okText: 'Delete',
       okType: 'danger',
       onOk: async () => {
-        try {
-          const token = localStorage.getItem('token');
-          await fetch(
-            `https://datacollection.kathmandu.gov.np:8080/DeleteDepartment?id=${dept.id}`,
-            {
-              method: 'GET',
-              headers: token ? { Authorization: `Bearer ${token}` } : {},
-            }
-          );
+         try {
+           await apiCall(
+             `https://datacollection.kathmandu.gov.np:8080/DeleteDepartment?id=${dept.id}`,
+             { method: 'GET' }
+           );
           message.success('Deleted successfully');
           refreshDepartments();
         } catch {

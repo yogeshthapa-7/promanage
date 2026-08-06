@@ -7,6 +7,7 @@ import Pagination from '@/components/ui/Pagination';
 import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
+import { apiCall } from '@/lib/api';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -75,14 +76,8 @@ export default function EmployeePage() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const deleteUrl = `https://datacollection.kathmandu.gov.np:8080/DeleteEmployeeInfo?id=${deleteTarget.EmployeeInfoID}`;
-      const res = await fetch(deleteUrl, {
-        method: 'GET',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const res = await apiCall(deleteUrl, { method: 'GET' });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 

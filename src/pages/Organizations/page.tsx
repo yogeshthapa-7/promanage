@@ -6,6 +6,7 @@ import { Modal, message } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { fetchOrganizations, type Organization } from '@/lib/organizations-data';
 import CreateOrganizationModal from './Create';
+import { apiCall } from '@/lib/api';
 
 export default function OrganizationPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,16 +62,10 @@ export default function OrganizationPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const token = localStorage.getItem('token');
-          const res = await fetch(
-            `https://datacollection.kathmandu.gov.np:8080/DeleteOrganization?id=${org.id}`,
-            {
-              method: 'GET',
-              headers: {
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-              },
-            }
-          );
+        const res = await apiCall(
+          `https://datacollection.kathmandu.gov.np:8080/DeleteOrganization?id=${org.id}`,
+          { method: 'GET' }
+        );
 
           if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 

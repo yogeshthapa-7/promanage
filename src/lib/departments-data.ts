@@ -1,3 +1,5 @@
+import { apiCall } from '@/lib/api';
+
 export interface Department {
   id: string;
   sn: number;
@@ -50,23 +52,18 @@ export async function fetchDepartments(
   params: FetchDepartmentsParams
 ): Promise<FetchDepartmentsResult> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(API_URL, {
+    const res = await apiCall(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify(buildSearchBody(params)),
     });
-    
+     
     if (!res.ok) throw new Error(`Failed to fetch departments: ${res.statusText}`);
-    
+     
     const json = await res.json();
     const response = json as ApiDepartmentResponse;
     const rows = Array.isArray(response?.data) ? (response.data as ApiDepartmentRow[]) : [];
     const mapped = rows.map(mapApiRowToDepartment);
-    
+     
     return {
       departments: mapped,
       total: response.recordsTotal ?? 0,

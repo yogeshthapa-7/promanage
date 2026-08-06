@@ -1,3 +1,5 @@
+import { apiCall } from '@/lib/api';
+
 export interface Employee {
   EmployeeInfoID: number;
   SN: number;
@@ -72,13 +74,8 @@ export async function fetchEmployees(
   params: FetchEmployeesParams
 ): Promise<FetchEmployeesResult> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(API_URL, {
+    const res = await apiCall(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify(buildSearchBody(params)),
     });
     if (!res.ok) throw new Error(`Failed to fetch employees: ${res.statusText}`);

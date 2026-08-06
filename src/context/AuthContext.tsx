@@ -1,8 +1,16 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { apiCall, clearTokenRefreshSubscribers } from '@/lib/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { email: string; name: string; role: 'admin' | 'user'; employeeId?: number; departmentCode?: number; userName?: string } | null;
+  user: {
+    email: string;
+    name: string;
+    role: 'admin' | 'user';
+    employeeId?: number;
+    departmentCode?: number;
+    userName?: string;
+  } | null;
   login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   loading: boolean;
@@ -20,24 +28,30 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const CLIENT_CODE = import.meta.env.VITE_CLIENT_CODE || '';
 const AUTH_LOGIN_URL = `${API_BASE}/Authenticate/Login`;
 const GET_USER_INFO_URL = `${API_BASE}/GetLoggedInUserInfo`;
-const FALLBACK_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJqdGkiOiJlOTg3NmNlMy1hY2Y5LTQ5YjItODI2Yy01NDIxNDUxODU5NDEiLCJjb21wYW55Y29kZSI6ImttYy1kYyIsInVzZXJuYW1lIjoia21jYWRtaW4iLCJ1c2VyZ3JvdXBpZCI6IjIiLCJ1c2VyZ3JvdXBjb2RlIjoiU0EiLCJlbXBsb3llZWlkIjoiMTkiLCJkZXBhcnRtZW50Y29kZSI6IjEwMDIiLCJtb2R1bGUiOiJub3JtYWwiLCJleHAiOjE3ODU2NTI5MzksImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6NjE5NTUiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjQyMDAifQ.Y_ZNtyvkjWHMMLj7FIRGnP4vYLKENy8dG8h9A33v7N4';
 
-function toStringValue(value: unknown) {
+function toStringValue(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
-function toNumberValue(value: unknown) {
-  return typeof value === 'number' ? value : undefined;
+function toNumberValue(value: unknown): number | undefined {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string' && !isNaN(Number(value))) return Number(value);
+  return undefined;
 }
 
-async function apiCall(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = localStorage.getItem('token');
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
-  };
-  return fetch(url, { ...options, headers });
+/**
+ * Helper to check if a JWT token is expired without external libraries
+ */
+function isTokenExpired(token: string): boolean {
+  try {
+    const payloadBase64 = token.split('.')[1];
+    if (!payloadBase64) return true;
+    const decoded = JSON.parse(atob(payloadBase64));
+    if (!decoded.exp) return false;
+    return Date.now() >= decoded.exp * 1000;
+  } catch {
+    return true;
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -45,70 +59,158 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthContextType['user']>(null);
   const [loading, setLoading] = useState(true);
 
+   const logout = useCallback(() => {
+     setIsAuthenticated(false);
+     setUser(null);
+     localStorage.removeItem('auth');
+     localStorage.removeItem('token');
+     clearTokenRefreshSubscribers();
+   }, []);
+
+  // Initialize Auth State on Mount
   useEffect(() => {
     const stored = localStorage.getItem('auth');
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as StoredAuth;
-        if (parsed.token) {
-          localStorage.setItem('token', parsed.token);
+        const token = parsed.token || localStorage.getItem('token');
+
+        if (token && !isTokenExpired(token)) {
+          localStorage.setItem('token', token);
+          setIsAuthenticated(Boolean(parsed.isAuthenticated));
+          setUser(parsed.user ?? null);
+        } else {
+          logout();
         }
-        setIsAuthenticated(Boolean(parsed.isAuthenticated));
-        setUser(parsed.user ?? null);
       } catch {
-        localStorage.removeItem('auth');
-        localStorage.removeItem('token');
+        logout();
       }
     }
     setLoading(false);
-  }, []);
+  }, [logout]);
 
   const login = async (identifier: string, password: string) => {
-    try {
-      const sessionToken = FALLBACK_TOKEN;
-      localStorage.setItem('token', sessionToken);
+  try {
+    // 1. Prepare Payload
+    const loginPayload = {
+      ClientCode: CLIENT_CODE,
+      Username: identifier,
+      Password: password,
+    };
 
-      const userRes = await apiCall(GET_USER_INFO_URL);
-      if (!userRes.ok) {
-        return { success: false, error: `Failed to fetch user info (${userRes.status})` };
-      }
+    // DEBUG: Check console to ensure none of these fields are empty/undefined
+    console.log('Sending Login Payload:', loginPayload);
 
-      const userData = await userRes.json().catch(() => null);
-      if (!userData) {
-        return { success: false, error: 'Invalid response from user info endpoint' };
-      }
-
-      const userPayload = ((userData as Record<string, unknown>).Data ?? (userData as Record<string, unknown>).data ?? userData) as Record<string, unknown>;
-      const employeeInfo = (userPayload.EmployeeInfo as Record<string, unknown>) || {};
-      const mapped: AuthContextType['user'] = {
-        email: toStringValue(userPayload.email) || toStringValue(userPayload.UserName) || toStringValue(userPayload.userName) || identifier,
-        name:
-          toStringValue(userPayload.FullName) ||
-          toStringValue(employeeInfo.Fullname) ||
-          toStringValue(userPayload.fullName) ||
-          toStringValue(userPayload.name) ||
-          identifier,
-        role: toStringValue(userPayload.UserGroupCode) === 'SA' ? 'admin' : 'user',
-        employeeId: toNumberValue(userPayload.EmployeeID) ?? toNumberValue(employeeInfo.EmployeeInfoID),
-        departmentCode: toNumberValue(employeeInfo.DepartmentID) ?? toNumberValue(userPayload.departmentCode),
-        userName: toStringValue(userPayload.UserName) || toStringValue(userPayload.userName),
-      };
-
-      localStorage.setItem('auth', JSON.stringify({ isAuthenticated: true, user: mapped, token: sessionToken }));
-      setIsAuthenticated(true);
-      setUser(mapped);
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Network error' };
+    if (!CLIENT_CODE) {
+      console.warn('WARNING: CLIENT_CODE is empty! Check VITE_CLIENT_CODE in your .env file.');
     }
-  };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    localStorage.removeItem('auth');
-    localStorage.removeItem('token');
-  };
+    // 2. Make Request
+    const loginRes = await fetch(AUTH_LOGIN_URL, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(loginPayload),
+    });
+
+    // 3. Handle Errors with fallback text reading
+    if (!loginRes.ok) {
+      // Read raw text first in case response isn't JSON
+      const rawErrorText = await loginRes.text();
+      console.error(`Login Failed (${loginRes.status} ${loginRes.statusText}):`, rawErrorText);
+
+      let errJson: Record<string, unknown> | null = null;
+      try {
+        errJson = JSON.parse(rawErrorText);
+      } catch {
+        // Response was plain text or HTML
+      }
+
+      const validationErrors = (errJson?.errors && typeof errJson.errors === 'object')
+        ? Object.values(errJson.errors).flat().join(', ') 
+        : null;
+
+      return {
+        success: false,
+        error:
+          validationErrors ||
+          (errJson?.message as string) ||
+          (errJson?.Message as string) ||
+          rawErrorText ||
+          `Login failed with status ${loginRes.status}`,
+      };
+    }
+
+    // 4. Parse Token on Success
+    const loginData = await loginRes.json();
+    console.log('Login Response:', loginData);
+
+    const token =
+      loginData?.token ||
+      loginData?.Token ||
+      loginData?.Data?.token ||
+      loginData?.data?.token ||
+      loginData?.Data?.Token;
+
+    if (!token || typeof token !== 'string') {
+      return { success: false, error: 'Authentication succeeded, but no token was returned by server.' };
+    }
+
+    // Save token to localStorage immediately
+    localStorage.setItem('token', token);
+
+    // 5. Fetch User Info using the new token directly
+    const userRes = await apiCall(GET_USER_INFO_URL);
+    if (!userRes.ok) {
+      logout();
+      return { success: false, error: `Failed to fetch profile (${userRes.status})` };
+    }
+
+    const userData = await userRes.json().catch(() => null);
+    if (!userData) {
+      logout();
+      return { success: false, error: 'Invalid profile response' };
+    }
+
+    const userPayload = ((userData.Data ?? userData.data ?? userData) as Record<string, unknown>) || {};
+    const employeeInfo = ((userPayload.EmployeeInfo as Record<string, unknown>) || {}) as Record<string, unknown>;
+
+    const mappedUser: AuthContextType['user'] = {
+      email:
+        toStringValue(userPayload.email) ||
+        toStringValue(userPayload.UserName) ||
+        toStringValue(userPayload.userName) ||
+        identifier,
+      name:
+        toStringValue(userPayload.FullName) ||
+        toStringValue(employeeInfo.Fullname) ||
+        toStringValue(userPayload.fullName) ||
+        identifier,
+      role: toStringValue(userPayload.UserGroupCode) === 'SA' ? 'admin' : 'user',
+      employeeId: toNumberValue(userPayload.EmployeeID) ?? toNumberValue(employeeInfo.EmployeeInfoID),
+      departmentCode: toNumberValue(employeeInfo.DepartmentID) ?? toNumberValue(userPayload.departmentCode),
+      userName: toStringValue(userPayload.UserName) || toStringValue(userPayload.userName),
+    };
+
+    localStorage.setItem(
+      'auth',
+      JSON.stringify({ isAuthenticated: true, user: mappedUser, token })
+    );
+
+    setIsAuthenticated(true);
+    setUser(mappedUser);
+
+    return { success: true };
+  } catch (err) {
+    logout();
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Network error during login',
+    };
+  }
+};
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>

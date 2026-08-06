@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button } from 'antd';
 import {
@@ -21,6 +21,7 @@ import {
 import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import Pagination from '@/components/ui/Pagination';
+import { apiCall } from '@/lib/api';
 import { projects as fallbackProjects, mapApiProjectToProject } from '@/lib/projects-data';
 import type { ProjectStatus, Project } from '@/lib/projects-data';
 import { getStatCards } from '@/pages/dashboard/components/statCardsData';
@@ -90,24 +91,38 @@ const serverSearchBody = {
   },
 };
 
-async function fetchProjects(): Promise<Project[]> {
+async function fetchProjects(start: number, length: number): Promise<{ data: Project[]; total: number }> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    const body = {
+      model: {
+        draw: 1,
+        start,
+        length,
+        columns: [
+          { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
+        ],
+        search: { value: '', regex: '' },
+        order: [{ column: 0, dir: 'desc' }],
       },
-      body: JSON.stringify(serverSearchBody),
+      param: {
+        ProjectInfoID: 0,
+      },
+    };
+    const res = await apiCall(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
     const json = await res.json();
     const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
     const mapped = rows.map(mapApiProjectToProject);
-    return mapped.length > 0 ? mapped : fallbackProjects;
+    const data = mapped.length > 0 ? mapped : fallbackProjects;
+    const total = json?.recordsTotal ?? data.length;
+    return { data, total };
   } catch {
-    return fallbackProjects;
+    return { data: fallbackProjects, total: fallbackProjects.length };
   }
 }
 
@@ -125,6 +140,7 @@ export default function ProjectsPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const pageSize = 9;
@@ -134,23 +150,25 @@ export default function ProjectsPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchProjects()
-      .then((data) => {
+    fetchProjects((currentPage - 1) * pageSize, pageSize)
+      .then((result) => {
         if (!cancelled) {
-          setProjects(data);
+          setProjects(result.data);
+          setTotalRecords(result.total);
           setLoading(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setProjects(fallbackProjects);
+          setTotalRecords(fallbackProjects.length);
           setLoading(false);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [currentPage, pageSize]);
 
   const statusOptions: (ProjectStatus | 'All')[] = [
     'All',
@@ -180,13 +198,8 @@ export default function ProjectsPage() {
   };
 
   const openEditModal = async (project: Project) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}`, {
+    const res = await apiCall(`${API_URL}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify({
         ...serverSearchBody,
         param: { ProjectInfoID: Number(project.id) },
@@ -207,49 +220,15 @@ export default function ProjectsPage() {
   }, []);
 
   const handleModalSuccess = useCallback(() => {
-    fetchProjects().then(setProjects);
-  }, []);
+    fetchProjects((currentPage - 1) * pageSize, pageSize).then((result) => {
+      setProjects(result.data);
+      setTotalRecords(result.total);
+    });
+  }, [currentPage, pageSize]);
 
   const handleViewProject = (project: Project) => {
     navigate(`/projects/${project.id}`);
   };
-
-  const filteredProjects = useMemo(() => {
-    let result = projects;
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (p) =>
-          (p.title || p.name || '').toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.status.toLowerCase().includes(q) ||
-          p.client.toLowerCase().includes(q)
-      );
-    }
-
-    if (filterStatus !== 'All') {
-      result = result.filter((p) => p.status === filterStatus);
-    }
-
-    result = [...result].sort((a, b) => {
-      let aVal: string | number = a[sortField] ?? a.title ?? '';
-      let bVal: string | number = b[sortField] ?? b.title ?? '';
-      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  }, [searchQuery, filterStatus, sortField, sortDir, projects]);
-
-  const totalPages = Math.ceil(filteredProjects.length / pageSize);
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -271,7 +250,7 @@ export default function ProjectsPage() {
   const handleExport = () => {
     const csv = [
       ['Name', 'Category', 'Status', 'Priority', 'Progress'],
-      ...filteredProjects.map((p) => [
+      ...projects.map((p) => [
         p.title || p.name,
         p.category,
         p.status,
@@ -299,26 +278,26 @@ export default function ProjectsPage() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-      const res = await fetch(`${API_BASE}/DeleteProjectInfo?id=${deleteTarget.id}`, {
+      const res = await apiCall(`${API_BASE}/DeleteProjectInfo?id=${deleteTarget.id}`, {
         method: 'GET',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
       });
 
       if (!res.ok) throw new Error(`Failed to delete: ${res.statusText}`);
 
-      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-      showToast('Project deleted successfully');
+      message.success('Project deleted successfully');
       setDeleteTarget(null);
+      fetchProjects((currentPage - 1) * pageSize, pageSize).then((result) => {
+        setProjects(result.data);
+        setTotalRecords(result.total);
+      });
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Delete failed');
     } finally {
       setDeleteLoading(false);
     }
   };
+
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   return (
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10">
@@ -508,14 +487,14 @@ export default function ProjectsPage() {
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-foreground">Projects</h2>
               <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                {filteredProjects.length} total
+                {projects.length} total
               </span>
             </div>
 
             {viewMode === 'grid' ? (
               /* Projects Cards Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {paginatedProjects.map((project) => {
+                {projects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
 
@@ -642,7 +621,7 @@ export default function ProjectsPage() {
             ) : (
               /* List View */
               <div className="space-y-2">
-                {paginatedProjects.map((project) => {
+                {projects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
 
@@ -734,7 +713,7 @@ export default function ProjectsPage() {
 
             {totalPages > 1 && (
               <Pagination
-                total={filteredProjects.length}
+                total={totalRecords}
                 currentPage={currentPage}
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}

@@ -1,3 +1,5 @@
+import { apiCall } from '@/lib/api';
+
 export type UserRole = 'Admin' | 'Manager' | 'Developer' | 'Designer' | 'Member' | 'Employee' | 'Task Mgmt' | 'Super Admin' | 'Report Analysis' | 'DC Admin';
 export type UserStatus = 'Active' | 'Inactive' | 'Suspended';
 
@@ -52,14 +54,7 @@ export interface UserGroup {
 
 export async function fetchUserGroups(): Promise<UserGroup[]> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(USER_GROUP_API_URL, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
+    const res = await apiCall(USER_GROUP_API_URL);
     if (!res.ok) throw new Error(`Failed to fetch user groups: ${res.statusText}`);
     const json = await res.json();
     const rows = Array.isArray(json) ? (json as UserGroup[]) : [];
@@ -107,13 +102,8 @@ export async function fetchUsers(
   params: FetchUsersParams
 ): Promise<FetchUsersResult> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(API_URL, {
+    const res = await apiCall(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify(buildSearchBody(params)),
     });
     if (!res.ok) throw new Error(`Failed to fetch users: ${res.statusText}`);
@@ -164,14 +154,7 @@ export const ORGANIZATION_API_URL = `${API_BASE}/Organization/SelectList`;
 
 export async function fetchOrganizations(): Promise<OrganizationSelect[]> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(ORGANIZATION_API_URL, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
+    const res = await apiCall(ORGANIZATION_API_URL);
     if (!res.ok) throw new Error(`Failed to fetch organizations: ${res.statusText}`);
     const json = await res.json();
     const rows = Array.isArray(json) ? (json as OrganizationSelect[]) : [];
@@ -201,13 +184,8 @@ export interface SaveUserResult {
 
 export async function saveUser(payload: SaveUserPayload): Promise<SaveUserResult> {
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(SAVE_USER_URL, {
+    const res = await apiCall(SAVE_USER_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify(payload),
     });
     const json = await res.json();
@@ -227,15 +205,8 @@ export async function saveUser(payload: SaveUserPayload): Promise<SaveUserResult
 
 export async function deleteUser(userId: number): Promise<SaveUserResult> {
   try {
-    const token = localStorage.getItem('token');
     const url = `${DELETE_USER_URL}?userid=${userId}`;
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
+    const res = await apiCall(url, { method: 'GET' });
     const json = await res.json();
     if (json.Success === false) {
       const msg = json.Message || '';
