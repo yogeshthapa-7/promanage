@@ -38,7 +38,7 @@ export default function EmployeePage() {
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback((signal?: AbortSignal) => {
     setLoading(true);
     fetchEmployees({
       search: debouncedSearch,
@@ -47,6 +47,7 @@ export default function EmployeePage() {
       fullname: fullnameFilter,
       address: addressFilter,
       phone: phoneFilter,
+      signal,
     })
       .then((result) => {
         setEmployees(result.employees);
@@ -54,13 +55,18 @@ export default function EmployeePage() {
         setLoading(false);
       })
       .catch((err) => {
+        if (err.name === 'AbortError') return;
         console.error('Failed to fetch employees:', err);
         setLoading(false);
       });
   }, [debouncedSearch, currentPage, pageSize, fullnameFilter, addressFilter, phoneFilter]);
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => {
+      controller.abort();
+    };
   }, [fetchData]);
 
   const handleEditEmployee = (employee: Employee) => {

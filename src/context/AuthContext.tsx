@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { apiCall, clearTokenRefreshSubscribers } from '@/lib/api';
+import { apiCall, clearTokenRefreshSubscribers, isTokenExpired } from '@/lib/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -39,20 +39,7 @@ function toNumberValue(value: unknown): number | undefined {
   return undefined;
 }
 
-/**
- * Helper to check if a JWT token is expired without external libraries
- */
-function isTokenExpired(token: string): boolean {
-  try {
-    const payloadBase64 = token.split('.')[1];
-    if (!payloadBase64) return true;
-    const decoded = JSON.parse(atob(payloadBase64));
-    if (!decoded.exp) return false;
-    return Date.now() >= decoded.exp * 1000;
-  } catch {
-    return true;
-  }
-}
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -67,8 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      clearTokenRefreshSubscribers();
    }, []);
 
-  // Initialize Auth State on Mount
+  // Initialize Auth State on Mount and listen for auth-expired events
   useEffect(() => {
+    const handleAuthExpired = () => {
+      logout();
+    };
+    window.addEventListener('auth-expired', handleAuthExpired);
+
     const stored = localStorage.getItem('auth');
     if (stored) {
       try {
@@ -87,6 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setLoading(false);
+
+    return () => {
+      window.removeEventListener('auth-expired', handleAuthExpired);
+    };
   }, [logout]);
 
   const login = async (identifier: string, password: string) => {

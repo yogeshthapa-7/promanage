@@ -158,11 +158,13 @@ export default function TasksPage() {
 
   useEffect(() => {
     if (project) return;
+    const controller = new AbortController();
     let cancelled = false;
     setProjectsLoading(true);
     apiCall(PROJECTS_API, {
       method: "POST",
       body: JSON.stringify(serverSearchBody),
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -170,17 +172,21 @@ export default function TasksPage() {
         const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
         if (!cancelled) setProjects(rows);
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
+      })
       .finally(() => {
         if (!cancelled) setProjectsLoading(false);
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [project]);
 
   useEffect(() => {
     if (!project || activeTab !== "Task") return;
+    const controller = new AbortController();
     let cancelled = false;
     setTasksLoading(true);
     setTasksError(null);
@@ -192,7 +198,7 @@ export default function TasksPage() {
     apiCall(TASK_SUBTASK_API, {
       method: "POST",
       body: JSON.stringify({
-        Id: projectId,
+        id: projectId,
         Title: "",
         Type: 0,
         ManagerID: 0,
@@ -200,6 +206,7 @@ export default function TasksPage() {
         Status: 0,
         Priority: 0,
       }),
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -210,6 +217,7 @@ export default function TasksPage() {
         }
       })
       .catch((err) => {
+        if (err.name === 'AbortError') return;
         if (!cancelled) setTasksError(err instanceof Error ? err.message : "Failed to load tasks");
       })
       .finally(() => {
@@ -217,6 +225,7 @@ export default function TasksPage() {
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [project, activeTab]);
 

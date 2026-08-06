@@ -70,8 +70,8 @@ export default function CreateOrganizationModal({
           ? String(editingOrganization.parentOrganizationId)
           : undefined,
       });
-    } else if (!open) {
-      form.resetFields();
+    } else if (open && !editingOrganization) {
+  form.resetFields();
     }
   }, [open, editingOrganization, form]);
 

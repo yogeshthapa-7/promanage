@@ -20,20 +20,32 @@ export default function OrganizationPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     fetchOrganizations({
       search: searchQuery,
       start: (currentPage - 1) * pageSize,
       length: pageSize,
+      signal: controller.signal,
     })
       .then((result) => {
-        setOrganizations(result.organizations);
-        setTotalFiltered(result.filtered);
-        setLoading(false);
+        if (!cancelled) {
+          setOrganizations(result.organizations);
+          setTotalFiltered(result.filtered);
+          setLoading(false);
+        }
       })
-      .catch(() => {
-        setLoading(false);
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
+        if (!cancelled) {
+          setLoading(false);
+        }
       });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [searchQuery, currentPage, pageSize, refreshKey]);
 
   const refreshOrganizations = () => {

@@ -49,6 +49,8 @@ export default function DepartmentPage() {
   ], []);
 
   useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     fetchDepartments({
       search: '',
@@ -57,17 +59,27 @@ export default function DepartmentPage() {
       name: filterDeptName,
       code: filterDeptCode,
       mainDept: filterMainDept,
+      signal: controller.signal,
     })
       .then((result) => {
-        setDepartments(result.departments.length ? result.departments : mockDepartments);
-        setTotalFiltered(result.filtered || mockDepartments.length);
-        setLoading(false);
+        if (!cancelled) {
+          setDepartments(result.departments.length ? result.departments : mockDepartments);
+          setTotalFiltered(result.filtered || mockDepartments.length);
+          setLoading(false);
+        }
       })
-      .catch(() => {
-        setDepartments(mockDepartments);
-        setTotalFiltered(mockDepartments.length);
-        setLoading(false);
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
+        if (!cancelled) {
+          setDepartments(mockDepartments);
+          setTotalFiltered(mockDepartments.length);
+          setLoading(false);
+        }
       });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [currentPage, pageSize, filterDeptName, filterDeptCode, filterMainDept, refreshKey, mockDepartments]);
 
   const refreshDepartments = () => setRefreshKey((prev) => prev + 1);
@@ -269,8 +281,8 @@ export default function DepartmentPage() {
                   </td>
                 </tr>
               ) : (
-                departments.map((dept) => (
-                  <tr key={dept.id} className="hover:bg-slate-50/50 transition">
+                departments.map((dept, index) => (
+  <tr key={dept.id ?? `dept-${index}`} className="hover:bg-slate-50/50 transition">
                     <td className="py-4 px-6 text-center text-slate-400 font-medium">
                       {dept.sn}
                     </td>

@@ -70,6 +70,7 @@ interface FetchUsersParams {
   length: number;
   theme?: string;
   role?: string;
+  signal?: AbortSignal;
 }
 
 interface FetchUsersResult {
@@ -105,6 +106,7 @@ export async function fetchUsers(
     const res = await apiCall(API_URL, {
       method: 'POST',
       body: JSON.stringify(buildSearchBody(params)),
+      signal: params.signal,
     });
     if (!res.ok) throw new Error(`Failed to fetch users: ${res.statusText}`);
     const json = await res.json();

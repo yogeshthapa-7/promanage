@@ -29,6 +29,7 @@ interface FetchDepartmentsParams {
   name?: string;
   code?: string;
   mainDept?: string;
+  signal?: AbortSignal;
 }
 
 interface FetchDepartmentsResult {
@@ -61,7 +62,8 @@ export async function fetchDepartments(
     const res = await apiCall(API_URL, {
       method: 'POST',
       body: JSON.stringify(buildSearchBody(params)),
-    });
+      signal: params.signal,
+    }, 120000);
       
     if (!res.ok) throw new Error(`Failed to fetch departments: ${res.statusText}`);
       

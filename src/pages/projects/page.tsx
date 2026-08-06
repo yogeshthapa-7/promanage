@@ -91,7 +91,7 @@ const serverSearchBody = {
   },
 };
 
-async function fetchProjects(start: number, length: number): Promise<{ data: Project[]; total: number }> {
+async function fetchProjects(start: number, length: number, signal?: AbortSignal): Promise<{ data: Project[]; total: number }> {
   try {
     const body = {
       model: {
@@ -113,6 +113,7 @@ async function fetchProjects(start: number, length: number): Promise<{ data: Pro
     const res = await apiCall(API_URL, {
       method: 'POST',
       body: JSON.stringify(body),
+      signal,
     });
     if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
     const json = await res.json();
@@ -121,7 +122,10 @@ async function fetchProjects(start: number, length: number): Promise<{ data: Pro
     const data = mapped.length > 0 ? mapped : fallbackProjects;
     const total = json?.recordsTotal ?? data.length;
     return { data, total };
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw err;
+    }
     return { data: fallbackProjects, total: fallbackProjects.length };
   }
 }
@@ -149,8 +153,9 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
-    fetchProjects((currentPage - 1) * pageSize, pageSize)
+    fetchProjects((currentPage - 1) * pageSize, pageSize, controller.signal)
       .then((result) => {
         if (!cancelled) {
           setProjects(result.data);
@@ -158,7 +163,8 @@ export default function ProjectsPage() {
           setLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
         if (!cancelled) {
           setProjects(fallbackProjects);
           setTotalRecords(fallbackProjects.length);
@@ -167,6 +173,7 @@ export default function ProjectsPage() {
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [currentPage, pageSize]);
 

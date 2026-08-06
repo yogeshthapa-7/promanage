@@ -35,6 +35,7 @@ interface FetchEmployeesParams {
   fullname?: string;
   address?: string;
   phone?: string;
+  signal?: AbortSignal;
 }
 
 interface FetchEmployeesResult {
@@ -77,6 +78,7 @@ export async function fetchEmployees(
     const res = await apiCall(API_URL, {
       method: 'POST',
       body: JSON.stringify(buildSearchBody(params)),
+      signal: params.signal,
     });
     if (!res.ok) throw new Error(`Failed to fetch employees: ${res.statusText}`);
     const json = await res.json();

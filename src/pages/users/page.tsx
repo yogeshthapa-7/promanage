@@ -36,7 +36,7 @@ export default function UsersPage() {
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback((signal?: AbortSignal) => {
     setLoading(true);
     fetchUsers({
       search: debouncedSearch,
@@ -44,20 +44,24 @@ export default function UsersPage() {
       length: pageSize,
       theme: titleFilter,
       role: roleFilter,
+      signal,
     })
       .then((result) => {
         setUsers(result.users);
         setTotalFiltered(result.filtered);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
         setLoading(false);
         message.error('Failed to load users');
       });
   }, [debouncedSearch, currentPage, pageSize, titleFilter, roleFilter]);
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
   }, [fetchData]);
 
   useEffect(() => {
