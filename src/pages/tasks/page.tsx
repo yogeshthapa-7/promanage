@@ -9,6 +9,7 @@ import DiscussionTab from "./DiscussionTab";
 import TimelineTab from "./TimelineTab";
 import IssueTab from "./IssueTab";
 import MilestoneTab from "./MilestoneTab";
+import KanbanTab from "./KanbanTab";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const PROJECTS_API = `${API_BASE}/ProjectInfo/ServerSearch`;
@@ -93,6 +94,8 @@ export default function TasksPage() {
         return <IssueTab project={project} />;
       case "Milestone":
         return <MilestoneTab project={project} />;
+      case "Kanban":
+        return <KanbanTab project={project} />;
       default:
         return (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">

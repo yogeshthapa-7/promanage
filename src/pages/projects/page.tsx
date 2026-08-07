@@ -348,7 +348,10 @@ export default function ProjectsPage() {
           {/* Filter Button */}
           <div className="relative">
             <button
-              onClick={() => setFilterOpen(!filterOpen)}
+              onClick={() => {
+                setFilterOpen((prev) => !prev);
+                setSortOpen(false);
+              }}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-xs font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
             >
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
@@ -363,15 +366,15 @@ export default function ProjectsPage() {
               />
             </button>
             {filterOpen && (
-              <div className="absolute right-0 top-full mt-2 bg-white border border-border rounded-2xl py-2 shadow-lg shadow-black/5 min-w-[160px] z-50">
+              <div className="absolute right-0 top-full mt-2 bg-slate-50 border border-slate-200 rounded-xl py-1 shadow-lg shadow-black/5 min-w-[120px] z-50">
                 {statusOptions.map((status) => (
                   <button
                     key={status}
                     onClick={() => handleFilter(status)}
-                    className={`w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer ${
+                    className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer hover:bg-white hover:shadow-sm ${
                       filterStatus === status
-                        ? 'bg-primary/10 text-primary font-semibold'
-                        : 'text-foreground hover:bg-gray-50'
+                        ? 'bg-white/80 text-primary font-semibold'
+                        : 'text-foreground'
                     }`}
                   >
                     {status}
@@ -384,7 +387,10 @@ export default function ProjectsPage() {
           {/* Sort Button */}
           <div className="relative">
             <button
-              onClick={() => setSortOpen(!sortOpen)}
+              onClick={() => {
+                setSortOpen((prev) => !prev);
+                setFilterOpen(false);
+              }}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-xs font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
             >
               <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -396,15 +402,15 @@ export default function ProjectsPage() {
               />
             </button>
             {sortOpen && (
-              <div className="absolute right-0 top-full mt-2 bg-white border border-border rounded-2xl py-2 shadow-lg shadow-black/5 min-w-[160px] z-50">
+              <div className="absolute right-0 top-full mt-2 bg-slate-50 border border-slate-200 rounded-xl py-1 shadow-lg shadow-black/5 min-w-[120px] z-50">
                 {sortOptions.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => handleSort(opt.value)}
-                    className={`w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer flex items-center justify-between ${
+                    className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer flex items-center justify-between hover:bg-white hover:shadow-sm ${
                       sortField === opt.value
-                        ? 'bg-primary/10 text-primary font-semibold'
-                        : 'text-foreground hover:bg-gray-50'
+                        ? 'bg-white/80 text-primary font-semibold'
+                        : 'text-foreground'
                     }`}
                   >
                     {opt.label}

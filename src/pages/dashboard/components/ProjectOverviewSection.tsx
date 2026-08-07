@@ -42,9 +42,9 @@ export default function ProjectOverviewSection() {
             <ChevronDown size={14} />
           </button>
           {periodOpen && (
-            <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl py-1 z-10" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.10)', minWidth: '140px' }}>
+            <div className="absolute right-0 top-full mt-1 bg-slate-50 border border-slate-200 rounded-xl py-1 z-10" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.10)', minWidth: '120px' }}>
               {periods.map((p) => (
-                <button key={`period-${p}`} onClick={() => { setPeriod(p); setPeriodOpen(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors" style={{ color: p === period ? 'var(--primary)' : 'var(--foreground)' }}>
+                <button key={`period-${p}`} onClick={() => { setPeriod(p); setPeriodOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-white hover:shadow-sm transition-colors" style={{ color: p === period ? 'var(--primary)' : 'var(--foreground)' }}>
                   {p}
                 </button>
               ))}

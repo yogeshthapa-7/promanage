@@ -96,13 +96,13 @@ export default function IssueTab({ project }: IssueTabProps) {
 
   if (issuesLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-muted-foreground">Loading issues...</div>
+      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div>
     );
   }
 
   if (issues.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-muted-foreground text-center">No issues found.</div>
+      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
     );
   }
 
@@ -112,11 +112,11 @@ export default function IssueTab({ project }: IssueTabProps) {
         <div key={issue.IssuesID} className="rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+              <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 {issue.LabelInfoName && (
                   <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border"
                     style={{
                       backgroundColor: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
                       color: issue.LabelColor || undefined,
@@ -127,7 +127,7 @@ export default function IssueTab({ project }: IssueTabProps) {
                   </span>
                 )}
                 {issue.WorkStatusName && (
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700">
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700">
                     {issue.WorkStatusName}
                   </span>
                 )}
@@ -137,12 +137,12 @@ export default function IssueTab({ project }: IssueTabProps) {
                 <span>{issue.CreatedDate}</span>
               </div>
               {issue.Comments && (
-                <p className="mt-2 text-xs text-slate-500 line-clamp-2">{issue.Comments}</p>
+                <p className="mt-2 text-sm text-slate-500 line-clamp-2">{issue.Comments}</p>
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {issue.CanEdit && <span className="text-[10px] text-blue-600 font-semibold">Edit</span>}
-              {issue.CanDelete && <span className="text-[10px] text-rose-600 font-semibold">Delete</span>}
+              {issue.CanEdit && <span className="text-xs text-blue-600 font-semibold">Edit</span>}
+              {issue.CanDelete && <span className="text-xs text-rose-600 font-semibold">Delete</span>}
             </div>
           </div>
         </div>

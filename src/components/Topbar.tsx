@@ -46,8 +46,23 @@ export default function Topbar({
 }: TopbarProps) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [filterPlacement, setFilterPlacement] = useState<'below' | 'above'>('below');
+  const [sortPlacement, setSortPlacement] = useState<'below' | 'above'>('below');
   const filterRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  const updatePlacement = (menuRef: HTMLDivElement | null, placementState: 'below' | 'above', setPlacement: (v: 'below' | 'above') => void) => {
+    if (!menuRef) return;
+    const rect = menuRef.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    if (rect.bottom > viewportHeight - 40) {
+      setPlacement('above');
+    } else {
+      setPlacement('below');
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -59,6 +74,15 @@ export default function Topbar({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (filterOpen && filterMenuRef.current) {
+      updatePlacement(filterMenuRef.current, filterPlacement, setFilterPlacement);
+    }
+    if (sortOpen && sortMenuRef.current) {
+      updatePlacement(sortMenuRef.current, sortPlacement, setSortPlacement);
+    }
+  }, [filterOpen, sortOpen]);
 
   const handleSearchClear = () => {
     onSearchChange?.('');
@@ -92,7 +116,10 @@ export default function Topbar({
 
             <div className="relative" ref={filterRef}>
               <button
-                onClick={() => setFilterOpen((v) => !v)}
+                onClick={() => {
+                  setFilterOpen((v) => !v);
+                  setSortOpen(false);
+                }}
                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border text-xs font-semibold transition-all shadow-xs cursor-pointer ${
                   filterOpen
                     ? 'bg-primary/10 border-primary/30 text-primary'
@@ -105,13 +132,13 @@ export default function Topbar({
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${filterOpen ? 'rotate-180' : ''}`} />
               </button>
               {filterOpen && (
-                <div className="absolute right-0 top-full mt-2 bg-white border border-border rounded-2xl py-2 shadow-lg shadow-black/5 min-w-[160px] z-50">
+                <div ref={filterMenuRef} className={`absolute right-0 ${filterPlacement === 'below' ? 'top-full mt-2' : 'bottom-full mb-2'} bg-slate-50 border border-slate-200 rounded-xl py-1 shadow-lg shadow-black/5 min-w-[120px] z-50`}>
                   {FILTER_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       onClick={() => { onFilterChange?.(opt.value); setFilterOpen(false); }}
-                      className={`w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer ${
-                        filterStatus === opt.value ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-gray-50'
+                      className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer hover:bg-white hover:shadow-sm ${
+                        filterStatus === opt.value ? 'bg-white/80 text-primary font-semibold' : 'text-foreground'
                       }`}
                     >
                       {opt.label}
@@ -123,7 +150,10 @@ export default function Topbar({
 
             <div className="relative" ref={sortRef}>
               <button
-                onClick={() => setSortOpen((v) => !v)}
+                onClick={() => {
+                  setSortOpen((v) => !v);
+                  setFilterOpen(false);
+                }}
                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border text-xs font-semibold transition-all shadow-xs cursor-pointer ${
                   sortOpen
                     ? 'bg-primary/10 border-primary/30 text-primary'
@@ -135,13 +165,13 @@ export default function Topbar({
                 <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
               </button>
               {sortOpen && (
-                <div className="absolute right-0 top-full mt-2 bg-white border border-border rounded-2xl py-2 shadow-lg shadow-black/5 min-w-[160px] z-50">
+                <div ref={sortMenuRef} className={`absolute right-0 ${sortPlacement === 'below' ? 'top-full mt-2' : 'bottom-full mb-2'} bg-slate-50 border border-slate-200 rounded-xl py-1 shadow-lg shadow-black/5 min-w-[120px] z-50`}>
                   {SORT_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       onClick={() => { onSortChange?.(opt.value); setSortOpen(false); }}
-                      className={`w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer flex items-center justify-between ${
-                        sortField === opt.value ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-gray-50'
+                      className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer flex items-center justify-between hover:bg-white hover:shadow-sm ${
+                        sortField === opt.value ? 'bg-white/80 text-primary font-semibold' : 'text-foreground'
                       }`}
                     >
                       {opt.label}

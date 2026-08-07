@@ -19,6 +19,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Modal, Form, Input, Select, Slider, message, Upload } from "antd";
+import DropdownMenu from "@/components/ui/DropdownMenu";
 
 type MemberRole = "Admin" | "Member" | "Guest";
 type MemberStatus = "Active" | "Away" | "On Leave";
@@ -1058,7 +1059,6 @@ const MemberRow = memo(function MemberRow({
   onEditMember: (m: TeamMember) => void;
   onDeleteMember: (m: TeamMember) => void;
 }) {
-  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const colorCls = workloadColor(member.workload);
 
   return (
@@ -1115,40 +1115,19 @@ const MemberRow = memo(function MemberRow({
           <span className="w-8 text-right text-xs font-semibold text-slate-600">{member.workload}%</span>
         </div>
       </td>
-      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100 relative">
-        <div className="relative inline-block text-left">
-          <button
-            onClick={() => setActionMenuOpen((v) => !v)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
-          {actionMenuOpen && (
-            <div className="absolute right-0 mt-1 w-40 origin-top-right rounded-xl bg-white border border-slate-200 shadow-lg shadow-black/5 ring-1 ring-black/5 focus:outline-none z-10">
-              <div className="py-1">
-                <button
-                  onClick={() => { onViewMember(member); setActionMenuOpen(false); }}
-                  className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600"
-                >
-                  View Profile
-                </button>
-                <button
-                  onClick={() => { onEditMember(member); setActionMenuOpen(false); }}
-                  className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600"
-                >
-                  Edit Role
-                </button>
-                <hr className="my-1 border-slate-100" />
-                <button
-                  onClick={() => { onDeleteMember(member); setActionMenuOpen(false); }}
-                  className="block w-full text-left px-4 py-2 text-sm text-rose-500 hover:bg-rose-50"
-                >
-                  Remove Member
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+        <DropdownMenu
+          trigger={
+            <button className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          }
+          items={[
+            { label: "View Profile", onClick: () => onViewMember(member) },
+            { label: "Edit Role", onClick: () => onEditMember(member) },
+            { label: "Remove Member", onClick: () => onDeleteMember(member), danger: true },
+          ]}
+        />
       </td>
     </tr>
   );

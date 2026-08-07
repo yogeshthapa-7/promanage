@@ -82,13 +82,13 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
 
   if (discussionsLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-muted-foreground">Loading discussions...</div>
+      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading discussions...</div>
     );
   }
 
   if (discussions.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-muted-foreground text-center">No discussions found.</div>
+      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No discussions found.</div>
     );
   }
 
@@ -96,8 +96,8 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
     <div className="space-y-3">
       {discussions.map((d) => (
         <div key={d.ProjectDiscussionID} className="rounded-xl border border-slate-200 bg-white p-4">
-          <h4 className="text-sm font-bold text-slate-900">{d.DiscussionTitle}</h4>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+          <h4 className="text-base font-bold text-slate-900">{d.DiscussionTitle}</h4>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span>Priority: {d.PriorityName}</span>
             <span>•</span>
             <span>{d.CreatedDate}</span>
