@@ -11,7 +11,7 @@ import UsersPage from './pages/users/page';
 import ActivityPage from './pages/analytics/page';
 import EmployeePage from './pages/employee/page'
 import NotFound from './pages/not-found';
-import DepartmentPage from './pages/departments/page';
+import DepartmentPage from './pages/departments/department/page';
 import OrganizationPage from './pages/Organizations/page';
 
 function App() {

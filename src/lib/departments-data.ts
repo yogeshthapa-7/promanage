@@ -4,7 +4,11 @@ export interface Department {
   id: string;
   sn: number;
   name: string;
-  subTaskCount: number;
+  departmentCode: string;
+  parentDepartmentId: number;
+  parentDepartmentName: string;
+  orderKey: number;
+  status: number;
 }
 
 interface ApiDepartmentResponse {
@@ -14,10 +18,14 @@ interface ApiDepartmentResponse {
 }
 
 interface ApiDepartmentRow {
-  id: string;
   SN: number;
-  Name: string;
-  SubTaskCount: number;
+  DepartmentID: number;
+  DepartmentCode: string;
+  DepartmentName: string;
+  OrderKey: number;
+  ParentDepartmentID: number;
+  ParentDepartmentName: string;
+  Status: number;
 }
 
 const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/Department/ServerSearch';
@@ -84,9 +92,13 @@ export async function fetchDepartments(
 
 function mapApiRowToDepartment(row: ApiDepartmentRow): Department {
   return {
-    id: row.id,
+    id: String(row.DepartmentID),
     sn: row.SN,
-    name: row.Name,
-    subTaskCount: row.SubTaskCount,
+    name: row.DepartmentName,
+    departmentCode: row.DepartmentCode,
+    parentDepartmentId: row.ParentDepartmentID,
+    parentDepartmentName: row.ParentDepartmentName,
+    orderKey: row.OrderKey,
+    status: row.Status,
   };
 }
