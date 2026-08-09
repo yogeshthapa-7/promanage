@@ -113,10 +113,10 @@ export default function IssueTab({ project }: IssueTabProps) {
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
                 {issue.LabelInfoName && (
                   <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border"
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold border"
                     style={{
                       backgroundColor: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
                       color: issue.LabelColor || undefined,
@@ -127,7 +127,7 @@ export default function IssueTab({ project }: IssueTabProps) {
                   </span>
                 )}
                 {issue.WorkStatusName && (
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700">
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold bg-slate-100 text-slate-700">
                     {issue.WorkStatusName}
                   </span>
                 )}
@@ -137,12 +137,12 @@ export default function IssueTab({ project }: IssueTabProps) {
                 <span>{issue.CreatedDate}</span>
               </div>
               {issue.Comments && (
-                <p className="mt-2 text-sm text-slate-500 line-clamp-2">{issue.Comments}</p>
+                <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {issue.CanEdit && <span className="text-xs text-blue-600 font-semibold">Edit</span>}
-              {issue.CanDelete && <span className="text-xs text-rose-600 font-semibold">Delete</span>}
+              {issue.CanEdit && <span className="text-sm text-blue-600 font-semibold">Edit</span>}
+              {issue.CanDelete && <span className="text-sm text-rose-600 font-semibold">Delete</span>}
             </div>
           </div>
         </div>

@@ -93,7 +93,7 @@ export default function NepaliDatePicker({
       {/* Trigger Field */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-xs cursor-pointer hover:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20 transition-all shadow-sm"
+        className="flex items-center justify-between w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-sm cursor-pointer hover:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20 transition-all shadow-sm"
       >
         <span className={value ? 'text-slate-800 font-medium' : 'text-slate-400'}>
           {value || placeholder}
@@ -118,7 +118,7 @@ export default function NepaliDatePicker({
               <select
                 value={viewYear}
                 onChange={(e) => setViewYear(Number(e.target.value))}
-                className="text-xs font-semibold text-slate-800 bg-transparent border-none outline-none cursor-pointer"
+                className="text-sm font-semibold text-slate-800 bg-transparent border-none outline-none cursor-pointer"
               >
                 {Array.from({ length: 60 }, (_, i) => 2040 + i).map((y) => (
                   <option key={y} value={y}>
@@ -130,7 +130,7 @@ export default function NepaliDatePicker({
               <select
                 value={viewMonth}
                 onChange={(e) => setViewMonth(Number(e.target.value))}
-                className="text-xs font-semibold text-slate-800 bg-transparent border-none outline-none cursor-pointer"
+                className="text-sm font-semibold text-slate-800 bg-transparent border-none outline-none cursor-pointer"
               >
                 {NEPALI_MONTHS_EN.map((m, idx) => (
                   <option key={m} value={idx}>
@@ -154,7 +154,7 @@ export default function NepaliDatePicker({
             {NEPALI_DAYS_SHORT.map((day, idx) => (
               <span
                 key={day}
-                className={`text-[10px] font-semibold ${
+                className={`text-sm font-semibold ${
                   idx === 0 ? 'text-red-500' : 'text-slate-400'
                 }`}
               >
@@ -181,7 +181,7 @@ export default function NepaliDatePicker({
                   key={index}
                   type="button"
                   onClick={() => handleSelectDay(item.day, item.month, item.year)}
-                  className={`h-8 w-full rounded-md text-xs font-medium flex flex-col items-center justify-center transition-all ${
+                  className={`h-8 w-full rounded-md text-sm font-medium flex flex-col items-center justify-center transition-all ${
                     !item.isCurrentMonth
                       ? 'text-slate-300 hover:bg-slate-50'
                       : isSelected
@@ -198,7 +198,7 @@ export default function NepaliDatePicker({
           </div>
 
           {/* Footer Control */}
-          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-sm">
             <button
               type="button"
               onClick={handleSelectToday}

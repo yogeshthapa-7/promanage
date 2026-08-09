@@ -241,7 +241,7 @@ export default function AnalyticsPage() {
       <div className="fade-in text-slate-800 flex items-center justify-center h-96">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin text-violet-500 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">Loading analytics data...</p>
+          <p className="text-base text-slate-500">Loading analytics data...</p>
         </div>
       </div>
     );
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Analytics</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-base text-slate-500">
             Comprehensive project performance overview, budget tracking, and delivery metrics for ProManage.
           </p>
         </div>
@@ -309,8 +309,8 @@ export default function AnalyticsPage() {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between">
-              <div className="text-xs text-slate-400">{c.description}</div>
-              <div className="flex items-center gap-1 text-xs">
+              <div className="text-base text-slate-400">{c.description}</div>
+              <div className="flex items-center gap-1 text-sm">
                 {c.up ? (
                   <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
                 ) : (
@@ -339,8 +339,8 @@ export default function AnalyticsPage() {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between">
-              <div className="text-xs text-slate-400">{c.description}</div>
-              <div className="flex items-center gap-1 text-xs">
+              <div className="text-base text-slate-400">{c.description}</div>
+              <div className="flex items-center gap-1 text-sm">
                 {c.up ? (
                   <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
                 ) : (
@@ -361,23 +361,23 @@ export default function AnalyticsPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Project Status Breakdown</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Distribution of projects by current status</p>
+              <p className="mt-0.5 text-base text-slate-400">Distribution of projects by current status</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200/60">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200/60">
               <PieChart className="h-3 w-3" /> {kpis[0]?.value} Total
             </span>
           </div>
           <div ref={statusChartRef} className="w-full flex justify-center" />
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-3">
             {statusBreakdown.map((s) => (
-              <div key={s.label} className="flex items-center gap-2 text-xs">
+              <div key={s.label} className="flex items-center gap-2 text-sm">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
                 <span className="text-slate-600">{s.label}</span>
                 <span className="font-bold text-slate-800">{s.count}</span>
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-3 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Insight:</strong> {kpis[2]?.value} projects have been completed successfully. {kpis[3]?.value} project{kpis[3]?.value !== 1 ? 's are' : ' is'} currently overdue and requires immediate attention. {kpis[1]?.value} projects are actively in progress.
           </div>
         </div>
@@ -386,14 +386,14 @@ export default function AnalyticsPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Project Progress Trend</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Completed vs in-progress projects over the last 7 months</p>
+              <p className="mt-0.5 text-base text-slate-400">Completed vs in-progress projects over the last 7 months</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
               <TrendingUp className="h-3 w-3" /> +22% Growth
             </span>
           </div>
           <div ref={trendChartRef} className="w-full" />
-          <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Trend Analysis:</strong> Completed projects have steadily increased from January through July. The in-progress pipeline shows consistent growth, indicating healthy project initiation rates. Q3 is expected to see the highest delivery volume.
           </div>
         </div>
@@ -404,23 +404,23 @@ export default function AnalyticsPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Budget by Category</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Total budget allocation across project categories</p>
+              <p className="mt-0.5 text-base text-slate-400">Total budget allocation across project categories</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
               <DollarSign className="h-3 w-3" /> ${totalBudget.toLocaleString()}
             </span>
           </div>
           <div ref={budgetChartRef} className="w-full" />
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-3">
             {budgetByCategory.map((b) => (
-              <div key={b.label} className="flex items-center gap-2 text-xs">
+              <div key={b.label} className="flex items-center gap-2 text-sm">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: b.color }} />
                 <span className="text-slate-600">{b.label}</span>
                 <span className="font-bold text-slate-800">${b.budget.toLocaleString()}</span>
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-3 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Budget Insight:</strong> Development projects consume the largest share of the budget, followed by Infrastructure. The average budget per project is <strong>${Math.round(totalBudget / (kpis[0]?.value as number)).toLocaleString()}</strong>.
           </div>
         </div>
@@ -429,23 +429,23 @@ export default function AnalyticsPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Projects by Category</h3>
-              <p className="mt-0.1 text-xs text-slate-400">Number of projects grouped by category</p>
+              <p className="mt-0.1 text-base text-slate-400">Number of projects grouped by category</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/60">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/60">
               <BarChart3 className="h-3 w-3" /> {categoryBreakdown.length} Categories
             </span>
           </div>
           <div ref={categoryChartRef} className="w-full" />
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-3">
             {categoryBreakdown.map((c) => (
-              <div key={c.label} className="flex items-center gap-2 text-xs">
+              <div key={c.label} className="flex items-center gap-2 text-sm">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: c.color }} />
                 <span className="text-slate-600">{c.label}</span>
                 <span className="font-bold text-slate-800">{c.count}</span>
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-3 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Category Insight:</strong> Development is the most active category with {categoryBreakdown.find((c) => c.label === 'Development')?.count || 0} projects. Infrastructure and Design follow with balanced allocations across the portfolio.
           </div>
         </div>
@@ -456,23 +456,23 @@ export default function AnalyticsPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Priority Distribution</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Projects grouped by priority level</p>
+              <p className="mt-0.5 text-base text-slate-400">Projects grouped by priority level</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60">
               <Target className="h-3 w-3" /> Urgent: {priorityBreakdown.find((p) => p.label === 'Urgent')?.count || 0}
             </span>
           </div>
           <div ref={priorityChartRef} className="w-full flex justify-center" />
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-3">
             {priorityBreakdown.map((p) => (
-              <div key={p.label} className="flex items-center gap-2 text-xs">
+              <div key={p.label} className="flex items-center gap-2 text-sm">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />
                 <span className="text-slate-600">{p.label}</span>
                 <span className="font-bold text-slate-800">{p.count}</span>
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-3 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Priority Insight:</strong> {priorityBreakdown.find((p) => p.label === 'Urgent')?.count || 0} urgent project(s) require immediate resource allocation. {priorityBreakdown.find((p) => p.label === 'High')?.count || 0} high-priority projects are in the active pipeline.
           </div>
         </div>
@@ -481,14 +481,14 @@ export default function AnalyticsPage() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Task Completion by Project</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Top 6 projects by completion rate</p>
+              <p className="mt-0.5 text-base text-slate-400">Top 6 projects by completion rate</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
               <Zap className="h-3 w-3" /> {taskCompletionRate}% Overall
             </span>
           </div>
           <div ref={taskChartRef} className="w-full" />
-          <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Task Insight:</strong> {totalTasksCompleted} of {totalTasks} total tasks completed across all projects ({taskCompletionRate}% completion rate). Projects with 100% progress have all tasks closed.
           </div>
         </div>
@@ -502,27 +502,27 @@ export default function AnalyticsPage() {
           </div>
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-500">Active Projects</span>
+              <span className="text-base text-slate-500">Active Projects</span>
               <span className="text-sm font-bold text-slate-800">{timelineSummary.activeProjects}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-500">Avg Days to Completion</span>
+              <span className="text-base text-slate-500">Avg Days to Completion</span>
               <span className="text-sm font-bold text-slate-800">{timelineSummary.avgDaysToCompletion} days</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-500">On-Time Delivery Rate</span>
+              <span className="text-base text-slate-500">On-Time Delivery Rate</span>
               <span className="text-sm font-bold text-emerald-600">{timelineSummary.onTimeDeliveryRate}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-500">Budget Utilization</span>
+              <span className="text-base text-slate-500">Budget Utilization</span>
               <span className="text-sm font-bold text-slate-800">{timelineSummary.budgetUtilization}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-500">Team Utilization</span>
+              <span className="text-base text-slate-500">Team Utilization</span>
               <span className="text-sm font-bold text-slate-800">{timelineSummary.teamUtilization}</span>
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             The project portfolio is operating at {timelineSummary.teamUtilization} team utilization with a {timelineSummary.onTimeDeliveryRate} on-time delivery rate. Budget utilization is at {timelineSummary.budgetUtilization}, leaving room for new project intake.
           </div>
         </div>
@@ -537,7 +537,7 @@ export default function AnalyticsPage() {
               const pct = (kpis[0]?.value as number) > 0 ? ((s.count / (kpis[0]?.value as number)) * 100).toFixed(1) : '0.0';
               return (
                 <div key={s.label}>
-                  <div className="flex items-center justify-between text-xs mb-1">
+                  <div className="flex items-center justify-between text-sm mb-1">
                     <span className="font-semibold text-slate-700">{s.label}</span>
                     <span className="font-bold text-slate-800">{s.count} ({pct}%)</span>
                   </div>
@@ -548,7 +548,7 @@ export default function AnalyticsPage() {
               );
             })}
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Summary:</strong> {kpis[2]?.value} completed projects represent the largest completed batch. {kpis[3]?.value} overdue project{kpis[3]?.value !== 1 ? 's need' : ' needs'} immediate resolution to prevent further delays.
           </div>
         </div>
@@ -561,13 +561,13 @@ export default function AnalyticsPage() {
           <div className="flex flex-col gap-3">
             {keyMetrics.map((m) => (
               <div key={m.title} className="rounded-lg bg-slate-50 p-3 border border-slate-100">
-                <div className="text-xs text-slate-500 font-medium">{m.title}</div>
+                <div className="text-base text-slate-500 font-medium">{m.title}</div>
                 <div className={`text-lg font-bold text-slate-800 mt-0.5 ${m.color}`}>{m.value}</div>
-                <div className="text-xs text-slate-400 mt-1">{m.subtitle}</div>
+                <div className="text-base text-slate-400 mt-1">{m.subtitle}</div>
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Performance:</strong> The portfolio is tracking ahead of schedule with a {timelineSummary.onTimeDeliveryRate} on-time delivery rate. Budget efficiency is strong at the current cost-per-task ratio.
           </div>
         </div>

@@ -306,7 +306,7 @@ const ModalContent = memo(
               <h2 className="text-sm font-bold text-foreground">
                 {isEdit ? 'Edit Project' : 'New Project'}
               </h2>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="text-base text-muted-foreground mt-0.5">
                 {isEdit ? 'Update project details.' : 'Fill in the details to create a new project.'}
               </p>
             </div>
@@ -320,7 +320,7 @@ const ModalContent = memo(
 
           <div className="flex-1 overflow-y-auto px-5 py-4">
             {optionsError && (
-              <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs">
+              <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
                 <strong>डाटा लोड गर्न असफल:</strong> {optionsError}
               </div>
             )}
@@ -335,7 +335,7 @@ const ModalContent = memo(
                 <Col span={24}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         परियोजनाको नाम
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -343,7 +343,7 @@ const ModalContent = memo(
                     name="projectName"
                     rules={[{ required: true, message: 'कृपया परियोजनाको नाम प्रविष्ट गर्नुहोस्' }]}
                   >
-                    <Input className="rounded-md border-slate-300 h-9 text-xs" />
+                    <Input className="rounded-md border-slate-300 h-9 text-sm" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -352,7 +352,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         परियोजना प्रमुख नाम
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -363,7 +363,7 @@ const ModalContent = memo(
                     <Select
                       placeholder=""
                       options={projectHeadOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -372,7 +372,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         शुरू मिति
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -380,13 +380,13 @@ const ModalContent = memo(
                     name="startDate"
                     rules={[{ required: true, message: 'कृपया शुरू मिति प्रविष्ट गर्नुहोस्' }]}
                   >
-                    <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-xs" />
+                    <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         परियोजना अवधि
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -395,7 +395,7 @@ const ModalContent = memo(
                     initialValue={0}
                     rules={[{ required: true, message: 'कृपया अवधि प्रविष्ट गर्नुहोस्' }]}
                   >
-                    <InputNumber className="w-full rounded-md border-slate-300 h-9 text-xs" min={0} />
+                    <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
                   </Form.Item>
                 </Col>
               </Row>
@@ -404,7 +404,7 @@ const ModalContent = memo(
                 <Col span={24}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         विवरण
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -412,7 +412,7 @@ const ModalContent = memo(
                     name="description"
                     rules={[{ required: true, message: 'कृपया विवरण प्रविष्ट गर्नुहोस्' }]}
                   >
-                    <Input.TextArea rows={3} className="rounded-md border-slate-300 text-xs" />
+                    <Input.TextArea rows={3} className="rounded-md border-slate-300 text-sm" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -421,7 +421,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         प्राथमिकता 1
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -432,7 +432,7 @@ const ModalContent = memo(
                     <Select
                       placeholder="--select--"
                       options={PRIORITY_OPTIONS}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       getPopupContainer={getPopupParent}
                     />
                   </Form.Item>
@@ -440,7 +440,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         कुल बजेट
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -449,13 +449,13 @@ const ModalContent = memo(
                     initialValue={0}
                     rules={[{ required: true, message: 'कृपया कुल बजेट प्रविष्ट गर्नुहोस्' }]}
                   >
-                    <InputNumber className="w-full rounded-md border-slate-300 h-9 text-xs" min={0} />
+                    <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         स्थिति नाम
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -466,7 +466,7 @@ const ModalContent = memo(
                     <Select
                       placeholder="कृपया स्थिति नाम चयन गर्नुहोस्"
                       options={statusOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -478,7 +478,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         नीति तथा कार्यक्रम
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -489,7 +489,7 @@ const ModalContent = memo(
                     <Select
                       placeholder="कृपया छनौट गर्नुहोस्"
                       options={policyProgramOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -498,7 +498,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         बजेट
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -509,7 +509,7 @@ const ModalContent = memo(
                     <Select
                       placeholder="कृपया बजेट छनौट गर्नुहोस्"
                       options={budgetOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -518,7 +518,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         ग्राहकको नाम
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -529,7 +529,7 @@ const ModalContent = memo(
                     <Select
                       placeholder="कृपया ग्राहकको नाम चयन गर्नुहोस्"
                       options={clientOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -541,7 +541,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         परियोजना प्रकार
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -552,7 +552,7 @@ const ModalContent = memo(
                     <Select
                       placeholder="कृपया परियोजना प्रकार चयन गर्नुहोस्"
                       options={projectTypeOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -561,7 +561,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         विभाग
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -574,7 +574,7 @@ const ModalContent = memo(
                       placeholder="प्रशासन विभाग"
                       allowClear
                       options={departmentOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -583,7 +583,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         खर्च जानकारी
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -594,7 +594,7 @@ const ModalContent = memo(
                     <Select
                       placeholder="कृपया खर्च चयन गर्नुहोस्"
                       options={expenseInfoOptions}
-                      className="rounded-md h-9 text-xs"
+                      className="rounded-md h-9 text-sm"
                       loading={optionsLoading}
                       getPopupContainer={getPopupParent}
                     />
@@ -606,7 +606,7 @@ const ModalContent = memo(
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         Bank Guarantee Issue Date
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -614,13 +614,13 @@ const ModalContent = memo(
                     name="bankGuaranteeIssueDate"
                     rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
                   >
-                    <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-xs" />
+                    <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         Bank Guarantee Expiry Date
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -628,7 +628,7 @@ const ModalContent = memo(
                     name="bankGuaranteeExpiryDate"
                     rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
                   >
-                    <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-xs" />
+                    <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -637,7 +637,7 @@ const ModalContent = memo(
                 <Col span={12}>
                   <Form.Item
                     label={
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-sm font-semibold text-slate-700">
                         Project Head Image
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -648,10 +648,10 @@ const ModalContent = memo(
                     <input type="hidden" />
                   </Form.Item>
                   <div className="flex items-center gap-2">
-                    <div className="bg-[#e5e7eb] text-slate-700 px-3 py-1.5 rounded-md text-xs min-w-[120px] truncate border border-slate-300">
+                    <div className="bg-[#e5e7eb] text-slate-700 px-3 py-1.5 rounded-md text-sm min-w-[120px] truncate border border-slate-300">
                       {selectedFileName || 'Upload here'}
                     </div>
-                    <label className="bg-[#6b7280] hover:bg-[#4b5563] text-white px-4 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors shadow-sm">
+                    <label className="bg-[#6b7280] hover:bg-[#4b5563] text-white px-4 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors shadow-sm">
                       Browse
                       <input type="file" className="hidden" onChange={handleFileChange} />
                     </label>
@@ -665,7 +665,7 @@ const ModalContent = memo(
             <Button
               type="text"
               onClick={onClose}
-              className="text-slate-500 hover:!text-slate-600 font-medium h-auto py-1.5 px-3 text-xs"
+              className="text-slate-500 hover:!text-slate-600 font-medium h-auto py-1.5 px-3 text-sm"
             >
               Cancel
             </Button>
@@ -673,7 +673,7 @@ const ModalContent = memo(
               type="primary"
               loading={loading}
               onClick={handleSubmit}
-              className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-xs rounded-md font-medium text-white flex items-center justify-center gap-1.5 shadow-sm"
+              className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white flex items-center justify-center gap-1.5 shadow-sm"
             >
               <Save className="w-3.5 h-3.5" />
               {isEdit ? 'अपडेट गर्नुहोस्' : 'सुरक्षित गर्नुहोस्'}

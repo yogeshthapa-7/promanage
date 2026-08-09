@@ -105,7 +105,7 @@ export default function Topbar({
                 placeholder="Search projects..."
                 value={searchValue}
                 onChange={(e) => onSearchChange?.(e.target.value)}
-                className="bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground text-xs"
+                className="bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground text-sm"
               />
               {searchValue && (
                 <button onClick={handleSearchClear} className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
@@ -120,7 +120,7 @@ export default function Topbar({
                   setFilterOpen((v) => !v);
                   setSortOpen(false);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border text-xs font-semibold transition-all shadow-xs cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border text-sm font-semibold transition-all shadow-xs cursor-pointer ${
                   filterOpen
                     ? 'bg-primary/10 border-primary/30 text-primary'
                     : 'bg-white/70 border-border text-foreground hover:bg-white'
@@ -137,7 +137,7 @@ export default function Topbar({
                     <button
                       key={opt.value}
                       onClick={() => { onFilterChange?.(opt.value); setFilterOpen(false); }}
-                      className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer hover:bg-white hover:shadow-sm ${
+                      className={`w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer hover:bg-white hover:shadow-sm ${
                         filterStatus === opt.value ? 'bg-white/80 text-primary font-semibold' : 'text-foreground'
                       }`}
                     >
@@ -154,7 +154,7 @@ export default function Topbar({
                   setSortOpen((v) => !v);
                   setFilterOpen(false);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border text-xs font-semibold transition-all shadow-xs cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border text-sm font-semibold transition-all shadow-xs cursor-pointer ${
                   sortOpen
                     ? 'bg-primary/10 border-primary/30 text-primary'
                     : 'bg-white/70 border-border text-foreground hover:bg-white'
@@ -170,12 +170,12 @@ export default function Topbar({
                     <button
                       key={opt.value}
                       onClick={() => { onSortChange?.(opt.value); setSortOpen(false); }}
-                      className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer flex items-center justify-between hover:bg-white hover:shadow-sm ${
+                      className={`w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center justify-between hover:bg-white hover:shadow-sm ${
                         sortField === opt.value ? 'bg-white/80 text-primary font-semibold' : 'text-foreground'
                       }`}
                     >
                       {opt.label}
-                      {sortField === opt.value && <span className="text-[10px] text-muted-foreground uppercase">{sortDir === 'asc' ? 'A→Z' : 'Z→A'}</span>}
+                      {sortField === opt.value && <span className="text-sm text-muted-foreground uppercase">{sortDir === 'asc' ? 'A→Z' : 'Z→A'}</span>}
                     </button>
                   ))}
                 </div>

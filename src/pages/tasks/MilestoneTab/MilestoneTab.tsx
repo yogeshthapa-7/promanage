@@ -110,7 +110,7 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
             </div>
 
             {milestone.Summary && (
-              <p className="text-sm text-slate-500 line-clamp-3">{milestone.Summary}</p>
+              <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>
             )}
 
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -120,13 +120,13 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
               />
             </div>
 
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center justify-between text-base text-muted-foreground">
               <span>Start: {milestone.StartDate || "—"}</span>
               <span>End: {milestone.EndDate || "—"}</span>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span className="text-sm text-muted-foreground">Milestone Cost</span>
+              <span className="text-base text-muted-foreground">Milestone Cost</span>
               <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
             </div>
           </div>

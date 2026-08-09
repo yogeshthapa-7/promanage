@@ -67,12 +67,17 @@
     box-sizing: border-box;
     border-color: var(--border);
   }
+  html {
+    font-size: 17px;
+  }
   body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 1rem;
+    line-height: 1.6;
   }
   html {
     scroll-behavior: smooth;

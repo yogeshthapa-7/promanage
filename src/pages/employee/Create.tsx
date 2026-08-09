@@ -435,7 +435,7 @@ export default function EmployeeSetupModal({
                   onChange={({ fileList }) => setFileList(fileList)}
                   maxCount={1}
                 >
-                  <Button icon={<UploadOutlined />} className="rounded-md border-slate-300 text-xs h-8">
+                  <Button icon={<UploadOutlined />} className="rounded-md border-slate-300 text-sm h-8">
                     फोटो अपलोड गर्नुहोस्
                   </Button>
                 </Upload>

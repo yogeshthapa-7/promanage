@@ -10,10 +10,11 @@ interface StatCardClientProps {
   trendUp: boolean;
   iconBg?: string;
   iconColor?: string;
-  iconType?: 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending';
+  iconType?: 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
   sparklineData?: number[];
   sparklineColor?: string;
   icon?: React.ReactNode;
+  loading?: boolean;
 }
 
 const StatCardClient = memo(function StatCardClient({
@@ -27,17 +28,18 @@ const StatCardClient = memo(function StatCardClient({
   sparklineData = [],
   sparklineColor = '#7C3AED',
   icon,
+  loading = false,
 }: StatCardClientProps) {
   return (
     <StatCard
       title={title}
-      value={value}
-      trend={trend}
+      value={loading ? '—' : value}
+      trend={loading ? '...' : trend}
       trendUp={trendUp}
       iconBg={iconBg}
       iconColor={iconColor}
       iconType={iconType}
-      sparklineData={sparklineData}
+      sparklineData={loading ? [] : sparklineData}
       sparklineColor={sparklineColor}
       icon={icon}
     />

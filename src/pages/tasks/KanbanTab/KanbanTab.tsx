@@ -214,10 +214,10 @@ export default function KanbanTab({ project }: KanbanTabProps) {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-xs text-muted-foreground">
+        <span className="text-base text-muted-foreground">
           {items.length} item{items.length !== 1 ? 's' : ''} shown (page {currentPage})
         </span>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-base text-muted-foreground">
           {total} total items
         </span>
       </div>
@@ -237,7 +237,7 @@ export default function KanbanTab({ project }: KanbanTabProps) {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-700">{column.label}</span>
                   <span
-                    className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                    className="text-sm font-bold px-2 py-0.5 rounded-full text-white"
                     style={{ backgroundColor: column.color }}
                   >
                     {columnItems.length}
@@ -255,7 +255,7 @@ export default function KanbanTab({ project }: KanbanTabProps) {
                     </h4>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <span
-                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-sm font-semibold ${
                           item.PriorityName === "Urgent"
                             ? "bg-rose-100 text-rose-700"
                             : item.PriorityName === "High"
@@ -268,19 +268,19 @@ export default function KanbanTab({ project }: KanbanTabProps) {
                         {item.PriorityName}
                       </span>
                       <span
-                        className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold text-slate-700"
+                        className="inline-flex items-center rounded-full px-1.5 py-0.5 text-sm font-semibold text-slate-700"
                         style={{ backgroundColor: `${item.StatusColor}18`, color: item.StatusColor }}
                       >
                         {item.StatusName}
                       </span>
                     </div>
-                    <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="mt-2 flex items-center justify-between text-base text-muted-foreground">
                       <span className="truncate max-w-[60%]">{getItemManager(item) || "—"}</span>
                     </div>
                   </div>
                 ))}
                 {columnItems.length === 0 && (
-                  <div className="text-xs text-slate-400 text-center py-8 border border-dashed border-slate-200 rounded-lg bg-slate-50">
+                  <div className="text-base text-slate-400 text-center py-8 border border-dashed border-slate-200 rounded-lg bg-slate-50">
                     No items
                   </div>
                 )}

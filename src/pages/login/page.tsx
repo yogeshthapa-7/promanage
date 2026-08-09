@@ -83,7 +83,7 @@ export default function LoginPage() {
             />
             <div className="space-y-0.5 text-left -ml-28">
               <h2 className="text-3xl font-extrabold bg-gradient-to-r from-[#818CF8] to-[#C084FC] bg-clip-text text-transparent tracking-tight">ProManage</h2>
-              <p className="text-[11px] font-bold text-slate-300 tracking-widest uppercase">Project Tracking System</p>
+              <p className="text-sm font-bold text-slate-300 tracking-widest uppercase">Project Tracking System</p>
             </div>
           </div>
 
@@ -110,7 +110,7 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-white">{item.title}</h4>
-                    <p className="text-xs text-slate-200 leading-normal mt-0.5 font-medium">
+                    <p className="text-sm text-slate-200 leading-normal mt-0.5 font-medium">
                       {item.description}
                     </p>
                   </div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
               {/* Brand Title & Subtitle */}
               <div className="space-y-0.5 text-center mb-2">
                 <h2 className="text-2xl font-extrabold bg-gradient-to-r from-[#4F46E5] to-[#3730A3] bg-clip-text text-transparent tracking-tight">ProManage</h2>
-                <p className="text-[11px] font-extrabold text-slate-700 tracking-widest uppercase">Project Tracking System</p>
+                <p className="text-sm font-extrabold text-slate-700 tracking-widest uppercase">Project Tracking System</p>
               </div>
 
               {/* Form Title & Subtitle */}
@@ -145,7 +145,7 @@ export default function LoginPage() {
                 <h2 className="text-2xl font-bold text-slate-900">
                   Welcome back!
                 </h2>
-                <p className="text-xs font-medium text-slate-500">
+                <p className="text-sm font-medium text-slate-500">
                   Sign in to continue to ProManage
                 </p>
               </div>
@@ -155,7 +155,7 @@ export default function LoginPage() {
             <form onSubmit={onFinish} className="space-y-3">
               {/* Email Field */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Email / Username</label>
+                <label className="text-sm font-bold text-slate-700">Email / Username</label>
                 <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/80 bg-slate-50/70 focus-within:bg-white focus-within:border-[#5B46E8] focus-within:ring-2 focus-within:ring-[#5B46E8]/20 transition-all">
                   <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                   <input
@@ -163,14 +163,14 @@ export default function LoginPage() {
                     name="identifier"
                     placeholder="Enter email or username"
                     required
-                    className="bg-transparent outline-none w-full text-xs text-slate-900 placeholder:text-slate-400 font-medium"
+                    className="bg-transparent outline-none w-full text-sm text-slate-900 placeholder:text-slate-400 font-medium"
                   />
                 </div>
               </div>
 
               {/* Password Field */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Password</label>
+                <label className="text-sm font-bold text-slate-700">Password</label>
                 <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/80 bg-slate-50/70 focus-within:bg-white focus-within:border-[#5B46E8] focus-within:ring-2 focus-within:ring-[#5B46E8]/20 transition-all">
                   <Lock className="w-4 h-4 text-slate-400 shrink-0" />
                   <input
@@ -178,7 +178,7 @@ export default function LoginPage() {
                     name="password"
                     placeholder="Enter your password"
                     required
-                    className="bg-transparent outline-none w-full text-xs text-slate-900 placeholder:text-slate-400 font-medium"
+                    className="bg-transparent outline-none w-full text-sm text-slate-900 placeholder:text-slate-400 font-medium"
                   />
                   <button
                     type="button"
@@ -191,7 +191,7 @@ export default function LoginPage() {
               </div>
 
               {/* Remember Me */}
-              <div className="flex items-center justify-between text-xs pt-0.5">
+              <div className="flex items-center justify-between text-sm pt-0.5">
                 <button
                   type="button"
                   onClick={() => setRemember((v) => !v)}
@@ -222,18 +222,18 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#5B46E8] to-[#7C3AED] hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#5B46E8] to-[#7C3AED] hover:opacity-95 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-1"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
 
               {/* Secure Login Note */}
               <div className="pt-2 text-center space-y-1">
-                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600 font-semibold">
+                <div className="flex items-center justify-center gap-1.5 text-base text-slate-600 font-semibold">
                   <LockKeyhole className="w-3.5 h-3.5 text-[#5B46E8]" />
                   Secure login
                 </div>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-base text-slate-400">
                   Your information is encrypted and secure
                 </p>
               </div>

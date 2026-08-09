@@ -10,7 +10,7 @@ import { AvatarStack } from '@/components/ui/Avatar';
 import DropdownMenu from '@/components/ui/DropdownMenu';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
-import { projects, type Project, type ProjectStatus, type ProjectPriority } from '@/lib/projects-data';
+import type { Project, ProjectStatus, ProjectPriority } from '@/lib/projects-data';
 
 interface ProjectsTableProps {
   projects?: Project[];
@@ -23,6 +23,7 @@ interface ProjectsTableProps {
   filterStatus?: ProjectStatus | 'All';
   onFilterChange?: (status: ProjectStatus | 'All') => void;
   onPageChange?: (page: number, pageSize: number) => void;
+  loading?: boolean;
 }
 const statusConfig: Record<ProjectStatus, { label: string; bg: string; color: string }> = {
   'In Progress': { label: 'In Progress', bg: '#EFF6FF', color: '#3B82F6' },
@@ -75,7 +76,7 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground truncate max-w-[200px]">{project.name}</p>
-            <p className="text-xs text-muted-foreground">{project.category}</p>
+            <p className="text-base text-muted-foreground">{project.category}</p>
           </div>
         </div>
       </td>
@@ -89,7 +90,7 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
       <td className="px-5 py-3.5">
         <div className="flex items-center gap-3" style={{ minWidth: '120px' }}>
           <ProgressBar value={project.progress} color={barColor} />
-          <span className="text-xs font-semibold tabular-nums text-muted-foreground w-8">{project.progress}%</span>
+          <span className="text-sm font-semibold tabular-nums text-muted-foreground w-8">{project.progress}%</span>
         </div>
       </td>
 
@@ -144,6 +145,7 @@ export default function ProjectsTable({
   filterStatus = 'All',
   onFilterChange,
   onPageChange,
+  loading = false,
 }: ProjectsTableProps) {
   const [internalSortKey, setInternalSortKey] = useState<SortKey | null>(null);
   const [internalSortDir, setInternalSortDir] = useState<'asc' | 'desc' | null>(null);
@@ -197,8 +199,8 @@ export default function ProjectsTable({
   const useServerPagination = total !== undefined;
 
   const dataSource = useMemo(() => {
-    if (useServerPagination) return projects ?? [];
-    return projectsData && projectsData.length > 0 ? projectsData : projects;
+    if (useServerPagination) return [];
+    return projectsData && projectsData.length > 0 ? projectsData : [];
   }, [useServerPagination, projectsData]);
 
   const filtered = useMemo(() => {
@@ -271,7 +273,7 @@ export default function ProjectsTable({
               ].map((col) => (
                 <th
                   key={col.label}
-                  className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider select-none whitespace-nowrap"
+                  className="px-5 py-3.5 text-left text-sm font-semibold uppercase tracking-wider select-none whitespace-nowrap"
                   style={{ color: 'var(--muted-foreground)', letterSpacing: '0.04em' }}
                 >
                   {col.key ? (
@@ -290,11 +292,17 @@ export default function ProjectsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50/80">
-            {paginated.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={8} className="px-6 py-16 text-center">
+                  <p className="text-sm font-medium text-muted-foreground">Loading projects...</p>
+                </td>
+              </tr>
+            ) : paginated.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-6 py-16 text-center">
                   <p className="text-sm font-medium text-muted-foreground">No projects match your search</p>
-                  <p className="text-xs mt-1 text-muted-foreground">Try adjusting your search or filter criteria</p>
+                  <p className="text-sm mt-1 text-muted-foreground">Try adjusting your search or filter criteria</p>
                 </td>
               </tr>
             ) : (

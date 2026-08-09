@@ -35,9 +35,9 @@ const ActivityRow = memo(function ActivityRow({ item, index }: { item: ActivityI
       <div className="flex-1 min-w-0 pb-1">
         <p className="text-sm font-semibold text-foreground leading-snug">{item.title}</p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-muted-foreground">{item.subtitle}</span>
-          <span className="text-[10px]" style={{ color: 'var(--border)' }}>•</span>
-          <span className="text-xs text-muted-foreground">{item.time}</span>
+          <span className="text-base text-muted-foreground">{item.subtitle}</span>
+          <span className="text-sm" style={{ color: 'var(--border)' }}>•</span>
+          <span className="text-base text-muted-foreground">{item.time}</span>
         </div>
       </div>
     </div>

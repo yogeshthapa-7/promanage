@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search, X } from "lucide-react";
 import { apiCall } from "@/lib/api";
 import type { ApiProject } from "@/lib/projects-data";
 import TasksTab from "./TasksTab/TasksTab";
@@ -12,25 +11,27 @@ import IssueTab from "./IssueTab/IssueTab";
 import MilestoneTab from "./MilestoneTab/MilestoneTab";
 import KanbanTab from "./KanbanTab/KanbanTab";
 import type { TaskItem } from "@/lib/tasks-data";
+import Pagination from "@/components/ui/Pagination";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const PROJECTS_API = `${API_BASE}/ProjectInfo/ServerSearch`;
+const PROJECTS_PAGE_SIZE = 12;
 
-const serverSearchBody = {
+const buildProjectSearchBody = (start: number, length: number, search?: string) => ({
   model: {
     draw: 1,
-    start: 0,
-    length: 1000,
+    start,
+    length,
     columns: [
-      { data: "ProjectInfoID", name: "ProjectInfoID", searchable: true, orderable: true, search: { value: "", regex: "" } },
-      { data: "ProjectName", name: "ProjectName", searchable: true, orderable: true, search: { value: "", regex: "" } },
-      { data: "ProjectCode", name: "ProjectCode", searchable: true, orderable: true, search: { value: "", regex: "" } },
+      { data: "ProjectInfoID", name: "ProjectInfoID", searchable: true, orderable: true, search: { value: search || "", regex: "" } },
+      { data: "ProjectName", name: "ProjectName", searchable: true, orderable: true, search: { value: search || "", regex: "" } },
+      { data: "ProjectCode", name: "ProjectCode", searchable: true, orderable: true, search: { value: search || "", regex: "" } },
     ],
-    search: { value: "", regex: "" },
+    search: { value: search || "", regex: "" },
     order: [{ column: 0, dir: "desc" }],
   },
   param: { ProjectInfoID: 0 },
-};
+});
 
 const tabs = ["Task", "SubTask", "Discussion", "Issue", "Milestone", "Timeline", "Kanban"] as const;
 type Tab = typeof tabs[number];
@@ -49,22 +50,29 @@ export default function TasksPage() {
 
   const [projects, setProjects] = useState<ApiProject[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (project) return;
     const controller = new AbortController();
     let cancelled = false;
     setProjectsLoading(true);
+    const start = (currentPage - 1) * PROJECTS_PAGE_SIZE;
     apiCall(PROJECTS_API, {
       method: "POST",
-      body: JSON.stringify(serverSearchBody),
+      body: JSON.stringify(buildProjectSearchBody(start, PROJECTS_PAGE_SIZE, searchQuery)),
       signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
         const json = await res.json();
         const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
-        if (!cancelled) setProjects(rows);
+        if (!cancelled) {
+          setProjects(rows);
+          setTotalRecords(json.recordsTotal ?? rows.length);
+        }
       })
       .catch((err) => {
         if (err.name === 'AbortError') return;
@@ -76,7 +84,7 @@ export default function TasksPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [project]);
+  }, [project, currentPage, searchQuery]);
 
   const handleSelectProject = (item: ApiProject) => {
     navigate("/tasks", { state: { project: item } });
@@ -90,7 +98,7 @@ export default function TasksPage() {
   const renderTabContent = () => {
     if (!project) {
       return (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-muted-foreground text-center">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">
           Select a project to view its tasks.
         </div>
       );
@@ -113,7 +121,7 @@ export default function TasksPage() {
         return <KanbanTab project={project} />;
       default:
         return (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-slate-500">
             {activeTab} content coming soon.
           </div>
         );
@@ -125,7 +133,7 @@ export default function TasksPage() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Tasks</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-base text-slate-500">
             Organize, prioritize and track all your projects tasks in one place.
           </p>
         </div>
@@ -133,36 +141,27 @@ export default function TasksPage() {
         {project && (
           <button
             onClick={() => navigate("/tasks")}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Projects
           </button>
         )}
-        {/* {!project && (
-          <button
-            onClick={() => {}}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2.5} />
-            New Task
-          </button>
-        )} */}
       </div>
 
       {project ? (
         <>
           <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
             <h2 className="text-lg font-bold text-slate-800">{project.ProjectName}</h2>
-            <p className="mt-1 text-xs text-slate-500 font-mono">{project.ProjectCode}</p>
+            <p className="mt-1 text-base text-slate-500 font-mono">{project.ProjectCode}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-0.5 text-sm font-semibold text-slate-700">
                 {project.WorkStatusName}
               </span>
-              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-0.5 text-sm font-semibold text-slate-700">
                 {project.PriorityName}
               </span>
-              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+              <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-0.5 text-sm font-semibold text-slate-700">
                 {project.ProjectTypeName}
               </span>
             </div>
@@ -174,7 +173,7 @@ export default function TasksPage() {
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-all cursor-pointer ${
+                className={`px-3 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-all cursor-pointer ${
                   activeTab === tab
                     ? "border-purple-600 text-purple-600"
                     : "border-transparent text-slate-500 hover:text-slate-700"
@@ -192,44 +191,83 @@ export default function TasksPage() {
           <hr className="border-slate-200 my-6" />
         </>
       ) : (
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white">
-          <div className="px-4 py-3 border-b border-slate-200">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Select a project</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Choose a project to view its tasks.</p>
+        <>
+          <div className="mt-6 flex items-center justify-between gap-3">
+            <p className="text-base text-muted-foreground">Please select the projects to view tasks.</p>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search projects..."
+                className="text-sm border border-slate-200 rounded-lg pl-9 pr-8 py-2 w-48 lg:w-56 bg-white focus:outline-none focus:border-purple-500"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
-          {projectsLoading ? (
-            <div className="p-6 text-sm text-muted-foreground">Loading projects...</div>
-          ) : (
-            <div className="divide-y divide-slate-200">
-              {projects.map((item) => (
+
+          <hr className="border-slate-200 my-4" />
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {projectsLoading ? (
+              <div className="col-span-full p-6 text-base text-muted-foreground">Loading projects...</div>
+            ) : projects.length === 0 ? (
+              <div className="col-span-full p-6 text-base text-muted-foreground text-center">No projects found.</div>
+            ) : (
+              projects.map((item) => (
                 <button
                   key={item.ProjectInfoID}
                   type="button"
                   onClick={() => handleSelectProject(item)}
-                  className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="group text-left rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:scale-[1.03] hover:border-slate-300 hover:shadow-md cursor-pointer"
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{item.ProjectName}</p>
-                      <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{item.ProjectCode}</p>
+                      <p className="text-sm font-bold text-foreground truncate">{item.ProjectName}</p>
+                      <p className="text-xs text-muted-foreground font-mono mt-1">{item.ProjectCode}</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="inline-flex items-center rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                    {item.WorkStatusColor && (
+                      <span
+                        className="shrink-0 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold text-white"
+                        style={{ backgroundColor: item.WorkStatusColor }}
+                      >
                         {item.WorkStatusName}
                       </span>
-                      <span className="inline-flex items-center rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-                        {item.PriorityName}
-                      </span>
-                    </div>
+                    )}
+                  </div>
+                  <div className="mt-4 flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-full border border-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                      {item.ProjectTypeName}
+                    </span>
                   </div>
                 </button>
-              ))}
-              {!projectsLoading && projects.length === 0 && (
-                <div className="p-6 text-sm text-muted-foreground text-center">No projects found.</div>
-              )}
-            </div>
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+
+      {!project && (
+        <Pagination
+          total={totalRecords}
+          currentPage={currentPage}
+          pageSize={PROJECTS_PAGE_SIZE}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   );

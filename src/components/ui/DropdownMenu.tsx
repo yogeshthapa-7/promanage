@@ -115,7 +115,7 @@ export default function DropdownMenu({ trigger, items }: DropdownMenuProps) {
               <button
                 key={`dropdown-item-${i}`}
                 onClick={() => { item.onClick?.(); setOpen(false); }}
-                className="block w-full text-left px-2 py-1.5 text-[11px] font-medium transition-colors duration-150 hover:bg-white hover:shadow-sm truncate"
+                className="block w-full text-left px-2 py-1.5 text-sm font-medium transition-colors duration-150 hover:bg-white hover:shadow-sm truncate"
                 style={{ color: item.danger ? '#EF4444' : 'var(--foreground)' }}
                 title={item.label}
               >

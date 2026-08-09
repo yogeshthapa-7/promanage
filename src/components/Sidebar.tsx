@@ -77,20 +77,34 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         boxShadow: '4px 0 40px rgba(124, 58, 237, 0.06), 4px 0 80px rgba(99, 102, 241, 0.03)',
       }}
     >
-      {/* App Header Logo Container */}
-      <div className="flex items-center h-[90px] px-5 flex-shrink-0 border-b border-gray-100/50">
-        <div className="flex items-center gap-3 min-w-0 w-full">
-          <div className="h-12 w-12 flex-shrink-0 flex items-center justify-center relative overflow-visible">
-            <img src="/assets/images/logo.png" alt="ProManage" className="h-full w-full object-contain scale-[1.6] transition-transform duration-200" />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-extrabold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent tracking-tight truncate">ProManage</span>
-              <span className="text-[10px] text-slate-500 font-semibold tracking-widest uppercase truncate">Project Tracking System</span>
-            </div>
-          )}
-        </div>
+     {/* App Header Logo Container */}
+<div className="flex items-center h-[90px] px-5 flex-shrink-0 border-b border-gray-100/10">
+  {/* Using a fixed grid layout ensures the text column ALWAYS starts at exactly 64px from the left */}
+  <div className="grid grid-cols-[64px_1fr] items-center w-full min-w-0">
+    
+    {/* Logo Area: You can change the image w/h inside here freely now */}
+    <div className="flex items-center justify-start">
+      <img
+        src="/assets/images/logo.png"
+        alt="ProManage"
+        className="w-24 h-24 object-contain scale-150 transform-gpu" 
+      />
+    </div>
+
+    {/* Brand text: Locked into its own column */}
+    {!collapsed && (
+      <div className="flex flex-col min-w-0 mr-5 leading-tight pl-2">
+        <span className="text-base font-extrabold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent tracking-tight truncate">
+          ProManage
+        </span>
+        <span className="text-[10px] text-white font-bold tracking-wider uppercase truncate mt-0.5">
+          Project Tracking
+        </span>
       </div>
+    )}
+
+  </div>
+</div>
 
       {/* Main Navigation Links */}
       <nav className="flex-1 overflow-y-auto scrollbar-thin px-3 py-5 flex flex-col gap-1.5">
@@ -101,7 +115,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               key={item.id}
               to={item.href}
               title={item.label}
-              className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-semibold text-xs transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
+              className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#8B5CF6] text-white shadow-md shadow-purple-500/25 scale-[1.02]'
                   : 'text-slate-300 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
@@ -130,7 +144,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {/* Section Divider */}
         {!collapsed ? (
           <div className="pt-4 pb-1 px-3.5">
-            <p className="text-[10px] font-extrabold tracking-widest uppercase text-gray-200">
+            <p className="text-sm font-extrabold tracking-widest uppercase text-gray-200">
               Team
             </p>
           </div>
@@ -146,7 +160,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               key={item.id}
               to={item.href}
               title={item.label}
-              className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-semibold text-xs transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
+              className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#8B5CF6] text-white shadow-md shadow-purple-500/25 scale-[1.02]'
                   : 'text-slate-300 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
@@ -174,7 +188,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="flex-shrink-0 px-3 pb-3">
         <button onClick={() => navigate('/login')} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-gray-900/20 border border-gray-700/50 text-slate-100 hover:text-rose-400 hover:bg-gray-900/30 hover:border-rose-400/30 transition-all duration-200 cursor-pointer">
           <LogOut size={18} />
-          {!collapsed && <span className="text-xs font-semibold">Sign Out</span>}
+          {!collapsed && <span className="text-sm font-semibold">Sign Out</span>}
         </button>
       </div>
 

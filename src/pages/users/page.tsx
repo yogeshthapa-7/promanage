@@ -101,7 +101,7 @@ export default function UsersPage() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Users</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-base text-slate-500">
             Manage workspace members, their roles, permissions, and access status.
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function UsersPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
         <div>
-          <div className="mb-1 text-xs font-medium text-slate-500">Username / Email</div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Username / Email</div>
           <input
             placeholder="Search by username or email..."
             value={searchQuery}
@@ -127,7 +127,7 @@ export default function UsersPage() {
           />
         </div>
         <div>
-<div className="mb-1 text-xs font-medium text-slate-500">Theme</div>
+<div className="mb-1 text-sm font-medium text-slate-500">Theme</div>
            <input
              placeholder="Search by theme..."
              value={titleFilter}
@@ -136,7 +136,7 @@ export default function UsersPage() {
            />
         </div>
         <div>
-          <div className="mb-1 text-xs font-medium text-slate-500">User Group</div>
+          <div className="mb-1 text-sm font-medium text-slate-500">User Group</div>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -174,7 +174,7 @@ export default function UsersPage() {
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">Show</span>
+            <span className="text-base text-slate-500">Show</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -187,16 +187,16 @@ export default function UsersPage() {
               <option value={50}>50</option>
               <option value={100}>100</option>
             </select>
-            <span className="text-sm text-slate-500">entries</span>
+            <span className="text-base text-slate-500">entries</span>
           </div>
-          <span className="text-sm text-slate-500">
+          <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
         </div>
         <div className="overflow-x-auto rounded-xl bg-white border border-slate-200">
           <table className="w-full border-separate border-spacing-y-1.5">
             <thead>
-              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
                 <th className="rounded-l-xl bg-slate-50 px-5 py-3">Username</th>
                 <th className="bg-slate-50 px-4 py-3">Full name</th>
                 <th className="bg-slate-50 px-4 py-3">User Group</th>
@@ -207,13 +207,13 @@ export default function UsersPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">
+                  <td colSpan={5} className="px-4 py-8 text-center text-base text-slate-400">
                     Loading users...
                   </td>
                 </tr>
               ) : paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">
+                  <td colSpan={5} className="px-4 py-8 text-center text-base text-slate-400">
                     No users found
                   </td>
                 </tr>
@@ -277,7 +277,7 @@ function UserRow({
       </td>
       <td className="bg-white px-4 py-3 border-b border-slate-100">
         <span
-          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium border ${ROLE_STYLE[user.role]}`}
+          className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium border ${ROLE_STYLE[user.role]}`}
         >
           {user.role}
         </span>
@@ -289,13 +289,13 @@ function UserRow({
         <div className="flex items-center justify-end gap-2">
           <button
             onClick={() => onEditUser(user)}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 transition"
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 transition"
           >
             Edit
           </button>
           <button
             onClick={() => onDeleteUser(user)}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition"
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition"
           >
             Delete
           </button>

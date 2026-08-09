@@ -132,7 +132,7 @@ export default function DepartmentPage() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Departments
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-base text-slate-500 mt-1">
             Manage department records, sub-tasks, and organization structure.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function DepartmentPage() {
         {/* Single Row: Inputs + Inline Search & Clear */}
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Full Name / विभागको नाम
             </label>
             <input
@@ -163,7 +163,7 @@ export default function DepartmentPage() {
           </div>
 
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Code / विभाग कोड
             </label>
             <input
@@ -176,7 +176,7 @@ export default function DepartmentPage() {
           </div>
 
           <div className="flex-1 min-w-[220px]">
-            <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Parent Department / प्रमुख विभाग
             </label>
             <Select
@@ -208,11 +208,11 @@ export default function DepartmentPage() {
 
         {/* Excel Upload/Download Row */}
         <div className="flex items-center gap-3">
-          <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-xs transition cursor-pointer">
+          <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
             <Upload className="w-3.5 h-3.5 text-slate-500" />
             Upload Excel
           </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-xs transition cursor-pointer">
+          <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
             <Download className="w-3.5 h-3.5 text-slate-500" />
             Download Excel
           </button>
@@ -221,7 +221,7 @@ export default function DepartmentPage() {
 
       {/* 3. Table Controls Bar (Entries + Export utilities) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+        <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
           <span>Show</span>
           <select
             value={pageSize}
@@ -239,19 +239,19 @@ export default function DepartmentPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-xs shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
+          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
             <Copy className="w-3.5 h-3.5" /> Copy
           </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-xs shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
+          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
             <FileSpreadsheet className="w-3.5 h-3.5" /> CSV
           </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-xs shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
+          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
             <Printer className="w-3.5 h-3.5" /> Print
           </button>
         </div>
       </div>
 
-      <div className="text-xs text-slate-500 font-medium -mt-2">
+      <div className="text-base text-slate-500 font-medium -mt-2">
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
@@ -260,7 +260,7 @@ export default function DepartmentPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-slate-400 text-[11px] font-bold tracking-wider uppercase">
+              <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
                 <th className="py-4 px-6 text-center w-16">S.N.</th>
                 <th className="py-4 px-6">Department Name / विभागको नाम</th>
                 <th className="py-4 px-6 text-center">Sub Tasks</th>
@@ -296,14 +296,14 @@ export default function DepartmentPage() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(dept)}
-                          className="bg-purple-50 hover:bg-purple-100 text-purple-600 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-[11px] font-semibold transition cursor-pointer"
+                          className="bg-purple-50 hover:bg-purple-100 text-purple-600 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
                         >
                           <Pencil className="w-3 h-3" />
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(dept)}
-                          className="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-[11px] font-semibold transition cursor-pointer"
+                          className="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
                         >
                           <Trash2 className="w-3 h-3" />
                           Delete

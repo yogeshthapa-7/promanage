@@ -312,7 +312,7 @@ export default function ProjectsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Projects</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-base text-muted-foreground mt-0.5">
             Manage, organize and monitor all your projects in one place.
           </p>
         </div>
@@ -330,7 +330,7 @@ export default function ProjectsPage() {
                 setCurrentPage(1);
               }}
               placeholder="Search projects..."
-              className="bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground text-xs"
+              className="bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground text-sm"
             />
             {searchQuery && (
               <button
@@ -345,6 +345,15 @@ export default function ProjectsPage() {
             )}
           </div>
 
+          {/* New Project Button */}
+          <button
+            onClick={openCreateModal}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#6366F1] text-white text-sm font-semibold shadow-md hover:shadow-purple-500/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            New Project
+          </button>
+
           {/* Filter Button */}
           <div className="relative">
             <button
@@ -352,7 +361,7 @@ export default function ProjectsPage() {
                 setFilterOpen((prev) => !prev);
                 setSortOpen(false);
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-xs font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-sm font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
             >
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
               Filter
@@ -371,7 +380,7 @@ export default function ProjectsPage() {
                   <button
                     key={status}
                     onClick={() => handleFilter(status)}
-                    className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer hover:bg-white hover:shadow-sm ${
+                    className={`w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer hover:bg-white hover:shadow-sm ${
                       filterStatus === status
                         ? 'bg-white/80 text-primary font-semibold'
                         : 'text-foreground'
@@ -391,7 +400,7 @@ export default function ProjectsPage() {
                 setSortOpen((prev) => !prev);
                 setFilterOpen(false);
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-xs font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-sm font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
             >
               <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
               Sort
@@ -407,7 +416,7 @@ export default function ProjectsPage() {
                   <button
                     key={opt.value}
                     onClick={() => handleSort(opt.value)}
-                    className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors cursor-pointer flex items-center justify-between hover:bg-white hover:shadow-sm ${
+                    className={`w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center justify-between hover:bg-white hover:shadow-sm ${
                       sortField === opt.value
                         ? 'bg-white/80 text-primary font-semibold'
                         : 'text-foreground'
@@ -415,7 +424,7 @@ export default function ProjectsPage() {
                   >
                     {opt.label}
                     {sortField === opt.value && (
-                      <span className="text-muted-foreground text-[10px] uppercase">
+                      <span className="text-muted-foreground text-sm uppercase">
                         {sortDir === 'asc' ? 'A→Z' : 'Z→A'}
                       </span>
                     )}
@@ -452,27 +461,18 @@ export default function ProjectsPage() {
           {/* Export Button */}
           <button
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-xs font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/70 border border-border text-sm font-semibold text-foreground hover:bg-white transition-all shadow-xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-muted-foreground" />
             Export
           </button>
-
-          {/* New Project Button */}
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#6366F1] text-white text-xs font-semibold shadow-md hover:shadow-purple-500/20 active:scale-95 transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            New Project
-          </button>
-        </div>
+         </div>
       </div>
       <hr className="border-slate-200 my-6" />
 
       {loading ? (
         <Card className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">Loading projects...</p>
+          <p className="text-base text-muted-foreground">Loading projects...</p>
         </Card>
       ) : (
         <>
@@ -499,7 +499,7 @@ export default function ProjectsPage() {
             {/* Projects Title */}
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-foreground">Projects</h2>
-              <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+              <span className="text-base text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
                 {projects.length} total
               </span>
             </div>
@@ -540,7 +540,7 @@ export default function ProjectsPage() {
                     {/* Status & Priority */}
                     <div className="flex items-center gap-3">
                       <span
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${
                           project.status === 'Completed'
                             ? 'bg-emerald-100 text-emerald-700'
                             : project.status === 'In Progress'
@@ -554,7 +554,7 @@ export default function ProjectsPage() {
                       >
                         {project.status}
                       </span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-base text-muted-foreground">
                         {project.priority} priority
                       </span>
                     </div>
@@ -576,18 +576,18 @@ export default function ProjectsPage() {
                     {/* Key dates */}
                     <div className="flex items-center justify-between gap-4 rounded-xl bg-muted/30 px-3 py-2">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                           Start Date
                         </p>
-                        <p className="text-xs font-medium text-foreground tabular-nums truncate">
+                        <p className="text-sm font-medium text-foreground tabular-nums truncate">
                           {project.startDate}
                         </p>
                       </div>
                       <div className="min-w-0 text-right">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                           Due Date
                         </p>
-                        <p className="text-xs font-medium text-foreground tabular-nums truncate">
+                        <p className="text-sm font-medium text-foreground tabular-nums truncate">
                           {project.dueDate}
                         </p>
                       </div>
@@ -601,7 +601,7 @@ export default function ProjectsPage() {
                         e.stopPropagation();
                         handleViewProject(project);
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-all cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-all cursor-pointer"
                     >
                       <Eye className="w-4 h-4" />
                       View
@@ -611,7 +611,7 @@ export default function ProjectsPage() {
                         e.stopPropagation();
                         openEditModal(project);
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-border text-xs font-semibold text-foreground hover:bg-white transition-all cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-foreground hover:bg-white transition-all cursor-pointer"
                     >
                       <Pencil className="w-4 h-4" />
                       Edit
@@ -621,7 +621,7 @@ export default function ProjectsPage() {
                         e.stopPropagation();
                         handleDeleteClick(project)
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-600 text-xs font-semibold hover:bg-rose-100 transition-all cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 transition-all cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete
@@ -658,7 +658,7 @@ export default function ProjectsPage() {
                     </div>
 
                   <span
-                    className={`hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold ${
+                    className={`hidden sm:inline-block px-2 py-0.5 rounded-md text-sm font-semibold ${
                       project.status === 'Completed'
                         ? 'bg-emerald-100 text-emerald-700'
                         : project.status === 'In Progress'
@@ -673,7 +673,7 @@ export default function ProjectsPage() {
                     {project.status}
                   </span>
 
-                  <span className="hidden md:inline-block text-xs text-muted-foreground w-24 truncate">
+                  <span className="hidden md:inline-block text-base text-muted-foreground w-24 truncate">
                     {project.priority}
                   </span>
 
@@ -684,7 +684,7 @@ export default function ProjectsPage() {
                         style={{ width: `${project.progress}%` }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-foreground w-8 text-right">
+                    <span className="text-sm font-semibold text-foreground w-8 text-right">
                       {project.progress}%
                     </span>
                   </div>
@@ -738,7 +738,7 @@ export default function ProjectsPage() {
 
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-foreground text-white text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-black/20 z-50 fade-in">
+        <div className="fixed bottom-6 right-6 bg-foreground text-white text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-black/20 z-50 fade-in">
           {toast}
         </div>
       )}
@@ -780,7 +780,7 @@ export default function ProjectsPage() {
           </div>
         }
       >
-        <p className="text-sm text-slate-600">
+        <p className="text-base text-slate-600">
           Are you sure you want to delete <strong>{deleteTarget?.title || deleteTarget?.name}</strong>?
         </p>
       </Modal>

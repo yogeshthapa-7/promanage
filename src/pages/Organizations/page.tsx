@@ -105,7 +105,7 @@ export default function OrganizationPage() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Organizations</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-base text-slate-500">
             Manage organizations, view details, and update or remove entries.
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function OrganizationPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
         <div className="md:col-span-2">
-          <div className="mb-1 text-xs font-medium text-slate-500">Title</div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Title</div>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -146,7 +146,7 @@ export default function OrganizationPage() {
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">Show</span>
+            <span className="text-base text-slate-500">Show</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -159,9 +159,9 @@ export default function OrganizationPage() {
               <option value={50}>50</option>
               <option value={100}>100</option>
             </select>
-            <span className="text-sm text-slate-500">entries</span>
+            <span className="text-base text-slate-500">entries</span>
           </div>
-          <span className="text-sm text-slate-500">
+          <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
         </div>
@@ -179,7 +179,7 @@ export default function OrganizationPage() {
         ) : organizations.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
             <Building2 className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-            <p className="text-sm text-slate-400">No organizations found</p>
+            <p className="text-base text-slate-400">No organizations found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -199,23 +199,23 @@ export default function OrganizationPage() {
                       </h3>
                     </div>
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                  <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                     #{org.SN}
                   </span>
                 </div>
 
                 <div className="space-y-2.5 mb-5">
-                  <div className="flex items-center justify-between text-xs gap-2">
+                  <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Organization ID</span>
                     <span className="font-semibold text-slate-700 truncate">{org.id}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs gap-2">
+                  <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Parent Org</span>
                     <span className="font-semibold text-slate-700 truncate">
                       {org.parentOrganizationName || '—'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs gap-2">
+                  <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Parent ID</span>
                     <span className="font-semibold text-slate-700 truncate">{org.parentOrganizationId}</span>
                   </div>
@@ -224,14 +224,14 @@ export default function OrganizationPage() {
                 <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
                   <button
                     onClick={() => handleEdit(org)}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-600 hover:bg-violet-100 transition cursor-pointer"
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-600 hover:bg-violet-100 transition cursor-pointer"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(org)}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition cursor-pointer"
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition cursor-pointer"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     Delete

@@ -93,13 +93,13 @@ export default function ProjectDetailsPage() {
       <div className="fade-in space-y-3 max-w-screen-2xl mx-auto w-full pb-10">
         <button
           onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
         </button>
         <Card className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">Loading project...</p>
+          <p className="text-base text-muted-foreground">Loading project...</p>
         </Card>
       </div>
     );
@@ -110,13 +110,13 @@ export default function ProjectDetailsPage() {
       <div className="fade-in space-y-3 max-w-screen-2xl mx-auto w-full pb-10">
         <button
           onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
         </button>
         <Card className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">{error ? `Error: ${error}` : 'Project not found.'}</p>
+          <p className="text-base text-muted-foreground">{error ? `Error: ${error}` : 'Project not found.'}</p>
         </Card>
       </div>
     );
@@ -140,7 +140,7 @@ export default function ProjectDetailsPage() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
@@ -148,7 +148,7 @@ export default function ProjectDetailsPage() {
         <div className="flex items-center gap-2">
           <button
              onClick={() => navigate('/tasks', { state: { project } })}
-             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-white text-sm font-semibold text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
            >
              <ListTodo className="w-3.5 h-3.5" />
              View Tasks
@@ -156,7 +156,7 @@ export default function ProjectDetailsPage() {
           {project.CanEdit && (
             <button
               onClick={() => navigate('/projects/create', { state: { editingProject: project } })}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
               Edit Project
@@ -170,21 +170,21 @@ export default function ProjectDetailsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-lg font-bold text-foreground truncate">{project.ProjectName}</h1>
-            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{project.ProjectCode}</p>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{project.Description}</p>
+            <p className="text-base text-muted-foreground font-mono mt-0.5">{project.ProjectCode}</p>
+            <p className="text-base text-muted-foreground mt-1 line-clamp-2">{project.Description}</p>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-sm font-semibold ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-current" />
                 {project.WorkStatusName}
               </span>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold ${priorityStyle.bg} ${priorityStyle.text} ${priorityStyle.border}`}>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-sm font-semibold ${priorityStyle.bg} ${priorityStyle.text} ${priorityStyle.border}`}>
                 {project.PriorityName}
               </span>
-              <span className="text-[10px] text-muted-foreground">{project.ProjectTypeName}</span>
+              <span className="text-base text-muted-foreground">{project.ProjectTypeName}</span>
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Total Budget</p>
+            <p className="text-base text-muted-foreground uppercase tracking-wide mb-0.5">Total Budget</p>
             <p className="text-base font-bold text-foreground">{formatCurrency(project.TotalBudget)}</p>
           </div>
         </div>
@@ -195,72 +195,72 @@ export default function ProjectDetailsPage() {
         {/* Project Information */}
         <Card padding="p-4" className="lg:col-span-2">
           <div className="pb-2 border-b border-border">
-            <h3 className="text-[11px] font-bold text-foreground uppercase tracking-wider">Project Information</h3>
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Project Information</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2.5 mt-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2.5 mt-3 text-sm">
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Code</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Project Code</span>
               <span className="font-semibold text-foreground">{project.ProjectCode}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Type</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Project Type</span>
               <span className="font-semibold text-foreground">{project.ProjectTypeName}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Priority</span>
-              <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold ${priorityStyle.bg} ${priorityStyle.text}`}>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Priority</span>
+              <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-semibold ${priorityStyle.bg} ${priorityStyle.text}`}>
                 {project.PriorityName}
               </span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Status</span>
-              <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Status</span>
+              <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
                 {project.WorkStatusName}
               </span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Start Date</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Start Date</span>
               <span className="font-semibold text-foreground">{formatDate(project.StartDate)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Open Date</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Project Open Date</span>
               <span className="font-semibold text-foreground">{formatDate(project.ProjectOpenDate)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Duration (Days)</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Duration (Days)</span>
               <span className="font-semibold text-foreground">{project.ProjectDuration}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Total Budget</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Total Budget</span>
               <span className="font-semibold text-foreground">{formatCurrency(project.TotalBudget)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Last Date of Submission</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Last Date of Submission</span>
               <span className="font-semibold text-foreground">{formatDate(project.LastDateOfSubmission || '')}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Bank Guarantee Issue Date</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Bank Guarantee Issue Date</span>
               <span className="font-semibold text-foreground">{formatDate(project.BankGuranteeIssueDate)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Bank Guarantee Expiry Date</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Bank Guarantee Expiry Date</span>
               <span className="font-semibold text-foreground">{formatDate(project.BankGuranteeExpiryDate)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground block mb-0.5 text-[11px]">Project Head</span>
+              <span className="text-muted-foreground block mb-0.5 text-sm">Project Head</span>
               <span className="font-semibold text-foreground">{project.ProjectHeadEmpName}</span>
             </div>
           </div>
           <div className="mt-3 pt-2.5 border-t border-border">
-            <span className="text-[11px] text-muted-foreground block mb-0.5">Description</span>
-            <p className="text-xs text-foreground/80 leading-relaxed">{project.Description}</p>
+            <span className="text-base text-muted-foreground block mb-0.5">Description</span>
+            <p className="text-sm text-foreground/80 leading-relaxed">{project.Description}</p>
           </div>
         </Card>
 
         {/* Project Head Card */}
         <Card padding="p-4">
           <div className="pb-2 border-b border-border">
-            <h3 className="text-[11px] font-bold text-foreground uppercase tracking-wider">Project Head</h3>
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Project Head</h3>
           </div>
           <div className="mt-4 flex flex-col items-center text-center">
             <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-md bg-slate-100">
@@ -277,7 +277,7 @@ export default function ProjectDetailsPage() {
               )}
             </div>
             <p className="mt-3 text-sm font-semibold text-foreground">{project.ProjectHeadEmpName}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Project Head</p>
+            <p className="text-base text-muted-foreground mt-0.5">Project Head</p>
           </div>
         </Card>
       </div>
@@ -285,9 +285,9 @@ export default function ProjectDetailsPage() {
       {/* Documents & Links */}
       <Card padding="p-4">
         <div className="pb-2 border-b border-border">
-          <h3 className="text-[11px] font-bold text-foreground uppercase tracking-wider">Documents & Links</h3>
+          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Documents & Links</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-3 text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-3 text-sm">
           <a
             href={project.Attachments}
             target="_blank"
@@ -296,8 +296,8 @@ export default function ProjectDetailsPage() {
           >
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
             <div>
-              <span className="text-[10px] text-muted-foreground block">Attachments</span>
-              <span className="font-semibold text-foreground text-[11px]">View Attachments</span>
+              <span className="text-base text-muted-foreground block">Attachments</span>
+              <span className="font-semibold text-foreground text-sm">View Attachments</span>
             </div>
           </a>
           <a
@@ -308,8 +308,8 @@ export default function ProjectDetailsPage() {
           >
             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
             <div>
-              <span className="text-[10px] text-muted-foreground block">TOR</span>
-              <span className="font-semibold text-foreground text-[11px]">View TOR</span>
+              <span className="text-base text-muted-foreground block">TOR</span>
+              <span className="font-semibold text-foreground text-sm">View TOR</span>
             </div>
           </a>
         </div>

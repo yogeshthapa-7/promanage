@@ -104,7 +104,7 @@ export default function TimelineTab({ project }: TimelineTabProps) {
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
           Project Timeline
         </h2>
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
           {project.name || project.ProjectName || "Progress Overview"}
         </p>
       </div>
@@ -184,11 +184,11 @@ function TimelineCard({
     >
       {/* Top row with Category Action & Visual Number Tag */}
       <div className="flex items-center justify-between gap-4">
-        <span className={`text-[11px] font-bold uppercase tracking-wider ${palette.text}`}>
+        <span className={`text-sm font-bold uppercase tracking-wider ${palette.text}`}>
           {item.TraceKeyName || "Milestone"}
         </span>
         <span
-          className={`text-xs font-mono font-bold px-2.5 py-1 rounded-md ${palette.accent} ${palette.text}`}
+          className={`text-sm font-mono font-bold px-2.5 py-1 rounded-md ${palette.accent} ${palette.text}`}
         >
           #{String(itemNumber).padStart(2, "0")}
         </span>
@@ -200,7 +200,7 @@ function TimelineCard({
       </h4>
 
       {/* Metadata / Timestamp footer */}
-      <div className="flex items-center gap-2 pt-3 border-t border-slate-100 text-[10px] font-medium text-slate-400">
+      <div className="flex items-center gap-2 pt-3 border-t border-slate-100 text-sm font-medium text-slate-400">
         <span className="bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded font-mono border border-slate-100">
           ID: #{item.TraceID}
         </span>

@@ -1,6 +1,4 @@
-import { type Project } from '@/lib/projects-data';
-
-interface StatCardData {
+export interface DashboardStatCardData {
   id: string;
   title: string;
   value: number;
@@ -8,88 +6,90 @@ interface StatCardData {
   trendUp: boolean;
   iconBg: string;
   iconColor: string;
-  iconType: 'folder' | 'clock' | 'check' | 'alert' | 'users';
+  iconType: 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
   sparklineData: number[];
   sparklineColor: string;
 }
 
-export function getStatCards(projects: Project[]): StatCardData[] {
-  const totalProjects = projects.length;
-  const inProgress = projects.filter((p) => p.status === 'In Progress').length;
-  const completed = projects.filter((p) => p.status === 'Completed').length;
-  const overdue = projects.filter((p) => p.status === 'Overdue').length;
-  const teamMemberIds = new Set(projects.flatMap((p) => p.team.map((m) => m.id)));
-  const teamMembers = teamMemberIds.size;
+const sparkLine = (end: number, len = 7) => {
+  const arr: number[] = [];
+  for (let i = 0; i < len; i++) {
+    arr.push(Math.round((end / len) * (i + 1)));
+  }
+  arr[arr.length - 1] = end;
+  return arr;
+};
 
-  const sparkLine = (end: number, len = 7) => {
-    const arr: number[] = [];
-    for (let i = 0; i < len; i++) {
-      arr.push(Math.round((end / len) * (i + 1)));
-    }
-    arr[arr.length - 1] = end;
-    return arr;
-  };
+export function getStatCards(data: {
+  projects: number;
+  users: number;
+  employees: number;
+  departments: number;
+  organizations: number;
+  tasks: number;
+}): DashboardStatCardData[] {
+  const { projects, users, departments, organizations, tasks } = data;
 
   return [
     {
       id: 'stat-total-projects',
       title: 'Total Projects',
-      value: totalProjects,
-      trend: `+${Math.round(totalProjects * 0.08)}%`,
+      value: projects,
+      trend: projects > 0 ? `+${Math.round(projects * 0.08)}%` : '0%',
       trendUp: true,
       iconBg: '#F3F0FF',
       iconColor: '#7C3AED',
       iconType: 'folder',
-      sparklineData: sparkLine(totalProjects),
+      sparklineData: sparkLine(projects),
       sparklineColor: '#7C3AED',
     },
     {
-      id: 'stat-in-progress',
-      title: 'In Progress',
-      value: inProgress,
-      trend: `+${Math.round(inProgress * 0.1)}%`,
+      id: 'stat-users',
+      title: 'Users',
+      value: users,
+      trend: users > 0 ? `+${Math.round(users * 0.05)}%` : '0%',
       trendUp: true,
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
-      iconType: 'clock',
-      sparklineData: sparkLine(inProgress),
+      iconType: 'users',
+      sparklineData: sparkLine(users),
       sparklineColor: '#3B82F6',
     },
     {
-      id: 'stat-completed',
-      title: 'Completed',
-      value: completed,
-      trend: `+${Math.round(completed * 0.15)}%`,
-      trendUp: true,
-      iconBg: '#ECFDF5',
-      iconColor: '#10B981',
-      iconType: 'check',
-      sparklineData: sparkLine(completed),
-      sparklineColor: '#10B981',
-    },
-    {
-      id: 'stat-overdue',
-      title: 'Overdue',
-      value: overdue,
-      trend: `${overdue > 0 ? '-' : ''}${Math.abs(overdue)}%`,
-      trendUp: overdue === 0,
-      iconBg: '#FEF2F2',
-      iconColor: '#EF4444',
-      iconType: 'alert',
-      sparklineData: sparkLine(overdue),
-      sparklineColor: '#EF4444',
-    },
-    {
-      id: 'stat-team',
-      title: 'Team Members',
-      value: teamMembers,
-      trend: `+${Math.round(teamMembers * 0.05)}%`,
+      id: 'stat-organizations',
+      title: 'Organizations',
+      value: organizations,
+      trend: organizations > 0 ? `+${Math.round(organizations * 0.03)}%` : '0%',
       trendUp: true,
       iconBg: '#F3F0FF',
       iconColor: '#8B5CF6',
-      iconType: 'users',
-      sparklineData: sparkLine(teamMembers),
+      iconType: 'building-2',
+      sparklineData: sparkLine(organizations),
       sparklineColor: '#8B5CF6',
+    },
+    {
+      id: 'stat-departments',
+      title: 'Departments',
+      value: departments,
+      trend: departments > 0 ? `+${Math.round(departments * 0.04)}%` : '0%',
+      trendUp: true,
+      iconBg: '#ECFDF5',
+      iconColor: '#10B981',
+      iconType: 'user-square',
+      sparklineData: sparkLine(departments),
+      sparklineColor: '#10B981',
+    },
+    {
+      id: 'stat-tasks',
+      title: 'Tasks',
+      value: tasks,
+      trend: tasks > 0 ? `+${Math.round(tasks * 0.06)}%` : '0%',
+      trendUp: true,
+      iconBg: '#FFFBEB',
+      iconColor: '#D97706',
+      iconType: 'folder-open',
+      sparklineData: sparkLine(tasks),
+      sparklineColor: '#D97706',
     },
   ];
 }

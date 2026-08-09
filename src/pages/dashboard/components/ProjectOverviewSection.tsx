@@ -1,22 +1,40 @@
-'use client';
-
-import { useEffect, useRef, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/components/ui/Card';
+import type { Project } from '@/lib/projects-data';
 
-const statusBreakdown = [
-  { id: 'overview-completed', label: 'Completed', count: 10, percentage: 41.7, color: '#10B981' },
-  { id: 'overview-in-progress', label: 'In Progress', count: 8, percentage: 33.3, color: '#3B82F6' },
-  { id: 'overview-on-hold', label: 'On Hold', count: 3, percentage: 12.5, color: '#F59E0B' },
-  { id: 'overview-overdue', label: 'Overdue', count: 2, percentage: 8.3, color: '#EF4444' },
-  { id: 'overview-not-started', label: 'Not Started', count: 1, percentage: 4.2, color: '#9CA3AF' },
-];
+interface ProjectOverviewSectionProps {
+  projects: Project[];
+  loading?: boolean;
+}
 
-export default function ProjectOverviewSection() {
+const STATUS_COLORS: Record<string, string> = {
+  'In Progress': '#3B82F6',
+  Completed: '#10B981',
+  'On Hold': '#F59E0B',
+  Overdue: '#EF4444',
+  'Not Started': '#9CA3AF',
+};
+
+export default function ProjectOverviewSection({ projects, loading = false }: ProjectOverviewSectionProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const [period, setPeriod] = useState('This Month');
   const [periodOpen, setPeriodOpen] = useState(false);
+
+  const statusBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    projects.forEach((p) => {
+      counts[p.status] = (counts[p.status] || 0) + 1;
+    });
+    const total = projects.length || 1;
+    return Object.entries(counts).map(([label, count]) => ({
+      id: `overview-${label.toLowerCase().replace(/\s+/g, '-')}`,
+      label,
+      count,
+      percentage: Number(((count / total) * 100).toFixed(1)),
+      color: STATUS_COLORS[label] || '#9CA3AF',
+    }));
+  }, [projects]);
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -28,23 +46,23 @@ export default function ProjectOverviewSection() {
       plotOptions: { pie: { innerSize: '65%', borderWidth: 2, borderColor: '#FFFFFF', dataLabels: { enabled: false }, showInLegend: false, states: { hover: { halo: { size: 0 } } } } },
       series: [{ type: 'pie', name: 'Projects', data: statusBreakdown.map((s) => ({ name: s.label, y: s.count, color: s.color })) }],
     });
-  }, []);
+  }, [statusBreakdown]);
 
   const periods = ['This Month', 'Last Month', 'This Quarter', 'This Year'];
 
   return (
-    <Card className="h-full">
+    <Card className="h-full relative">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-bold text-foreground">Project Overview</h2>
         <div className="relative">
           <button onClick={() => setPeriodOpen(!periodOpen)} className="btn-ghost text-sm flex items-center gap-2 py-1.5 px-3">
             {period}
-            <ChevronDown size={14} />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {periodOpen && (
             <div className="absolute right-0 top-full mt-1 bg-slate-50 border border-slate-200 rounded-xl py-1 z-10" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.10)', minWidth: '120px' }}>
               {periods.map((p) => (
-                <button key={`period-${p}`} onClick={() => { setPeriod(p); setPeriodOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-medium hover:bg-white hover:shadow-sm transition-colors" style={{ color: p === period ? 'var(--primary)' : 'var(--foreground)' }}>
+                <button key={`period-${p}`} onClick={() => { setPeriod(p); setPeriodOpen(false); }} className="w-full text-left px-3 py-2 text-sm font-medium hover:bg-white hover:shadow-sm transition-colors" style={{ color: p === period ? 'var(--primary)' : 'var(--foreground)' }}>
                   {p}
                 </button>
               ))}
@@ -74,10 +92,20 @@ export default function ProjectOverviewSection() {
       <div className="mt-5 pt-4 border-t border-border/50">
         <p className="text-sm italic leading-relaxed text-center" style={{ color: 'var(--muted-foreground)', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.01em', lineHeight: '1.6', maxWidth: '90%', margin: '0 auto' }}>
           <span style={{ color: 'var(--primary)', fontWeight: 500, fontStyle: 'normal' }}>Project distribution</span>
-          {' '}— 24 active projects tracked across 5 status categories.
-          <span className="block mt-1" style={{ fontSize: '0.85em', opacity: 0.75 }}>Completed projects lead at 41.7%, with 33.3% currently in progress.</span>
+          {' '}— {projects.length} active projects tracked across {statusBreakdown.length} status categories.
+          <span className="block mt-1" style={{ fontSize: '0.85em', opacity: 0.75 }}>
+            {statusBreakdown.length > 0
+              ? `${statusBreakdown[0]?.label || 'None'} projects lead at ${statusBreakdown[0]?.percentage || 0}%.`
+              : 'No project data available.'}
+          </span>
         </p>
       </div>
+
+      {loading && (
+        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-3xl">
+          <p className="text-sm text-muted-foreground">Loading overview...</p>
+        </div>
+      )}
     </Card>
   );
 }

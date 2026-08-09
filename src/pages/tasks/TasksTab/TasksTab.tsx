@@ -28,7 +28,7 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
           className="w-7 h-7 rounded-full object-cover border border-slate-200"
         />
       ) : (
-        <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-semibold text-slate-600">
+        <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600">
           {initial}
         </div>
       )}
@@ -106,7 +106,7 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
             className="text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 w-full bg-white focus:outline-none focus:border-purple-500"
           />
         </form>
-        <span className="text-xs text-muted-foreground whitespace-nowrap">
+        <span className="text-base text-muted-foreground whitespace-nowrap">
           {total} task{total !== 1 ? 's' : ''} total
         </span>
       </div>
@@ -136,17 +136,17 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="text-base font-bold text-slate-900 truncate">{task.TaskTitle}</h3>
-                    {task.TaskCode && <p className="text-sm text-muted-foreground font-mono mt-0.5">{task.TaskCode}</p>}
+                    {task.TaskCode && <p className="text-base text-muted-foreground font-mono mt-0.5">{task.TaskCode}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${statusClass}`}>{task.WorkStatusName}</span>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${priorityClass}`}>{task.PriorityName}</span>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold ${statusClass}`}>{task.WorkStatusName}</span>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold ${priorityClass}`}>{task.PriorityName}</span>
                   </div>
                 </div>
 
-                <p className="text-sm text-slate-500 line-clamp-3">{task.Description}</p>
+                <p className="text-base text-slate-500 line-clamp-3">{task.Description}</p>
 
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <div className="flex items-center justify-between text-base text-muted-foreground">
                   <span>Due: {task.DueDate || "—"}</span>
                   <span>{task.DueInfo || ""}</span>
                 </div>
@@ -159,12 +159,12 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
                         : { EmployeeInfoID: task.TaskManagerID, Fullname: task.TaskManagerName ?? '' }
                     }
                   />
-                  <span className="text-sm text-muted-foreground">Weightage: {task.Weightage}</span>
+                  <span className="text-base text-muted-foreground">Weightage: {task.Weightage}</span>
                 </div>
 
                 {isExpanded && (
                   <div className="mt-1 rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Selected for subtasks</p>
+                    <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Selected for subtasks</p>
                   </div>
                 )}
               </div>
