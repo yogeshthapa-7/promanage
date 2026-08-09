@@ -4,12 +4,14 @@ import { Plus } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import { apiCall } from "@/lib/api";
 import type { ApiProject } from "@/lib/projects-data";
-import TasksTab from "./TasksTab";
-import DiscussionTab from "./DiscussionTab";
-import TimelineTab from "./TimelineTab";
-import IssueTab from "./IssueTab";
-import MilestoneTab from "./MilestoneTab";
-import KanbanTab from "./KanbanTab";
+import TasksTab from "./TasksTab/TasksTab";
+import SubTasksTab from "./SubTasksTab/SubTasksTab";
+import DiscussionTab from "./DiscussionTab/DiscussionTab";
+import TimelineTab from "./TimelineTab/TimelineTab";
+import IssueTab from "./IssueTab/IssueTab";
+import MilestoneTab from "./MilestoneTab/MilestoneTab";
+import KanbanTab from "./KanbanTab/KanbanTab";
+import type { TaskItem } from "@/lib/tasks-data";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const PROJECTS_API = `${API_BASE}/ProjectInfo/ServerSearch`;
@@ -30,7 +32,7 @@ const serverSearchBody = {
   param: { ProjectInfoID: 0 },
 };
 
-const tabs = ["Task", "Discussion", "Issue", "Milestone", "Timeline", "Kanban"] as const;
+const tabs = ["Task", "SubTask", "Discussion", "Issue", "Milestone", "Timeline", "Kanban"] as const;
 type Tab = typeof tabs[number];
 
 export default function TasksPage() {
@@ -38,6 +40,12 @@ export default function TasksPage() {
   const navigate = useNavigate();
   const project = (location.state as { project?: ApiProject } | undefined)?.project;
   const [activeTab, setActiveTab] = useState<Tab>("Task");
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+
+  useEffect(() => {
+    setSelectedTask(null);
+    setActiveTab("Task");
+  }, [project]);
 
   const [projects, setProjects] = useState<ApiProject[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
@@ -74,6 +82,11 @@ export default function TasksPage() {
     navigate("/tasks", { state: { project: item } });
   };
 
+  const handleTaskSelect = (task: TaskItem) => {
+    setSelectedTask(task);
+    setActiveTab("SubTask");
+  };
+
   const renderTabContent = () => {
     if (!project) {
       return (
@@ -85,7 +98,9 @@ export default function TasksPage() {
 
     switch (activeTab) {
       case "Task":
-        return <TasksTab project={project} />;
+        return <TasksTab project={project} selectedTask={selectedTask} onTaskSelect={handleTaskSelect} />;
+      case "SubTask":
+        return <SubTasksTab project={project} selectedTask={selectedTask} />;
       case "Discussion":
         return <DiscussionTab project={project} />;
       case "Timeline":
@@ -124,7 +139,7 @@ export default function TasksPage() {
             Back to Projects
           </button>
         )}
-        {!project && (
+        {/* {!project && (
           <button
             onClick={() => {}}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
@@ -132,7 +147,7 @@ export default function TasksPage() {
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             New Task
           </button>
-        )}
+        )} */}
       </div>
 
       {project ? (

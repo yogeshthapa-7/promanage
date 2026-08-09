@@ -358,7 +358,127 @@
        radial-gradient(ellipse 50% 30% at 50% 0%, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
    }
 
-   /* ── Performance: reduce paint/composite cost ── */
+    /* ── Timeline 3D ladder ── */
+    .timeline-rail {
+      position: relative;
+      isolation: isolate;
+    }
+    .timeline-rail::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #cbd5e1 0%, #e2e8f0 100%);
+      box-shadow:
+        inset 0 2px 4px rgba(15, 23, 42, 0.06),
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 2px 6px rgba(0, 0, 0, 0.04);
+      z-index: 0;
+    }
+    .timeline-rail::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      border-radius: 3px;
+      background: rgba(15, 23, 42, 0.12);
+      z-index: 0;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05);
+    }
+
+    /* 3D ladder step rung: thin verticals connect cards like ladder sides */
+    .timeline-step::before,
+    .timeline-step::after {
+      content: '';
+      position: absolute;
+      top: 1.25rem;
+      bottom: 1.25rem;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.08) 0%, rgba(15, 23, 42, 0.05) 100%);
+      border-radius: 2px;
+    }
+    .timeline-step[data-side="left"]::before { left: -2.5rem; }
+    .timeline-step[data-side="left"]::after { left: -1.5rem; }
+    .timeline-step[data-side="right"]::before { right: -2.5rem; }
+    .timeline-step[data-side="right"]::after { right: -1.5rem; }
+
+    .timeline-card {
+      position: relative;
+      transform: translateZ(0);
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      border-color: rgba(229, 231, 235, 0.8);
+      border-top-color: rgba(229, 231, 235, 0.9);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.03),
+        0 6px 14px rgba(15, 23, 42, 0.04),
+        0 0 0 1px rgba(124, 58, 237, 0.03);
+      transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+    }
+    .timeline-card:hover {
+      transform: translateY(-3px) translateZ(0);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 10px 28px rgba(15, 23, 42, 0.07),
+        0 0 0 1px rgba(124, 58, 237, 0.05);
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+    .timeline-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.025) 0%, rgba(99, 102, 241, 0.02) 50%, rgba(168, 85, 247, 0.025) 100%);
+      opacity: 0;
+      transition: opacity 180ms ease-out;
+      pointer-events: none;
+    }
+    .timeline-card:hover::before {
+      opacity: 1;
+    }
+
+    /* 3D node peg on the ladder rail */
+    .timeline-node {
+      position: relative;
+      z-index: 2;
+      transform: translateZ(0);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid currentColor;
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.08),
+        0 0 0 4px rgba(255, 255, 255, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+    }
+    .timeline-node:hover {
+      transform: translateZ(0) scale(1.18);
+      box-shadow:
+        0 2px 6px rgba(15, 23, 42, 0.12),
+        0 0 0 5px rgba(255, 255, 255, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .timeline-card,
+      .timeline-node,
+      .timeline-rail {
+        transition: none;
+      }
+      .timeline-card:hover { transform: none; }
+      .timeline-node:hover { transform: none; }
+    }
+
+    /* ── Performance: reduce paint/composite cost ── */
    .perf-contain {
      contain: layout paint style;
    }

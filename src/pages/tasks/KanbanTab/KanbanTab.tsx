@@ -30,26 +30,39 @@ type StatusColumn = {
   color: string;
 };
 
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
+interface KanbanApiResponse {
+  data?: KanbanItem[];
+  recordsTotal?: number;
+  recordsFiltered?: number;
+  Data?: Record<string, { taskList?: KanbanItem[]; taskStatusID?: number; color?: string }>;
+}
+
+interface KanbanFetchResult {
+  items: KanbanItem[];
+  columns: StatusColumn[];
+  total: number;
+}
+
+const PAGE_SIZE_OPTIONS = [50, 100, 200];
 
 export default function KanbanTab({ project }: KanbanTabProps) {
-  const [rawItems, setRawItems] = useState<KanbanItem[]>([]);
+  const [items, setItems] = useState<KanbanItem[]>([]);
   const [columns, setColumns] = useState<StatusColumn[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [filterPriority, setFilterPriority] = useState<number>(0);
+  const [pageSize, setPageSize] = useState(50);
 
   const projectId = project.ProjectInfoID ?? Number(project.id);
 
-  const fetchKanbanData = useCallback(async (signal: AbortSignal) => {
+  const fetchKanbanData = useCallback(async (signal: AbortSignal, start: number, length: number): Promise<KanbanFetchResult> => {
     const res = await apiCall(KANBAN_API, {
       method: "POST",
       body: JSON.stringify({
         draw: 1,
-        start: 0,
-        length: 10000,
+        start,
+        length,
         ProjectInfoID: projectId,
         TaskInfoID: 0,
         SubTaskInfoID: 0,
@@ -58,67 +71,86 @@ export default function KanbanTab({ project }: KanbanTabProps) {
         EmployeeIDs: "",
       }),
       signal,
-    });
+    }, 120000);
 
     if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-    const json = await res.json();
+    const json = (await res.json()) as KanbanApiResponse;
 
-    let items: KanbanItem[] = [];
-    let columnDefs: StatusColumn[] = [];
+    let rows: KanbanItem[] = [];
+    let totalRecords = 0;
+    const allColumns: StatusColumn[] = [];
+    const columnSeen = new Set<string>();
 
     if (Array.isArray(json?.data)) {
-      items = json.data;
-      columnDefs = items.length > 0
-        ? [{ key: items[0].StatusName, label: items[0].StatusName, color: items[0].StatusColor || "#6b7280" }]
-        : [];
+      const seenIds = new Set<number>();
+      rows = json.data.filter((item) => {
+        if (seenIds.has(item.CardID)) return false;
+        seenIds.add(item.CardID);
+        return true;
+      });
+      totalRecords = json.recordsTotal ?? rows.length;
+
+      rows.forEach((item) => {
+        const statusKey = (item.StatusName || "Not Started").trim().toLowerCase();
+        if (!columnSeen.has(statusKey)) {
+          columnSeen.add(statusKey);
+          allColumns.push({
+            key: statusKey,
+            label: item.StatusName?.trim() || "Not Started",
+            color: item.StatusColor || "#6b7280",
+          });
+        }
+      });
     } else if (json?.Data && typeof json.Data === 'object' && json.Data !== null) {
-      const groups = Object.entries(json.Data).filter(([, v]) =>
-        Array.isArray((v as any)?.taskList) || (v as any).taskStatusID
-      );
-
-      for (const [key, group] of groups) {
-        const g = group as any;
-        const groupItems = g.taskList || [];
-        items.push(...groupItems);
-
-        const color = groupItems.length > 0
-          ? (groupItems[0].StatusColor || g.color || "#6b7280")
-          : (g.color || "#6b7280");
-
-        const columnKey = groupItems.length > 0 ? groupItems[0].StatusName : key;
-
-        columnDefs.push({
-          key: columnKey,
-          label: key,
-          color,
-        });
+      const groups = Object.entries(json.Data);
+      const seenIds = new Set<number>();
+      for (const [groupKey, group] of groups) {
+        const normalizedKey = groupKey.trim().toLowerCase();
+        if (!columnSeen.has(normalizedKey)) {
+          columnSeen.add(normalizedKey);
+          let label = groupKey.trim();
+          if (Array.isArray(group?.taskList) && group.taskList.length > 0) {
+            label = group.taskList[0].StatusName?.trim() || label;
+          } else {
+            label = label.replace(/\b\w/g, (c) => c.toUpperCase());
+          }
+          allColumns.push({
+            key: normalizedKey,
+            label,
+            color: group?.color || "#6b7280",
+          });
+        }
+        if (Array.isArray(group?.taskList)) {
+          for (const item of group.taskList) {
+            if (!seenIds.has(item.CardID)) {
+              seenIds.add(item.CardID);
+              rows.push(item);
+            }
+          }
+        }
       }
+      totalRecords = json.recordsTotal ?? rows.length;
     }
 
-    const seen = new Set<string>();
-    const uniqueItems = items.filter((item) => {
-      const id = `${item.CardKey}-${item.CardID}`;
-      if (seen.has(id)) return false;
-      seen.add(id);
-      return true;
-    });
+    const paginatedRows = rows.slice(start, start + length);
 
-    return { items: uniqueItems, columns: columnDefs };
+    return { items: paginatedRows, columns: allColumns, total: totalRecords };
   }, [projectId]);
 
   useEffect(() => {
     const controller = new AbortController();
+    const start = (currentPage - 1) * pageSize;
     setLoading(true);
     setError(null);
-    setRawItems([]);
-    setColumns([]);
-    setCurrentPage(1);
+    setItems([]);
+    setTotal(0);
 
-    fetchKanbanData(controller.signal)
-      .then(({ items, columns: cols }) => {
+    fetchKanbanData(controller.signal, start, pageSize)
+      .then(({ items: fetchedItems, columns: fetchedColumns, total: fetchedTotal }) => {
         if (!controller.signal.aborted) {
-          setRawItems(items);
-          setColumns(cols);
+          setItems(fetchedItems);
+          setColumns(fetchedColumns);
+          setTotal(fetchedTotal);
         }
       })
       .catch((err) => {
@@ -131,32 +163,24 @@ export default function KanbanTab({ project }: KanbanTabProps) {
       });
 
     return () => controller.abort();
-  }, [project, fetchKanbanData]);
-
-  const filteredItems = useMemo(() => {
-    if (filterPriority === 0) return rawItems;
-    return rawItems.filter((item) => item.Priority === filterPriority);
-  }, [rawItems, filterPriority]);
-
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, currentPage, pageSize]);
+  }, [fetchKanbanData, currentPage, pageSize]);
 
   const columnsData = useMemo(() => {
     const map: Record<string, KanbanItem[]> = {};
     columns.forEach((col) => {
       map[col.key] = [];
     });
-    paginatedItems.forEach((item) => {
-      const statusKey = item.StatusName || "Not Started";
+
+    items.forEach((item) => {
+      const statusKey = (item.StatusName || "Not Started").trim().toLowerCase();
       if (!map[statusKey]) {
         map[statusKey] = [];
       }
       map[statusKey].push(item);
     });
+
     return { map, columns };
-  }, [paginatedItems, columns]);
+  }, [items, columns]);
 
   const getItemTitle = (item: KanbanItem) => item.CardName;
   const getItemManager = (item: KanbanItem) => item.CardHeadName;
@@ -169,13 +193,13 @@ export default function KanbanTab({ project }: KanbanTabProps) {
     );
   }
 
-  if (error && rawItems.length === 0) {
+  if (error && items.length === 0) {
     return (
       <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-base text-rose-700">{error}</div>
     );
   }
 
-  if (columns.length === 0 && !loading) {
+  if (columnsData.columns.length === 0 && !loading) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">
         No columns found for this project.
@@ -190,26 +214,11 @@ export default function KanbanTab({ project }: KanbanTabProps) {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-semibold text-slate-700">Priority:</label>
-          <select
-            value={filterPriority}
-            onChange={(e) => {
-              setFilterPriority(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-purple-500"
-          >
-            <option value={0}>All</option>
-            <option value={1}>Urgent</option>
-            <option value={2}>High</option>
-            <option value={3}>Medium</option>
-            <option value={4}>Low</option>
-          </select>
-        </div>
         <span className="text-xs text-muted-foreground">
-          {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} total
-          {filterPriority !== 0 && rawItems.length > filteredItems.length ? ` (filtered from ${rawItems.length})` : ''}
+          {items.length} item{items.length !== 1 ? 's' : ''} shown (page {currentPage})
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {total} total items
         </span>
       </div>
 
@@ -282,7 +291,7 @@ export default function KanbanTab({ project }: KanbanTabProps) {
       </div>
 
       <Pagination
-        total={filteredItems.length}
+        total={total}
         currentPage={currentPage}
         pageSize={pageSize}
         onPageChange={setCurrentPage}
@@ -291,6 +300,7 @@ export default function KanbanTab({ project }: KanbanTabProps) {
           setCurrentPage(1);
         }}
         pageSizeOptions={PAGE_SIZE_OPTIONS}
+        totalLabel={`Showing ${items.length ? (currentPage - 1) * pageSize + 1 : 0} to ${Math.min(currentPage * pageSize, total)} of ${total} items`}
       />
     </div>
   );
