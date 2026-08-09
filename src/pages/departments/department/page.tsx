@@ -131,14 +131,16 @@ export default function DepartmentPage() {
     /* Direct Page Canvas - Background wave/gradient style */
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       
-      {/* 1. Header (Floating directly on background) */}
+      {activeTab === 'department' && (
+        <>
+      {/* 1. Department Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             विभागहरू
-          </h1>
+          </h2>
           <p className="text-base text-slate-500 mt-1">
-            Manage department records, sub-tasks, and organization structure.
+            Manage department records and parent-child organization structure.
           </p>
         </div>
         {/* <button
@@ -150,13 +152,47 @@ export default function DepartmentPage() {
         </button> */}
       </div>
 
-      {/* 2. Filters & Actions Row (Floating directly on background) */}
+      {/* 2. Tabs */}
+      <div className="flex items-center gap-1 border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab('department')}
+          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'department'
+              ? 'text-violet-600 border-b-2 border-violet-600'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          विभाग
+        </button>
+        <button
+          onClick={() => setActiveTab('mainbranch')}
+          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'mainbranch'
+              ? 'text-violet-600 border-b-2 border-violet-600'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          मुख्य शाखा
+        </button>
+        <button
+          onClick={() => setActiveTab('branch')}
+          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'branch'
+              ? 'text-violet-600 border-b-2 border-violet-600'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          शाखा
+        </button>
+      </div>
+
+      {/* 3. Filters & Actions Row */}
       <div className="space-y-4">
         {/* Single Row: Inputs + Inline Search & Clear */}
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Full Name / विभागको नाम
+              Department Name / विभागको नाम
             </label>
             <input
               type="text"
@@ -169,7 +205,7 @@ export default function DepartmentPage() {
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Code / विभाग कोड
+             Department Code / विभाग कोड
             </label>
             <input
               type="text"
@@ -224,44 +260,6 @@ export default function DepartmentPage() {
           </button>
         </div> */}
       </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('department')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'department'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          विभाग
-        </button>
-        <button
-          onClick={() => setActiveTab('mainbranch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'mainbranch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          मुख्य शाखा
-        </button>
-        <button
-          onClick={() => setActiveTab('branch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'branch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          शाखा
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'department' && (
-        <>
 
       {/* 3. Table Controls Bar (Entries + Export utilities) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
@@ -378,8 +376,36 @@ export default function DepartmentPage() {
       </div>
         </>
       )}
-      {activeTab === 'mainbranch' && <MainBranchPage />}
-      {activeTab === 'branch' && <BranchPage />}
+      {activeTab === 'mainbranch' && (
+        <>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                मुख्य शाखा
+              </h2>
+              <p className="text-base text-slate-500 mt-1">
+                Manage main branch records linked to departments.
+              </p>
+            </div>
+          </div>
+          <MainBranchPage activeTab={activeTab} onTabChange={setActiveTab} />
+        </>
+      )}
+      {activeTab === 'branch' && (
+        <>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                शाखा
+              </h2>
+              <p className="text-base text-slate-500 mt-1">
+                Manage branch records linked to main branches and departments.
+              </p>
+            </div>
+          </div>
+          <BranchPage activeTab={activeTab} onTabChange={setActiveTab} />
+        </>
+      )}
 
       {/* Modal
       <DepartmentFormModal

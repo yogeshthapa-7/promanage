@@ -7,7 +7,12 @@ import Pagination from '@/components/ui/Pagination';
 import { apiCall } from '@/lib/api';
 import { fetchMainBranches, type MainBranch } from '@/lib/main-branches-data';
 
-export default function MainBranchPage() {
+interface MainBranchPageProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPageProps) {
   const [mainBranches, setMainBranches] = useState<MainBranch[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalFiltered, setTotalFiltered] = useState(0);
@@ -103,25 +108,40 @@ export default function MainBranchPage() {
 
   return (
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
-      {/* <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            मुख्य शाखा
-          </h2>
-          <p className="text-base text-slate-500 mt-1">
-            Manage main branch records and organization structure.
-          </p>
-        </div>
-        {/* <button
-          onClick={handleAddNew}
-          className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
+      <div className="flex items-center gap-1 border-b border-slate-200">
+        <button
+          onClick={() => onTabChange('department')}
+          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'department'
+              ? 'text-violet-600 border-b-2 border-violet-600'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          Add Main Branch
-        </button> */}
-      {/* </div> */} 
+          विभाग
+        </button>
+        <button
+          onClick={() => onTabChange('mainbranch')}
+          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'mainbranch'
+              ? 'text-violet-600 border-b-2 border-violet-600'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          मुख्य शाखा
+        </button>
+        <button
+          onClick={() => onTabChange('branch')}
+          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'branch'
+              ? 'text-violet-600 border-b-2 border-violet-600'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          शाखा
+        </button>
+      </div>
 
-      {/* <div className="space-y-4">
+      <div className="space-y-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
@@ -138,7 +158,7 @@ export default function MainBranchPage() {
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Code / मुख्य शाखा कोड
+             Main Branch Code / मुख्य शाखा कोड
             </label>
             <input
               type="text"
@@ -177,7 +197,7 @@ export default function MainBranchPage() {
             </button>
           </div>
         </div>
-      </div> */}
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
