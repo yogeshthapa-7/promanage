@@ -96,8 +96,9 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
       okType: 'danger',
       onOk: async () => {
         try {
+          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
           await apiCall(
-            `https://datacollection.kathmandu.gov.np:8080/DeleteBranch?id=${branch.id}`,
+            `${API_BASE}/DeleteBranch?id=${branch.id}`,
             { method: 'GET' }
           );
           message.success('Deleted successfully');

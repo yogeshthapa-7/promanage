@@ -72,21 +72,23 @@ export default function EmployeeSetupModal({
 
   const isEdit = !!editingEmployee;
 
-  // Initialize and load data sequence
-  useEffect(() => {
-    if (!open) return;
+   const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
-    let isMounted = true;
+   // Initialize and load data sequence
+   useEffect(() => {
+     if (!open) return;
 
-    const initializeModal = async () => {
-      setFetchingData(true);
-      try {
-       const [resOrg, resDept, resMB, resBranch] = await Promise.all([
-         apiCall('https://datacollection.kathmandu.gov.np:8080/OrganizationOffice/SelectList'),
-         apiCall('https://datacollection.kathmandu.gov.np:8080/Department/SelectList'),
-         apiCall('https://datacollection.kathmandu.gov.np:8080/MainBranch/SelectList'),
-         apiCall('https://datacollection.kathmandu.gov.np:8080/Branch/SelectList'),
-       ]);
+     let isMounted = true;
+
+     const initializeModal = async () => {
+       setFetchingData(true);
+       try {
+        const [resOrg, resDept, resMB, resBranch] = await Promise.all([
+          apiCall(`${API_BASE}/OrganizationOffice/SelectList`),
+          apiCall(`${API_BASE}/Department/SelectList`),
+          apiCall(`${API_BASE}/MainBranch/SelectList`),
+          apiCall(`${API_BASE}/Branch/SelectList`),
+        ]);
 
         const orgData = resOrg.ok ? await resOrg.json() : [];
         const deptData = resDept.ok ? await resDept.json() : [];
@@ -283,7 +285,7 @@ export default function EmployeeSetupModal({
            body.ConfirmPassword = values.confirmPassword || '';
          }
 
-         const res = await apiCall('https://datacollection.kathmandu.gov.np:8080/SaveEmployeeInfo', {
+          const res = await apiCall(`${API_BASE}/SaveEmployeeInfo`, {
            method: 'POST',
            body: JSON.stringify(body),
          });

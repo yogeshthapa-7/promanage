@@ -82,7 +82,8 @@ export default function EmployeePage() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const deleteUrl = `https://datacollection.kathmandu.gov.np:8080/DeleteEmployeeInfo?id=${deleteTarget.EmployeeInfoID}`;
+      const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+      const deleteUrl = `${API_BASE}/DeleteEmployeeInfo?id=${deleteTarget.EmployeeInfoID}`;
       const res = await apiCall(deleteUrl, { method: 'GET' });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -113,14 +114,14 @@ export default function EmployeePage() {
   };
 
   const handleCopy = () => {
-    const headers = ['S.N.', 'Full Name', 'Address', 'Phone', 'Email', 'DOB', 'Department Name', 'Branch Name'];
+    const headers = ['S.N.', 'Full Name', 'Address', 'Phone', 'Email', 'Department Name', 'Branch Name'];
     const rows = employees.map((emp) => [
       emp.SN,
       emp.Fullname,
       emp.Address,
       emp.Phone,
       emp.Email,
-      emp.DOB,
+      // emp.DOB,
       emp.DepartmentName,
       emp.BranchName,
     ]);
@@ -133,14 +134,14 @@ export default function EmployeePage() {
   };
 
   const handleCSVExport = () => {
-    const headers = ['S.N.', 'Full Name', 'Address', 'Phone', 'Email', 'DOB', 'Department Name', 'Branch Name'];
+    const headers = ['S.N.', 'Full Name', 'Address', 'Phone', 'Email', 'Department Name', 'Branch Name'];
     const rows = employees.map((emp) => [
       emp.SN,
       emp.Fullname,
       emp.Address,
       emp.Phone,
       emp.Email,
-      emp.DOB,
+      // emp.DOB,
       emp.DepartmentName,
       emp.BranchName,
     ]);
@@ -162,7 +163,7 @@ export default function EmployeePage() {
       Address: emp.Address,
       Phone: emp.Phone,
       Email: emp.Email,
-      DOB: emp.DOB,
+      // DOB: emp.DOB,
       'Department Name': emp.DepartmentName,
       'Branch Name': emp.BranchName,
     }));
@@ -196,7 +197,7 @@ export default function EmployeePage() {
           Address: (row.Address as string) || '',
           Phone: (row.Phone as string) || '',
           Email: (row.Email as string) || '',
-          DOB: (row.DOB as string) || '',
+          // DOB: (row.DOB as string) || '',
           DepartmentID: (row.DepartmentID as number) || 0,
           DepartmentName: (row['Department Name'] as string) || (row.DepartmentName as string) || '',
           BranchID: (row.BranchID as number) || 0,
@@ -371,7 +372,7 @@ export default function EmployeePage() {
                 <th className="bg-slate-50 px-4 py-3">Address</th>
                 <th className="bg-slate-50 px-4 py-3">Phone</th>
                 <th className="bg-slate-50 px-4 py-3">Email</th>
-                <th className="bg-slate-50 px-4 py-3">DOB</th>
+                {/* <th className="bg-slate-50 px-4 py-3">DOB</th> */}
                 <th className="bg-slate-50 px-4 py-3">Department Name</th>
                 <th className="bg-slate-50 px-4 py-3">Branch Name</th>
                 <th className="rounded-r-xl bg-slate-50 px-4 py-3 text-right">Actions</th>
@@ -408,9 +409,9 @@ export default function EmployeePage() {
                     <td className="bg-white px-4 py-3 border-b border-slate-100">
                       {emp.Email}
                     </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100">
+                    {/* <td className="bg-white px-4 py-3 border-b border-slate-100">
                       {emp.DOB}
-                    </td>
+                    </td> */}
                     <td className="bg-white px-4 py-3 border-b border-slate-100">
                       {emp.DepartmentName}
                     </td>

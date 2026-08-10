@@ -128,7 +128,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6 max-w-screen-2xl mx-auto w-full fade-in">
       <Topbar
         pageTitle="Dashboard"
-        pageSubtitle="Welcome back To Project Management Dashboard! 👋"
+        pageSubtitle="Welcome back To Project Management Dashboard!"
         showFilters
         searchValue={search}
         onSearchChange={setSearch}
@@ -145,7 +145,7 @@ export default function DashboardPage() {
           }
         }}
       />
-      <hr className="border-slate-200 my-4" />
+      <hr className="border-slate-200 mt-[-32px]" />
 
       {/* KPI Stat Cards */}
       <StatCardsRow stats={statsPayload} loading={combinedLoading} />

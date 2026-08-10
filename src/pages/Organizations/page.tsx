@@ -74,8 +74,9 @@ export default function OrganizationPage() {
       okType: 'danger',
       onOk: async () => {
         try {
+        const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
         const res = await apiCall(
-          `https://datacollection.kathmandu.gov.np:8080/DeleteOrganization?id=${org.id}`,
+          `${API_BASE}/DeleteOrganization?id=${org.id}`,
           { method: 'GET' }
         );
 

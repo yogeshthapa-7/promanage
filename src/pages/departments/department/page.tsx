@@ -114,8 +114,9 @@ export default function DepartmentPage() {
       okType: 'danger',
       onOk: async () => {
          try {
+           const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
            await apiCall(
-             `https://datacollection.kathmandu.gov.np:8080/DeleteDepartment?id=${dept.id}`,
+             `${API_BASE}/DeleteDepartment?id=${dept.id}`,
              { method: 'GET' }
            );
           message.success('Deleted successfully');
@@ -140,7 +141,7 @@ export default function DepartmentPage() {
             विभागहरू
           </h2>
           <p className="text-base text-slate-500 mt-1">
-            Manage department records and parent-child organization structure.
+            विभागीय अभिलेखहरू तथा अभिभावक‑सन्तान संगठन संरचना व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
         {/* <button
@@ -384,7 +385,7 @@ export default function DepartmentPage() {
                 मुख्य शाखा
               </h2>
               <p className="text-base text-slate-500 mt-1">
-                Manage main branch records linked to departments.
+                मुख्य शाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
               </p>
             </div>
           </div>
@@ -399,7 +400,7 @@ export default function DepartmentPage() {
                 शाखा
               </h2>
               <p className="text-base text-slate-500 mt-1">
-                Manage branch records linked to main branches and departments.
+                शाखा अभिलेखहरू मुख्य शाखा तथा विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
               </p>
             </div>
           </div>

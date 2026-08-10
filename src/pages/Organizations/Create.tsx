@@ -35,6 +35,8 @@ export default function CreateOrganizationModal({
   const [parentOrgsLoading, setParentOrgsLoading] = useState(false);
   const isEdit = !!editingOrganization;
 
+  const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
   useEffect(() => {
     if (open) {
       fetchParentOrganizations();
@@ -44,7 +46,7 @@ export default function CreateOrganizationModal({
   const fetchParentOrganizations = async () => {
     setParentOrgsLoading(true);
     try {
-      const res = await apiCall('https://datacollection.kathmandu.gov.np:8080/Organization/SelectList');
+      const res = await apiCall(`${API_BASE}/Organization/SelectList`);
       if (!res.ok) throw new Error(`Failed to fetch parent organizations: ${res.statusText}`);
       const data: ParentOrgOption[] = await res.json();
       setParentOrgs(data);
@@ -88,8 +90,8 @@ export default function CreateOrganizationModal({
          ParentOrganizationID: values.parentOrganization ? Number(values.parentOrganization) : 0,
        };
 
-       const API_URL = 'https://datacollection.kathmandu.gov.np:8080/SaveOrganization';
-       const res = await apiCall(API_URL, {
+        const API_URL = `${API_BASE}/SaveOrganization`;
+        const res = await apiCall(API_URL, {
          method: 'POST',
          body: JSON.stringify(body),
        });

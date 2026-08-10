@@ -93,8 +93,9 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
       okType: 'danger',
       onOk: async () => {
         try {
+          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
           await apiCall(
-            `https://datacollection.kathmandu.gov.np:8080/DeleteMainBranch?id=${branch.id}`,
+            `${API_BASE}/DeleteMainBranch?id=${branch.id}`,
             { method: 'GET' }
           );
           message.success('Deleted successfully');
