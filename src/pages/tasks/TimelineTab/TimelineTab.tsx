@@ -49,7 +49,7 @@ export default function TimelineTab({ project }: TimelineTabProps) {
         model: {
           draw: 1,
           start: 0,
-          length: 100,
+          length: 20,
           columns: [{ data: "ProjectInfoID", name: "ProjectInfoID", searchable: true, orderable: true, search: { value: "", regex: "" } }],
           search: { value: "", regex: "" },
           order: [{ column: 0, dir: "desc" }],

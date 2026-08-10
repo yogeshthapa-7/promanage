@@ -29,7 +29,7 @@ export default function AppLayout({
        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
        <div className="flex flex-col flex-1 min-w-0 overflow-hidden relative z-[1]">
          {showTopbar && <Topbar pageTitle={pageTitle} pageSubtitle={pageSubtitle} />}
-         <main className="flex-1 overflow-y-auto scrollbar-thin px-8 py-6 relative">
+          <main className="flex-1 overflow-y-auto scrollbar-thin px-6 py-4 relative">
           {children}
         </main>
       </div>

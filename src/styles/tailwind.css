@@ -68,7 +68,7 @@
     border-color: var(--border);
   }
   html {
-    font-size: 17px;
+    font-size: 16px;
   }
   body {
     background-color: var(--background);
@@ -242,10 +242,10 @@
     opacity: 1;
   }
   .badge-status {
-    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold;
   }
   .badge-priority {
-    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold;
+    @apply inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-semibold;
   }
   .btn-primary {
     @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-150 active:scale-95 cursor-pointer;

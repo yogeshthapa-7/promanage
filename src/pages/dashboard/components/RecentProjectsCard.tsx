@@ -26,32 +26,32 @@ const RecentProjectsCard = ({ projects, loading = false }: RecentProjectsCardPro
   }, [projects]);
 
   return (
-    <Card className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-base font-bold text-foreground">Recent Projects</h2>
+     <Card className="h-full flex flex-col">
+       <div className="flex items-center justify-between mb-3 flex-shrink-0">
+         <h2 className="text-sm font-bold text-foreground">Recent Projects</h2>
         <button
           onClick={() => navigate('/projects')}
-          className="text-sm font-semibold transition-colors duration-150 hover:opacity-80"
+          className="text-xs font-semibold transition-colors duration-150 hover:opacity-80"
           style={{ color: 'var(--primary)' }}
         >
           View All
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 flex-1 overflow-y-auto scrollbar-thin -mr-2 pr-2">
+      <div className="flex flex-col gap-2 flex-1 overflow-y-auto scrollbar-thin -mr-2 pr-2">
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading projects...</p>
+          <p className="text-xs text-muted-foreground">Loading projects...</p>
         ) : recent.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No projects found.</p>
+          <p className="text-xs text-muted-foreground">No projects found.</p>
         ) : (
           recent.map((project) => (
             <div
               key={project.id}
-              className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200/80 bg-white/60"
+              className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-200/80 bg-white/60"
             >
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground truncate">{project.name}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">{formatDate(project.startDate)}</p>
+                <p className="text-xs font-semibold text-foreground truncate">{project.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{formatDate(project.startDate)}</p>
               </div>
               <span
                 className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${

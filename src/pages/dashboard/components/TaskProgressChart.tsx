@@ -39,11 +39,11 @@ export default function TaskProgressChart({ projects = [], loading = false }: Ta
   const periods = ['This Month', 'Last Month', 'This Quarter', 'This Year'];
 
   return (
-    <Card className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-base font-bold text-foreground">Task Progress</h2>
+     <Card className="h-full flex flex-col">
+       <div className="flex items-center justify-between mb-3 flex-shrink-0">
+         <h2 className="text-sm font-bold text-foreground">Task Progress</h2>
         <div className="relative">
-          <button onClick={() => setPeriodOpen(!periodOpen)} className="btn-ghost text-sm flex items-center gap-2 py-1.5 px-3">
+          <button onClick={() => setPeriodOpen(!periodOpen)}           className="btn-ghost text-xs flex items-center gap-1.5 py-1 px-2.5">
             {period}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
@@ -62,8 +62,8 @@ export default function TaskProgressChart({ projects = [], loading = false }: Ta
       <div ref={chartRef} style={{ width: '100%', flex: 1, minHeight: 220 }} />
 
       {loading && (
-        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-3xl">
-          <p className="text-sm text-muted-foreground">Loading chart...</p>
+        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-2xl">
+          <p className="text-xs text-muted-foreground">Loading chart...</p>
         </div>
       )}
     </Card>

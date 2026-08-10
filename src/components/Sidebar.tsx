@@ -25,16 +25,16 @@ interface NavItem {
   section?: string;
 }
 
-const navItems: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/dashboard'},
-  { id: 'projects', label: 'Projects', icon: <FolderKanban size={18} />, href: '/projects'},
-  { id: 'tasks', label: 'Task', icon: <CheckSquare size={18} />, href: '/tasks' },
-  { id: 'analytics', label: 'Analytics', icon: <ChartLine size={18} />, href: '/analytics' },
-  { id: 'team-members', label: 'Team Members', icon: <Users size={18} />, href: '/team', section: 'TEAM' },
-  { id: 'users', label: 'Users', icon: <Users size={18} />, href: '/users', section: 'TEAM' },
-  { id: 'employee', label: 'Employee', icon: <User size={18} />, href: '/employee', section: 'TEAM' },
-  { id: 'departments', label: 'department', icon: <Building size={18} />, href: '/departments', section: 'TEAM' },
-  { id: 'organizations', label: 'Organization', icon: <Building2 size={18} />, href: '/Organizations', section: 'TEAM' },
+  const navItems: NavItem[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} />, href: '/dashboard'},
+  { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} />, href: '/projects'},
+  { id: 'tasks', label: 'Task', icon: <CheckSquare size={16} />, href: '/tasks' },
+  { id: 'analytics', label: 'Analytics', icon: <ChartLine size={16} />, href: '/analytics' },
+  { id: 'team-members', label: 'Team Members', icon: <Users size={16} />, href: '/team', section: 'TEAM' },
+  { id: 'users', label: 'Users', icon: <Users size={16} />, href: '/users', section: 'TEAM' },
+  { id: 'employee', label: 'Employee', icon: <User size={16} />, href: '/employee', section: 'TEAM' },
+  { id: 'departments', label: 'department', icon: <Building size={16} />, href: '/departments', section: 'TEAM' },
+  { id: 'organizations', label: 'Organization', icon: <Building2 size={16} />, href: '/Organizations', section: 'TEAM' },
 ];
 
 interface SidebarProps {
@@ -77,37 +77,17 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         boxShadow: '4px 0 40px rgba(124, 58, 237, 0.06), 4px 0 80px rgba(99, 102, 241, 0.03)',
       }}
     >
-     {/* App Header Logo Container */}
-<div className="flex items-center h-[90px] px-5 flex-shrink-0 border-b border-gray-100/10">
-  {/* Using a fixed grid layout ensures the text column ALWAYS starts at exactly 64px from the left */}
-  <div className="grid grid-cols-[64px_1fr] items-center w-full min-w-0">
-    
-    {/* Logo Area: You can change the image w/h inside here freely now */}
-    <div className="flex items-center justify-start">
-      <img
-        src="/assets/images/logo.png"
-        alt="ProManage"
-        className="w-24 h-24 object-contain scale-150 transform-gpu" 
-      />
-    </div>
-
-    {/* Brand text: Locked into its own column */}
-    {!collapsed && (
-      <div className="flex flex-col min-w-0 mr-5 leading-tight pl-2">
-        <span className="text-base font-extrabold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent tracking-tight truncate">
-          ProManage
-        </span>
-        <span className="text-[10px] text-white font-bold tracking-wider uppercase truncate mt-0.5">
-          Project Tracking
-        </span>
+      {/* App Header Logo Container */}
+      <div className="flex items-center h-16 px-4 flex-shrink-0 border-b border-gray-100/10">
+        <img
+          src="/assets/images/promanage.png"
+          alt="ProManage"
+          className="h-20 w-20 object-contain"
+        />
       </div>
-    )}
-
-  </div>
-</div>
 
       {/* Main Navigation Links */}
-      <nav className="flex-1 overflow-y-auto scrollbar-thin px-3 py-5 flex flex-col gap-1.5">
+      <nav className="flex-1 overflow-y-auto scrollbar-thin px-2.5 py-3 flex flex-col gap-1">
         {mainNav.map((item) => {
           const isActive = activeId === item.id;
           return (
@@ -115,7 +95,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               key={item.id}
               to={item.href}
               title={item.label}
-              className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
+              className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#8B5CF6] text-white shadow-md shadow-purple-500/25 scale-[1.02]'
                   : 'text-slate-300 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
@@ -123,7 +103,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             >
               {/* Active Indicator Pillar */}
               {isActive && (
-                <span className="absolute -left-3 top-2.5 bottom-2.5 w-1.5 bg-gradient-to-b from-[#7C3AED] to-[#6366F1] rounded-r-full" />
+                <span className="absolute -left-2.5 top-1.5 bottom-1.5 w-1 bg-gradient-to-b from-[#7C3AED] to-[#6366F1] rounded-r-full" />
               )}
 
               <span
@@ -143,13 +123,13 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
         {/* Section Divider */}
         {!collapsed ? (
-          <div className="pt-4 pb-1 px-3.5">
-            <p className="text-sm font-extrabold tracking-widest uppercase text-gray-200">
+          <div className="pt-3 pb-0.5 px-3">
+            <p className="text-xs font-extrabold tracking-widest uppercase text-gray-200">
               Team
             </p>
           </div>
         ) : (
-          <div className="my-2 border-t border-gray-200/50" />
+          <div className="my-1.5 border-t border-gray-200/50" />
         )}
 
         {/* Team Sub-Navigation */}
@@ -160,14 +140,14 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               key={item.id}
               to={item.href}
               title={item.label}
-              className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
+              className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#8B5CF6] text-white shadow-md shadow-purple-500/25 scale-[1.02]'
                   : 'text-slate-300 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
               }`}
             >
               {isActive && (
-                <span className="absolute -left-3 top-2.5 bottom-2.5 w-1.5 bg-gradient-to-b from-[#7C3AED] to-[#6366F1] rounded-r-full" />
+                <span className="absolute -left-2.5 top-1.5 bottom-1.5 w-1 bg-gradient-to-b from-[#7C3AED] to-[#6366F1] rounded-r-full" />
               )}
 
               <span
@@ -186,9 +166,9 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
       {/* Sign Out */}
       <div className="flex-shrink-0 px-3 pb-3">
-        <button onClick={() => navigate('/login')} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-gray-900/20 border border-gray-700/50 text-slate-100 hover:text-rose-400 hover:bg-gray-900/30 hover:border-rose-400/30 transition-all duration-200 cursor-pointer">
-          <LogOut size={18} />
-          {!collapsed && <span className="text-sm font-semibold">Sign Out</span>}
+        <button onClick={() => navigate('/login')} className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-gray-900/20 border border-gray-700/50 text-slate-100 hover:text-rose-400 hover:bg-gray-900/30 hover:border-rose-400/30 transition-all duration-200 cursor-pointer">
+          <LogOut size={16} />
+          {!collapsed && <span className="text-xs font-semibold">Sign Out</span>}
         </button>
       </div>
 
@@ -196,10 +176,10 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="flex-shrink-0 px-3 pb-5 pt-3 border-t border-gray-100/50">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-center py-2.5 rounded-2xl bg-gray-900/20 border border-gray-700/50 text-slate-100 hover:text-primary hover:bg-gray-900/30 hover:border-primary/30 hover:shadow-sm shadow-xs transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer"
+          className="w-full flex items-center justify-center py-2 rounded-xl bg-gray-900/20 border border-gray-700/50 text-slate-100 hover:text-primary hover:bg-gray-900/30 hover:border-primary/30 hover:shadow-sm shadow-xs transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
     </aside>

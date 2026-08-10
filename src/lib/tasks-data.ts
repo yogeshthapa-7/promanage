@@ -322,7 +322,7 @@ export async function fetchTaskStats(projectId: number, signal?: AbortSignal): P
       model: {
         draw: 1,
         start: 0,
-        length: 1000,
+        length: 50,
         columns: [
           { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
           { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },

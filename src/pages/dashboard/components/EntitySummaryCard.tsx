@@ -26,25 +26,25 @@ const EntitySummaryCard = memo(function EntitySummaryCard({
   const navigate = useNavigate();
 
   return (
-    <Card className="flex flex-col gap-3">
+    <Card className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div
-          className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: iconBg, color: iconColor }}
         >
           {icon}
         </div>
-        <span className="text-2xl font-bold tabular-nums text-foreground">
+        <span className="text-xl font-bold tabular-nums text-foreground">
           {loading ? '—' : count}
         </span>
       </div>
       <div>
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
+        <p className="text-xs font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
       </div>
       <button
         onClick={() => navigate(href)}
-        className="text-sm font-semibold transition-colors duration-150 hover:opacity-80 self-start"
+        className="text-xs font-semibold transition-colors duration-150 hover:opacity-80 self-start"
         style={{ color: 'var(--primary)' }}
       >
         View All

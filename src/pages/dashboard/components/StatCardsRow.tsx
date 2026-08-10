@@ -23,7 +23,7 @@ export default function StatCardsRow({ projects, stats, loading = false }: StatC
       : [];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-5 gap-3">
       {cards.map((card) => (
         <StatCardClient key={card.id} {...card} loading={loading} />
       ))}

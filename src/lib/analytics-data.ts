@@ -9,7 +9,7 @@ const serverSearchBody = {
   model: {
     draw: 1,
     start: 0,
-    length: 1000,
+    length: 20,
     columns: [
       { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
       { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },

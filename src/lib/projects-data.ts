@@ -81,6 +81,14 @@ export interface ApiProject {
   BudgetInfoIDs: string;
   BankGuranteeExpiryDate: string;
   BankGuranteeIssueDate: string;
+  WorkStatusCode: string | null;
+  PublicAgentID: number;
+  ExpenseCode: string | null;
+  BudgetInfoName: string | null;
+  DepartmentName: string | null;
+  Tippani: string;
+  Samghauta: string;
+  Kalyades: string;
   Status: number;
   CanEdit: boolean;
   CanDelete: boolean;

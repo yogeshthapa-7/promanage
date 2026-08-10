@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
+import { Modal, message } from "antd";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
@@ -26,6 +27,25 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [discussions, setDiscussions] = useState<ProjectDiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
 
+  const handleDeleteDiscussion = (discussion: ProjectDiscussionItem) => {
+    Modal.confirm({
+      title: 'Delete Discussion',
+      content: `Are you sure you want to delete "${discussion.DiscussionTitle}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteProjectDiscussion?id=${discussion.ProjectDiscussionID}`, { method: 'GET' });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success('Discussion deleted successfully');
+          setDiscussions((prev) => prev.filter((d) => d.ProjectDiscussionID !== discussion.ProjectDiscussionID));
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Failed to delete discussion');
+        }
+      },
+    });
+  };
+
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
@@ -38,7 +58,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         model: {
           draw: 1,
           start: 0,
-          length: 100,
+          length: 20,
           columns: [
             { data: "ProjectDiscussionID", name: "ProjectDiscussionID", searchable: true, orderable: true, search: { value: "", regex: "" } },
           ],
@@ -102,7 +122,14 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
             <span>•</span>
             <span>{d.CreatedDate}</span>
             {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
-            {d.HasUserRightToDelete && <span className="text-rose-600">Deletable</span>}
+            {d.HasUserRightToDelete && (
+              <button
+                onClick={() => handleDeleteDiscussion(d)}
+                className="text-rose-600 hover:text-rose-700 transition cursor-pointer"
+              >
+                Deletable
+              </button>
+            )}
           </div>
         </div>
       ))}

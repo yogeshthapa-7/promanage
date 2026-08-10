@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Download, Printer, Upload } from 'lucide-react';
-import { Modal, message, Button } from 'antd';
+import { Modal, message } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
@@ -32,8 +32,6 @@ export default function EmployeePage() {
   const [totalFiltered, setTotalFiltered] = useState(0);
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -75,30 +73,25 @@ export default function EmployeePage() {
   };
 
   const handleDeleteEmployee = (employee: Employee) => {
-    setDeleteTarget(employee);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteLoading(true);
-    try {
-      const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-      const deleteUrl = `${API_BASE}/DeleteEmployeeInfo?id=${deleteTarget.EmployeeInfoID}`;
-      const res = await apiCall(deleteUrl, { method: 'GET' });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
-      setEmployees((prev) => prev.filter((e) => e.EmployeeInfoID !== deleteTarget.EmployeeInfoID));
-      setTotalFiltered((prev) => prev - 1);
-      message.success('Employee removed successfully');
-      setDeleteTarget(null);
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message || 'Failed to delete employee');
-      }
-    } finally {
-      setDeleteLoading(false);
-    }
+    Modal.confirm({
+      title: 'Remove Employee',
+      content: `Are you sure you want to remove <strong>${employee.Fullname}</strong> from the system?`,
+      okText: 'Remove',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+          const deleteUrl = `${API_BASE}/DeleteEmployeeInfo?id=${employee.EmployeeInfoID}`;
+          const res = await apiCall(deleteUrl, { method: 'GET' });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          setEmployees((prev) => prev.filter((e) => e.EmployeeInfoID !== employee.EmployeeInfoID));
+          setTotalFiltered((prev) => prev - 1);
+          message.success('Employee removed successfully');
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Failed to delete employee');
+        }
+      },
+    });
   };
 
   const handleSearch = () => {
@@ -465,42 +458,6 @@ export default function EmployeePage() {
         editingEmployee={editEmployee}
         onSuccess={fetchData}
       />
-
-      <Modal
-        open={deleteTarget !== null}
-        title="Remove Employee"
-        onCancel={() => {
-          setDeleteTarget(null);
-          setDeleteLoading(false);
-        }}
-        centered
-        footer={
-          <div className="flex justify-end items-center gap-3">
-            <Button
-              onClick={() => {
-                setDeleteTarget(null);
-                setDeleteLoading(false);
-              }}
-              className="px-4 h-9 rounded-md text-sm font-medium"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="primary"
-              danger
-              loading={deleteLoading}
-              onClick={confirmDelete}
-              className="px-4 h-9 rounded-md text-sm font-medium"
-            >
-              Remove
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-base text-slate-600">
-          Are you sure you want to remove <strong>{deleteTarget?.Fullname}</strong> from the system?
-        </p>
-      </Modal>
     </div>
   );
 }

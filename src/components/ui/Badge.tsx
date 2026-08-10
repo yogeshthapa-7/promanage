@@ -8,10 +8,10 @@ interface BadgeProps {
 }
 
 const variantStyles = {
-  default: 'inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold',
+  default: 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold',
   status: 'badge-status',
   priority: 'badge-priority',
-  outline: 'inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold border border-border',
+  outline: 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border border-border',
 };
 
 export default function Badge({

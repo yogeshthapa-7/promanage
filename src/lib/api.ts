@@ -1,3 +1,5 @@
+import { trackAbortController, cancelAllPendingRequests } from './request-tracker';
+
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const REFRESH_TOKEN_URL = (import.meta.env.VITE_REFRESH_TOKEN_URL || `${API_BASE}/Authenticate/RefreshToken`).replace(/\/$/, '');
 const DEFAULT_TIMEOUT_MS = 120000;
@@ -105,7 +107,7 @@ export async function apiCall(
   timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<Response> {
   let token = localStorage.getItem('token');
-  
+
   // Proactively check if token is expired before making the request
   if (token && isTokenExpired(token)) {
     const newToken = await refreshAuthToken();
@@ -120,6 +122,7 @@ export async function apiCall(
   }
 
   const controller = new AbortController();
+  const untrack = trackAbortController(controller);
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   // Link the caller's signal to our internal controller
@@ -184,5 +187,9 @@ export async function apiCall(
   } catch (err) {
     clearTimeout(timeoutId);
     throw err;
+  } finally {
+    untrack();
   }
 }
+
+export { cancelAllPendingRequests };

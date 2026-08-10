@@ -66,55 +66,55 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
 
   return (
     <tr key={project.id} className="group transition-colors duration-150 row-hover">
-      <td className="px-5 py-3.5">
-        <div className="flex items-center gap-3">
+      <td className="px-4 py-2.5">
+        <div className="flex items-center gap-2.5">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-bold"
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold"
             style={{ background: 'var(--secondary)', color: 'var(--primary)' }}
           >
             {project.name.charAt(0)}
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground truncate max-w-[200px]">{project.name}</p>
-            <p className="text-base text-muted-foreground">{project.category}</p>
+            <p className="text-xs text-muted-foreground">{project.category}</p>
           </div>
         </div>
       </td>
 
-      <td className="px-5 py-3.5">
+      <td className="px-4 py-2.5">
         <Badge variant="status" style={{ background: statusCfg.bg, color: statusCfg.color }}>
           {statusCfg.label}
         </Badge>
       </td>
 
-      <td className="px-5 py-3.5">
-        <div className="flex items-center gap-3" style={{ minWidth: '120px' }}>
+      <td className="px-4 py-2.5">
+        <div className="flex items-center gap-2" style={{ minWidth: '100px' }}>
           <ProgressBar value={project.progress} color={barColor} />
-          <span className="text-sm font-semibold tabular-nums text-muted-foreground w-8">{project.progress}%</span>
+          <span className="text-xs font-semibold tabular-nums text-muted-foreground w-8">{project.progress}%</span>
         </div>
       </td>
 
-      <td className="px-5 py-3.5">
-        <span className="text-sm tabular-nums text-muted-foreground">{project.startDate}</span>
+      <td className="px-4 py-2.5">
+        <span className="text-xs tabular-nums text-muted-foreground">{project.startDate}</span>
       </td>
 
-      <td className="px-5 py-3.5">
-        <span className="text-sm tabular-nums font-medium" style={{ color: project.status === 'Overdue' ? '#EF4444' : 'var(--muted-foreground)' }}>
+      <td className="px-4 py-2.5">
+        <span className="text-xs tabular-nums font-medium" style={{ color: project.status === 'Overdue' ? '#EF4444' : 'var(--muted-foreground)' }}>
           {project.dueDate}
         </span>
       </td>
 
-      <td className="px-5 py-3.5">
-        <AvatarStack items={project.team.map(m => ({ id: m.id, src: m.avatar, alt: m.name }))} size={28} extra={project.extraTeam} />
+      <td className="px-4 py-2.5">
+        <AvatarStack items={project.team.map(m => ({ id: m.id, src: m.avatar, alt: m.name }))} size={24} extra={project.extraTeam} />
       </td>
 
-      <td className="px-5 py-3.5">
+      <td className="px-4 py-2.5">
         <Badge variant="priority" style={{ background: priorityCfg.bg, color: priorityCfg.color }}>
           {project.priority}
         </Badge>
       </td>
 
-      <td className="px-5 py-3.5">
+      <td className="px-4 py-2.5">
         <DropdownMenu
           trigger={
             <button className="p-1.5 rounded-lg transition-all duration-150 hover:bg-gray-100 active:scale-95" style={{ color: 'var(--muted-foreground)' }}>
@@ -246,9 +246,9 @@ export default function ProjectsTable({
   }, [filtered, currentPage, pageSize, useServerPagination]);
 
   return (
-    <Card>
-      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100/80">
-        <h2 className="text-base font-bold text-foreground">Projects</h2>
+     <Card>
+       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100/80">
+         <h2 className="text-sm font-bold text-foreground">Projects</h2>
         <div className="flex items-center gap-2.5">
           <SearchInput value={search} onChange={handleSearchChange} placeholder="Search projects..." />
           <Button variant="outline" size="sm" icon={<SlidersHorizontal size={14} />} onClick={() => handleFilterChange(filterStatus === 'All' ? 'In Progress' : 'All')}>
@@ -273,7 +273,7 @@ export default function ProjectsTable({
               ].map((col) => (
                 <th
                   key={col.label}
-                  className="px-5 py-3.5 text-left text-sm font-semibold uppercase tracking-wider select-none whitespace-nowrap"
+                  className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider select-none whitespace-nowrap"
                   style={{ color: 'var(--muted-foreground)', letterSpacing: '0.04em' }}
                 >
                   {col.key ? (
@@ -294,15 +294,15 @@ export default function ProjectsTable({
           <tbody className="divide-y divide-gray-50/80">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-6 py-16 text-center">
-                  <p className="text-sm font-medium text-muted-foreground">Loading projects...</p>
+                <td colSpan={8} className="px-4 py-10 text-center">
+                  <p className="text-xs font-medium text-muted-foreground">Loading projects...</p>
                 </td>
               </tr>
             ) : paginated.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-16 text-center">
-                  <p className="text-sm font-medium text-muted-foreground">No projects match your search</p>
-                  <p className="text-sm mt-1 text-muted-foreground">Try adjusting your search or filter criteria</p>
+                <td colSpan={8} className="px-4 py-10 text-center">
+                  <p className="text-xs font-medium text-muted-foreground">No projects match your search</p>
+                  <p className="text-xs mt-1 text-muted-foreground">Try adjusting your search or filter criteria</p>
                 </td>
               </tr>
             ) : (

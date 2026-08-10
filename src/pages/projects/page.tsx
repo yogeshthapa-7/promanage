@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Button } from 'antd';
+import { Modal, message } from 'antd';
 import {
   Search,
   Filter,
@@ -23,48 +23,9 @@ import StatCard from '@/components/ui/StatCard';
 import Pagination from '@/components/ui/Pagination';
 import { apiCall } from '@/lib/api';
 import { projects as fallbackProjects, mapApiProjectToProject } from '@/lib/projects-data';
-import type { ProjectStatus, Project } from '@/lib/projects-data';
+import type { ProjectStatus, Project, ApiProject } from '@/lib/projects-data';
 import { getStatCards } from '@/pages/dashboard/components/statCardsData';
 import ProjectFormModal from './Create';
-
-interface ApiProject {
-  ProjectInfoID: number;
-  Description: string;
-  Priority: number;
-  PriorityName: string;
-  ProjectCode: string;
-  ProjectName: string;
-  ProjectDuration: number;
-  StartDate: string;
-  ProjectType: number;
-  ProjectTypeName: string;
-  TotalBudget: number;
-  WorkStatusID: number;
-  ClientInfoID: number;
-  ProjectHeadEmpID: number;
-  ExpenseInfoID: number;
-  DepartmentID: number;
-  WorkStatusName: string;
-  WorkStatusColor: string;
-  ProjectHeadEmpName: string;
-  ProjectHeadEmpPhoto: string;
-  BudgetSourceID: number;
-  LastDateOfSubmission: string | null;
-  Suchikrit_ServiceGroupTypeIDs: string;
-  Suchikrit_ServiceTypeIDs: string;
-  TargetVendorIDs: string;
-  ProjectOpenDate: string;
-  Attachments: string;
-  TOR: string;
-  PolicyProgramIDs: string;
-  BudgetInfoIDs: string;
-  BankGuranteeExpiryDate: string;
-  BankGuranteeIssueDate: string;
-  Status: number;
-  CanEdit: boolean;
-  CanDelete: boolean;
-  CanChangeStatus: boolean;
-}
 
 type SortField = 'name' | 'status' | 'priority' | 'progress' | 'dueDate';
 type SortDir = 'asc' | 'desc';
@@ -77,7 +38,7 @@ const serverSearchBody = {
   model: {
     draw: 1,
     start: 0,
-    length: 1000,
+    length: 20,
     columns: [
       { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
       { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
@@ -141,15 +102,12 @@ export default function ProjectsPage() {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [sortOpen, setSortOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const pageSize = 9;
-  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -193,11 +151,6 @@ export default function ProjectsPage() {
     { label: 'Progress', value: 'progress' },
     { label: 'Due Date', value: 'dueDate' },
   ];
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2500);
-  };
 
   const openCreateModal = () => {
     setEditingProject(null);
@@ -274,45 +227,42 @@ export default function ProjectsPage() {
     a.download = 'projects.csv';
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Export completed');
+    message.success('Export completed');
   };
 
     const handleDeleteClick = (project: Project) => {
-    setDeleteTarget(project);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteLoading(true);
-    try {
-      const res = await apiCall(`${API_BASE}/DeleteProjectInfo?id=${deleteTarget.id}`, {
-        method: 'GET',
-      });
-
-      if (!res.ok) throw new Error(`Failed to delete: ${res.statusText}`);
-
-      message.success('Project deleted successfully');
-      setDeleteTarget(null);
-      fetchProjects((currentPage - 1) * pageSize, pageSize).then((result) => {
-        setProjects(result.data);
-        setTotalRecords(result.total);
-      });
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Delete failed');
-    } finally {
-      setDeleteLoading(false);
-    }
+    Modal.confirm({
+      title: 'Delete Project',
+      content: `Are you sure you want to delete "${project.title || project.name}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteProjectInfo?id=${project.id}`, {
+            method: 'GET',
+          });
+          if (!res.ok) throw new Error(`Failed to delete: ${res.statusText}`);
+          message.success('Project deleted successfully');
+          fetchProjects((currentPage - 1) * pageSize, pageSize).then((result) => {
+            setProjects(result.data);
+            setTotalRecords(result.total);
+          });
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Delete failed');
+        }
+      },
+    });
   };
 
   const totalPages = Math.ceil(totalRecords / pageSize);
 
   return (
-    <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10">
+    <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
       {/* 1. Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Projects</h1>
-          <p className="text-base text-muted-foreground mt-0.5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Projects</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Manage, organize and monitor all your projects in one place.
           </p>
         </div>
@@ -468,16 +418,16 @@ export default function ProjectsPage() {
           </button>
          </div>
       </div>
-      <hr className="border-slate-200 my-6" />
+      <hr className="border-slate-200 my-4" />
 
       {loading ? (
-        <Card className="p-8 text-center">
-          <p className="text-base text-muted-foreground">Loading projects...</p>
+        <Card className="p-6 text-center">
+          <p className="text-sm text-muted-foreground">Loading projects...</p>
         </Card>
       ) : (
         <>
           {/* 2. Top Metric Cards Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {getStatCards(projects).map((stat) => (
               <StatCard
                 key={stat.id}
@@ -495,7 +445,7 @@ export default function ProjectsPage() {
           </div>
 
           {/* 3. Main Content Area */}
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Projects Title */}
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-foreground">Projects</h2>
@@ -506,28 +456,28 @@ export default function ProjectsPage() {
 
             {viewMode === 'grid' ? (
               /* Projects Cards Grid */
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 {projects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
 
                   return (
-                    <Card
-                      key={project.id}
-                      hover
-                      className="flex flex-col min-h-[320px] cursor-pointer overflow-hidden"
-                      onClick={() => handleViewProject(project)}
-                    >
-                  {/* Top content grows to fill available space */}
-                  <div className="flex flex-col gap-4 flex-1">
+                     <Card
+                       key={project.id}
+                       hover
+                       className="flex flex-col min-h-[280px] cursor-pointer overflow-hidden"
+                       onClick={() => handleViewProject(project)}
+                     >
+                   {/* Top content grows to fill available space */}
+                   <div className="flex flex-col gap-3 flex-1">
                     {/* Card Header */}
                     <div className="flex items-start gap-4">
-                      <div className={`p-3.5 rounded-2xl ${project.iconBg} shrink-0`}>
-                        <Icon className="w-6 h-6" />
+                    <div className={`p-3 rounded-xl ${project.iconBg} shrink-0`}>
+                      <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-bold text-foreground truncate" title={projectTitle}>
+                          <h3 className="text-sm font-bold text-foreground truncate" title={projectTitle}>
                             {projectTitle}
                           </h3>
                           {project.starred && (
@@ -540,7 +490,7 @@ export default function ProjectsPage() {
                     {/* Status & Priority */}
                     <div className="flex items-center gap-3">
                       <span
-                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${
+                        className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
                           project.status === 'Completed'
                             ? 'bg-emerald-100 text-emerald-700'
                             : project.status === 'In Progress'
@@ -554,7 +504,7 @@ export default function ProjectsPage() {
                       >
                         {project.status}
                       </span>
-                      <span className="text-base text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {project.priority} priority
                       </span>
                     </div>
@@ -565,7 +515,7 @@ export default function ProjectsPage() {
                         <span className="text-muted-foreground font-medium">Progress</span>
                         <span className="font-bold text-foreground">{project.progress}%</span>
                       </div>
-                      <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                      <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
                         <div
                           className={`h-full ${project.progressColor} rounded-full transition-all duration-500`}
                           style={{ width: `${project.progress}%` }}
@@ -574,7 +524,7 @@ export default function ProjectsPage() {
                     </div>
 
                     {/* Key dates */}
-                    <div className="flex items-center justify-between gap-4 rounded-xl bg-muted/30 px-3 py-2">
+                    <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-2.5 py-1.5">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                           Start Date
@@ -595,15 +545,15 @@ export default function ProjectsPage() {
                   </div>
 
                   {/* Action Buttons — pinned to bottom */}
-                  <div className="flex items-center gap-3 pt-4 mt-4 border-t border-border/60">
+                  <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border/60">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleViewProject(project);
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-all cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-all cursor-pointer"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-3.5 h-3.5" />
                       View
                     </button>
                     <button
@@ -611,9 +561,9 @@ export default function ProjectsPage() {
                         e.stopPropagation();
                         openEditModal(project);
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-foreground hover:bg-white transition-all cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-border text-xs font-semibold text-foreground hover:bg-white transition-all cursor-pointer"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-3.5 h-3.5" />
                       Edit
                     </button>
                     <button
@@ -621,9 +571,9 @@ export default function ProjectsPage() {
                         e.stopPropagation();
                         handleDeleteClick(project)
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 transition-all cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-xs font-semibold hover:bg-rose-100 transition-all cursor-pointer"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                       Delete
                     </button>
                   </div>
@@ -642,10 +592,10 @@ export default function ProjectsPage() {
                     <div
                       key={project.id}
                       onClick={() => handleViewProject(project)}
-                      className="flex items-center gap-4 px-5 py-4 rounded-2xl border border-border bg-white/70 hover:bg-white hover:border-primary/20 transition-all cursor-pointer"
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-border bg-white/70 hover:bg-white hover:border-primary/20 transition-all cursor-pointer"
                     >
-                  <div className={`p-2.5 rounded-2xl ${project.iconBg} shrink-0`}>
-                    <Icon className="w-5 h-5" />
+                  <div className={`p-2 rounded-xl ${project.iconBg} shrink-0`}>
+                    <Icon className="w-4 h-4" />
                   </div>
 
                     <div className="flex-1 min-w-0">
@@ -658,7 +608,7 @@ export default function ProjectsPage() {
                     </div>
 
                   <span
-                    className={`hidden sm:inline-block px-2 py-0.5 rounded-md text-sm font-semibold ${
+                    className={`hidden sm:inline-block px-2 py-0.5 rounded-md text-xs font-semibold ${
                       project.status === 'Completed'
                         ? 'bg-emerald-100 text-emerald-700'
                         : project.status === 'In Progress'
@@ -673,7 +623,7 @@ export default function ProjectsPage() {
                     {project.status}
                   </span>
 
-                  <span className="hidden md:inline-block text-base text-muted-foreground w-24 truncate">
+                  <span className="hidden md:inline-block text-sm text-muted-foreground w-24 truncate">
                     {project.priority}
                   </span>
 
@@ -695,27 +645,27 @@ export default function ProjectsPage() {
                         e.stopPropagation();
                         handleViewProject(project);
                       }}
-                      className="p-2 rounded-xl hover:bg-primary/10 text-primary transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-all cursor-pointer"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         openEditModal(project);
                       }}
-                      className="p-2 rounded-xl hover:bg-primary/10 text-primary transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-all cursor-pointer"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteClick(project)
                       }}
-                      className="p-2 rounded-xl hover:bg-rose-50 text-rose-600 transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 transition-all cursor-pointer"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                     </div>
@@ -737,11 +687,6 @@ export default function ProjectsPage() {
       )}
 
       {/* Toast Notification */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 bg-foreground text-white text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-black/20 z-50 fade-in">
-          {toast}
-        </div>
-      )}
 
       <ProjectFormModal
         open={isModalOpen}
@@ -749,41 +694,6 @@ export default function ProjectsPage() {
         onSuccess={handleModalSuccess}
         editingProject={editingProject}
       />
-            <Modal
-        open={deleteTarget !== null}
-        title="Delete Project"
-        onCancel={() => {
-          setDeleteTarget(null);
-          setDeleteLoading(false);
-        }}
-        centered
-        footer={
-          <div className="flex justify-end items-center gap-3">
-            <Button
-              onClick={() => {
-                setDeleteTarget(null);
-                setDeleteLoading(false);
-              }}
-              className="px-4 h-9 rounded-md text-sm font-medium"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="primary"
-              danger
-              loading={deleteLoading}
-              onClick={confirmDelete}
-              className="px-4 h-9 rounded-md text-sm font-medium"
-            >
-              Delete
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-base text-slate-600">
-          Are you sure you want to delete <strong>{deleteTarget?.title || deleteTarget?.name}</strong>?
-        </p>
-      </Modal>
     </div>
   );
 }

@@ -31,7 +31,23 @@ export default function AnalyticsPage() {
   const taskChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getAnalyticsData().then((result) => setData(result));
+    let cancelled = false;
+    const controller = new AbortController();
+    getAnalyticsData()
+      .then((result) => {
+        if (!cancelled) {
+          setData(result);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setData(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {

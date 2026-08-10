@@ -16,11 +16,11 @@ export default function Card({
 }: CardProps) {
   return (
     <div
-      className={`bg-gradient-to-br from-[#f8faff] via-[#f0f4fd] to-[#e8eef8] rounded-3xl border border-white/50 overflow-hidden ${hover ? 'card-hover gpu-layer-card hover:scale-[1.01]' : ''} ${className}`}
+      className={`bg-gradient-to-br from-[#f8faff] via-[#f0f4fd] to-[#e8eef8] rounded-2xl border border-white/50 overflow-hidden ${hover ? 'card-hover gpu-layer-card hover:scale-[1.01]' : ''} ${className}`}
       style={{ boxShadow: '0 1px 3px rgba(124,58,237,0.04), 0 8px 24px rgba(124,58,237,0.06)' }}
       {...rest}
     >
-      <div className={padding}>
+      <div className={padding === 'p-6' ? 'p-4' : padding}>
         {children}
       </div>
     </div>

@@ -23,7 +23,7 @@ export default function SearchInput({
 
   return (
     <div
-      className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border transition-all duration-150 focus-within:border-primary/30 focus-within:bg-white focus-within:shadow-sm ${className} ${containerClassName}`}
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-150 focus-within:border-primary/30 focus-within:bg-white focus-within:shadow-sm ${className} ${containerClassName}`}
       style={{
         background: focused ? 'white' : 'rgba(255,255,255,0.5)',
         borderColor: focused ? 'var(--primary)' : 'var(--border)',

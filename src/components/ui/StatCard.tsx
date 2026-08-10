@@ -3,7 +3,7 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 import Highcharts from 'highcharts';
 import Card from './Card';
 
-type IconType = 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending';
+type IconType = 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
 
 interface StatCardProps {
   title: string;
@@ -65,7 +65,7 @@ const StatCard = memo(function StatCard({
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1 flex-1 min-w-0">
           <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
-          <p className="text-3xl font-bold text-foreground tabular-nums tracking-tight">{value}</p>
+          <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">{value}</p>
         </div>
         <div
           className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110"

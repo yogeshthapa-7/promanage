@@ -89,10 +89,10 @@ export default function Topbar({
   };
 
   return (
-    <header className="flex flex-col gap-3 px-8 flex-shrink-0" style={{ height: 'auto', minHeight: '88px', background: 'transparent', borderBottom: 'none' }}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <header className="flex flex-col gap-2 px-6 flex-shrink-0" style={{ height: 'auto', minHeight: '64px', background: 'transparent', borderBottom: 'none' }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">{pageTitle}</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{pageTitle}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{pageSubtitle}</p>
         </div>
 

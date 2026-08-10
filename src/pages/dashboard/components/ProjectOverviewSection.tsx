@@ -51,11 +51,11 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
   const periods = ['This Month', 'Last Month', 'This Quarter', 'This Year'];
 
   return (
-    <Card className="h-full relative">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-bold text-foreground">Project Overview</h2>
+     <Card className="h-full relative">
+       <div className="flex items-center justify-between mb-3">
+         <h2 className="text-sm font-bold text-foreground">Project Overview</h2>
         <div className="relative">
-          <button onClick={() => setPeriodOpen(!periodOpen)} className="btn-ghost text-sm flex items-center gap-2 py-1.5 px-3">
+          <button onClick={() => setPeriodOpen(!periodOpen)}           className="btn-ghost text-xs flex items-center gap-1.5 py-1 px-2.5">
             {period}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
@@ -71,9 +71,9 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        <div ref={chartRef} style={{ width: 200, height: 200, flexShrink: 0 }} />
-        <div className="flex flex-col gap-3 flex-1 min-w-0">
+      <div className="flex items-center gap-4">
+        <div ref={chartRef} style={{ width: 160, height: 160, flexShrink: 0 }} />
+        <div className="flex flex-col gap-2 flex-1 min-w-0">
           {statusBreakdown.map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-2">
               <div className="flex items-center justify-between gap-2 min-w-0">
@@ -81,8 +81,8 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
                 <span className="text-sm text-foreground truncate">{item.label}</span>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
-                <span className="text-sm font-semibold tabular-nums text-foreground">{item.count}</span>
-                <span className="text-sm tabular-nums w-10 text-right" style={{ color: 'var(--muted-foreground)' }}>{item.percentage}%</span>
+               <span className="text-xs font-semibold tabular-nums text-foreground">{item.count}</span>
+               <span className="text-xs tabular-nums w-10 text-right" style={{ color: 'var(--muted-foreground)' }}>{item.percentage}%</span>
               </div>
             </div>
           ))}
@@ -102,8 +102,8 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
       </div>
 
       {loading && (
-        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-3xl">
-          <p className="text-sm text-muted-foreground">Loading overview...</p>
+        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-2xl">
+          <p className="text-xs text-muted-foreground">Loading overview...</p>
         </div>
       )}
     </Card>

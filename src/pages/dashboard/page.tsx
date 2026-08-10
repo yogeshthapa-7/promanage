@@ -33,7 +33,7 @@ export default function DashboardPage() {
           model: {
             draw: 1,
             start: 0,
-            length: 1000,
+            length: 20,
             columns: [
               { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
               { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
@@ -125,7 +125,7 @@ export default function DashboardPage() {
   const combinedLoading = loading || stats.loading;
 
   return (
-    <div className="flex flex-col gap-6 max-w-screen-2xl mx-auto w-full fade-in">
+    <div className="flex flex-col gap-4 max-w-screen-2xl mx-auto w-full fade-in">
       <Topbar
         pageTitle="Dashboard"
         pageSubtitle="Welcome back To Project Management Dashboard!"
@@ -151,7 +151,7 @@ export default function DashboardPage() {
       <StatCardsRow stats={statsPayload} loading={combinedLoading} />
 
       {/* Middle row: Project Overview + Task Progress + Recent Projects */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-1">
           <ProjectOverviewSection projects={dataProjects} loading={combinedLoading} />
         </div>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Entity Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <EntitySummaryCard
           title="Users"
           count={stats.users}

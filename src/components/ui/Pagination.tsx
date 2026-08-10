@@ -50,16 +50,16 @@ export default function Pagination({
   const label = totalLabel ?? `Showing ${start} to ${end} of ${total} items`;
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100/80">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100/80">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <div className="flex items-center gap-2">
         {onPageSizeChange && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Rows:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">Rows:</span>
             <select
               value={pageSizeVal}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="text-sm px-2.5 py-1.5 rounded-xl border border-gray-100 bg-white outline-none cursor-pointer"
+              className="text-xs px-2 py-1 rounded-lg border border-gray-100 bg-white outline-none cursor-pointer"
               style={{ color: 'var(--foreground)' }}
             >
               {pageSizeOptions.map((size) => (
@@ -68,20 +68,20 @@ export default function Pagination({
             </select>
           </div>
         )}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           <button
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="p-2 rounded-xl transition-all duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+            className="p-1.5 rounded-lg transition-all duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={14} />
           </button>
           {pages.map((pageNum) => (
             <button
               key={`page-${pageNum}`}
               onClick={() => onPageChange(pageNum)}
-              className="w-8 h-8 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
+              className="w-7 h-7 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95"
               style={{
                 background: currentPage === pageNum ? 'var(--primary)' : 'transparent',
                 color: currentPage === pageNum ? 'white' : 'var(--muted-foreground)',
@@ -93,10 +93,10 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="p-2 rounded-xl transition-all duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+            className="p-1.5 rounded-lg transition-all duration-150 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={14} />
           </button>
         </div>
       </div>

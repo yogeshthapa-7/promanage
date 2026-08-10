@@ -77,14 +77,10 @@ export default function LoginPage() {
           {/* Top Logo & Brand Container */}
           <div className="flex items-center gap-3">
             <img 
-              src="/assets/images/logo.png" 
+              src="/assets/images/promanage.png" 
               alt="ProManage Logo" 
-              className="h-50 w-50 object-contain object-left"
+              className="h-24 w-24 object-contain object-left"
             />
-            <div className="space-y-0.5 text-left -ml-28">
-              <h2 className="text-3xl font-extrabold bg-gradient-to-r from-[#818CF8] to-[#C084FC] bg-clip-text text-transparent tracking-tight">ProManage</h2>
-              <p className="text-sm font-bold text-slate-300 tracking-widest uppercase">Project Tracking System</p>
-            </div>
           </div>
 
           {/* Headline & Description */}
@@ -128,16 +124,10 @@ export default function LoginPage() {
               {/* Form Logo */}
               <div className="mb-2 flex items-center justify-center w-full">
                 <img 
-                  src="/assets/images/logo.png" 
+                  src="/assets/images/promanage.png" 
                   alt="ProManage Logo" 
-                  className="h-24 w-24 object-contain ml-8"
+                  className="h-24 w-24 object-contain"
                 />
-              </div>
-
-              {/* Brand Title & Subtitle */}
-              <div className="space-y-0.5 text-center mb-2">
-                <h2 className="text-2xl font-extrabold bg-gradient-to-r from-[#4F46E5] to-[#3730A3] bg-clip-text text-transparent tracking-tight">ProManage</h2>
-                <p className="text-sm font-extrabold text-slate-700 tracking-widest uppercase">Project Tracking System</p>
               </div>
 
               {/* Form Title & Subtitle */}

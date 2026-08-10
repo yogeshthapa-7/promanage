@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
+import { Modal, message } from "antd";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
@@ -33,6 +34,25 @@ export default function IssueTab({ project }: IssueTabProps) {
   const [issues, setIssues] = useState<IssueItem[]>([]);
   const [issuesLoading, setIssuesLoading] = useState(false);
 
+  const handleDeleteIssue = (issue: IssueItem) => {
+    Modal.confirm({
+      title: 'Delete Issue',
+      content: `Are you sure you want to delete "${issue.IssuesTitle}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteIssues?id=${issue.IssuesID}`, { method: 'GET' });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success('Issue deleted successfully');
+          setIssues((prev) => prev.filter((i) => i.IssuesID !== issue.IssuesID));
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Failed to delete issue');
+        }
+      },
+    });
+  };
+
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
@@ -45,7 +65,7 @@ export default function IssueTab({ project }: IssueTabProps) {
         model: {
           draw: 1,
           start: 0,
-          length: 100,
+          length: 20,
           columns: [
             { data: "IssuesID", name: "IssuesID", searchable: true, orderable: true, search: { value: "", regex: "" } },
           ],
@@ -142,7 +162,14 @@ export default function IssueTab({ project }: IssueTabProps) {
             </div>
             <div className="flex items-center gap-1 shrink-0">
               {issue.CanEdit && <span className="text-sm text-blue-600 font-semibold">Edit</span>}
-              {issue.CanDelete && <span className="text-sm text-rose-600 font-semibold">Delete</span>}
+              {issue.CanDelete && (
+                <button
+                  onClick={() => handleDeleteIssue(issue)}
+                  className="text-sm text-rose-600 font-semibold hover:text-rose-700 transition cursor-pointer"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         </div>

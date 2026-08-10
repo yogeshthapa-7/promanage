@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/login/page';
@@ -13,10 +14,22 @@ import EmployeePage from './pages/employee/page'
 import NotFound from './pages/not-found';
 import DepartmentPage from './pages/departments/department/page';
 import OrganizationPage from './pages/Organizations/page';
+import { cancelAllPendingRequests } from './lib/api';
+
+function RouteChangeGuard() {
+  const location = useLocation();
+
+  useEffect(() => {
+    cancelAllPendingRequests();
+  }, [location.pathname]);
+
+  return null;
+}
 
 function App() {
   return (
     <BrowserRouter>
+      <RouteChangeGuard />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />

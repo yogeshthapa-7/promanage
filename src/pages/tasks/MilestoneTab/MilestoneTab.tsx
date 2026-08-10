@@ -37,7 +37,7 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
         model: {
           draw: 1,
           start: 0,
-          length: 100,
+          length: 20,
           columns: [
             { data: "ProjectMilestoneID", name: "ProjectMilestoneID", searchable: true, orderable: true, search: { value: "", regex: "" } },
           ],
