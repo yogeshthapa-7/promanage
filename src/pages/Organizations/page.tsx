@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Building2 } from 'lucide-react';
 import { Modal, message } from 'antd';
 import Pagination from '@/components/ui/Pagination';
@@ -18,6 +18,7 @@ export default function OrganizationPage() {
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,7 +47,7 @@ export default function OrganizationPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [searchQuery, currentPage, pageSize, refreshKey]);
+  }, [currentPage, pageSize, refreshKey]);
 
   const refreshOrganizations = () => {
     setRefreshKey((prev) => prev + 1);
@@ -129,7 +130,16 @@ export default function OrganizationPage() {
               <input
                 placeholder="Search by title..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSearchQuery(value);
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                  debounceTimerRef.current = setTimeout(() => {
+                    setCurrentPage(1);
+                  }, 400);
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
               />

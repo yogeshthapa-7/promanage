@@ -14,22 +14,10 @@ import EmployeePage from './pages/employee/page'
 import NotFound from './pages/not-found';
 import DepartmentPage from './pages/departments/department/page';
 import OrganizationPage from './pages/Organizations/page';
-import { cancelAllPendingRequests } from './lib/api';
-
-function RouteChangeGuard() {
-  const location = useLocation();
-
-  useEffect(() => {
-    cancelAllPendingRequests();
-  }, [location.pathname]);
-
-  return null;
-}
 
 function App() {
   return (
     <BrowserRouter>
-      <RouteChangeGuard />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { fetchTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem, TaskManagerInfo } from "@/lib/tasks-data";
@@ -45,6 +45,7 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const projectId = project.ProjectInfoID ?? Number(project.id);
 
@@ -77,11 +78,17 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
     const controller = new AbortController();
     loadTasks(controller.signal, currentPage, pageSize, search);
     return () => controller.abort();
-  }, [loadTasks, currentPage, pageSize, search]);
+  }, [loadTasks, currentPage, pageSize]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
+    const value = e.target.value;
+    setSearch(value);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setCurrentPage(1);
+    }, 400);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {

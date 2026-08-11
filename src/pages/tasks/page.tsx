@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { apiCall } from "@/lib/api";
@@ -53,6 +53,7 @@ export default function TasksPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (project) return;
@@ -84,7 +85,7 @@ export default function TasksPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [project, currentPage, searchQuery]);
+  }, [project, currentPage]);
 
   const handleSelectProject = (item: ApiProject) => {
     navigate("/tasks", { state: { project: item } });
@@ -200,18 +201,27 @@ export default function TasksPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
+                  const value = e.target.value;
+                  setSearchQuery(value);
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                  debounceTimerRef.current = setTimeout(() => {
+                    setCurrentPage(1);
+                  }, 400);
                 }}
                 placeholder="Search projects..."
                 className="text-sm border border-slate-200 rounded-lg pl-9 pr-8 py-2 w-48 lg:w-56 bg-white focus:outline-none focus:border-purple-500"
               />
               {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setCurrentPage(1);
-                  }}
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      if (debounceTimerRef.current) {
+                        clearTimeout(debounceTimerRef.current);
+                      }
+                      setCurrentPage(1);
+                    }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />

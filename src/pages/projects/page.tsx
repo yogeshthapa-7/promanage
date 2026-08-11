@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import {
@@ -25,6 +25,7 @@ import { apiCall } from '@/lib/api';
 import { projects as fallbackProjects, mapApiProjectToProject } from '@/lib/projects-data';
 import type { ProjectStatus, Project, ApiProject } from '@/lib/projects-data';
 import { getStatCards } from '@/pages/dashboard/components/statCardsData';
+import { useDashboardStats } from '@/pages/dashboard/components/useDashboardStats';
 import ProjectFormModal from './Create';
 
 type SortField = 'name' | 'status' | 'priority' | 'progress' | 'dueDate';
@@ -33,6 +34,53 @@ type SortDir = 'asc' | 'desc';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/ProjectInfo/ServerSearch`;
+const PROJECTS_CACHE_KEY_PREFIX = 'promanage:projects:list:';
+const PROJECTS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type ProjectsCacheEntry = {
+  data: ApiProject[];
+  total: number;
+  cachedAt: number;
+};
+
+function getProjectsCacheKey(start: number, length: number, searchQuery: string): string {
+  return `${PROJECTS_CACHE_KEY_PREFIX}${start}:${length}:${searchQuery.trim().toLowerCase()}`;
+}
+
+function readProjectsCache(cacheKey: string): ProjectsCacheEntry | null {
+  try {
+    const raw = sessionStorage.getItem(cacheKey);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as ProjectsCacheEntry;
+    if (!parsed || !Array.isArray(parsed.data) || typeof parsed.total !== 'number' || typeof parsed.cachedAt !== 'number') {
+      return null;
+    }
+
+    if (Date.now() - parsed.cachedAt > PROJECTS_CACHE_TTL_MS) {
+      sessionStorage.removeItem(cacheKey);
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeProjectsCache(cacheKey: string, payload: { data: ApiProject[]; total: number }): void {
+  try {
+    sessionStorage.setItem(
+      cacheKey,
+      JSON.stringify({
+        ...payload,
+        cachedAt: Date.now(),
+      } satisfies ProjectsCacheEntry)
+    );
+  } catch {
+    // Ignore storage failures and keep the live data path working.
+  }
+}
 
 const serverSearchBody = {
   model: {
@@ -52,43 +100,50 @@ const serverSearchBody = {
   },
 };
 
-async function fetchProjects(start: number, length: number, signal?: AbortSignal): Promise<{ data: Project[]; total: number }> {
-  try {
-    const body = {
-      model: {
-        draw: 1,
-        start,
-        length,
-        columns: [
-          { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: '', regex: '' },
-        order: [{ column: 0, dir: 'desc' }],
-      },
-      param: {
-        ProjectInfoID: 0,
-      },
-    };
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      signal,
-    });
-    if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
-    const json = await res.json();
-    const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
-    const mapped = rows.map(mapApiProjectToProject);
-    const data = mapped.length > 0 ? mapped : fallbackProjects;
-    const total = json?.recordsTotal ?? data.length;
-    return { data, total };
-  } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw err;
-    }
-    return { data: fallbackProjects, total: fallbackProjects.length };
+async function fetchProjects(
+  start: number,
+  length: number,
+  searchQuery: string = '',
+  signal?: AbortSignal
+): Promise<{ data: Project[]; rawData: ApiProject[]; total: number }> {
+  const cleanSearch = (searchQuery || '').trim();
+
+  const body = {
+    model: {
+      draw: 1,
+      start: Math.max(0, start),
+      length: Math.max(1, length),
+      // Keep column search value empty to prevent server SQL string-builder crashes
+      columns: [
+        { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+        { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+        { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
+      ],
+      search: { value: cleanSearch, regex: '' },
+      order: [{ column: 0, dir: 'desc' }],
+    },
+    param: {
+      ProjectInfoID: 0,
+    },
+  };
+
+  const res = await apiCall(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  }, 60000);
+
+  if (!res.ok) {
+    throw new Error(`Server responded with ${res.status}`);
   }
+
+  const json = await res.json();
+  const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
+  const mapped = rows.map(mapApiProjectToProject);
+  const total = json?.recordsTotal ?? json?.recordsFiltered ?? mapped.length;
+
+  return { data: mapped, rawData: rows, total };
 }
 
 
@@ -105,27 +160,43 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
+  const { users, employees, departments, organizations, tasks } = useDashboardStats(projects);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const pageSize = 9;
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
-    setLoading(true);
-    fetchProjects((currentPage - 1) * pageSize, pageSize, controller.signal)
+    const start = (currentPage - 1) * pageSize;
+    const cacheKey = getProjectsCacheKey(start, pageSize, searchQuery);
+    const cached = readProjectsCache(cacheKey);
+
+    if (cached) {
+      setProjects(cached.data.map(mapApiProjectToProject));
+      setTotalRecords(cached.total);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    fetchProjects(start, pageSize, searchQuery, controller.signal)
       .then((result) => {
         if (!cancelled) {
           setProjects(result.data);
           setTotalRecords(result.total);
           setLoading(false);
+          writeProjectsCache(cacheKey, { data: result.rawData, total: result.total });
         }
       })
       .catch((err) => {
-        if (err.name === 'AbortError') return;
+        if (err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')) return;
         if (!cancelled) {
-          setProjects(fallbackProjects);
-          setTotalRecords(fallbackProjects.length);
+          if (!cached) {
+            setProjects(fallbackProjects);
+            setTotalRecords(fallbackProjects.length);
+          }
           setLoading(false);
         }
       });
@@ -133,7 +204,7 @@ export default function ProjectsPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, searchQuery]);
 
   const statusOptions: (ProjectStatus | 'All')[] = [
     'All',
@@ -180,11 +251,25 @@ export default function ProjectsPage() {
   }, []);
 
   const handleModalSuccess = useCallback(() => {
-    fetchProjects((currentPage - 1) * pageSize, pageSize).then((result) => {
-      setProjects(result.data);
-      setTotalRecords(result.total);
-    });
-  }, [currentPage, pageSize]);
+    const start = (currentPage - 1) * pageSize;
+    const cacheKey = getProjectsCacheKey(start, pageSize, searchQuery);
+    fetchProjects(start, pageSize, searchQuery)
+      .then((result) => {
+        setProjects(result.data);
+        setTotalRecords(result.total);
+        writeProjectsCache(cacheKey, { data: result.rawData, total: result.total });
+      })
+      .catch(() => {
+        const cached = readProjectsCache(cacheKey);
+        if (cached) {
+          setProjects(cached.data.map(mapApiProjectToProject));
+          setTotalRecords(cached.total);
+          return;
+        }
+        setProjects(fallbackProjects);
+        setTotalRecords(fallbackProjects.length);
+      });
+  }, [currentPage, pageSize, searchQuery]);
 
   const handleViewProject = (project: Project) => {
     navigate(`/projects/${project.id}`);
@@ -243,10 +328,24 @@ export default function ProjectsPage() {
           });
           if (!res.ok) throw new Error(`Failed to delete: ${res.statusText}`);
           message.success('Project deleted successfully');
-          fetchProjects((currentPage - 1) * pageSize, pageSize).then((result) => {
-            setProjects(result.data);
-            setTotalRecords(result.total);
-          });
+          const start = (currentPage - 1) * pageSize;
+          const cacheKey = getProjectsCacheKey(start, pageSize, searchQuery);
+          fetchProjects(start, pageSize, searchQuery)
+            .then((result) => {
+              setProjects(result.data);
+              setTotalRecords(result.total);
+              writeProjectsCache(cacheKey, { data: result.rawData, total: result.total });
+            })
+            .catch(() => {
+              const cached = readProjectsCache(cacheKey);
+              if (cached) {
+                setProjects(cached.data.map(mapApiProjectToProject));
+                setTotalRecords(cached.total);
+                return;
+              }
+              setProjects(fallbackProjects);
+              setTotalRecords(fallbackProjects.length);
+            });
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Delete failed');
         }
@@ -255,6 +354,14 @@ export default function ProjectsPage() {
   };
 
   const totalPages = Math.ceil(totalRecords / pageSize);
+  const statsPayload = {
+    projects: projects.length,
+    users,
+    employees,
+    departments,
+    organizations,
+    tasks,
+  };
 
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
@@ -276,18 +383,27 @@ export default function ProjectsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
+                const value = e.target.value;
+                setSearchQuery(value);
+                if (debounceTimerRef.current) {
+                  clearTimeout(debounceTimerRef.current);
+                }
+                debounceTimerRef.current = setTimeout(() => {
+                  setCurrentPage(1);
+                }, 400);
               }}
               placeholder="Search projects..."
               className="bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground text-sm"
             />
             {searchQuery && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setCurrentPage(1);
-                }}
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    if (debounceTimerRef.current) {
+                      clearTimeout(debounceTimerRef.current);
+                    }
+                    setCurrentPage(1);
+                  }}
                 className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
@@ -428,7 +544,7 @@ export default function ProjectsPage() {
         <>
           {/* 2. Top Metric Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            {getStatCards(projects).map((stat) => (
+            {getStatCards(statsPayload).map((stat) => (
               <StatCard
                 key={stat.id}
                 title={stat.title}

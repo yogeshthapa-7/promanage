@@ -1,104 +1,241 @@
-import { trackAbortController, cancelAllPendingRequests } from './request-tracker';
-
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-const REFRESH_TOKEN_URL = (import.meta.env.VITE_REFRESH_TOKEN_URL || `${API_BASE}/Authenticate/RefreshToken`).replace(/\/$/, '');
-const DEFAULT_TIMEOUT_MS = 120000;
-const REFRESH_TIMEOUT_MS = 15000; // Refresh token requests get a shorter, strict timeout
+
+const REFRESH_TOKEN_URL = (
+  import.meta.env.VITE_REFRESH_TOKEN_URL ||
+  `${API_BASE}/Authenticate/RefreshToken`
+).replace(/\/$/, '');
+
+const DEFAULT_TIMEOUT_MS = 30000;
+const REFRESH_TIMEOUT_MS = 15000;
 
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string | null) => void> = [];
+let refreshSubscribers: Array<
+  (token: string | null) => void
+> = [];
 
-function subscribeTokenRefresh(callback: (token: string | null) => void): () => void {
+function subscribeTokenRefresh(
+  callback: (token: string | null) => void
+): () => void {
   refreshSubscribers.push(callback);
+
   return () => {
-    refreshSubscribers = refreshSubscribers.filter((cb) => cb !== callback);
+    refreshSubscribers = refreshSubscribers.filter(
+      (cb) => cb !== callback
+    );
   };
 }
 
-/**
- * Notify ALL waiting subscribers — both on success (with token) and failure (with null).
- * This prevents promises from hanging forever when refresh fails.
- */
 function notifyTokenRefresh(token: string | null): void {
   const subscribers = [...refreshSubscribers];
+
   refreshSubscribers = [];
-  subscribers.forEach((cb) => cb(token));
+
+  subscribers.forEach((callback) => {
+    try {
+      callback(token);
+    } catch (error) {
+      console.error('Error notifying token refresh subscriber:', error);
+    }
+  });
 }
 
 export function clearTokenRefreshSubscribers(): void {
-  // Resolve any pending subscribers with null before clearing,
-  // so their promises don't hang forever
   const subscribers = [...refreshSubscribers];
+
   refreshSubscribers = [];
-  subscribers.forEach((cb) => cb(null));
+
+  subscribers.forEach((callback) => {
+    try {
+      callback(null);
+    } catch (error) {
+      console.error('Error clearing token refresh subscriber:', error);
+    }
+  });
+}
+
+function getStoredToken(): string | null {
+  try {
+    const stored = localStorage.getItem('token');
+    if (stored && stored.trim() !== '') return stored;
+  } catch {
+    // fall through to env fallback
+  }
+  return import.meta.env.VITE_BEARER_TOKEN || null;
+}
+
+function setStoredToken(token: string): void {
+  try {
+    localStorage.setItem('token', token);
+  } catch (error) {
+    console.error('Unable to store authentication token:', error);
+  }
+}
+
+function clearAuthentication(): void {
+  try {
+    localStorage.removeItem('token');
+    localStorage.removeItem('auth');
+  } catch (error) {
+    console.error('Unable to clear authentication data:', error);
+  }
+}
+
+function dispatchAuthExpired(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('auth-expired'));
+  }
 }
 
 export async function refreshAuthToken(): Promise<string | null> {
   if (isRefreshing) {
     return new Promise<string | null>((resolve) => {
-      const unsubscribe = subscribeTokenRefresh((token) => {
-        unsubscribe();
+      let unsubscribe: (() => void) | undefined;
+
+      const callback = (token: string | null) => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+
         resolve(token);
-      });
+      };
+
+      unsubscribe = subscribeTokenRefresh(callback);
     });
   }
 
   isRefreshing = true;
 
   try {
-    const currentToken = localStorage.getItem('token');
+    const currentToken = getStoredToken();
 
-    // Add a timeout to the refresh request so it can't hang indefinitely
-    const refreshController = new AbortController();
-    const refreshTimeoutId = setTimeout(() => refreshController.abort(), REFRESH_TIMEOUT_MS);
-
-    let res: Response;
-    try {
-      res = await fetch(REFRESH_TOKEN_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: currentToken }),
-        signal: refreshController.signal,
-      });
-    } finally {
-      clearTimeout(refreshTimeoutId);
-    }
-
-    if (!res.ok) {
-      notifyTokenRefresh(null); // ← Unblock all waiting subscribers
+    if (!currentToken) {
+      notifyTokenRefresh(null);
       return null;
     }
 
-    const data = await res.json();
-    const newToken = data?.token || data?.Token || data?.Data?.token || data?.data?.token || data?.Data?.Token;
+    const refreshController = new AbortController();
 
-    if (newToken && typeof newToken === 'string') {
-      localStorage.setItem('token', newToken);
-      notifyTokenRefresh(newToken); // ← Unblock with new token
-      return newToken;
+    const refreshTimeoutId = window.setTimeout(() => {
+      refreshController.abort();
+    }, REFRESH_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(REFRESH_TOKEN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: currentToken,
+        }),
+        signal: refreshController.signal,
+      });
+
+      if (!response.ok) {
+        notifyTokenRefresh(null);
+        return null;
+      }
+
+      const data = await response.json();
+
+      const newToken =
+        data?.token ||
+        data?.Token ||
+        data?.Data?.token ||
+        data?.data?.token ||
+        data?.Data?.Token;
+
+      if (typeof newToken === 'string' && newToken.length > 0) {
+        setStoredToken(newToken);
+        notifyTokenRefresh(newToken);
+
+        return newToken;
+      }
+
+      notifyTokenRefresh(null);
+
+      return null;
+    } finally {
+      window.clearTimeout(refreshTimeoutId);
     }
-
-    notifyTokenRefresh(null); // ← Unblock all waiting subscribers
-    return null;
   } catch {
-    notifyTokenRefresh(null); // ← Unblock all waiting subscribers on error too
+    notifyTokenRefresh(null);
     return null;
   } finally {
     isRefreshing = false;
   }
 }
 
-export function isTokenExpired(token: string): boolean {
+function decodeJwtPayload(
+  token: string
+): Record<string, any> | null {
   try {
-    const payloadBase64 = token.split('.')[1];
-    if (!payloadBase64) return true;
-    const decoded = JSON.parse(atob(payloadBase64));
-    if (!decoded.exp) return false;
-    // Add a 10-second buffer so we refresh slightly before it actually expires
-    return Date.now() >= (decoded.exp * 1000) - 10000;
+    const parts = token.split('.');
+
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    let payload = parts[1];
+
+    payload = payload
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    while (payload.length % 4 !== 0) {
+      payload += '=';
+    }
+
+    const decodedPayload = atob(payload);
+
+    return JSON.parse(decodedPayload);
   } catch {
+    return null;
+  }
+}
+
+export function isTokenExpired(token: string): boolean {
+  const payload = decodeJwtPayload(token);
+
+  if (!payload) {
     return true;
   }
+
+  if (!payload.exp) {
+    return false;
+  }
+
+  const expirationTime = payload.exp * 1000;
+  const safetyBuffer = 10000;
+
+  return Date.now() >= expirationTime - safetyBuffer;
+}
+
+function buildHeaders(
+  options: RequestInit,
+  token: string | null
+): Headers {
+  const headers = new Headers(options.headers);
+
+  if (!headers.has('Content-Type')) {
+    if (
+      options.body &&
+      typeof FormData !== 'undefined' &&
+      options.body instanceof FormData
+    ) {
+      // Let the browser set multipart headers.
+    } else {
+      headers.set('Content-Type', 'application/json');
+    }
+  }
+
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    headers.delete('Authorization');
+  }
+
+  return headers;
 }
 
 export async function apiCall(
@@ -106,90 +243,96 @@ export async function apiCall(
   options: RequestInit = {},
   timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<Response> {
-  let token = localStorage.getItem('token');
+  let token = getStoredToken();
 
-  // Proactively check if token is expired before making the request
   if (token && isTokenExpired(token)) {
     const newToken = await refreshAuthToken();
+
     if (newToken) {
       token = newToken;
     } else {
-      localStorage.removeItem('token');
-      localStorage.removeItem('auth');
-      window.dispatchEvent(new Event('auth-expired'));
+      clearAuthentication();
+      clearTokenRefreshSubscribers();
+      dispatchAuthExpired();
+
       throw new Error('Session expired. Please log in again.');
     }
   }
 
-  const controller = new AbortController();
-  const untrack = trackAbortController(controller);
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  let hasRetriedAfterRefresh = false;
 
-  // Link the caller's signal to our internal controller
-  // so if the component unmounts and aborts, we cancel the fetch
-  if (options.signal) {
-    if (options.signal.aborted) {
-      controller.abort();
-    } else {
-      options.signal.addEventListener('abort', () => controller.abort());
+  while (true) {
+    const controller = new AbortController();
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    if (options.signal) {
+      if (options.signal.aborted) {
+        controller.abort();
+      } else {
+        options.signal.addEventListener(
+          'abort',
+          () => controller.abort(),
+          { once: true }
+        );
+      }
     }
-  }
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
-  };
+    try {
+      timeoutId = setTimeout(() => {
+        controller.abort();
+      }, timeoutMs);
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-      signal: controller.signal,
-    });
+      const headers = buildHeaders(options, token);
 
-    clearTimeout(timeoutId);
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        signal: controller.signal,
+      });
 
-    if (response.status === 401) {
-      const newToken = await refreshAuthToken();
-
-      if (newToken) {
-        const retryController = new AbortController();
-        const retryTimeoutId = setTimeout(() => retryController.abort(), timeoutMs);
-
-        try {
-          const retryHeaders: HeadersInit = {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${newToken}`,
-            ...options.headers,
-          };
-
-          const retryResponse = await fetch(url, {
-            ...options,
-            headers: retryHeaders,
-            signal: retryController.signal,
-          });
-          clearTimeout(retryTimeoutId);
-          return retryResponse;
-        } finally {
-          clearTimeout(retryTimeoutId);
-        }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
       }
 
-      // Refresh failed — clear any remaining subscribers and return the 401
-      clearTokenRefreshSubscribers();
-      localStorage.removeItem('token');
-      localStorage.removeItem('auth');
-      window.dispatchEvent(new Event('auth-expired'));
-    }
+      if (response.status !== 401) {
+        return response;
+      }
 
-    return response;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  } finally {
-    untrack();
+      if (hasRetriedAfterRefresh) {
+        clearAuthentication();
+        clearTokenRefreshSubscribers();
+        dispatchAuthExpired();
+
+        throw new Error('Session expired. Please log in again.');
+      }
+
+      hasRetriedAfterRefresh = true;
+
+      const newToken = await refreshAuthToken();
+
+      if (!newToken) {
+        clearAuthentication();
+        clearTokenRefreshSubscribers();
+        dispatchAuthExpired();
+
+        throw new Error('Session expired. Please log in again.');
+      }
+
+      token = newToken;
+
+      continue;
+    } catch (error) {
+      throw error;
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (options.signal) {
+        options.signal.removeEventListener('abort', () => controller.abort());
+      }
+    }
   }
 }
-
-export { cancelAllPendingRequests };

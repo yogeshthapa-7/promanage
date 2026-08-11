@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { fetchSubTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem } from "@/lib/tasks-data";
@@ -19,6 +19,7 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const projectId = project.ProjectInfoID ?? Number(project.id);
 
@@ -58,11 +59,17 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
     const controller = new AbortController();
     loadSubTasks(controller.signal, currentPage, pageSize, search);
     return () => controller.abort();
-  }, [loadSubTasks, currentPage, pageSize, search]);
+  }, [loadSubTasks, currentPage, pageSize]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
+    const value = e.target.value;
+    setSearch(value);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setCurrentPage(1);
+    }, 400);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
