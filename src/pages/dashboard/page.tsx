@@ -111,7 +111,7 @@ export default function DashboardPage() {
     return data;
   }, [search, filterStatus, sortField, sortDir, projects]);
 
-  const stats = useDashboardStats(filtered.length ? filtered : projects);
+  const stats = useDashboardStats(filtered.length ? filtered.length : projects.length);
   const statsPayload = {
     projects: filtered.length ? filtered.length : projects.length,
     users: stats.users,
@@ -145,7 +145,7 @@ export default function DashboardPage() {
           }
         }}
       />
-      <hr className="border-slate-200 mt-[-32px]" />
+      <hr className="border-slate-200 mt-[-26px]" />
 
       {/* KPI Stat Cards */}
       <StatCardsRow stats={statsPayload} loading={combinedLoading} />

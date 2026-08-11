@@ -4,7 +4,6 @@ import { fetchEmployees } from '@/lib/employees-data';
 import { fetchDepartments } from '@/lib/departments-data';
 import { fetchOrganizations } from '@/lib/organizations-data';
 import { fetchAllTasks } from '@/lib/tasks-data';
-import type { Project } from '@/lib/projects-data';
 
 interface DashboardStats {
   projects: number;
@@ -16,7 +15,7 @@ interface DashboardStats {
   loading: boolean;
 }
 
-export function useDashboardStats(projects: Project[] = []) {
+export function useDashboardStats(projectCount = 0) {
   const [stats, setStats] = useState<DashboardStats>({
     projects: 0,
     users: 0,
@@ -44,7 +43,7 @@ export function useDashboardStats(projects: Project[] = []) {
 
         if (!cancelled) {
           setStats({
-            projects: projects.length || 0,
+            projects: projectCount || 0,
             users: usersResult.total,
             employees: employeesResult.total,
             departments: departmentsResult.total,
@@ -56,7 +55,7 @@ export function useDashboardStats(projects: Project[] = []) {
       } catch {
         if (!cancelled) {
           setStats({
-            projects: projects.length || 0,
+            projects: projectCount || 0,
             users: 0,
             employees: 0,
             departments: 0,
@@ -73,7 +72,7 @@ export function useDashboardStats(projects: Project[] = []) {
       cancelled = true;
       controller.abort();
     };
-  }, [projects]);
+  }, []);
 
   return stats;
 }

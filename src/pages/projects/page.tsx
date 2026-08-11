@@ -160,7 +160,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
-  const { users, employees, departments, organizations, tasks } = useDashboardStats(projects);
+  const { users, employees, departments, organizations, tasks } = useDashboardStats(projects.length);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const pageSize = 9;
