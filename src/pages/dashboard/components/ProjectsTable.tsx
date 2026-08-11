@@ -1,20 +1,18 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { SlidersHorizontal, ArrowRight } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import Pagination from '@/components/ui/Pagination';
 import { AvatarStack } from '@/components/ui/Avatar';
-import DropdownMenu from '@/components/ui/DropdownMenu';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
 import type { Project, ProjectStatus, ProjectPriority } from '@/lib/projects-data';
 
 interface ProjectsTableProps {
   projects?: Project[];
-  total?: number;
   search?: string;
   onSearchChange?: (value: string) => void;
   sortField?: string;
@@ -22,7 +20,6 @@ interface ProjectsTableProps {
   onSortChange?: (field: string) => void;
   filterStatus?: ProjectStatus | 'All';
   onFilterChange?: (status: ProjectStatus | 'All') => void;
-  onPageChange?: (page: number, pageSize: number) => void;
   loading?: boolean;
 }
 const statusConfig: Record<ProjectStatus, { label: string; bg: string; color: string }> = {
@@ -49,8 +46,6 @@ const progressBarColor: Record<ProjectStatus, string> = {
 };
 
 type SortKey = 'name' | 'status' | 'progress' | 'startDate' | 'dueDate' | 'priority';
-
-const PAGE_SIZE_OPTIONS = [5, 10, 20];
 
 function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey | null; sortDir: 'asc' | 'desc' | null }) {
   if (sortKey !== col) return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ opacity: 0.3 }}><path d="M12 19V5M5 12l7-7 7 7"/></svg>;
@@ -113,30 +108,12 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
           {project.priority}
         </Badge>
       </td>
-
-      <td className="px-4 py-2.5">
-        <DropdownMenu
-          trigger={
-            <button className="p-1.5 rounded-lg transition-all duration-150 hover:bg-gray-100 active:scale-95" style={{ color: 'var(--muted-foreground)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-            </button>
-          }
-          items={[
-            { label: 'View Details' },
-            { label: 'Edit Project' },
-            { label: 'Assign Team' },
-            { label: 'Download Report' },
-            { label: 'Archive', danger: true },
-          ]}
-        />
-      </td>
     </tr>
   );
 });
 
 export default function ProjectsTable({
   projects: projectsData,
-  total,
   search = '',
   onSearchChange,
   sortField: externalSortField,
@@ -144,13 +121,11 @@ export default function ProjectsTable({
   onSortChange,
   filterStatus = 'All',
   onFilterChange,
-  onPageChange,
   loading = false,
 }: ProjectsTableProps) {
+  const navigate = useNavigate();
   const [internalSortKey, setInternalSortKey] = useState<SortKey | null>(null);
   const [internalSortDir, setInternalSortDir] = useState<'asc' | 'desc' | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
 
   const controlled = typeof externalSortField === 'string' && !!onSortChange;
   const sortKey = controlled ? (externalSortField as SortKey | null) : internalSortKey;
@@ -165,46 +140,27 @@ export default function ProjectsTable({
       if (prev === key) {
         setInternalSortDir((prevDir) => {
           const next = prevDir === 'asc' ? 'desc' : prevDir === 'desc' ? null : 'asc';
-          if (next === null) setCurrentPage(1);
           return next;
         });
         return prev;
       }
-      setCurrentPage(1);
       return key;
     });
   }, [controlled, onSortChange]);
 
   const handleSearchChange = useCallback((v: string) => {
     onSearchChange?.(v);
-    setCurrentPage(1);
   }, [onSearchChange]);
 
   const handleFilterChange = useCallback((status: ProjectStatus | 'All') => {
     onFilterChange?.(status);
-    setCurrentPage(1);
   }, [onFilterChange]);
 
-  const handlePageSizeChange = useCallback((size: number) => {
-    setPageSize(size);
-    setCurrentPage(1);
-    onPageChange?.(1, size);
-  }, [onPageChange]);
-
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-    onPageChange?.(page, pageSize);
-  }, [pageSize, onPageChange]);
-
-  const useServerPagination = total !== undefined;
-
   const dataSource = useMemo(() => {
-    if (useServerPagination) return [];
     return projectsData && projectsData.length > 0 ? projectsData : [];
-  }, [useServerPagination, projectsData]);
+  }, [projectsData]);
 
   const filtered = useMemo(() => {
-    if (useServerPagination) return dataSource;
     let data = [...dataSource];
     const q = search.trim().toLowerCase();
     if (q) {
@@ -238,12 +194,9 @@ export default function ProjectsTable({
       });
     }
     return data;
-  }, [dataSource, search, filterStatus, sortKey, sortDir, useServerPagination]);
+  }, [dataSource, search, filterStatus, sortKey, sortDir]);
 
-  const paginated = useMemo(() => {
-    if (useServerPagination) return filtered;
-    return filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  }, [filtered, currentPage, pageSize, useServerPagination]);
+  const visibleProjects = useMemo(() => filtered.slice(0, 5), [filtered]);
 
   return (
      <Card>
@@ -258,7 +211,7 @@ export default function ProjectsTable({
       </div>
 
       <div className="overflow-x-auto scrollbar-thin">
-        <table className="w-full min-w-[900px]">
+        <table className="w-full min-w-[820px]">
           <thead>
             <tr className="border-b border-gray-100/80">
               {[
@@ -269,7 +222,6 @@ export default function ProjectsTable({
                 { key: 'dueDate', label: 'Due Date' },
                 { key: null, label: 'Team' },
                 { key: 'priority', label: 'Priority' },
-                { key: null, label: 'Actions' },
               ].map((col) => (
                 <th
                   key={col.label}
@@ -294,19 +246,19 @@ export default function ProjectsTable({
           <tbody className="divide-y divide-gray-50/80">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center">
+                <td colSpan={7} className="px-4 py-10 text-center">
                   <p className="text-xs font-medium text-muted-foreground">Loading projects...</p>
                 </td>
               </tr>
-            ) : paginated.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center">
+                <td colSpan={7} className="px-4 py-10 text-center">
                   <p className="text-xs font-medium text-muted-foreground">No projects match your search</p>
                   <p className="text-xs mt-1 text-muted-foreground">Try adjusting your search or filter criteria</p>
                 </td>
               </tr>
             ) : (
-              paginated.map((project) => (
+              visibleProjects.map((project) => (
                 <ProjectRow key={project.id} project={project} />
               ))
             )}
@@ -314,14 +266,11 @@ export default function ProjectsTable({
         </table>
       </div>
 
-      <Pagination
-        total={total ?? filtered.length}
-        currentPage={currentPage}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={PAGE_SIZE_OPTIONS}
-      />
+      <div className="flex items-center justify-end px-4 py-3 border-t border-gray-100/80">
+        <Button variant="outline" size="sm" icon={<ArrowRight size={14} />} onClick={() => navigate('/projects')}>
+          View All
+        </Button>
+      </div>
     </Card>
   );
 }
