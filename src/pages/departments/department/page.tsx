@@ -145,13 +145,15 @@ export default function DepartmentPage() {
             विभागीय अभिलेखहरू तथा अभिभावक‑सन्तान संगठन संरचना व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
-        {/* <button
-          onClick={handleAddNew}
-          className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          Add Department
-        </button> */}
+        <div className="flex items-start justify-between">
+  <button
+    onClick={handleAddNew}
+    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
+  >
+    <Plus className="w-4 h-4" />
+    Add New Department
+  </button>
+</div>
       </div>
 
       {/* 2. Tabs */}
@@ -385,6 +387,13 @@ export default function DepartmentPage() {
                 मुख्य शाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
               </p>
             </div>
+             <button
+    onClick={handleAddNew}
+    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
+  >
+    <Plus className="w-4 h-4" />
+    Add New Main Branch
+  </button>
           </div>
           <MainBranchPage activeTab={activeTab} onTabChange={setActiveTab} />
         </>
@@ -400,6 +409,13 @@ export default function DepartmentPage() {
                 शाखा अभिलेखहरू मुख्य शाखा तथा विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
               </p>
             </div>
+             <button
+    onClick={handleAddNew}
+    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
+  >
+    <Plus className="w-4 h-4" />
+    Add New Branch
+  </button>
           </div>
           <BranchPage activeTab={activeTab} onTabChange={setActiveTab} />
         </>
