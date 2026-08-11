@@ -108,9 +108,12 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
             className="text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 w-full bg-white focus:outline-none focus:border-purple-500"
           />
         </form>
-        <span className="text-base text-muted-foreground whitespace-nowrap">
-          {total} subtask{total !== 1 ? 's' : ''} total
-        </span>
+        <button
+  onClick={() => { /* open add-subtask modal / navigate */ }}
+  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm cursor-pointer whitespace-nowrap"
+>
+  Add New Subtask
+</button>
       </div>
 
       {error && (
@@ -122,12 +125,12 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
       ) : subTasks.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center">
           <p className="text-base text-slate-500 mb-3">This task does not have any subtasks yet.</p>
-          <button
+          {/* <button
             onClick={() => {}}
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
           >
             Create New Subtask
-          </button>
+          </button> */}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

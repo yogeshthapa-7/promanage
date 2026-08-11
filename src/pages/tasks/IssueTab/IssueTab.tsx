@@ -114,66 +114,69 @@ export default function IssueTab({ project }: IssueTabProps) {
     };
   }, [project]);
 
-  if (issuesLoading) {
-    return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div>
-    );
-  }
-
-  if (issues.length === 0) {
-    return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
-    );
-  }
-
   return (
     <div className="space-y-3">
-      {issues.map((issue) => (
-        <div key={issue.IssuesID} className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
-                {issue.LabelInfoName && (
-                  <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold border"
-                    style={{
-                      backgroundColor: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
-                      color: issue.LabelColor || undefined,
-                      borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
-                    }}
-                  >
-                    {issue.LabelInfoName}
-                  </span>
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => { /* open add-issue modal / navigate */ }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm cursor-pointer whitespace-nowrap"
+        >
+          Add Issue
+        </button>
+      </div>
+
+      {issuesLoading ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div>
+      ) : issues.length === 0 ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
+      ) : (
+        issues.map((issue) => (
+          <div key={issue.IssuesID} className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
+                  {issue.LabelInfoName && (
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold border"
+                      style={{
+                        backgroundColor: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
+                        color: issue.LabelColor || undefined,
+                        borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
+                      }}
+                    >
+                      {issue.LabelInfoName}
+                    </span>
+                  )}
+                  {issue.WorkStatusName && (
+                    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold bg-slate-100 text-slate-700">
+                      {issue.WorkStatusName}
+                    </span>
+                  )}
+                  <span>•</span>
+                  <span>Raised by: {issue.RaisedBy || "—"}</span>
+                  <span>•</span>
+                  <span>{issue.CreatedDate}</span>
+                </div>
+                {issue.Comments && (
+                  <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>
                 )}
-                {issue.WorkStatusName && (
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold bg-slate-100 text-slate-700">
-                    {issue.WorkStatusName}
-                  </span>
-                )}
-                <span>•</span>
-                <span>Raised by: {issue.RaisedBy || "—"}</span>
-                <span>•</span>
-                <span>{issue.CreatedDate}</span>
               </div>
-              {issue.Comments && (
-                <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {issue.CanEdit && <span className="text-sm text-blue-600 font-semibold">Edit</span>}
-              {issue.CanDelete && (
-                <button
-                  onClick={() => handleDeleteIssue(issue)}
-                  className="text-sm text-rose-600 font-semibold hover:text-rose-700 transition cursor-pointer"
-                >
-                  Delete
-                </button>
-              )}
+              <div className="flex items-center gap-1 shrink-0">
+                {issue.CanEdit && <span className="text-sm text-blue-600 font-semibold">Edit</span>}
+                {issue.CanDelete && (
+                  <button
+                    onClick={() => handleDeleteIssue(issue)}
+                    className="text-sm text-rose-600 font-semibold hover:text-rose-700 transition cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </div>
   );
 }

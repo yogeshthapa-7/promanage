@@ -114,9 +114,12 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
             className="text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 w-full bg-white focus:outline-none focus:border-purple-500"
           />
         </form>
-        <span className="text-base text-muted-foreground whitespace-nowrap">
-          {total} task{total !== 1 ? 's' : ''} total
-        </span>
+        <button
+  onClick={() => { /* open add-task modal / navigate */ }}
+  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm cursor-pointer whitespace-nowrap"
+>
+  Add New Task
+</button>
       </div>
 
       {error && (

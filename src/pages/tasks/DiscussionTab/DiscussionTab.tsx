@@ -113,26 +113,34 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   }
 
   return (
-    <div className="space-y-3">
-      {discussions.map((d) => (
-        <div key={d.ProjectDiscussionID} className="rounded-xl border border-slate-200 bg-white p-4">
-          <h4 className="text-base font-bold text-slate-900">{d.DiscussionTitle}</h4>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
-            <span>Priority: {d.PriorityName}</span>
-            <span>•</span>
-            <span>{d.CreatedDate}</span>
-            {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
-            {d.HasUserRightToDelete && (
-              <button
-                onClick={() => handleDeleteDiscussion(d)}
-                className="text-rose-600 hover:text-rose-700 transition cursor-pointer"
-              >
-                Deletable
-              </button>
-            )}
-          </div>
-        </div>
-      ))}
+  <div className="space-y-3">
+    <div className="flex items-center justify-end">
+      <button
+        onClick={() => { /* open add-discussion modal / navigate */ }}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm cursor-pointer whitespace-nowrap"
+      >
+        Add Discussion
+      </button>
     </div>
-  );
+    {discussions.map((d) => (
+      <div key={d.ProjectDiscussionID} className="rounded-xl border border-slate-200 bg-white p-4">
+        <h4 className="text-base font-bold text-slate-900">{d.DiscussionTitle}</h4>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
+          <span>Priority: {d.PriorityName}</span>
+          <span>•</span>
+          <span>{d.CreatedDate}</span>
+          {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
+          {d.HasUserRightToDelete && (
+            <button
+              onClick={() => handleDeleteDiscussion(d)}
+              className="text-rose-600 hover:text-rose-700 transition cursor-pointer"
+            >
+              Deletable
+            </button>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+);
 }
