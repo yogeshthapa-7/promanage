@@ -1,27 +1,48 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, LockKeyhole, CheckSquare, Users, TrendingUp, ShieldCheck } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+
   const { login } = useAuth();
 
   const onFinish = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     const form = e.currentTarget;
-    const identifier = (form.elements.namedItem('identifier') as HTMLInputElement).value;
-    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+
+    const identifier = (
+      form.elements.namedItem('identifier') as HTMLInputElement
+    ).value;
+
+    const password = (
+      form.elements.namedItem('password') as HTMLInputElement
+    ).value;
+
     try {
       const result = await login(identifier, password);
+
       if (result.success) {
-        setTimeout(() => navigate('/dashboard', { replace: true }), 600);
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 600);
       } else {
         alert(result.error || 'Login failed');
       }
@@ -30,207 +51,811 @@ export default function LoginPage() {
     }
   };
 
-  const featureItems = [
-    {
-      icon: CheckSquare,
-      title: 'Organize Projects',
-      description: 'Create, organize and manage all your projects in one place.',
-    },
-    {
-      icon: Users,
-      title: 'Collaborate Teams',
-      description: 'Work together with your team seamlessly in real time.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Track Progress',
-      description: 'Monitor progress, deadlines and performance with advanced reports.',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Secure & Reliable',
-      description: 'Enterprise-grade security to keep your data safe and protected.',
-    },
-  ];
-
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#2D3356] via-[#484F7B] to-[#393153] flex flex-col justify-center py-6 px-4 sm:px-6 lg:py-8 lg:px-12 font-sans relative overflow-hidden">
-      
-      {/* Background Image Layer */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-left opacity-35 mix-blend-overlay" 
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80')` }}
+    <div className="relative min-h-screen overflow-hidden bg-[#e9eef7] font-sans">
+      {/* =========================================================
+          BACKGROUND
+          Soft gradient — intentionally no grid / patterns
+      ========================================================== */}
+
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Main background */}
+        <div
+          className="
+            absolute
+            inset-0
+            bg-gradient-to-br
+            from-[#e8eef9]
+            via-[#dce8f8]
+            to-[#eef2f8]
+          "
         />
-        {/* Semi-dark overlay for contrast and depth */}
-        <div className="absolute inset-0 bg-slate-900/25 backdrop-blur-[0.5px]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#2D3356]/60 to-[#2D3356]/90 lg:backdrop-blur-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#2D3356]/40 to-[#393153]/95 lg:backdrop-blur-sm" />
+
+        {/* Left blue-indigo atmosphere */}
+        <div
+          className="
+            absolute
+            -left-[220px]
+            -top-[180px]
+            w-[650px]
+            h-[650px]
+            rounded-full
+            bg-blue-400/[0.14]
+          "
+        />
+
+        {/* Bottom-right indigo atmosphere */}
+        <div
+          className="
+            absolute
+            -right-[180px]
+            -bottom-[220px]
+            w-[620px]
+            h-[620px]
+            rounded-full
+            bg-indigo-400/[0.10]
+          "
+        />
+
+        {/* Small cyan accent */}
+        <div
+          className="
+            absolute
+            right-[18%]
+            top-[8%]
+            w-[260px]
+            h-[260px]
+            rounded-full
+            bg-cyan-300/[0.06]
+          "
+        />
       </div>
 
-      {/* Main Layout Grid */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-end max-w-7xl mx-auto w-full">
-        
-        {/* Left Section: Logo & Description */}
-        <div className="lg:col-span-7 flex flex-col justify-center space-y-4 lg:space-y-5">
-          
-          {/* Top Logo & Brand Container */}
-          <div className="flex items-center gap-3">
-            <img 
-              src="/assets/images/promanage.png" 
-              alt="ProManage Logo" 
-              className="h-24 w-24 object-contain object-left"
+      {/* =========================================================
+          MAIN APPLICATION GATEWAY
+      ========================================================== */}
+
+      <main
+        className="
+          relative
+          z-10
+          min-h-screen
+          flex
+          items-center
+          justify-center
+          px-5
+          py-8
+          sm:px-8
+        "
+      >
+        <div
+          className="
+            w-full
+            max-w-[1080px]
+            min-h-[650px]
+            grid
+            grid-cols-1
+            lg:grid-cols-[1fr_440px]
+            overflow-hidden
+            rounded-[30px]
+            bg-white
+            border
+            border-white/80
+            shadow-[0_30px_80px_rgba(30,55,95,.18)]
+          "
+        >
+          {/* =====================================================
+              LEFT PRODUCT PANEL
+          ====================================================== */}
+
+          <section
+            className="
+              relative
+              hidden
+              lg:flex
+              flex-col
+              justify-between
+              overflow-hidden
+              p-10
+              xl:p-12
+              bg-gradient-to-br
+              from-[#173d73]
+              via-[#285b9d]
+              to-[#355e98]
+            "
+          >
+            {/* Decorative circles */}
+            <div
+              className="
+                absolute
+                -right-28
+                -top-28
+                w-[340px]
+                h-[340px]
+                rounded-full
+                border
+                border-white/[0.08]
+              "
             />
-          </div>
 
-          {/* Headline & Description */}
-          <div className="space-y-2">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12]">
-              Plan. Manage.<br />
-              Deliver. <span className="text-[#818CF8]">Together.</span>
-            </h1>
-            <div className="w-16 h-1 bg-gradient-to-r from-[#818CF8] to-[#C084FC] rounded-full" />
-            <p className="text-slate-200 text-base sm:text-lg lg:text-xl font-semibold leading-relaxed max-w-xl">
-              ProManage helps teams streamline projects, track progress, and deliver results efficiently—all in one centralized workspace.
-            </p>
-          </div>
+            <div
+              className="
+                absolute
+                right-[-90px]
+                top-[-90px]
+                w-[260px]
+                h-[260px]
+                rounded-full
+                border
+                border-white/[0.06]
+              "
+            />
 
-          {/* Feature List Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl pt-1">
-            {featureItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.title} className="flex items-start gap-3 p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
-                  <div className="p-2 rounded-lg bg-[#818CF8]/20 text-[#818CF8] shrink-0 mt-0.5">
-                    <Icon className="w-4 h-4" />
+            <div
+              className="
+                absolute
+                -left-32
+                -bottom-36
+                w-[430px]
+                h-[430px]
+                rounded-full
+                bg-blue-300/[0.07]
+              "
+            />
+
+            {/* ===============================================
+                BRAND
+            ================================================ */}
+
+            <div className="relative z-10">
+              <div className="flex items-center gap-4">
+                {/* Logo */}
+                <div
+                  className="
+                    w-[62px]
+                    h-[62px]
+                    flex
+                    items-center
+                    justify-center
+                    flex-shrink-0
+                    overflow-hidden
+                    rounded-[18px]
+                    bg-white/[0.10]
+                    border
+                    border-white/[0.14]
+                  "
+                >
+                  <img
+                    src="/assets/images/logo.png"
+                    alt="ProManage logo"
+                    className="
+                      w-[52px]
+                      h-[52px]
+                      object-contain
+                      scale-[1.3]
+                      origin-center
+                    "
+                  />
+                </div>
+
+                <div>
+                  <div
+                    className="
+                      text-[27px]
+                      leading-none
+                      font-extrabold
+                      tracking-[-0.045em]
+                    "
+                  >
+                    <span className="text-white">Pro</span>
+                    <span className="text-blue-200">Manage</span>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">{item.title}</h4>
-                    <p className="text-sm text-slate-200 leading-normal mt-0.5 font-medium">
-                      {item.description}
-                    </p>
+
+                  <div
+                    className="
+                      mt-2
+                      text-[9px]
+                      font-semibold
+                      uppercase
+                      tracking-[0.18em]
+                      text-blue-100/70
+                    "
+                  >
+                    Project Management System
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Right Section: Floating Form Card */}
-        <div className="lg:col-span-5 flex justify-center lg:justify-end">
-          <div className="w-full max-w-[420px] rounded-[28px] bg-white/90 backdrop-blur-xl p-5 sm:p-6 border border-white/80 shadow-[0_30px_80px_-20px_rgba(91,70,232,0.25)] transition-all duration-300 hover:scale-[1.01]">
-            
-            <div className="flex flex-col items-center justify-center mb-4">
-              {/* Form Logo */}
-              <div className="mb-2 flex items-center justify-center w-full">
-                <img 
-                  src="/assets/images/promanage.png" 
-                  alt="ProManage Logo" 
-                  className="h-24 w-24 object-contain"
-                />
-              </div>
-
-              {/* Form Title & Subtitle */}
-              <div className="space-y-1 text-center">
-                <h2 className="text-2xl font-bold text-slate-900">
-                  Welcome back!
-                </h2>
-                <p className="text-sm font-medium text-slate-500">
-                  Sign in to continue to ProManage
-                </p>
               </div>
             </div>
 
-            {/* Login Form */}
-            <form onSubmit={onFinish} className="space-y-3">
-              {/* Email Field */}
-              <div className="space-y-1">
-                <label className="text-sm font-bold text-slate-700">Email / Username</label>
-                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/80 bg-slate-50/70 focus-within:bg-white focus-within:border-[#5B46E8] focus-within:ring-2 focus-within:ring-[#5B46E8]/20 transition-all">
-                  <Mail className="w-4 h-4 text-slate-400 shrink-0" />
+            {/* ===============================================
+                MAIN MESSAGE
+            ================================================ */}
+
+            <div className="relative z-10 max-w-[500px]">
+              <div
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+                  mb-5
+                  px-3
+                  py-1.5
+                  rounded-full
+                  bg-white/[0.08]
+                  border
+                  border-white/[0.10]
+                  text-[10px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.15em]
+                  text-blue-100
+                "
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-300" />
+                Your workspace
+              </div>
+
+              <h1
+                className="
+                  text-[44px]
+                  xl:text-[50px]
+                  leading-[1.08]
+                  font-extrabold
+                  tracking-[-0.045em]
+                  text-white
+                "
+              >
+                Everything your
+                <br />
+                team needs to
+                <br />
+                <span className="text-blue-200">
+                  move forward.
+                </span>
+              </h1>
+
+              <p
+                className="
+                  mt-6
+                  max-w-[470px]
+                  text-[14px]
+                  xl:text-[15px]
+                  leading-7
+                  text-blue-50/70
+                "
+              >
+                ProManage gives your organization a clear and connected
+                workspace for projects, tasks, teams and performance.
+              </p>
+
+              {/* =============================================
+                  PRODUCT BENEFITS
+              ============================================== */}
+
+              <div className="mt-8 space-y-3.5">
+                <ProductPoint text="Centralized project and task management" />
+                <ProductPoint text="Real-time team visibility and collaboration" />
+                <ProductPoint text="Clear performance and project insights" />
+              </div>
+            </div>
+
+            {/* ===============================================
+                FOOTER
+            ================================================ */}
+
+            <div className="relative z-10 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-100/45">
+                  Professional workspace
+                </p>
+
+                <p className="mt-1 text-[11px] text-blue-100/60">
+                  Built for focused teams and growing organizations.
+                </p>
+              </div>
+
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-center
+                  w-9
+                  h-9
+                  rounded-xl
+                  bg-white/[0.07]
+                  border
+                  border-white/[0.09]
+                  text-blue-100/70
+                "
+              >
+                <CheckCircle2 size={16} />
+              </div>
+            </div>
+          </section>
+
+          {/* =====================================================
+              LOGIN SECTION
+          ====================================================== */}
+
+          <section
+            className="
+              flex
+              flex-col
+              justify-center
+              bg-[#fbfcfe]
+              px-7
+              py-9
+              sm:px-10
+              lg:px-11
+              xl:px-12
+            "
+          >
+            {/* Mobile brand */}
+            <div className="lg:hidden flex items-center gap-3 mb-9">
+              <div
+                className="
+                  w-11
+                  h-11
+                  flex
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-[#173d73]
+                  overflow-hidden
+                "
+              >
+                <img
+                  src="/assets/images/logo.png"
+                  alt="ProManage"
+                  className="
+                    w-9
+                    h-9
+                    object-contain
+                    scale-[1.3]
+                  "
+                />
+              </div>
+
+              <div>
+                <div className="text-[19px] font-extrabold tracking-[-0.035em]">
+                  <span className="text-slate-900">Pro</span>
+                  <span className="text-blue-600">Manage</span>
+                </div>
+
+                <div
+                  className="
+                    text-[8px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.13em]
+                    text-slate-400
+                  "
+                >
+                  Project Management System
+                </div>
+              </div>
+            </div>
+
+            {/* ===============================================
+                LOGIN HEADER
+            ================================================ */}
+
+            <div className="mb-8">
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  mb-4
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-[0.14em]
+                  text-blue-600
+                "
+              >
+                <span className="w-5 h-px bg-blue-500" />
+                Secure access
+              </div>
+
+              <h2
+                className="
+                  text-[31px]
+                  leading-tight
+                  font-extrabold
+                  tracking-[-0.04em]
+                  text-slate-900
+                "
+              >
+                Welcome back
+              </h2>
+
+              <p
+                className="
+                  mt-2.5
+                  text-[13px]
+                  leading-5
+                  text-slate-500
+                "
+              >
+                Sign in to continue to your ProManage workspace.
+              </p>
+            </div>
+
+            {/* ===============================================
+                LOGIN FORM
+            ================================================ */}
+
+            <form onSubmit={onFinish} className="space-y-5">
+              {/* Username / Email */}
+              <div>
+                <label
+                  htmlFor="identifier"
+                  className="
+                    block
+                    mb-2
+                    text-[11px]
+                    font-bold
+                    uppercase
+                    tracking-[0.08em]
+                    text-slate-600
+                  "
+                >
+                  Email or Username
+                </label>
+
+                <div
+                  className="
+                    group
+                    h-[50px]
+                    flex
+                    items-center
+                    gap-3
+                    px-3.5
+                    rounded-xl
+                    bg-white
+                    border
+                    border-slate-200
+                    shadow-[0_2px_5px_rgba(15,23,42,.02)]
+                    transition-all
+                    duration-150
+                    focus-within:border-blue-500
+                    focus-within:ring-4
+                    focus-within:ring-blue-500/[0.08]
+                  "
+                >
+                  <Mail
+                    size={17}
+                    className="
+                      flex-shrink-0
+                      text-slate-400
+                      group-focus-within:text-blue-500
+                    "
+                  />
+
                   <input
+                    id="identifier"
                     type="text"
                     name="identifier"
-                    placeholder="Enter email or username"
+                    placeholder="Enter your email or username"
                     required
-                    className="bg-transparent outline-none w-full text-sm text-slate-900 placeholder:text-slate-400 font-medium"
+                    autoComplete="username"
+                    className="
+                      w-full
+                      min-w-0
+                      bg-transparent
+                      outline-none
+                      text-[13px]
+                      font-medium
+                      text-slate-800
+                      placeholder:text-slate-400
+                    "
                   />
                 </div>
               </div>
 
-              {/* Password Field */}
-              <div className="space-y-1">
-                <label className="text-sm font-bold text-slate-700">Password</label>
-                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/80 bg-slate-50/70 focus-within:bg-white focus-within:border-[#5B46E8] focus-within:ring-2 focus-within:ring-[#5B46E8]/20 transition-all">
-                  <Lock className="w-4 h-4 text-slate-400 shrink-0" />
+              {/* Password */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="password"
+                    className="
+                      text-[11px]
+                      font-bold
+                      uppercase
+                      tracking-[0.08em]
+                      text-slate-600
+                    "
+                  >
+                    Password
+                  </label>
+                </div>
+
+                <div
+                  className="
+                    group
+                    h-[50px]
+                    flex
+                    items-center
+                    gap-3
+                    px-3.5
+                    rounded-xl
+                    bg-white
+                    border
+                    border-slate-200
+                    shadow-[0_2px_5px_rgba(15,23,42,.02)]
+                    transition-all
+                    duration-150
+                    focus-within:border-blue-500
+                    focus-within:ring-4
+                    focus-within:ring-blue-500/[0.08]
+                  "
+                >
+                  <Lock
+                    size={17}
+                    className="
+                      flex-shrink-0
+                      text-slate-400
+                      group-focus-within:text-blue-500
+                    "
+                  />
+
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     placeholder="Enter your password"
                     required
-                    className="bg-transparent outline-none w-full text-sm text-slate-900 placeholder:text-slate-400 font-medium"
+                    autoComplete="current-password"
+                    className="
+                      w-full
+                      min-w-0
+                      bg-transparent
+                      outline-none
+                      text-[13px]
+                      font-medium
+                      text-slate-800
+                      placeholder:text-slate-400
+                    "
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer shrink-0"
+                    onClick={() =>
+                      setShowPassword((value) => !value)
+                    }
+                    aria-label={
+                      showPassword
+                        ? 'Hide password'
+                        : 'Show password'
+                    }
+                    className="
+                      flex
+                      items-center
+                      justify-center
+                      w-7
+                      h-7
+                      flex-shrink-0
+                      rounded-lg
+                      text-slate-400
+                      hover:text-slate-700
+                      hover:bg-slate-100
+                      transition-colors
+                      cursor-pointer
+                    "
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {/* Remember Me */}
-              <div className="flex items-center justify-between text-sm pt-0.5">
+              {/* Remember */}
+              <div className="flex items-center">
                 <button
                   type="button"
-                  onClick={() => setRemember((v) => !v)}
-                  className="flex items-center gap-2 cursor-pointer select-none text-slate-600 hover:text-slate-900 transition-colors"
+                  onClick={() => setRemember((value) => !value)}
+                  className="
+                    flex
+                    items-center
+                    gap-2.5
+                    text-[12px]
+                    font-medium
+                    text-slate-500
+                    hover:text-slate-700
+                    cursor-pointer
+                  "
                 >
-                  <div
-                    className={`w-4 h-4 rounded-md border transition-all flex items-center justify-center ${
-                      remember ? 'bg-[#5B46E8] border-[#5B46E8]' : 'border-slate-300 bg-white'
-                    }`}
+                  <span
+                    className={`
+                      flex
+                      items-center
+                      justify-center
+                      w-[17px]
+                      h-[17px]
+                      rounded-[5px]
+                      border
+                      ${
+                        remember
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'bg-white border-slate-300'
+                      }
+                    `}
                   >
                     {remember && (
                       <svg
-                        className="w-2.5 h-2.5 text-white"
-                        fill="none"
+                        width="10"
+                        height="10"
                         viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={3}
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="4"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     )}
-                  </div>
-                  <span className="font-medium">Remember me</span>
+                  </span>
+
+                  Remember me
                 </button>
               </div>
 
-              {/* Submit Button */}
+              {/* =============================================
+                  LOGIN BUTTON
+              ============================================== */}
+
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#5B46E8] to-[#7C3AED] hover:opacity-95 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                className="
+                  group
+                  relative
+                  w-full
+                  h-[50px]
+                  flex
+                  items-center
+                  justify-center
+                  gap-2.5
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-[#1769d3]
+                  to-[#2855c7]
+                  hover:from-[#155fc0]
+                  hover:to-[#244bb5]
+                  text-white
+                  text-[13px]
+                  font-bold
+                  shadow-[0_9px_22px_rgba(37,85,199,.20)]
+                  transition-all
+                  duration-150
+                  disabled:opacity-60
+                  disabled:cursor-not-allowed
+                  cursor-pointer
+                "
               >
-                {loading ? 'Signing in...' : 'Sign in'}
-              </button>
+                {loading ? (
+                  <>
+                    <span
+                      className="
+                        w-4
+                        h-4
+                        rounded-full
+                        border-2
+                        border-white/30
+                        border-t-white
+                        animate-spin
+                      "
+                    />
 
-              {/* Secure Login Note */}
-              <div className="pt-2 text-center space-y-1">
-                <div className="flex items-center justify-center gap-1.5 text-base text-slate-600 font-semibold">
-                  <LockKeyhole className="w-3.5 h-3.5 text-[#5B46E8]" />
-                  Secure login
-                </div>
-                <p className="text-base text-slate-400">
-                  Your information is encrypted and secure
-                </p>
-              </div>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign in to workspace
+
+                    <ArrowRight
+                      size={16}
+                      className="
+                        transition-transform
+                        duration-150
+                        group-hover:translate-x-0.5
+                      "
+                    />
+                  </>
+                )}
+              </button>
             </form>
-          </div>
+
+            {/* ===============================================
+                SECURITY INFORMATION
+            ================================================ */}
+
+            <div
+              className="
+                mt-8
+                pt-6
+                border-t
+                border-slate-200
+              "
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-center
+                    w-9
+                    h-9
+                    rounded-xl
+                    bg-emerald-50
+                    border
+                    border-emerald-100
+                    text-emerald-600
+                  "
+                >
+                  <ShieldCheck size={17} />
+                </div>
+
+                <div>
+                  <div className="text-[11px] font-bold text-slate-700">
+                    Secure workspace access
+                  </div>
+
+                  <div className="mt-0.5 text-[9px] text-slate-400">
+                    Your account and project data are protected.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Copyright */}
+            <div className="mt-7 text-center">
+              <span className="text-[9px] font-medium text-slate-400">
+                © {new Date().getFullYear()} ProManage
+              </span>
+            </div>
+          </section>
         </div>
+      </main>
+    </div>
+  );
+}
+
+/* =============================================================
+   SMALL PRODUCT BENEFIT COMPONENT
+============================================================= */
+
+function ProductPoint({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className="
+          flex
+          items-center
+          justify-center
+          w-6
+          h-6
+          rounded-full
+          bg-white/[0.10]
+          border
+          border-white/[0.10]
+          text-blue-100
+          flex-shrink-0
+        "
+      >
+        <CheckCircle2 size={13} />
       </div>
+
+      <span className="text-[12px] font-medium text-blue-50/75">
+        {text}
+      </span>
     </div>
   );
 }

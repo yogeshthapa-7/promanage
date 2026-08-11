@@ -13,8 +13,8 @@ import {
   ChartLine,
   Building,
   Building2,
+  User,
 } from 'lucide-react';
-import { User } from 'lucide-react';
 
 interface NavItem {
   id: string;
@@ -25,16 +25,68 @@ interface NavItem {
   section?: string;
 }
 
-  const navItems: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} />, href: '/dashboard'},
-  { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} />, href: '/projects'},
-  { id: 'tasks', label: 'Task', icon: <CheckSquare size={16} />, href: '/tasks' },
-  { id: 'analytics', label: 'Analytics', icon: <ChartLine size={16} />, href: '/analytics' },
-  { id: 'team-members', label: 'Team Members', icon: <Users size={16} />, href: '/team', section: 'TEAM' },
-  { id: 'users', label: 'Users', icon: <Users size={16} />, href: '/users', section: 'TEAM' },
-  { id: 'employee', label: 'Employee', icon: <User size={16} />, href: '/employee', section: 'TEAM' },
-  { id: 'departments', label: 'department', icon: <Building size={16} />, href: '/departments', section: 'TEAM' },
-  { id: 'organizations', label: 'Organization', icon: <Building2 size={16} />, href: '/Organizations', section: 'TEAM' },
+const navItems: NavItem[] = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: <LayoutDashboard size={18} />,
+    href: '/dashboard',
+  },
+  {
+    id: 'projects',
+    label: 'Projects',
+    icon: <FolderKanban size={18} />,
+    href: '/projects',
+  },
+  {
+    id: 'tasks',
+    label: 'Tasks',
+    icon: <CheckSquare size={18} />,
+    href: '/tasks',
+  },
+  {
+    id: 'analytics',
+    label: 'Analytics',
+    icon: <ChartLine size={18} />,
+    href: '/analytics',
+  },
+
+  // TEAM
+  {
+    id: 'team-members',
+    label: 'Team Members',
+    icon: <Users size={18} />,
+    href: '/team',
+    section: 'TEAM',
+  },
+  {
+    id: 'users',
+    label: 'Users',
+    icon: <Users size={18} />,
+    href: '/users',
+    section: 'TEAM',
+  },
+  {
+    id: 'employee',
+    label: 'Employee',
+    icon: <User size={18} />,
+    href: '/employee',
+    section: 'TEAM',
+  },
+  {
+    id: 'departments',
+    label: 'Departments',
+    icon: <Building size={18} />,
+    href: '/departments',
+    section: 'TEAM',
+  },
+  {
+    id: 'organizations',
+    label: 'Organization',
+    icon: <Building2 size={18} />,
+    href: '/Organizations',
+    section: 'TEAM',
+  },
 ];
 
 interface SidebarProps {
@@ -50,138 +102,599 @@ function getActiveNavId(pathname: string): string {
     '/analytics': 'analytics',
     '/team': 'team-members',
     '/users': 'users',
-    '/employee':'employee',
-    '/departments':'departments',
-    '/organizations':'organizations',
+    '/employee': 'employee',
+    '/departments': 'departments',
+    '/Organizations': 'organizations',
   };
+
   return map[pathname] ?? 'dashboard';
 }
 
-export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
+export default function Sidebar({
+  collapsed = false,
+  onToggle,
+}: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+
   const activeId = getActiveNavId(location.pathname);
+
   const mainNav = navItems.filter((item) => !item.section);
   const teamNav = navItems.filter((item) => item.section === 'TEAM');
 
   return (
     <aside
-      className="sidebar-transition flex flex-col h-screen flex-shrink-0 overflow-hidden relative z-10 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+      className="
+        flex
+        flex-col
+        h-screen
+        flex-shrink-0
+        relative
+        z-20
+        overflow-hidden
+        border-r
+        transition-all
+        duration-300
+        ease-[cubic-bezier(0.4,0,0.2,1)]
+      "
       style={{
-        width: collapsed ? '78px' : '270px',
-        background: 'linear-gradient(to bottom, #0f172a, #1e1b4b)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(229, 231, 235, 0.5)',
-        borderRadius: '0',
-        boxShadow: '4px 0 40px rgba(124, 58, 237, 0.06), 4px 0 80px rgba(99, 102, 241, 0.03)',
+        width: collapsed ? '78px' : '280px',
+        background:
+          'linear-gradient(180deg, #07152f 0%, #0a1b3d 45%, #08152e 100%)',
+        borderColor: 'rgba(148, 163, 184, 0.12)',
+        boxShadow:
+          '8px 0 35px rgba(2, 8, 23, 0.25), inset -1px 0 rgba(255,255,255,0.025)',
       }}
     >
-      {/* App Header Logo Container */}
-      <div className="flex items-center h-16 px-4 flex-shrink-0 border-b border-gray-100/10">
-        <img
-          src="/assets/images/promanage.png"
-          alt="ProManage"
-          className="h-20 w-20 object-contain"
+      {/* =========================================================
+          BRAND HEADER
+      ========================================================== */}
+      <div
+        className={`
+          relative
+          flex
+          items-center
+          flex-shrink-0
+          h-[92px]
+          border-b
+          border-white/[0.07]
+          ${collapsed ? 'justify-center px-3' : 'px-5'}
+        `}
+      >
+        {/* Top blue accent */}
+        <div
+          className="absolute left-0 top-0 w-full h-px"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, rgba(59,130,246,.8), transparent)',
+          }}
         />
+
+        {/* =====================================================
+            LOGO
+            Fixed container + overflow hidden + centered scaling
+        ====================================================== */}
+        <div
+          className="
+            relative
+            flex
+            items-center
+            justify-center
+            flex-shrink-0
+            w-[62px]
+            h-[62px]
+            overflow-hidden
+            rounded-[18px]
+            bg-white/[0.035]
+            border
+            border-white/[0.09]
+            shadow-lg
+            shadow-blue-950/30
+          "
+        >
+          {/* Soft inner glow */}
+          <div
+            className="
+              absolute
+              inset-0
+              rounded-[18px]
+              pointer-events-none
+            "
+            style={{
+              background:
+                'radial-gradient(circle at center, rgba(59,130,246,.12), transparent 70%)',
+            }}
+          />
+
+          {/* Logo image */}
+          <img
+            src="/assets/images/logo.png"
+            alt="ProManage logo"
+            className="
+              relative
+              z-10
+              w-[54px]
+              h-[54px]
+              object-contain
+              flex-shrink-0
+              transform
+              scale-[1.35]
+              origin-center
+              select-none
+            "
+          />
+        </div>
+
+        {/* =====================================================
+            BRAND TEXT
+        ====================================================== */}
+        {!collapsed && (
+          <div
+            className="
+              ml-4
+              min-w-0
+              flex-1
+              flex
+              flex-col
+              justify-center
+            "
+          >
+            {/* ProManage */}
+            <div
+              className="
+                text-[21px]
+                leading-none
+                font-extrabold
+                tracking-[-0.04em]
+                whitespace-nowrap
+              "
+            >
+              <span className="text-white">Pro</span>
+              <span
+                className="
+                  text-transparent
+                  bg-clip-text
+                  bg-gradient-to-r
+                  from-blue-300
+                  via-blue-400
+                  to-cyan-400
+                "
+              >
+                Manage
+              </span>
+            </div>
+
+            {/* Subtitle */}
+            <div
+              className="
+                mt-[7px]
+                text-[9px]
+                leading-none
+                font-semibold
+                uppercase
+                tracking-[0.13em]
+                text-slate-400
+                whitespace-nowrap
+              "
+            >
+              Project Management System
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Main Navigation Links */}
-      <nav className="flex-1 overflow-y-auto scrollbar-thin px-2.5 py-3 flex flex-col gap-1">
-        {mainNav.map((item) => {
-          const isActive = activeId === item.id;
-          return (
-            <Link
-              key={item.id}
-              to={item.href}
-              title={item.label}
-              className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
-                isActive
-                  ? 'bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#8B5CF6] text-white shadow-md shadow-purple-500/25 scale-[1.02]'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
-              }`}
-            >
-              {/* Active Indicator Pillar */}
-              {isActive && (
-                <span className="absolute -left-2.5 top-1.5 bottom-1.5 w-1 bg-gradient-to-b from-[#7C3AED] to-[#6366F1] rounded-r-full" />
-              )}
-
+      {/* =========================================================
+          NAVIGATION
+      ========================================================== */}
+      <nav className="flex-1 overflow-y-auto scrollbar-thin px-3 py-5">
+        {/* WORKSPACE */}
+        <div className="space-y-1.5">
+          {!collapsed && (
+            <div className="px-3 mb-3">
               <span
-                className={`flex-shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                  isActive ? 'scale-110 text-white' : 'group-hover:scale-110 text-slate-300 group-hover:text-white'
-                }`}
+                className="
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                  text-slate-500
+                "
               >
-                {item.icon}
+                Workspace
+              </span>
+            </div>
+          )}
+
+          {mainNav.map((item) => {
+            const isActive = activeId === item.id;
+
+            return (
+              <Link
+                key={item.id}
+                to={item.href}
+                title={item.label}
+                className={`
+                  group
+                  relative
+                  flex
+                  items-center
+                  gap-3
+                  rounded-xl
+                  transition-all
+                  duration-200
+                  ease-out
+                  ${
+                    collapsed
+                      ? 'justify-center px-2 py-3'
+                      : 'px-3.5 py-3'
+                  }
+                  ${
+                    isActive
+                      ? 'text-white'
+                      : 'text-slate-400 hover:text-slate-100'
+                  }
+                `}
+              >
+                {/* Active background */}
+                {isActive && (
+                  <>
+                    <span
+                      className="
+                        absolute
+                        inset-0
+                        rounded-xl
+                        bg-gradient-to-r
+                        from-blue-600/25
+                        via-blue-500/15
+                        to-transparent
+                        border
+                        border-blue-400/10
+                      "
+                    />
+
+                    {/* Active blue indicator */}
+                    <span
+                      className="
+                        absolute
+                        left-0
+                        top-2
+                        bottom-2
+                        w-[3px]
+                        rounded-r-full
+                        bg-gradient-to-b
+                        from-blue-300
+                        to-blue-600
+                        shadow-[0_0_12px_rgba(59,130,246,.8)]
+                      "
+                    />
+                  </>
+                )}
+
+                {/* Hover background */}
+                {!isActive && (
+                  <span
+                    className="
+                      absolute
+                      inset-0
+                      rounded-xl
+                      bg-white/[0.035]
+                      opacity-0
+                      group-hover:opacity-100
+                      transition-opacity
+                      duration-200
+                    "
+                  />
+                )}
+
+                {/* Icon */}
+                <span
+                  className={`
+                    relative
+                    z-10
+                    flex
+                    items-center
+                    justify-center
+                    flex-shrink-0
+                    transition-all
+                    duration-200
+                    ${
+                      isActive
+                        ? 'text-blue-300'
+                        : 'text-slate-500 group-hover:text-blue-300'
+                    }
+                    group-hover:scale-105
+                  `}
+                >
+                  {item.icon}
+                </span>
+
+                {/* Text */}
+                {!collapsed && (
+                  <span
+                    className="
+                      relative
+                      z-10
+                      flex-1
+                      truncate
+                      text-[13px]
+                      font-semibold
+                      tracking-[-0.01em]
+                    "
+                  >
+                    {item.label}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* =====================================================
+            TEAM
+        ====================================================== */}
+        <div className="mt-7">
+          {!collapsed ? (
+            <div className="flex items-center gap-3 px-3 mb-3">
+              <span
+                className="
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                  text-slate-500
+                "
+              >
+                Team
               </span>
 
-              {!collapsed && <span className="flex-1 truncate tracking-tight">{item.label}</span>}
+              <div className="flex-1 h-px bg-white/[0.06]" />
+            </div>
+          ) : (
+            <div className="mx-2 my-4 h-px bg-white/[0.08]" />
+          )}
 
-              
-            </Link>
-          );
-        })}
+          <div className="space-y-1.5">
+            {teamNav.map((item) => {
+              const isActive = activeId === item.id;
 
-        {/* Section Divider */}
-        {!collapsed ? (
-          <div className="pt-3 pb-0.5 px-3">
-            <p className="text-xs font-extrabold tracking-widest uppercase text-gray-200">
-              Team
-            </p>
+              return (
+                <Link
+                  key={item.id}
+                  to={item.href}
+                  title={item.label}
+                  className={`
+                    group
+                    relative
+                    flex
+                    items-center
+                    gap-3
+                    rounded-xl
+                    transition-all
+                    duration-200
+                    ease-out
+                    ${
+                      collapsed
+                        ? 'justify-center px-2 py-3'
+                        : 'px-3.5 py-3'
+                    }
+                    ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-slate-400 hover:text-slate-100'
+                    }
+                  `}
+                >
+                  {/* Active background */}
+                  {isActive && (
+                    <>
+                      <span
+                        className="
+                          absolute
+                          inset-0
+                          rounded-xl
+                          bg-gradient-to-r
+                          from-blue-600/25
+                          via-blue-500/15
+                          to-transparent
+                          border
+                          border-blue-400/10
+                        "
+                      />
+
+                      <span
+                        className="
+                          absolute
+                          left-0
+                          top-2
+                          bottom-2
+                          w-[3px]
+                          rounded-r-full
+                          bg-gradient-to-b
+                          from-blue-300
+                          to-blue-600
+                          shadow-[0_0_12px_rgba(59,130,246,.8)]
+                        "
+                      />
+                    </>
+                  )}
+
+                  {/* Hover */}
+                  {!isActive && (
+                    <span
+                      className="
+                        absolute
+                        inset-0
+                        rounded-xl
+                        bg-white/[0.035]
+                        opacity-0
+                        group-hover:opacity-100
+                        transition-opacity
+                        duration-200
+                      "
+                    />
+                  )}
+
+                  {/* Icon */}
+                  <span
+                    className={`
+                      relative
+                      z-10
+                      flex
+                      items-center
+                      justify-center
+                      flex-shrink-0
+                      transition-all
+                      duration-200
+                      ${
+                        isActive
+                          ? 'text-blue-300'
+                          : 'text-slate-500 group-hover:text-blue-300'
+                      }
+                      group-hover:scale-105
+                    `}
+                  >
+                    {item.icon}
+                  </span>
+
+                  {/* Text */}
+                  {!collapsed && (
+                    <span
+                      className="
+                        relative
+                        z-10
+                        flex-1
+                        truncate
+                        text-[13px]
+                        font-semibold
+                        tracking-[-0.01em]
+                      "
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
-        ) : (
-          <div className="my-1.5 border-t border-gray-200/50" />
-        )}
-
-        {/* Team Sub-Navigation */}
-        {teamNav.map((item) => {
-          const isActive = activeId === item.id;
-          return (
-            <Link
-              key={item.id}
-              to={item.href}
-              title={item.label}
-              className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
-                isActive
-                  ? 'bg-gradient-to-r from-[#7C3AED] via-[#6366F1] to-[#8B5CF6] text-white shadow-md shadow-purple-500/25 scale-[1.02]'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
-              }`}
-            >
-              {isActive && (
-                <span className="absolute -left-2.5 top-1.5 bottom-1.5 w-1 bg-gradient-to-b from-[#7C3AED] to-[#6366F1] rounded-r-full" />
-              )}
-
-              <span
-                className={`flex-shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                  isActive ? 'scale-110 text-white' : 'group-hover:scale-110 text-slate-300 group-hover:text-white'
-                }`}
-              >
-                {item.icon}
-              </span>
-
-              {!collapsed && <span className="flex-1 truncate tracking-tight">{item.label}</span>}
-            </Link>
-          );
-        })}
+        </div>
       </nav>
 
-      {/* Sign Out */}
+      {/* =========================================================
+          SIGN OUT
+      ========================================================== */}
       <div className="flex-shrink-0 px-3 pb-3">
-        <button onClick={() => navigate('/login')} className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-gray-900/20 border border-gray-700/50 text-slate-100 hover:text-rose-400 hover:bg-gray-900/30 hover:border-rose-400/30 transition-all duration-200 cursor-pointer">
-          <LogOut size={16} />
-          {!collapsed && <span className="text-xs font-semibold">Sign Out</span>}
+        <button
+          onClick={() => navigate('/login')}
+          className={`
+            group
+            relative
+            w-full
+            flex
+            items-center
+            rounded-xl
+            border
+            border-white/[0.07]
+            bg-white/[0.025]
+            text-slate-400
+            hover:text-red-300
+            hover:bg-red-500/[0.07]
+            hover:border-red-400/20
+            transition-all
+            duration-200
+            ${
+              collapsed
+                ? 'justify-center py-3'
+                : 'gap-3 px-3.5 py-3'
+            }
+          `}
+        >
+          <LogOut
+            size={17}
+            className="
+              transition-transform
+              duration-200
+              group-hover:-translate-x-0.5
+            "
+          />
+
+          {!collapsed && (
+            <span className="text-[13px] font-semibold">
+              Sign Out
+            </span>
+          )}
         </button>
       </div>
 
-      {/* Collapse / Expand Toggle Button Footer */}
-      <div className="flex-shrink-0 px-3 pb-5 pt-3 border-t border-gray-100/50">
+      {/* =========================================================
+          COLLAPSE BUTTON
+      ========================================================== */}
+      <div className="flex-shrink-0 px-3 pb-4">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-center py-2 rounded-xl bg-gray-900/20 border border-gray-700/50 text-slate-100 hover:text-primary hover:bg-gray-900/30 hover:border-primary/30 hover:shadow-sm shadow-xs transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={`
+            group
+            w-full
+            flex
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-white/[0.07]
+            bg-white/[0.025]
+            text-slate-500
+            hover:text-blue-300
+            hover:bg-blue-500/[0.06]
+            hover:border-blue-400/20
+            transition-all
+            duration-200
+            ${
+              collapsed
+                ? 'py-3'
+                : 'py-2.5'
+            }
+          `}
         >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {collapsed ? (
+            <ChevronRight
+              size={17}
+              className="
+                transition-transform
+                duration-200
+                group-hover:translate-x-0.5
+              "
+            />
+          ) : (
+            <ChevronLeft
+              size={17}
+              className="
+                transition-transform
+                duration-200
+                group-hover:-translate-x-0.5
+              "
+            />
+          )}
         </button>
       </div>
+
+      {/* =========================================================
+          AMBIENT GLOW
+      ========================================================== */}
+      <div
+        className="
+          absolute
+          -bottom-32
+          -left-20
+          w-64
+          h-64
+          rounded-full
+          pointer-events-none
+        "
+        style={{
+          background:
+            'radial-gradient(circle, rgba(37,99,235,.12) 0%, transparent 70%)',
+        }}
+      />
     </aside>
   );
 }
