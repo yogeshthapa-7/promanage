@@ -5,6 +5,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/Loaders';
 import { fetchUsers, ROLE_STYLE, fetchUserGroups, deleteUser } from '@/lib/users-data';
 import type { User } from '@/lib/users-data';
 import UserFormModal from './Create';
@@ -206,11 +207,7 @@ export default function UsersPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-base text-slate-400">
-                    Loading users...
-                  </td>
-                </tr>
+                <TableSkeleton columns={5} rows={6} message="Loading users..." />
               ) : paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-base text-slate-400">

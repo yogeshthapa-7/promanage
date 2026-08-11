@@ -21,6 +21,7 @@ import {
 import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import Pagination from '@/components/ui/Pagination';
+import { CardGridSkeleton } from '@/components/ui/Loaders';
 import { apiCall } from '@/lib/api';
 import { projects as fallbackProjects, mapApiProjectToProject } from '@/lib/projects-data';
 import type { ProjectStatus, Project, ApiProject } from '@/lib/projects-data';
@@ -537,9 +538,7 @@ export default function ProjectsPage() {
       <hr className="border-slate-200 my-4" />
 
       {loading ? (
-        <Card className="p-6 text-center">
-          <p className="text-sm text-muted-foreground">Loading projects...</p>
-        </Card>
+        <CardGridSkeleton count={9} columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" />
       ) : (
         <>
           {/* 2. Top Metric Cards Row */}

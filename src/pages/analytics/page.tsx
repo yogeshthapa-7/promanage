@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { getAnalyticsData } from '@/lib/analytics-data';
 import type { AnalyticsData } from '@/lib/analytics-data';
+import { BlockSkeleton } from '@/components/ui/Loaders';
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('This Quarter');
@@ -255,10 +256,7 @@ export default function AnalyticsPage() {
   if (!data) {
     return (
       <div className="fade-in text-slate-800 flex items-center justify-center h-96">
-        <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin text-violet-500 mx-auto mb-3" />
-          <p className="text-base text-slate-500">Loading analytics data...</p>
-        </div>
+        <BlockSkeleton lines={4} className="w-full max-w-md" message="Loading analytics data..." />
       </div>
     );
   }

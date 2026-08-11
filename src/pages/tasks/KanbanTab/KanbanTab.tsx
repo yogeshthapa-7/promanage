@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import Pagination from "@/components/ui/Pagination";
+import { BlockSkeleton } from "@/components/ui/Loaders";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const KANBAN_API = `${API_BASE}/ProjectDetail/GetKanbanData`;
@@ -186,11 +187,7 @@ export default function KanbanTab({ project }: KanbanTabProps) {
   const getItemManager = (item: KanbanItem) => item.CardHeadName;
 
   if (loading) {
-    return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">
-        Loading kanban board...
-      </div>
-    );
+    return <BlockSkeleton lines={4} message="Loading kanban board..." />;
   }
 
   if (error && items.length === 0) {

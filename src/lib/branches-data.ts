@@ -1,4 +1,4 @@
-import { apiCall } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/lib/api';
 
 export interface Branch {
   id: string;
@@ -77,27 +77,38 @@ export async function fetchBranches(
   params: FetchBranchesParams
 ): Promise<FetchBranchesResult> {
   try {
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(buildSearchBody(params)),
-      signal: params.signal,
-    }, 120000);
-
-    if (!res.ok) throw new Error(`Failed to fetch branches: ${res.statusText}`);
-
-    const json = await res.json();
-    const response = json as ApiBranchResponse;
-    const rows = Array.isArray(response?.data) ? (response.data as ApiBranchRow[]) : [];
-    const mapped = rows.map(mapApiRowToBranch);
-
-    return {
-      branches: mapped,
-      total: response.recordsTotal ?? 0,
-      filtered: response.recordsFiltered ?? 0,
-    };
+    return await cachedQuery(
+      ['branches', 'search', params.search, params.start, params.length, params.name, params.code, params.mainBranchId, params.mainBranchName, params.departmentId, params.departmentName, params.orderKey],
+      (signal) => doFetchBranches(params, signal),
+      params.signal
+    );
   } catch {
     return { branches: [], total: 0, filtered: 0 };
   }
+}
+
+async function doFetchBranches(
+  params: FetchBranchesParams,
+  signal?: AbortSignal
+): Promise<FetchBranchesResult> {
+  const res = await apiCall(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(buildSearchBody(params)),
+    signal,
+  }, 120000);
+
+  if (!res.ok) throw new Error(`Failed to fetch branches: ${res.statusText}`);
+
+  const json = await res.json();
+  const response = json as ApiBranchResponse;
+  const rows = Array.isArray(response?.data) ? (response.data as ApiBranchRow[]) : [];
+  const mapped = rows.map(mapApiRowToBranch);
+
+  return {
+    branches: mapped,
+    total: response.recordsTotal ?? 0,
+    filtered: response.recordsFiltered ?? 0,
+  };
 }
 
 function mapApiRowToBranch(row: ApiBranchRow): Branch {

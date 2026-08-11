@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message } from 'antd';
 import Pagination from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/Loaders';
 import { apiCall } from '@/lib/api';
 import { fetchMainBranches, type MainBranch } from '@/lib/main-branches-data';
 
@@ -248,11 +249,7 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
             </thead>
             <tbody className="divide-y divide-slate-50">
               {loading ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    Loading main branches...
-                  </td>
-                </tr>
+                <TableSkeleton columns={4} rows={6} message="Loading main branches..." />
               ) : mainBranches.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">

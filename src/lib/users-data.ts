@@ -1,4 +1,4 @@
-import { apiCall } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/lib/api';
 
 export type UserRole = 'Admin' | 'Manager' | 'Developer' | 'Designer' | 'Member' | 'Employee' | 'Task Mgmt' | 'Super Admin' | 'Report Analysis' | 'DC Admin';
 export type UserStatus = 'Active' | 'Inactive' | 'Suspended';
@@ -103,24 +103,35 @@ export async function fetchUsers(
   params: FetchUsersParams
 ): Promise<FetchUsersResult> {
   try {
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(buildSearchBody(params)),
-      signal: params.signal,
-    });
-    if (!res.ok) throw new Error(`Failed to fetch users: ${res.statusText}`);
-    const json = await res.json();
-    const response = json as ApiUserResponse;
-    const rows = Array.isArray(response?.data) ? (response.data as ApiUser[]) : [];
-    const mapped = rows.map(mapApiUserToUser);
-    return {
-      users: mapped,
-      total: response.recordsTotal ?? 0,
-      filtered: response.recordsFiltered ?? 0,
-    };
+    return await cachedQuery(
+      ['users', 'search', params.search, params.start, params.length, params.theme, params.role],
+      (signal) => doFetchUsers(params, signal),
+      params.signal
+    );
   } catch {
     return { users: [], total: 0, filtered: 0 };
   }
+}
+
+async function doFetchUsers(
+  params: FetchUsersParams,
+  signal?: AbortSignal
+): Promise<FetchUsersResult> {
+  const res = await apiCall(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(buildSearchBody(params)),
+    signal,
+  });
+  if (!res.ok) throw new Error(`Failed to fetch users: ${res.statusText}`);
+  const json = await res.json();
+  const response = json as ApiUserResponse;
+  const rows = Array.isArray(response?.data) ? (response.data as ApiUser[]) : [];
+  const mapped = rows.map(mapApiUserToUser);
+  return {
+    users: mapped,
+    total: response.recordsTotal ?? 0,
+    filtered: response.recordsFiltered ?? 0,
+  };
 }
 
 function mapApiUserToUser(apiUser: ApiUser): User {

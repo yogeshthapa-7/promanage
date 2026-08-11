@@ -1,4 +1,4 @@
-import { apiCall } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/lib/api';
 
 export interface Employee {
   EmployeeInfoID: number;
@@ -75,21 +75,32 @@ export async function fetchEmployees(
   params: FetchEmployeesParams
 ): Promise<FetchEmployeesResult> {
   try {
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(buildSearchBody(params)),
-      signal: params.signal,
-    });
-    if (!res.ok) throw new Error(`Failed to fetch employees: ${res.statusText}`);
-    const json = await res.json();
-    const response = json as ApiEmployeeResponse;
-    const rows = Array.isArray(response?.data) ? (response.data as Employee[]) : [];
-    return {
-      employees: rows,
-      total: response.recordsTotal ?? 0,
-      filtered: response.recordsFiltered ?? 0,
-    };
+    return await cachedQuery(
+      ['employees', 'search', params.search, params.start, params.length, params.fullname, params.address, params.phone],
+      (signal) => doFetchEmployees(params, signal),
+      params.signal
+    );
   } catch {
     return { employees: [], total: 0, filtered: 0 };
   }
+}
+
+async function doFetchEmployees(
+  params: FetchEmployeesParams,
+  signal?: AbortSignal
+): Promise<FetchEmployeesResult> {
+  const res = await apiCall(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(buildSearchBody(params)),
+    signal,
+  });
+  if (!res.ok) throw new Error(`Failed to fetch employees: ${res.statusText}`);
+  const json = await res.json();
+  const response = json as ApiEmployeeResponse;
+  const rows = Array.isArray(response?.data) ? (response.data as Employee[]) : [];
+  return {
+    employees: rows,
+    total: response.recordsTotal ?? 0,
+    filtered: response.recordsFiltered ?? 0,
+  };
 }

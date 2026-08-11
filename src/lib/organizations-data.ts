@@ -1,4 +1,4 @@
-import { apiCall } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/lib/api';
 
 export interface Organization {
   SN: number;
@@ -59,24 +59,35 @@ export async function fetchOrganizations(
   params: FetchOrganizationsParams
 ): Promise<FetchOrganizationsResult> {
   try {
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(buildSearchBody(params)),
-      signal: params.signal,
-    });
-    if (!res.ok) throw new Error(`Failed to fetch organizations: ${res.statusText}`);
-    const json = await res.json();
-    const response = json as ApiOrganizationResponse;
-    const rows = Array.isArray(response?.data) ? (response.data as ApiOrganizationRow[]) : [];
-    const mapped = rows.map(mapApiRowToOrganization);
-    return {
-      organizations: mapped,
-      total: response.recordsTotal ?? 0,
-      filtered: response.recordsFiltered ?? 0,
-    };
+    return await cachedQuery(
+      ['organizations', 'search', params.search, params.start, params.length],
+      (signal) => doFetchOrganizations(params, signal),
+      params.signal
+    );
   } catch {
     return { organizations: [], total: 0, filtered: 0 };
   }
+}
+
+async function doFetchOrganizations(
+  params: FetchOrganizationsParams,
+  signal?: AbortSignal
+): Promise<FetchOrganizationsResult> {
+  const res = await apiCall(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(buildSearchBody(params)),
+    signal,
+  });
+  if (!res.ok) throw new Error(`Failed to fetch organizations: ${res.statusText}`);
+  const json = await res.json();
+  const response = json as ApiOrganizationResponse;
+  const rows = Array.isArray(response?.data) ? (response.data as ApiOrganizationRow[]) : [];
+  const mapped = rows.map(mapApiRowToOrganization);
+  return {
+    organizations: mapped,
+    total: response.recordsTotal ?? 0,
+    filtered: response.recordsFiltered ?? 0,
+  };
 }
 
 function mapApiRowToOrganization(row: ApiOrganizationRow): Organization {

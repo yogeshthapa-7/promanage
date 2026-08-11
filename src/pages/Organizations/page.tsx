@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Building2 } from 'lucide-react';
 import { Modal, message } from 'antd';
 import Pagination from '@/components/ui/Pagination';
+import { CardGridSkeleton } from '@/components/ui/Loaders';
 import { fetchOrganizations, type Organization } from '@/lib/organizations-data';
 import CreateOrganizationModal from './Create';
 import { apiCall } from '@/lib/api';
@@ -178,15 +179,7 @@ export default function OrganizationPage() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5 animate-pulse">
-                <div className="h-4 bg-slate-200 rounded w-3/4 mb-3"></div>
-                <div className="h-3 bg-slate-100 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-slate-100 rounded w-1/3"></div>
-              </div>
-            ))}
-          </div>
+          <CardGridSkeleton count={8} />
         ) : organizations.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
             <Building2 className="mx-auto h-12 w-12 text-slate-300 mb-3" />

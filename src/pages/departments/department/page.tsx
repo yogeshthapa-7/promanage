@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/Loaders';
 import { apiCall } from '@/lib/api';
 import { fetchDepartments, type Department } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
@@ -312,11 +313,7 @@ export default function DepartmentPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {loading ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    Loading departments...
-                  </td>
-                </tr>
+                <TableSkeleton columns={4} rows={6} message="Loading departments..." />
               ) : departments.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">

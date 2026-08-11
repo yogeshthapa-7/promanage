@@ -3,6 +3,7 @@ import type { ApiProject } from "@/lib/projects-data";
 import { fetchSubTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem } from "@/lib/tasks-data";
 import Pagination from "@/components/ui/Pagination";
+import { CardPanelSkeleton } from "@/components/ui/Loaders";
 
 interface SubTasksTabProps {
   project: ApiProject;
@@ -117,7 +118,7 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
       )}
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading subtasks...</div>
+        <CardPanelSkeleton count={6} />
       ) : subTasks.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center">
           <p className="text-base text-slate-500 mb-3">This task does not have any subtasks yet.</p>

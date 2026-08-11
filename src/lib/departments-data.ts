@@ -1,4 +1,4 @@
-import { apiCall } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/lib/api';
 
 export interface Department {
   id: string;
@@ -67,27 +67,38 @@ export async function fetchDepartments(
   params: FetchDepartmentsParams
 ): Promise<FetchDepartmentsResult> {
   try {
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(buildSearchBody(params)),
-      signal: params.signal,
-    }, 120000);
-      
-    if (!res.ok) throw new Error(`Failed to fetch departments: ${res.statusText}`);
-      
-    const json = await res.json();
-    const response = json as ApiDepartmentResponse;
-    const rows = Array.isArray(response?.data) ? (response.data as ApiDepartmentRow[]) : [];
-    const mapped = rows.map(mapApiRowToDepartment);
-      
-    return {
-      departments: mapped,
-      total: response.recordsTotal ?? 0,
-      filtered: response.recordsFiltered ?? 0,
-    };
+    return await cachedQuery(
+      ['departments', 'search', params.search, params.start, params.length, params.name, params.code, params.mainDept],
+      (signal) => doFetchDepartments(params, signal),
+      params.signal
+    );
   } catch {
     return { departments: [], total: 0, filtered: 0 };
   }
+}
+
+async function doFetchDepartments(
+  params: FetchDepartmentsParams,
+  signal?: AbortSignal
+): Promise<FetchDepartmentsResult> {
+  const res = await apiCall(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(buildSearchBody(params)),
+    signal,
+  }, 120000);
+
+  if (!res.ok) throw new Error(`Failed to fetch departments: ${res.statusText}`);
+
+  const json = await res.json();
+  const response = json as ApiDepartmentResponse;
+  const rows = Array.isArray(response?.data) ? (response.data as ApiDepartmentRow[]) : [];
+  const mapped = rows.map(mapApiRowToDepartment);
+
+  return {
+    departments: mapped,
+    total: response.recordsTotal ?? 0,
+    filtered: response.recordsFiltered ?? 0,
+  };
 }
 
 function mapApiRowToDepartment(row: ApiDepartmentRow): Department {

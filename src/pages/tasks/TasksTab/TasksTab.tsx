@@ -3,6 +3,7 @@ import type { ApiProject } from "@/lib/projects-data";
 import { fetchTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem, TaskManagerInfo } from "@/lib/tasks-data";
 import Pagination from "@/components/ui/Pagination";
+import { CardPanelSkeleton } from "@/components/ui/Loaders";
 
 export type { TaskItem, SubTaskItem, TaskManagerInfo };
 
@@ -123,7 +124,7 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
       )}
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading tasks...</div>
+        <CardPanelSkeleton count={6} />
       ) : tasks.length === 0 ? (
         <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No tasks found for this project.</div>
       ) : (

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Download, Printer, Upload } from 'lucide-react';
 import { Modal, message } from 'antd';
 import Pagination from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/Loaders';
 import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
@@ -373,11 +374,7 @@ export default function EmployeePage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-base text-slate-400">
-                    Loading employees...
-                  </td>
-                </tr>
+                <TableSkeleton columns={9} rows={6} message="Loading employees..." />
               ) : employees.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-base text-slate-400">

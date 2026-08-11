@@ -9,10 +9,17 @@ const queryClient = new QueryClient({
   defaultOptions:{
     queries:{
       refetchOnWindowFocus: false,
-      cancelQueriesOnUnmount: true,
+      staleTime: 2 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      retry: 1,
     },
   },
 });
+
+// Expose the client so non-React data libraries (server-side search lists)
+// can route requests through React Query's cache and avoid hammering the
+// backend during rapid page/tab navigation.
+(globalThis as unknown as { __promanageQueryClient?: typeof queryClient }).__promanageQueryClient = queryClient;
 
 createRoot(document.getElementById('root')!).render(
   <AuthProvider>

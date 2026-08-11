@@ -207,22 +207,17 @@ export default function Sidebar({
           />
 
           {/* Logo image */}
-          <img
-            src="/assets/images/logo.png"
-            alt="ProManage logo"
-            className="
-              relative
-              z-10
-              w-[54px]
-              h-[54px]
-              object-contain
-              flex-shrink-0
-              transform
-              scale-[1.35]
-              origin-center
-              select-none
-            "
-          />
+        <img
+    src="/assets/images/logo.png"
+    alt="ProManage logo"
+    className="
+      w-full
+      h-full
+      object-contain
+      p-2.5 
+      select-none
+    "
+  />
         </div>
 
         {/* =====================================================
@@ -273,7 +268,7 @@ export default function Sidebar({
                 font-semibold
                 uppercase
                 tracking-[0.13em]
-                text-slate-400
+                text-white
                 whitespace-nowrap
               "
             >

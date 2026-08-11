@@ -10,6 +10,7 @@ import {
   FolderOpen,
   FileText,
 } from 'lucide-react';
+import { BlockSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
@@ -79,11 +80,7 @@ const DetailItem = ({ label, value, badgeClass }: { label: string; value?: React
 );
 
 const LoadingSkeleton = () => (
-  <div className="max-w-screen-2xl mx-auto space-y-4 animate-pulse pb-8">
-    <div className="h-8 w-36 bg-slate-200 rounded-lg" />
-    <div className="h-32 bg-slate-200 rounded-2xl" />
-    <div className="h-72 bg-slate-200 rounded-2xl" />
-  </div>
+  <BlockSkeleton lines={3} className="max-w-screen-2xl mx-auto space-y-4" message="Loading project details..." />
 );
 
 // --- Main Page Component ---
