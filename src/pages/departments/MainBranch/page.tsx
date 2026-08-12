@@ -1,16 +1,36 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
-import { Modal, message } from 'antd';
+import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import { apiCall } from '@/lib/api';
-import { fetchMainBranches, type MainBranch } from '@/lib/main-branches-data';
+import {
+  fetchMainBranches,
+  fetchMainBranchSelectList,
+  type MainBranch,
+  type MainBranchSelectOption,
+} from '@/lib/main-branches-data';
+import {
+  fetchDepartmentSelectList,
+  type DepartmentSelectOption,
+} from '@/lib/departments-data';
 
 interface MainBranchPageProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+}
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 }
 
 export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPageProps) {
@@ -23,15 +43,38 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
   const [showFormModal, setShowFormModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const [searchName, setSearchName] = useState('');
-  const [searchCode, setSearchCode] = useState('');
-  const [searchDepartment, setSearchDepartment] = useState('');
+  const [filterMainBranchId, setFilterMainBranchId] = useState<string | undefined>(undefined);
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string | undefined>(undefined);
+  const [filterCode, setFilterCode] = useState('');
 
-  const mockMainBranches: MainBranch[] = useMemo(() => [
-    { id: '1', sn: 1, name: 'मुख्य शाखा - प्रशासन', mainBranchCode: 'MB-001', departmentId: 19, departmentName: 'प्रशासन विभाग', orderKey: 1 },
-    { id: '2', sn: 2, name: 'मुख्य शाखा - वित्त', mainBranchCode: 'MB-002', departmentId: 27, departmentName: 'वित्त विभाग', orderKey: 2 },
-    { id: '3', sn: 3, name: 'मुख्य शाखा - सामाजिक विकास', mainBranchCode: 'MB-003', departmentId: 26, departmentName: 'सामाजिक विकास विभाग', orderKey: 3 },
-  ], []);
+  const [mainBranchOptions, setMainBranchOptions] = useState<MainBranchSelectOption[]>([]);
+  const [mainBranchLoading, setMainBranchLoading] = useState(false);
+  const [departmentOptions, setDepartmentOptions] = useState<DepartmentSelectOption[]>([]);
+  const [departmentLoading, setDepartmentLoading] = useState(false);
+
+  const debouncedCode = useDebounce(filterCode, 300);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setMainBranchLoading(true);
+    fetchMainBranchSelectList(controller.signal)
+      .then((options) => setMainBranchOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setMainBranchLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setDepartmentLoading(true);
+    fetchDepartmentSelectList(controller.signal)
+      .then((options) => setDepartmentOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setDepartmentLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,23 +84,23 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
       search: '',
       start: (currentPage - 1) * pageSize,
       length: pageSize,
-      name: searchName,
-      code: searchCode,
-      departmentName: searchDepartment,
+      mainBranchId: filterMainBranchId ? Number(filterMainBranchId) : undefined,
+      code: debouncedCode,
+      departmentId: filterDepartmentId ? Number(filterDepartmentId) : undefined,
       signal: controller.signal,
     })
       .then((result) => {
         if (!cancelled) {
-          setMainBranches(result.mainBranches.length ? result.mainBranches : mockMainBranches);
-          setTotalFiltered(result.filtered || mockMainBranches.length);
+          setMainBranches(result.mainBranches);
+          setTotalFiltered(result.filtered || result.mainBranches.length);
           setLoading(false);
         }
       })
       .catch((err) => {
         if (err.name === 'AbortError') return;
         if (!cancelled) {
-          setMainBranches(mockMainBranches);
-          setTotalFiltered(mockMainBranches.length);
+          setMainBranches([]);
+          setTotalFiltered(0);
           setLoading(false);
         }
       });
@@ -65,14 +108,14 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
       cancelled = true;
       controller.abort();
     };
-  }, [currentPage, pageSize, searchName, searchCode, searchDepartment, refreshKey, mockMainBranches]);
+  }, [currentPage, pageSize, filterMainBranchId, filterDepartmentId, debouncedCode, refreshKey]);
 
   const refreshMainBranches = () => setRefreshKey((prev) => prev + 1);
 
   const handleClear = () => {
-    setSearchName('');
-    setSearchCode('');
-    setSearchDepartment('');
+    setFilterMainBranchId(undefined);
+    setFilterDepartmentId(undefined);
+    setFilterCode('');
     setCurrentPage(1);
   };
 
@@ -110,76 +153,55 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
 
   return (
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
-      <div className="flex items-center gap-1 border-b border-slate-200">
-        <button
-          onClick={() => onTabChange('department')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'department'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          विभाग
-        </button>
-        <button
-          onClick={() => onTabChange('mainbranch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'mainbranch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          मुख्य शाखा
-        </button>
-        <button
-          onClick={() => onTabChange('branch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'branch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          शाखा
-        </button>
-      </div>
-
       <div className="space-y-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Main Branch Name / मुख्य शाखा नाम
             </label>
-            <input
-              type="text"
+            <Select
               placeholder="Search by main branch name..."
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
+              value={filterMainBranchId}
+              onChange={(value) => setFilterMainBranchId(value)}
+              options={mainBranchOptions}
+              className="w-full"
+              allowClear
+              loading={mainBranchLoading}
+              showSearch
+              filterOption={(input, option) =>
+                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
+              }
             />
           </div>
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-             Main Branch Code / मुख्य शाखा कोड
+              Department / विभाग
             </label>
-            <input
-              type="text"
-              placeholder="Search by main branch code..."
-              value={searchCode}
-              onChange={(e) => setSearchCode(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
+            <Select
+              placeholder="Search by department..."
+              value={filterDepartmentId}
+              onChange={(value) => setFilterDepartmentId(value)}
+              options={departmentOptions}
+              className="w-full"
+              allowClear
+              loading={departmentLoading}
+              showSearch
+              filterOption={(input, option) =>
+                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
+              }
             />
           </div>
 
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Department / विभाग
+              Main Branch Code / मुख्य शाखा कोड
             </label>
-            <input
+            <Input
               type="text"
-              placeholder="Search by department name..."
-              value={searchDepartment}
-              onChange={(e) => setSearchDepartment(e.target.value)}
+              placeholder="Search by main branch code..."
+              value={filterCode}
+              onChange={(e) => setFilterCode(e.target.value)}
               className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
             />
           </div>

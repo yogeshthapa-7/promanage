@@ -113,39 +113,6 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
 
   return (
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
-      <div className="flex items-center gap-1 border-b border-slate-200">
-        <button
-          onClick={() => onTabChange('department')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'department'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          विभाग
-        </button>
-        <button
-          onClick={() => onTabChange('mainbranch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'mainbranch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          मुख्य शाखा
-        </button>
-        <button
-          onClick={() => onTabChange('branch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'branch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          शाखा
-        </button>
-      </div>
-
       <div className="space-y-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">

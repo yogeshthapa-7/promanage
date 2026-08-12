@@ -10,6 +10,11 @@ export interface MainBranch {
   orderKey: number;
 }
 
+export interface MainBranchSelectOption {
+  value: string;
+  label: string;
+}
+
 interface ApiMainBranchResponse {
   data: ApiMainBranchRow[];
   recordsTotal: number;
@@ -26,7 +31,61 @@ interface ApiMainBranchRow {
   OrderKey: number;
 }
 
+interface ApiSelectItem {
+  MainBranchID?: number | string;
+  MainBranchName?: string;
+  DepartmentID?: number | string;
+  DepartmentName?: string;
+  id?: number | string;
+  name?: string;
+  Value?: number | string;
+  Text?: string;
+}
+
 const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/MainBranch/ServerSearch';
+
+const SELECT_LIST_URL =
+  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
+  '/MainBranch/SelectList';
+
+function mapSelectItem(item: ApiSelectItem): MainBranchSelectOption {
+  const value = String(
+    item.MainBranchID ?? item.id ?? item.Value ?? ''
+  );
+  const label = String(
+    item.MainBranchName ?? item.name ?? item.Text ?? value
+  );
+  return { value, label };
+}
+
+export async function fetchMainBranchSelectList(
+  signal?: AbortSignal
+): Promise<MainBranchSelectOption[]> {
+  try {
+    const res = await apiCall(
+      SELECT_LIST_URL,
+      { method: 'GET', signal },
+      30000
+    );
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch main branch list: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+    const rows: ApiSelectItem[] = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.data)
+        ? json.data
+        : Array.isArray(json?.Data)
+          ? json.Data
+          : [];
+
+    return rows.map(mapSelectItem);
+  } catch {
+    return [];
+  }
+}
 
 interface FetchMainBranchesParams {
   search: string;
@@ -34,6 +93,7 @@ interface FetchMainBranchesParams {
   length: number;
   name?: string;
   code?: string;
+  mainBranchId?: number;
   departmentId?: number;
   departmentName?: string;
   orderKey?: number;
@@ -56,6 +116,7 @@ function buildSearchBody(params: FetchMainBranchesParams) {
     },
     param: {
       search: params.search,
+      MainBranchID: params.mainBranchId || 0,
       MainBranchName: params.name || '',
       MainBranchCode: params.code || '',
       DepartmentID: params.departmentId || 0,
@@ -70,7 +131,7 @@ export async function fetchMainBranches(
 ): Promise<FetchMainBranchesResult> {
   try {
     return await cachedQuery(
-      ['mainBranches', 'search', params.search, params.start, params.length, params.name, params.code, params.departmentId, params.departmentName, params.orderKey],
+      ['mainBranches', 'search', params.search, params.start, params.length, params.name, params.code, params.mainBranchId, params.departmentId, params.departmentName, params.orderKey],
       (signal) => doFetchMainBranches(params, signal),
       params.signal
     );

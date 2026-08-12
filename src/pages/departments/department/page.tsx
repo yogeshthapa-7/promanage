@@ -146,29 +146,6 @@ export default function DepartmentPage() {
     /* Direct Page Canvas - Background wave/gradient style */
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       
-      {activeTab === 'department' && (
-        <>
-      {/* 1. Department Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            विभागहरू
-          </h2>
-          <p className="text-base text-slate-500 mt-1">
-            विभागीय अभिलेखहरू तथा अभिभावक‑सन्तान संगठन संरचना व्यवस्थापन गर्नुहोस्।
-          </p>
-        </div>
-        <div className="flex items-start justify-between">
-  <button
-    onClick={handleAddNew}
-    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
-  >
-    <Plus className="w-4 h-4" />
-    Add New Department
-  </button>
-</div>
-      </div>
-
       {/* 2. Tabs */}
       <div className="flex items-center gap-1 border-b border-slate-200">
         <button
@@ -203,7 +180,30 @@ export default function DepartmentPage() {
         </button>
       </div>
 
-      {/* 3. Filters & Actions Row */}
+      {activeTab === 'department' && (
+        <>
+      {/* 1. Department Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            विभागहरू
+          </h2>
+          <p className="text-base text-slate-500 mt-1">
+            विभागीय अभिलेखहरू तथा अभिभावक‑सन्तान संगठन संरचना व्यवस्थापन गर्नुहोस्।
+          </p>
+        </div>
+        <div className="flex items-start justify-between">
+  <button
+    onClick={handleAddNew}
+    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
+  >
+    <Plus className="w-4 h-4" />
+    Add New Department
+  </button>
+</div>
+      </div>
+
+      {/* 2. Filters & Actions Row */}
       <div className="space-y-4">
         {/* Single Row: Inputs + Inline Search & Clear */}
         <div className="flex flex-wrap items-end gap-3">
@@ -242,33 +242,33 @@ export default function DepartmentPage() {
 </div>
 
            <div className="flex-1 min-w-[220px]">
-             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-               Parent Department / प्रमुख विभाग
-             </label>
-             <Input
-               type="text"
-               placeholder="Search by parent department..."
-               value={filterMainDept}
-               onChange={(e) => setFilterMainDept(e.target.value)}
-               className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-             />
-           </div>
+              <label className="block text-sm font-semibold text-slate-500 mb-1.5">
+                Parent Department / प्रमुख विभाग
+              </label>
+              <Input
+                type="text"
+                placeholder="Search by parent department..."
+                value={filterMainDept}
+                onChange={(e) => setFilterMainDept(e.target.value)}
+                className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
+              />
+            </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={refreshDepartments}
-              className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium py-2.5 px-7 rounded-full shadow-xs transition-all text-sm cursor-pointer active:scale-95"
-            >
-              Search
-            </button>
-            <button
-              onClick={handleClear}
-              className="bg-white hover:bg-slate-50 text-slate-700 font-medium py-2.5 px-6 rounded-full shadow-xs transition-all text-sm cursor-pointer border border-slate-100 active:scale-95"
-            >
-              Clear
-            </button>
-          </div>
-        </div>
+           <div className="flex items-center gap-2">
+             <button
+               onClick={refreshDepartments}
+               className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium py-2.5 px-7 rounded-full shadow-xs transition-all text-sm cursor-pointer active:scale-95"
+             >
+               Search
+             </button>
+             <button
+               onClick={handleClear}
+               className="bg-white hover:bg-slate-50 text-slate-700 font-medium py-2.5 px-6 rounded-full shadow-xs transition-all text-sm cursor-pointer border border-slate-100 active:scale-95"
+             >
+               Clear
+             </button>
+           </div>
+         </div>
 
         {/* Excel Upload/Download Row
         <div className="flex items-center gap-3">
@@ -396,6 +396,7 @@ export default function DepartmentPage() {
       </div>
         </>
       )}
+
       {activeTab === 'mainbranch' && (
         <>
           <div className="flex items-start justify-between">
