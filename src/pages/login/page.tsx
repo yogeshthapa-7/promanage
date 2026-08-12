@@ -815,12 +815,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Copyright */}
-            <div className="mt-7 text-center">
-              <span className="text-[9px] font-medium text-slate-400">
-                © {new Date().getFullYear()} ProManage
-              </span>
-            </div>
+           
           </section>
         </div>
       </main>
