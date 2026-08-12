@@ -1,27 +1,30 @@
 'use client';
 
 import { memo, type ReactNode } from 'react';
+import { Button as AntButton } from 'antd';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps {
   variant?: 'primary' | 'ghost' | 'outline' | 'icon';
   size?: 'sm' | 'md' | 'lg';
   icon?: ReactNode;
   children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+  type?: 'primary' | 'default' | 'dashed' | 'text' | 'link';
+  danger?: boolean;
 }
 
-const baseStyles = 'inline-flex items-center justify-center gap-1.5 rounded-xl font-medium transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
-
-const variantStyles = {
-  primary: 'px-3.5 py-2 text-sm text-white bg-gradient-to-br from-purple-600 to-indigo-600 shadow-md hover:shadow-lg hover:shadow-purple-500/20',
-  ghost: 'px-3 py-1.5 text-xs text-muted-foreground border border-border bg-white/60 hover:border-primary hover:text-primary hover:bg-white',
-  outline: 'px-3 py-1.5 text-xs font-medium border border-border text-muted-foreground bg-gray-50/50 hover:border-primary/30 hover:text-primary hover:bg-white',
-  icon: 'p-1.5 rounded-lg text-muted-foreground hover:bg-gray-100 hover:text-primary transition-colors',
+const variantStyles: Record<string, { type?: 'primary' | 'default' | 'dashed' | 'text' | 'link' | undefined; shape?: 'circle' | 'round' | undefined }> = {
+  primary: {},
+  ghost: { type: 'text' },
+  outline: { type: 'default' },
+  icon: { type: 'text', shape: 'circle' },
 };
 
-const sizeStyles = {
-  sm: 'px-2.5 py-1 text-xs',
-  md: 'px-3.5 py-2 text-sm',
-  lg: 'px-4 py-2.5 text-sm',
+const sizeStyles: Record<string, { size?: 'small' | 'middle' | 'large' | undefined }> = {
+  sm: { size: 'small' },
+  md: {},
+  lg: { size: 'large' },
 };
 
 const Button = memo(function Button({
@@ -30,16 +33,26 @@ const Button = memo(function Button({
   className = '',
   icon,
   children,
-  ...props
+  onClick,
+  type,
+  danger,
 }: ButtonProps) {
+  const antProps: Record<string, unknown> = {
+    ...variantStyles[variant],
+    ...sizeStyles[size],
+    ...(type ? { type } : {}),
+    ...(danger ? { danger } : {}),
+    ...(onClick ? { onClick } : {}),
+  };
+
+  if (icon) {
+    antProps.icon = icon;
+  }
+
   return (
-    <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
-      {...props}
-    >
-      {icon && <span className="flex items-center">{icon}</span>}
+    <AntButton {...antProps} className={className}>
       {children}
-    </button>
+    </AntButton>
   );
 });
 

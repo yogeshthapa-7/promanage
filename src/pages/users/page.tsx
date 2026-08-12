@@ -4,8 +4,11 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   UserPlus,
 } from 'lucide-react';
+import { Button, Input, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
 import { fetchUsers, ROLE_STYLE, fetchUserGroups, deleteUser } from '@/lib/users-data';
 import type { User } from '@/lib/users-data';
 import UserFormModal from './Create';
@@ -107,68 +110,60 @@ export default function UsersPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowUserModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 shadow-sm"
-        >
-          <UserPlus className="h-4 w-4" strokeWidth={2.5} />
+        <Button type="primary" onClick={() => setShowUserModal(true)} icon={<UserPlus className="h-4 w-4" strokeWidth={2.5} />}>
           Add User
-        </button>
+        </Button>
       </div>
       <hr className="border-slate-200 my-6" />
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Username / Email</div>
-          <input
+          <Input
             placeholder="Search by username or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
+            allowClear
           />
         </div>
         <div>
-<div className="mb-1 text-sm font-medium text-slate-500">Theme</div>
-           <input
-             placeholder="Search by theme..."
-             value={titleFilter}
-             onChange={(e) => setTitleFilter(e.target.value)}
-             className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-           />
+          <div className="mb-1 text-sm font-medium text-slate-500">Theme</div>
+          <Input
+            placeholder="Search by theme..."
+            value={titleFilter}
+            onChange={(e) => setTitleFilter(e.target.value)}
+            allowClear
+          />
         </div>
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">User Group</div>
-          <select
+          <Select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          >
-            <option value="">All Groups</option>
-            {userGroups.map((group) => (
-              <option key={group.UserGroupId} value={group.UserGroupName}>
-                {group.UserGroupName}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setRoleFilter(value)}
+            placeholder="All Groups"
+            allowClear
+            className="w-full"
+            options={[
+              { value: '', label: 'All Groups' },
+              ...userGroups.map((group) => ({
+                value: group.UserGroupName,
+                label: group.UserGroupName,
+              })),
+            ]}
+          />
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setCurrentPage(1)}
-            className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
-          >
+          <Button type="primary" onClick={() => setCurrentPage(1)}>
             Search
-          </button>
-          <button
-            onClick={() => {
-              setSearchQuery('');
-              setTitleFilter('');
-              setRoleFilter('');
-              setCurrentPage(1);
-            }}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
+          </Button>
+          <Button onClick={() => {
+            setSearchQuery('');
+            setTitleFilter('');
+            setRoleFilter('');
+            setCurrentPage(1);
+          }}>
             Clear
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -176,26 +171,28 @@ export default function UsersPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="text-base text-slate-500">Show</span>
-            <select
+            <Select
               value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
+              onChange={(value) => {
+                setPageSize(Number(value));
                 setCurrentPage(1);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
+              className="w-20"
+              options={[
+                { value: 20, label: '20' },
+                { value: 50, label: '50' },
+                { value: 100, label: '100' },
+              ]}
+            />
             <span className="text-base text-slate-500">entries</span>
           </div>
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
         </div>
-        <div className="overflow-x-auto rounded-xl bg-white border border-slate-200">
-          <table className="w-full border-separate border-spacing-y-1.5">
+        <Card hover>
+          <div className="overflow-x-auto">
+            <table className="w-full border-separate border-spacing-y-1.5">
             <thead>
               <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
                 <th className="rounded-l-xl bg-slate-50 px-5 py-3">Username</th>
@@ -227,6 +224,7 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
+        </Card>
 
         <Pagination
           total={totalFiltered}
@@ -273,9 +271,7 @@ function UserRow({
         {user.name}
       </td>
       <td className="bg-white px-4 py-3 border-b border-slate-100">
-        <span
-          className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium border ${ROLE_STYLE[user.role]}`}
-        >
+        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium border ${ROLE_STYLE[user.role]}`}>
           {user.role}
         </span>
       </td>
@@ -284,18 +280,12 @@ function UserRow({
       </td>
       <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
         <div className="flex items-center justify-end gap-2">
-          <button
-            onClick={() => onEditUser(user)}
-            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 transition"
-          >
+          <Button size="small" onClick={() => onEditUser(user)}>
             Edit
-          </button>
-          <button
-            onClick={() => onDeleteUser(user)}
-            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition"
-          >
+          </Button>
+          <Button size="small" danger onClick={() => onDeleteUser(user)}>
             Delete
-          </button>
+          </Button>
         </div>
       </td>
     </tr>

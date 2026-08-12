@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ConfigProvider } from 'antd';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/login/page';
@@ -21,7 +21,33 @@ import ClientPage from './pages/Client/client';
 
 function App() {
   return (
-    <BrowserRouter>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#4F46E5',
+          borderRadius: 12,
+          fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        },
+        components: {
+          Card: {
+            borderRadiusLG: 16,
+          },
+          Button: {
+            borderRadius: 10,
+          },
+          Input: {
+            borderRadius: 10,
+          },
+          Select: {
+            borderRadius: 10,
+          },
+          Modal: {
+            borderRadiusLG: 16,
+          },
+        },
+      }}
+    >
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
@@ -99,6 +125,7 @@ function App() {
         <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />
       </Routes>
     </BrowserRouter>
+    </ConfigProvider>
   );
 }
 

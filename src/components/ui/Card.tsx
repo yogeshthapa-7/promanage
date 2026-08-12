@@ -1,4 +1,7 @@
+'use client';
+
 import type { ReactNode, HTMLAttributes } from 'react';
+import { Card as AntCard } from 'antd';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -14,15 +17,32 @@ export default function Card({
   padding = 'p-6',
   ...rest
 }: CardProps) {
+  const bodyStyle: React.CSSProperties = padding === 'p-6' ? { padding: 16 } : {};
+  
   return (
-    <div
-      className={`bg-gradient-to-br from-[#f8faff] via-[#f0f4fd] to-[#e8eef8] rounded-2xl border border-white/50 overflow-hidden ${hover ? 'card-hover gpu-layer-card hover:scale-[1.01]' : ''} ${className}`}
-      style={{ boxShadow: '0 1px 3px rgba(124,58,237,0.04), 0 8px 24px rgba(124,58,237,0.06)' }}
+    <AntCard
+      className={className}
+      bodyStyle={bodyStyle}
+      style={{
+        boxShadow: '0 1px 3px rgba(124,58,237,0.04), 0 8px 24px rgba(124,58,237,0.06)',
+        transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1)',
+        ...(hover ? { cursor: 'pointer' } : {}),
+      }}
+      onMouseEnter={(e) => {
+        if (hover) {
+          e.currentTarget.style.transform = 'scale(1.02)';
+          e.currentTarget.style.boxShadow = '0 8px 30px rgba(79,70,229,0.18)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (hover) {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 1px 3px rgba(124,58,237,0.04), 0 8px 24px rgba(124,58,237,0.06)';
+        }
+      }}
       {...rest}
     >
-      <div className={padding === 'p-6' ? 'p-4' : padding}>
-        {children}
-      </div>
-    </div>
+      {children}
+    </AntCard>
   );
 }

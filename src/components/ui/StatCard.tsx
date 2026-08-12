@@ -1,7 +1,9 @@
+'use client';
+
 import { memo, useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { Card } from 'antd';
 import Highcharts from 'highcharts';
-import Card from './Card';
 
 type IconType = 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
 
@@ -61,14 +63,14 @@ const StatCard = memo(function StatCard({
   }, [sparklineData, sparklineColor]);
 
   return (
-    <Card hover>
+    <Card>
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1 flex-1 min-w-0">
           <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
           <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">{value}</p>
         </div>
         <div
-          className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+          className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
           style={{ background: iconBg, color: iconColor }}
         >
           {icon ?? iconMap[iconType]}

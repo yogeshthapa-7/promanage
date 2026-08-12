@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Tag as AntTag } from 'antd';
 
 interface BadgeProps {
   children: ReactNode;
@@ -7,21 +8,30 @@ interface BadgeProps {
   style?: React.CSSProperties;
 }
 
-const variantStyles = {
-  default: 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold',
-  status: 'badge-status',
-  priority: 'badge-priority',
-  outline: 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border border-border',
-};
-
 export default function Badge({
   children,
   variant = 'default',
   className = '',
+  style,
 }: BadgeProps) {
+  const color = style?.color as string | undefined;
+  const bg = (style?.background as string) || undefined;
+
+  if (variant === 'outline') {
+    return (
+      <AntTag bordered style={bg ? { borderColor: color || bg, color } : undefined} className={className}>
+        {children}
+      </AntTag>
+    );
+  }
+
   return (
-    <span className={`${variantStyles[variant]} ${className}`}>
+    <AntTag
+      color={bg ? undefined : (color || 'default')}
+      style={bg ? { background: bg, borderColor: bg, color } : style}
+      className={className}
+    >
       {children}
-    </span>
+    </AntTag>
   );
 }
