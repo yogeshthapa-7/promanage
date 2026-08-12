@@ -21,6 +21,17 @@ import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
 // import DepartmentFormModal from './DepartmentFormModal';
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 export default function DepartmentPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +50,9 @@ export default function DepartmentPage() {
   const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
   const [deptNameLoading, setDeptNameLoading] = useState(false);
 
+  const debouncedDeptCode = useDebounce(filterDeptCode, 300);
+  const debouncedMainDept = useDebounce(filterMainDept, 300);
+
 
    useEffect(() => {
     if (activeTab !== 'department') return;
@@ -51,8 +65,8 @@ export default function DepartmentPage() {
       start: (currentPage - 1) * pageSize,
       length: pageSize,
       departmentId: filterDeptId,
-      code: filterDeptCode,
-      mainDept: filterMainDept,
+      code: debouncedDeptCode,
+      mainDept: debouncedMainDept,
       signal: controller.signal,
     })
        .then((result) => {
@@ -74,7 +88,7 @@ export default function DepartmentPage() {
        cancelled = true;
        controller.abort();
      };
-    }, [currentPage, pageSize, filterDeptId, filterDeptCode, filterMainDept, refreshKey, activeTab]);
+    }, [currentPage, pageSize, filterDeptId, debouncedDeptCode, debouncedMainDept, refreshKey, activeTab]);
 
   useEffect(() => {
     const controller = new AbortController();

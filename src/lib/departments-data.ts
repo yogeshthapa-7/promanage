@@ -70,7 +70,7 @@ export async function fetchDepartments(
 ): Promise<FetchDepartmentsResult> {
   try {
     return await cachedQuery(
-      ['departments', 'search', params.search, params.start, params.length, params.name, params.code, params.mainDept],
+      ['departments', 'search', params.search, params.start, params.length, params.name, params.code, params.mainDept, params.departmentId],
       (signal) => doFetchDepartments(params, signal),
       params.signal
     );
@@ -123,9 +123,10 @@ export interface DepartmentSelectOption {
 
 interface ApiSelectItem {
   DepartmentID?: number | string;
+  DepartmentInfoID?: number | string;
   DepartmentName?: string;
-  id?: number | string;
   name?: string;
+  id?: number | string;
   Value?: number | string;
   Text?: string;
 }
