@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, 
   // Upload, 
@@ -9,13 +9,14 @@ import {
   FileSpreadsheet, 
   Printer,
   Pencil,
-  Trash2
+  Trash2,
+  FileInputIcon
 } from 'lucide-react';
-import { Modal, message, Select } from 'antd';
+import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import { apiCall } from '@/lib/api';
-import { fetchDepartments, type Department } from '@/lib/departments-data';
+import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
 // import DepartmentFormModal from './DepartmentFormModal';
@@ -32,27 +33,14 @@ export default function DepartmentPage() {
   const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>('department');
 
   // Filter Form States
-  const [filterDeptName, setFilterDeptName] = useState('');
+  const [filterDeptId, setFilterDeptId] = useState<string | undefined>(undefined);
   const [filterDeptCode, setFilterDeptCode] = useState('');
   const [filterMainDept, setFilterMainDept] = useState<string | undefined>(undefined);
+  const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
+  const [deptNameLoading, setDeptNameLoading] = useState(false);
 
-  const mainDepartmentOptions = [
-    { value: '1', label: 'प्रशासन विभाग' },
-    { value: '2', label: 'वित्तीय विभाग' },
-    { value: '3', label: 'सार्वजनिक निर्माण विभाग' },
-    { value: '4', label: 'योजना तथा अनुगमन विभाग' },
-    { value: '5', label: 'कानुन शाखा' },
-  ];
 
-  const mockDepartments: Department[] = useMemo(() => [
-    { id: '19', sn: 1, name: 'प्रशासन विभाग', departmentCode: '0x1', parentDepartmentId: 19, parentDepartmentName: 'प्रशासन विभाग', orderKey: 1, status: 1 },
-    { id: '22', sn: 2, name: 'राजस्व विभाग', departmentCode: '0x1', parentDepartmentId: 0, parentDepartmentName: '', orderKey: 2, status: 1 },
-    { id: '23', sn: 3, name: 'सार्वजनिक निर्माण विभाग', departmentCode: '0x1', parentDepartmentId: 0, parentDepartmentName: '', orderKey: 3, status: 1 },
-    { id: '24', sn: 4, name: 'सहरी व्यवस्थापन विभाग', departmentCode: '0x1', parentDepartmentId: 0, parentDepartmentName: '', orderKey: 4, status: 1 },
-    { id: '25', sn: 5, name: 'कानुन तथा मानव अधिकार विभाग', departmentCode: '0x1', parentDepartmentId: 0, parentDepartmentName: '', orderKey: 5, status: 1 },
-  ], []);
-
-  useEffect(() => {
+   useEffect(() => {
     if (activeTab !== 'department') return;
 
     let cancelled = false;
@@ -62,36 +50,47 @@ export default function DepartmentPage() {
       search: '',
       start: (currentPage - 1) * pageSize,
       length: pageSize,
-      name: filterDeptName,
+      departmentId: filterDeptId,
       code: filterDeptCode,
       mainDept: filterMainDept,
       signal: controller.signal,
     })
-      .then((result) => {
-        if (!cancelled) {
-          setDepartments(result.departments.length ? result.departments : mockDepartments);
-          setTotalFiltered(result.filtered || mockDepartments.length);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        if (!cancelled) {
-          setDepartments(mockDepartments);
-          setTotalFiltered(mockDepartments.length);
-          setLoading(false);
-        }
+       .then((result) => {
+         if (!cancelled) {
+           setDepartments(result.departments);
+           setTotalFiltered(result.filtered || result.departments.length);
+           setLoading(false);
+         }
+       })
+       .catch((err) => {
+         if (err.name === 'AbortError') return;
+         if (!cancelled) {
+           setDepartments([]);
+           setTotalFiltered(0);
+           setLoading(false);
+         }
+       });
+     return () => {
+       cancelled = true;
+       controller.abort();
+     };
+    }, [currentPage, pageSize, filterDeptId, filterDeptCode, filterMainDept, refreshKey, activeTab]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setDeptNameLoading(true);
+    fetchDepartmentSelectList(controller.signal)
+      .then((options) => setDeptNameOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setDeptNameLoading(false);
       });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, filterDeptName, filterDeptCode, filterMainDept, refreshKey, mockDepartments, activeTab]);
+    return () => controller.abort();
+  }, []);
 
   const refreshDepartments = () => setRefreshKey((prev) => prev + 1);
 
   const handleClear = () => {
-    setFilterDeptName('');
+    setFilterDeptId(undefined);
     setFilterDeptCode('');
     setFilterMainDept(undefined);
     setCurrentPage(1);
@@ -194,47 +193,52 @@ export default function DepartmentPage() {
       <div className="space-y-4">
         {/* Single Row: Inputs + Inline Search & Clear */}
         <div className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Department Name / विभागको नाम
-            </label>
-            <input
-              type="text"
-              placeholder="Search by department name..."
-              value={filterDeptName}
-              onChange={(e) => setFilterDeptName(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-            />
-          </div>
+           <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-semibold text-slate-500 mb-1.5">
+                Department Name / विभागको नाम
+              </label>
+              <Select
+                placeholder="Search by department name..."
+                value={filterDeptId}
+                onChange={(value) => setFilterDeptId(value)}
+                options={deptNameOptions}
+                className="w-full"
+                allowClear
+                loading={deptNameLoading}
+                showSearch
+                filterOption={(input, option) =>
+                  ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </div>
 
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-             Department Code / विभाग कोड
-            </label>
-            <input
-              type="text"
-              placeholder="Search by department code..."
-              value={filterDeptCode}
-              onChange={(e) => setFilterDeptCode(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-            />
-          </div>
+<div className="flex-1 min-w-[200px]">
+  <label className="block text-sm font-semibold text-slate-500 mb-1.5">
+    Department Code / विभाग कोड
+  </label>
+  {/* <div className="relative flex items-center h-11 w-full rounded-xl border border-slate-200 bg-white px-3 shadow-2xs transition-all duration-200 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-400/20 hover:border-slate-300"> */}
+    <Input
+      type="text"
+      placeholder="Search by department code..."
+      value={filterDeptCode}
+      onChange={(e) => setFilterDeptCode(e.target.value)}
+      className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
+    />
+  {/* </div> */}
+</div>
 
-          <div className="flex-1 min-w-[220px]">
-            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Parent Department / प्रमुख विभाग
-            </label>
-            <input
-            type = "text"
-              placeholder="Search by parent department..."
-              value={filterMainDept}
-              onChange={(val) => setFilterMainDept(val)}
-              options={mainDepartmentOptions}
-              allowClear
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-              style={{ height: '42px' }}
-            />
-          </div>
+           <div className="flex-1 min-w-[220px]">
+             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
+               Parent Department / प्रमुख विभाग
+             </label>
+             <Input
+               type="text"
+               placeholder="Search by parent department..."
+               value={filterMainDept}
+               onChange={(e) => setFilterMainDept(e.target.value)}
+               className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
+             />
+           </div>
 
           <div className="flex items-center gap-2">
             <button
@@ -303,61 +307,63 @@ export default function DepartmentPage() {
 
       {/* 4. ONLY Table is in a White Container Card */}
       <div className="bg-white rounded-t-3xl rounded-b-xl shadow-xs border border-slate-100/80 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
-                <th className="py-4 px-6 text-center w-16">S.N.</th>
-                <th className="py-4 px-6">Department Name / विभागको नाम</th>
-                <th className="py-4 px-6">Parent Department / प्रमुख विभाग</th>
-                <th className="py-4 px-6 text-center w-40">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {loading ? (
-                <TableSkeleton columns={4} rows={6} message="Loading departments..." />
-              ) : departments.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    No department records found.
-                  </td>
+        {loading ? (
+          <TableSkeleton columns={4} rows={6} message="Loading departments..." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
+                  <th className="py-4 px-6 text-center w-16">S.N.</th>
+                  <th className="py-4 px-6">Department Name / विभागको नाम</th>
+                  <th className="py-4 px-6">Parent Department / प्रमुख विभाग</th>
+                  <th className="py-4 px-6 text-center w-40">Actions</th>
                 </tr>
-              ) : (
-                departments.map((dept, index) => (
-  <tr key={dept.id ?? `dept-${index}`} className="hover:bg-slate-50/50 transition">
-                    <td className="py-4 px-6 text-center text-slate-400 font-medium">
-                      {dept.sn}
-                    </td>
-                    <td className="py-4 px-6 font-bold text-slate-800">
-                      {dept.name}
-                    </td>
-                    <td className="py-4 px-6 font-medium text-slate-600">
-                      {dept.parentDepartmentName || ' '}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(dept)}
-                          className="bg-purple-50 hover:bg-purple-100 text-purple-600 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
-                        >
-                          <Pencil className="w-3 h-3" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(dept)}
-                          className="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Delete
-                        </button>
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {departments.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-12 text-center text-slate-400">
+                      No department records found.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  departments.map((dept, index) => (
+                    <tr key={dept.id ?? `dept-${index}`} className="hover:bg-slate-50/50 transition">
+                      <td className="py-4 px-6 text-center text-slate-400 font-medium">
+                        {dept.sn}
+                      </td>
+                      <td className="py-4 px-6 font-bold text-slate-800">
+                        {dept.name}
+                      </td>
+                      <td className="py-4 px-6 font-medium text-slate-600">
+                        {dept.parentDepartmentName || ' '}
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(dept)}
+                            className="bg-purple-50 hover:bg-purple-100 text-purple-600 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
+                          >
+                            <Pencil className="w-3 h-3" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(dept)}
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* 5. Pagination */}

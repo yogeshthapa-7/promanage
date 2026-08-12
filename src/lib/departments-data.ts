@@ -37,6 +37,7 @@ interface FetchDepartmentsParams {
   name?: string;
   code?: string;
   mainDept?: string;
+  departmentId?: string;
   signal?: AbortSignal;
 }
 
@@ -58,6 +59,7 @@ function buildSearchBody(params: FetchDepartmentsParams) {
       search: params.search,
       DepartmentName: params.name || '',
       DepartmentCode: params.code || '',
+      DepartmentID: params.departmentId ? Number(params.departmentId) : 0,
       MainDepartmentID: params.mainDept ? Number(params.mainDept) : 0,
     },
   };
@@ -112,4 +114,61 @@ function mapApiRowToDepartment(row: ApiDepartmentRow): Department {
     orderKey: row.OrderKey,
     status: row.Status,
   };
+}
+
+export interface DepartmentSelectOption {
+  value: string;
+  label: string;
+}
+
+interface ApiSelectItem {
+  DepartmentID?: number | string;
+  DepartmentName?: string;
+  id?: number | string;
+  name?: string;
+  Value?: number | string;
+  Text?: string;
+}
+
+const SELECT_LIST_URL =
+  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
+  '/Department/SelectList';
+
+function mapSelectItem(item: ApiSelectItem): DepartmentSelectOption {
+  const value = String(
+    item.DepartmentID ?? item.DepartmentInfoID ?? item.id ?? item.Value ?? ''
+  );
+  const label = String(
+    item.DepartmentName ?? item.name ?? item.Text ?? value
+  );
+  return { value, label };
+}
+
+export async function fetchDepartmentSelectList(
+  signal?: AbortSignal
+): Promise<DepartmentSelectOption[]> {
+  try {
+    const res = await apiCall(
+      SELECT_LIST_URL,
+      { method: 'GET', signal },
+      30000
+    );
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch department list: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+    const rows: ApiSelectItem[] = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.data)
+        ? json.data
+        : Array.isArray(json?.Data)
+          ? json.Data
+          : [];
+
+    return rows.map(mapSelectItem);
+  } catch {
+    return [];
+  }
 }
