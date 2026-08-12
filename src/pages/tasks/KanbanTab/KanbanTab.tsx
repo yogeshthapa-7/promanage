@@ -3,6 +3,9 @@ import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import Pagination from "@/components/ui/Pagination";
 import { BlockSkeleton } from "@/components/ui/Loaders";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import { Select } from "antd";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const KANBAN_API = `${API_BASE}/ProjectDetail/GetKanbanData`;
@@ -223,7 +226,7 @@ export default function KanbanTab({ project }: KanbanTabProps) {
         {columnsData.columns.map((column) => {
           const columnItems = columnsData.map[column.key] || [];
           return (
-            <div key={column.key} className="min-w-[300px] w-[300px] flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+            <Card key={column.key} className="min-w-[300px] w-[300px] flex flex-col p-0">
               <div
                 className="px-4 py-3 rounded-t-xl border-b"
                 style={{
@@ -233,48 +236,41 @@ export default function KanbanTab({ project }: KanbanTabProps) {
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-700">{column.label}</span>
-                  <span
-                    className="text-sm font-bold px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: column.color }}
-                  >
-                    {columnItems.length}
-                  </span>
+                  <Badge style={{ background: column.color, color: '#fff' }}>{columnItems.length}</Badge>
                 </div>
               </div>
-              <div className="flex-1 p-3 space-y-3 min-h-[180px] max-h-[calc(100vh-340px)] overflow-y-auto bg-white">
+              <div className="flex-1 p-3 space-y-3 min-h-[180px] max-h-[calc(100vh-340px)] overflow-y-auto">
                 {columnItems.map((item) => (
-                  <div
+                  <Card
                     key={`${item.CardKey}-${item.CardID}`}
-                    className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
+                    hover
+                    className="cursor-pointer"
                   >
                     <h4 className="text-sm font-bold text-slate-900 line-clamp-2 leading-tight">
                       {getItemTitle(item)}
                     </h4>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                      <span
-                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-sm font-semibold ${
-                          item.PriorityName === "Urgent"
-                            ? "bg-rose-100 text-rose-700"
-                            : item.PriorityName === "High"
-                            ? "bg-amber-100 text-amber-700"
-                            : item.PriorityName === "Medium"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
+                      <Badge
+                        style={{
+                          background: item.PriorityName === "Urgent" ? '#FEE2E2' : item.PriorityName === "High" ? '#FFF7ED' : item.PriorityName === "Medium" ? '#FFFBEB' : '#F3F4F6',
+                          color: item.PriorityName === "Urgent" ? '#EF4444' : item.PriorityName === "High" ? '#EA580C' : item.PriorityName === "Medium" ? '#D97706' : '#6B7280',
+                        }}
                       >
                         {item.PriorityName}
-                      </span>
-                      <span
-                        className="inline-flex items-center rounded-full px-1.5 py-0.5 text-sm font-semibold text-slate-700"
-                        style={{ backgroundColor: `${item.StatusColor}18`, color: item.StatusColor }}
+                      </Badge>
+                      <Badge
+                        style={{
+                          background: `${item.StatusColor}18`,
+                          color: item.StatusColor,
+                        }}
                       >
                         {item.StatusName}
-                      </span>
+                      </Badge>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-base text-muted-foreground">
                       <span className="truncate max-w-[60%]">{getItemManager(item) || "—"}</span>
                     </div>
-                  </div>
+                  </Card>
                 ))}
                 {columnItems.length === 0 && (
                   <div className="text-base text-slate-400 text-center py-8 border border-dashed border-slate-200 rounded-lg bg-slate-50">
@@ -282,7 +278,7 @@ export default function KanbanTab({ project }: KanbanTabProps) {
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>

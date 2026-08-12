@@ -4,6 +4,11 @@ import { fetchTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem, TaskManagerInfo } from "@/lib/tasks-data";
 import Pagination from "@/components/ui/Pagination";
 import { CardPanelSkeleton } from "@/components/ui/Loaders";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import SearchInput from "@/components/ui/SearchInput";
+import Badge from "@/components/ui/Badge";
+import { Avatar } from "@/components/ui/Avatar";
 
 export type { TaskItem, SubTaskItem, TaskManagerInfo };
 
@@ -105,21 +110,15 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search tasks..."
-            className="text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 w-full bg-white focus:outline-none focus:border-purple-500"
-          />
-        </form>
-        <button
-  onClick={() => { /* open add-task modal / navigate */ }}
-  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm cursor-pointer whitespace-nowrap"
->
-  Add New Task
-</button>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search tasks..."
+          containerClassName="flex-1 max-w-md"
+        />
+        <Button type="primary" onClick={() => { /* open add-task modal / navigate */ }}>
+          Add New Task
+        </Button>
       </div>
 
       {error && (
@@ -136,12 +135,15 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
             const statusClass = statusColor[task.WorkStatusName] ?? "bg-gray-100 text-gray-700";
             const priorityClass = priorityColor[task.PriorityName] ?? "bg-gray-100 text-gray-700";
             const isExpanded = selectedTask?.TaskInfoID === task.TaskInfoID;
+            const worker = task.TaskManagerInfo
+              ? { EmployeeInfoID: task.TaskManagerInfo.EmployeeInfoID, Fullname: task.TaskManagerInfo.Fullname, Photo: task.TaskManagerInfo.Photo ?? task.TaskManagerPhoto ?? '' }
+              : { EmployeeInfoID: task.TaskManagerID, Fullname: task.TaskManagerName ?? '' };
+
             return (
-              <div
+              <Card
                 key={task.TaskInfoID}
-                className={`rounded-xl border bg-white p-4 flex flex-col gap-3 transition-all cursor-pointer ${
-                  isExpanded ? "border-purple-500 ring-2 ring-purple-100" : "border-slate-200 hover:border-slate-300"
-                }`}
+                hover
+                className={`cursor-pointer ${isExpanded ? "border-purple-500 ring-2 ring-purple-100" : ""}`}
                 onClick={() => handleSelect(task)}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -150,8 +152,10 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
                     {task.TaskCode && <p className="text-base text-muted-foreground font-mono mt-0.5">{task.TaskCode}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold ${statusClass}`}>{task.WorkStatusName}</span>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold ${priorityClass}`}>{task.PriorityName}</span>
+                    <Badge style={{ background: statusClass.includes('bg-') ? undefined : undefined, color: statusClass.includes('text-') ? undefined : undefined }} className={statusClass}>
+                      {task.WorkStatusName}
+                    </Badge>
+                    <Badge className={priorityClass}>{task.PriorityName}</Badge>
                   </div>
                 </div>
 
@@ -163,13 +167,9 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <WorkerInfo
-                    worker={
-                      task.TaskManagerInfo
-                        ? { EmployeeInfoID: task.TaskManagerInfo.EmployeeInfoID, Fullname: task.TaskManagerInfo.Fullname, Photo: task.TaskManagerInfo.Photo ?? task.TaskManagerPhoto ?? '' }
-                        : { EmployeeInfoID: task.TaskManagerID, Fullname: task.TaskManagerName ?? '' }
-                    }
-                  />
+                  <Avatar src={worker.Photo} alt={worker.Fullname} size={28}>
+                    {worker.Fullname.charAt(0).toUpperCase()}
+                  </Avatar>
                   <span className="text-base text-muted-foreground">Weightage: {task.Weightage}</span>
                 </div>
 
@@ -178,7 +178,7 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
                     <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Selected for subtasks</p>
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })}
         </div>

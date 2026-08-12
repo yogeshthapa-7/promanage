@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
+import Card from "@/components/ui/Card";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TIMELINE_API = `${API_BASE}/ProjectTimelineInfo/ServerSearch`;
@@ -80,20 +81,17 @@ export default function TimelineTab({ project }: TimelineTabProps) {
 
   if (timelinesLoading) {
     return (
-      <div className="w-full max-w-5xl mx-auto rounded-2xl border border-slate-100 bg-white/80 p-12 text-center shadow-sm">
-        <div className="animate-pulse flex flex-col items-center gap-3">
-          <div className="h-4 w-32 bg-slate-200 rounded" />
-          <div className="h-3 w-48 bg-slate-100 rounded" />
-        </div>
-      </div>
+      <Card>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading timeline...</div>
+      </Card>
     );
   }
 
   if (timelines.length === 0) {
     return (
-      <div className="w-full max-w-5xl mx-auto rounded-2xl border border-dashed border-slate-200 bg-white/80 p-16 text-center text-sm font-medium text-slate-400">
-        No progress history found for this project.
-      </div>
+      <Card>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No progress history found for this project.</div>
+      </Card>
     );
   }
 
@@ -173,15 +171,7 @@ function TimelineCard({
   itemNumber: number;
 }) {
   return (
-    <div
-      className={`
-        timeline-card
-        group w-full max-w-md
-        rounded-xl p-5
-        flex flex-col gap-3
-        relative
-      `}
-    >
+    <Card className={`group w-full max-w-md`}>
       {/* Top row with Category Action & Visual Number Tag */}
       <div className="flex items-center justify-between gap-4">
         <span className={`text-sm font-bold uppercase tracking-wider ${palette.text}`}>
@@ -208,6 +198,6 @@ function TimelineCard({
         <span>•</span>
         <span>{item.CreatedTime}</span>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -22,7 +22,7 @@ export default function Card({
   return (
     <AntCard
       className={className}
-      bodyStyle={bodyStyle}
+      styles={{ body: bodyStyle }}
       style={{
         boxShadow: '0 1px 3px rgba(124,58,237,0.04), 0 8px 24px rgba(124,58,237,0.06)',
         transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1)',

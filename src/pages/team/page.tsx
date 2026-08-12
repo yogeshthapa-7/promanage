@@ -20,6 +20,13 @@ import {
 } from "lucide-react";
 import { Modal, Form, Input, Select, Slider, message, Upload } from "antd";
 import DropdownMenu from "@/components/ui/DropdownMenu";
+import Card from "@/components/ui/Card";
+import StatCard from "@/components/ui/StatCard";
+import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
+import { Avatar } from "@/components/ui/Avatar";
+import ProgressBar from "@/components/ui/ProgressBar";
+import SearchInput from "@/components/ui/SearchInput";
 
 type MemberRole = "Admin" | "Member" | "Guest";
 type MemberStatus = "Active" | "Away" | "On Leave";
@@ -435,96 +442,88 @@ export default function TeamMembersPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowInviteModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 shadow-sm"
-        >
-          <UserPlus className="h-4 w-4" strokeWidth={2.5} />
+        <Button type="primary" onClick={() => setShowInviteModal(true)} icon={<UserPlus className="h-4 w-4" strokeWidth={2.5} />}>
           Add Member
-        </button>
+        </Button>
       </div>
       <hr className="border-slate-200 my-6" />
 
       {/* Filter and Control Bar */}
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-5 md:items-end">
-        <div className="relative md:col-span-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            placeholder="Search member or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          />
-        </div>
-        <FilterSelect
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search member or email..."
+          containerClassName="md:col-span-1"
+        />
+        <Select
           label="Role"
           value={roleFilter}
-          onSelect={setRoleFilter}
-          options={["All Roles", "Admin", "Member", "Guest"]}
+          onChange={setRoleFilter}
+          options={[
+            { value: 'All Roles', label: 'All Roles' },
+            { value: 'Admin', label: 'Admin' },
+            { value: 'Member', label: 'Member' },
+            { value: 'Guest', label: 'Guest' },
+          ]}
+          className="w-full"
         />
-        <FilterSelect
+        <Select
           label="Department"
           value={deptFilter}
-          onSelect={setDeptFilter}
-          options={["All Departments", ...allDepartments]}
+          onChange={setDeptFilter}
+          options={[
+            { value: 'All Departments', label: 'All Departments' },
+            ...allDepartments.map((d) => ({ value: d, label: d })),
+          ]}
+          className="w-full"
         />
-        <FilterSelect
+        <Select
           label="Status"
           value={statusFilter}
-          onSelect={setStatusFilter}
-          options={["All Status", "Active", "Away", "On Leave"]}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'All Status', label: 'All Status' },
+            { value: 'Active', label: 'Active' },
+            { value: 'Away', label: 'Away' },
+            { value: 'On Leave', label: 'On Leave' },
+          ]}
+          className="w-full"
         />
         <div className="flex items-end gap-2">
-          <select
+          <Select
             value={sortField}
-            onChange={(e) => setSortField(e.target.value)}
-            className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          >
-            <option value="name">Sort by Name</option>
-            <option value="role">Sort by Role</option>
-            <option value="department">Sort by Department</option>
-            <option value="workload">Sort by Workload</option>
-          </select>
-          <button
+            onChange={setSortField}
+            options={[
+              { value: 'name', label: 'Sort by Name' },
+              { value: 'role', label: 'Sort by Role' },
+              { value: 'department', label: 'Sort by Department' },
+              { value: 'workload', label: 'Sort by Workload' },
+            ]}
+            className="flex-1"
+          />
+          <Button
             onClick={() => setSortDir(sortDir === "asc" ? "desc" : "asc")}
-            className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
-          >
-            {sortDir === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
+            icon={sortDir === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          />
         </div>
       </div>
 
       {/* Metric Stat Cards */}
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         {statCards.map((c) => (
-          <div
+          <StatCard
             key={c.label}
-            className="rounded-xl bg-white p-4 border border-slate-200/60 transition hover:shadow-md"
-          >
-            <div className="flex items-start justify-between">
-              <div className={`grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br ${c.iconBg}`}>
-                <c.icon className="h-5 w-5" strokeWidth={2.2} />
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-medium text-slate-500">{c.label}</div>
-                <div className="text-2xl font-bold leading-tight text-slate-800">{c.value}</div>
-              </div>
-            </div>
-            <div className="mt-4 flex items-end justify-between">
-              <div className="flex items-center gap-1 text-sm">
-                {c.up ? (
-                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                ) : (
-                  <TrendingDown className="h-3.5 w-3.5 text-rose-500" />
-                )}
-                <span className={c.up ? "font-semibold text-emerald-600" : "font-semibold text-rose-500"}>
-                  {c.change}
-                </span>
-                <span className="text-slate-400">vs last month</span>
-              </div>
-              <Sparkline data={c.data} color={c.line} />
-            </div>
-          </div>
+            title={c.label}
+            value={c.value}
+            trend={c.change}
+            trendUp={c.up}
+            iconBg={c.iconBg.replace('from-', 'from-').replace('to-', 'to-').includes('violet') ? '#F3F0FF' : '#F3F0FF'}
+            iconColor="#7C3AED"
+            icon={<c.icon className="h-5 w-5" strokeWidth={2.2} />}
+            sparklineData={c.data}
+            sparklineColor={c.line}
+          />
         ))}
       </div>
 

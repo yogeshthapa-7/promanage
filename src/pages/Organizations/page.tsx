@@ -3,8 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Building2 } from 'lucide-react';
 import { Modal, message } from 'antd';
+import { Button, Input, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
+import Card from '@/components/ui/Card';
+import SearchInput from '@/components/ui/SearchInput';
 import { fetchOrganizations, type Organization } from '@/lib/organizations-data';
 import CreateOrganizationModal from './Create';
 import { apiCall } from '@/lib/api';
@@ -112,13 +115,9 @@ export default function OrganizationPage() {
             Manage organizations, view details, and update or remove entries.
           </p>
         </div>
-        <button
-          onClick={handleAddNew}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 shadow-sm"
-        >
-          <Plus className="h-4 w-4" />
+        <Button type="primary" onClick={handleAddNew} icon={<Plus className="h-4 w-4" />}>
           Add Organization
-        </button>
+        </Button>
       </div>
       <hr className="border-slate-200 my-6" />
 
@@ -126,31 +125,21 @@ export default function OrganizationPage() {
         <div className="md:col-span-2">
           <div className="mb-1 text-sm font-medium text-slate-500">Title</div>
           <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                placeholder="Search by title..."
-                value={searchQuery}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSearchQuery(value);
-                  if (debounceTimerRef.current) {
-                    clearTimeout(debounceTimerRef.current);
-                  }
-                  debounceTimerRef.current = setTimeout(() => {
-                    setCurrentPage(1);
-                  }, 400);
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-              />
-            </div>
-            <button
-              onClick={handleSearch}
-              className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
-            >
-              Search
-            </button>
+            <SearchInput
+              value={searchQuery}
+              onChange={(value) => {
+                setSearchQuery(value);
+                if (debounceTimerRef.current) {
+                  clearTimeout(debounceTimerRef.current);
+                }
+                debounceTimerRef.current = setTimeout(() => {
+                  setCurrentPage(1);
+                }, 400);
+              }}
+              placeholder="Search by title..."
+              containerClassName="flex-1"
+            />
+            <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>
         </div>
       </div>
@@ -159,18 +148,19 @@ export default function OrganizationPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="text-base text-slate-500">Show</span>
-            <select
+            <Select
               value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
+              onChange={(value) => {
+                setPageSize(Number(value));
                 setCurrentPage(1);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
+              className="w-20"
+              options={[
+                { value: 20, label: '20' },
+                { value: 50, label: '50' },
+                { value: 100, label: '100' },
+              ]}
+            />
             <span className="text-base text-slate-500">entries</span>
           </div>
           <span className="text-base text-slate-500">
@@ -188,9 +178,10 @@ export default function OrganizationPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {organizations.map((org) => (
-              <div
+              <Card
                 key={org.id}
-                className="group rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 hover:border-purple-200 overflow-hidden"
+                hover
+                className="group overflow-hidden"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -226,22 +217,14 @@ export default function OrganizationPage() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                  <button
-                    onClick={() => handleEdit(org)}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-600 hover:bg-violet-100 transition cursor-pointer"
-                  >
+                  <Button type="primary" size="small" onClick={() => handleEdit(org)} icon={
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(org)}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 transition cursor-pointer"
-                  >
+                  }>Edit</Button>
+                  <Button size="small" danger onClick={() => handleDelete(org)} icon={
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    Delete
-                  </button>
+                  }>Delete</Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}

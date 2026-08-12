@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
+import Card from "@/components/ui/Card";
+import ProgressBar from "@/components/ui/ProgressBar";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const MILESTONE_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
@@ -80,13 +82,17 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
 
   if (milestonesLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading milestones...</div>
+      <Card>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading milestones...</div>
+      </Card>
     );
   }
 
   if (milestones.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No milestones found.</div>
+      <Card>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No milestones found.</div>
+      </Card>
     );
   }
 
@@ -95,15 +101,15 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
       {milestones.map((milestone) => {
         const progressColor =
           milestone.Progress >= 75
-            ? "bg-emerald-500"
+            ? "#10B981"
             : milestone.Progress >= 40
-            ? "bg-blue-500"
+            ? "#3B82F6"
             : milestone.Progress > 0
-            ? "bg-amber-500"
-            : "bg-gray-300";
+            ? "#F59E0B"
+            : "#D1D5DB";
 
         return (
-          <div key={milestone.ProjectMilestoneID} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col gap-3">
+          <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
               <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
@@ -113,12 +119,7 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
               <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>
             )}
 
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
-                style={{ width: `${Math.min(milestone.Progress, 100)}%` }}
-              />
-            </div>
+            <ProgressBar value={Math.min(milestone.Progress, 100)} color={progressColor} />
 
             <div className="flex items-center justify-between text-base text-muted-foreground">
               <span>Start: {milestone.StartDate || "—"}</span>
@@ -129,7 +130,7 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
               <span className="text-base text-muted-foreground">Milestone Cost</span>
               <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
             </div>
-          </div>
+          </Card>
         );
       })}
     </div>

@@ -13,8 +13,11 @@ import {
   FileInputIcon
 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
+import { InputNumber } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
 import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
@@ -148,36 +151,9 @@ export default function DepartmentPage() {
       
       {/* 2. Tabs */}
       <div className="flex items-center gap-1 border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('department')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'department'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          विभाग
-        </button>
-        <button
-          onClick={() => setActiveTab('mainbranch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'mainbranch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          मुख्य शाखा
-        </button>
-        <button
-          onClick={() => setActiveTab('branch')}
-          className={`px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'branch'
-              ? 'text-violet-600 border-b-2 border-violet-600'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          शाखा
-        </button>
+        <Button type="text" onClick={() => setActiveTab('department')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'department' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>विभाग</Button>
+        <Button type="text" onClick={() => setActiveTab('mainbranch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'mainbranch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>मुख्य शाखा</Button>
+        <Button type="text" onClick={() => setActiveTab('branch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'branch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>शाखा</Button>
       </div>
 
       {activeTab === 'department' && (
@@ -192,15 +168,9 @@ export default function DepartmentPage() {
             विभागीय अभिलेखहरू तथा अभिभावक‑सन्तान संगठन संरचना व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
-        <div className="flex items-start justify-between">
-  <button
-    onClick={handleAddNew}
-    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
-  >
-    <Plus className="w-4 h-4" />
-    Add New Department
-  </button>
-</div>
+        <Button type="primary" onClick={handleAddNew} icon={<Plus className="w-4 h-4" />}>
+          Add New Department
+        </Button>
       </div>
 
       {/* 2. Filters & Actions Row */}
@@ -254,20 +224,10 @@ export default function DepartmentPage() {
               />
             </div>
 
-           <div className="flex items-center gap-2">
-             <button
-               onClick={refreshDepartments}
-               className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium py-2.5 px-7 rounded-full shadow-xs transition-all text-sm cursor-pointer active:scale-95"
-             >
-               Search
-             </button>
-             <button
-               onClick={handleClear}
-               className="bg-white hover:bg-slate-50 text-slate-700 font-medium py-2.5 px-6 rounded-full shadow-xs transition-all text-sm cursor-pointer border border-slate-100 active:scale-95"
-             >
-               Clear
-             </button>
-           </div>
+            <div className="flex items-center gap-2">
+              <Button type="primary" onClick={refreshDepartments}>Search</Button>
+              <Button onClick={handleClear}>Clear</Button>
+            </div>
          </div>
 
         {/* Excel Upload/Download Row
@@ -284,43 +244,38 @@ export default function DepartmentPage() {
       </div>
 
       {/* 3. Table Controls Bar (Entries + Export utilities) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
-          <span>Show</span>
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="rounded-xl border-none bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </select>
-          <span>entries</span>
-        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
+            <span>Show</span>
+            <Select
+              value={pageSize}
+              onChange={(value) => {
+                setPageSize(Number(value));
+                setCurrentPage(1);
+              }}
+              className="w-20"
+              options={[
+                { value: 10, label: '10' },
+                { value: 20, label: '20' },
+                { value: 50, label: '50' },
+              ]}
+            />
+            <span>entries</span>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
-            <Copy className="w-3.5 h-3.5" /> Copy
-          </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
-            <FileSpreadsheet className="w-3.5 h-3.5" /> CSV
-          </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
-            <Printer className="w-3.5 h-3.5" /> Print
-          </button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
+            <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
+            <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />}>Print</Button>
+          </div>
         </div>
-      </div>
 
       <div className="text-base text-slate-500 font-medium -mt-2">
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
       {/* 4. ONLY Table is in a White Container Card */}
-      <div className="bg-white rounded-t-3xl rounded-b-xl shadow-xs border border-slate-100/80 overflow-hidden">
+      <Card hover>
         {loading ? (
           <TableSkeleton columns={4} rows={6} message="Loading departments..." />
         ) : (
@@ -355,20 +310,8 @@ export default function DepartmentPage() {
                       </td>
                       <td className="py-4 px-6 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(dept)}
-                            className="bg-purple-50 hover:bg-purple-100 text-purple-600 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
-                          >
-                            <Pencil className="w-3 h-3" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(dept)}
-                            className="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            Delete
-                          </button>
+                          <Button size="sm" onClick={() => handleEdit(dept)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
+                          <Button size="sm" danger onClick={() => handleDelete(dept)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
                         </div>
                       </td>
                     </tr>
@@ -378,7 +321,7 @@ export default function DepartmentPage() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* 5. Pagination */}
       <div className="flex justify-end pt-2">

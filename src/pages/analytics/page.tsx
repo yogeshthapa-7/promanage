@@ -15,9 +15,13 @@ import {
   Download,
   RefreshCw,
 } from 'lucide-react';
+import { Select, Button } from 'antd';
 import { getAnalyticsData } from '@/lib/analytics-data';
 import type { AnalyticsData } from '@/lib/analytics-data';
 import { BlockSkeleton } from '@/components/ui/Loaders';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('This Quarter');
@@ -285,34 +289,30 @@ export default function AnalyticsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <select
+          <Select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          >
-            <option value="This Week">This Week</option>
-            <option value="This Month">This Month</option>
-            <option value="This Quarter">This Quarter</option>
-            <option value="This Year">This Year</option>
-          </select>
-          <button
-            onClick={handleRefresh}
-            className={`flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-200 ${refreshing ? 'animate-spin' : ''}`}
-          >
-            <RefreshCw className="h-4 w-4" strokeWidth={2.5} />
+            onChange={setTimeRange}
+            options={[
+              { value: 'This Week', label: 'This Week' },
+              { value: 'This Month', label: 'This Month' },
+              { value: 'This Quarter', label: 'This Quarter' },
+              { value: 'This Year', label: 'This Year' },
+            ]}
+            className="w-40"
+          />
+          <Button onClick={handleRefresh} icon={<RefreshCw className="h-4 w-4" strokeWidth={2.5} />}>
             Refresh
-          </button>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 shadow-sm">
-            <Download className="h-4 w-4" strokeWidth={2.5} />
+          </Button>
+          <Button type="primary" icon={<Download className="h-4 w-4" strokeWidth={2.5} />}>
             Export
-          </button>
+          </Button>
         </div>
       </div>
       <hr className="border-slate-200 my-6" />
 
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         {kpis.slice(0, 4).map((c) => (
-          <div key={c.label} className="rounded-xl bg-white p-4 border border-slate-200/60 transition hover:shadow-md">
+          <Card key={c.label} hover>
             <div className="flex items-start justify-between">
               <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600">
                 <FolderKanban className="h-5 w-5" strokeWidth={2.2} />
@@ -336,13 +336,13 @@ export default function AnalyticsPage() {
                 <span className="text-slate-400">vs prev</span>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
         {kpis.slice(4).map((c) => (
-          <div key={c.label} className="rounded-xl bg-white p-4 border border-slate-200/60 transition hover:shadow-md">
+          <Card key={c.label} hover>
             <div className="flex items-start justify-between">
               <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600">
                 <FolderKanban className="h-5 w-5" strokeWidth={2.2} />
@@ -366,20 +366,20 @@ export default function AnalyticsPage() {
                 <span className="text-slate-400">vs prev</span>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="rounded-xl bg-white p-5 border border-slate-200">
+        <Card>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Project Status Breakdown</h3>
               <p className="mt-0.5 text-base text-slate-400">Distribution of projects by current status</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200/60">
+            <Badge style={{ background: '#F3E8FF', color: '#7C3AED', borderColor: '#E9D5FF' }}>
               <PieChart className="h-3 w-3" /> {kpis[0]?.value} Total
-            </span>
+            </Badge>
           </div>
           <div ref={statusChartRef} className="w-full flex justify-center" />
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-3">
@@ -394,23 +394,23 @@ export default function AnalyticsPage() {
           <div className="mt-3 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Insight:</strong> {kpis[2]?.value} projects have been completed successfully. {kpis[3]?.value} project{kpis[3]?.value !== 1 ? 's are' : ' is'} currently overdue and requires immediate attention. {kpis[1]?.value} projects are actively in progress.
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl bg-white p-5 border border-slate-200">
+        <Card>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Project Progress Trend</h3>
               <p className="mt-0.5 text-base text-slate-400">Completed vs in-progress projects over the last 7 months</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+            <Badge style={{ background: '#ECFDF5', color: '#059669', borderColor: '#D1FAE5' }}>
               <TrendingUp className="h-3 w-3" /> +22% Growth
-            </span>
+            </Badge>
           </div>
           <div ref={trendChartRef} className="w-full" />
           <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Trend Analysis:</strong> Completed projects have steadily increased from January through July. The in-progress pipeline shows consistent growth, indicating healthy project initiation rates. Q3 is expected to see the highest delivery volume.
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="rounded-xl bg-white p-5 border border-slate-200">
+        <Card>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Priority Distribution</h3>
@@ -489,27 +489,27 @@ export default function AnalyticsPage() {
           <div className="mt-3 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Priority Insight:</strong> {priorityBreakdown.find((p) => p.label === 'Urgent')?.count || 0} urgent project(s) require immediate resource allocation. {priorityBreakdown.find((p) => p.label === 'High')?.count || 0} high-priority projects are in the active pipeline.
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl bg-white p-5 border border-slate-200">
+        <Card>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-800">Task Completion by Project</h3>
               <p className="mt-0.5 text-base text-slate-400">Top 6 projects by completion rate</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+            <Badge style={{ background: '#ECFDF5', color: '#059669', borderColor: '#D1FAE5' }}>
               <Zap className="h-3 w-3" /> {taskCompletionRate}% Overall
-            </span>
+            </Badge>
           </div>
           <div ref={taskChartRef} className="w-full" />
           <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Task Insight:</strong> {totalTasksCompleted} of {totalTasks} total tasks completed across all projects ({taskCompletionRate}% completion rate). Projects with 100% progress have all tasks closed.
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="rounded-xl bg-white p-5 border border-slate-200">
+        <Card>
           <div className="flex items-center gap-2 mb-3">
             <Calendar className="h-4 w-4 text-violet-500" />
             <h3 className="text-base font-semibold text-slate-800">Timeline Summary</h3>
@@ -539,9 +539,9 @@ export default function AnalyticsPage() {
           <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             The project portfolio is operating at {timelineSummary.teamUtilization} team utilization with a {timelineSummary.onTimeDeliveryRate} on-time delivery rate. Budget utilization is at {timelineSummary.budgetUtilization}, leaving room for new project intake.
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl bg-white p-5 border border-slate-200">
+        <Card>
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="h-4 w-4 text-blue-500" />
             <h3 className="text-base font-semibold text-slate-800">Status Distribution</h3>
@@ -555,9 +555,7 @@ export default function AnalyticsPage() {
                     <span className="font-semibold text-slate-700">{s.label}</span>
                     <span className="font-bold text-slate-800">{s.count} ({pct}%)</span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: s.color }} />
-                  </div>
+                  <ProgressBar value={Number(pct)} color={s.color} />
                 </div>
               );
             })}
@@ -565,9 +563,9 @@ export default function AnalyticsPage() {
           <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Summary:</strong> {kpis[2]?.value} completed projects represent the largest completed batch. {kpis[3]?.value} overdue project{kpis[3]?.value !== 1 ? 's need' : ' needs'} immediate resolution to prevent further delays.
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl bg-white p-5 border border-slate-200">
+        <Card>
           <div className="flex items-center gap-2 mb-3">
             <Target className="h-4 w-4 text-emerald-500" />
             <h3 className="text-base font-semibold text-slate-800">Key Metrics</h3>
@@ -584,7 +582,7 @@ export default function AnalyticsPage() {
           <div className="mt-4 pt-3 border-t border-slate-100 text-base text-slate-500 leading-relaxed">
             <strong>Performance:</strong> The portfolio is tracking ahead of schedule with a {timelineSummary.onTimeDeliveryRate} on-time delivery rate. Budget efficiency is strong at the current cost-per-task ratio.
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

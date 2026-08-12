@@ -325,7 +325,7 @@ export default function EmployeeSetupModal({
   return (
     <Modal
       open={open}
-      destroyOnClose
+      destroyOnHidden
       title={
         <div className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-3">
           Employee Setup Form

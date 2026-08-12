@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 
 interface EntitySummaryCardProps {
   title: string;
@@ -42,13 +43,9 @@ const EntitySummaryCard = memo(function EntitySummaryCard({
         <p className="text-xs font-semibold text-foreground">{title}</p>
         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
       </div>
-      <button
-        onClick={() => navigate(href)}
-        className="text-xs font-semibold transition-colors duration-150 hover:opacity-80 self-start"
-        style={{ color: 'var(--primary)' }}
-      >
+      <Button type="link" size="small" onClick={() => navigate(href)} className="self-start">
         View All
-      </button>
+      </Button>
     </Card>
   );
 });

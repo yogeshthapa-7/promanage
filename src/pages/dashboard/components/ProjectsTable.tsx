@@ -229,13 +229,10 @@ export default function ProjectsTable({
                   style={{ color: 'var(--muted-foreground)', letterSpacing: '0.04em' }}
                 >
                   {col.key ? (
-                    <button
-                      onClick={() => handleSort(col.key as SortKey)}
-                      className="flex items-center gap-1.5 hover:text-primary transition-colors duration-150"
-                    >
+                    <Button type="text" size="small" onClick={() => handleSort(col.key as SortKey)} className="flex items-center gap-1.5 hover:text-primary transition-colors duration-150">
                       {col.label}
                       <SortIcon col={col.key as SortKey} sortKey={sortKey} sortDir={sortDir} />
-                    </button>
+                    </Button>
                   ) : (
                     <span>{col.label}</span>
                   )}

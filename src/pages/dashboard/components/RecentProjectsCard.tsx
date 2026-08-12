@@ -3,6 +3,8 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
 import type { Project } from '@/lib/projects-data';
 
 interface RecentProjectsCardProps {
@@ -29,13 +31,9 @@ const RecentProjectsCard = ({ projects, loading = false }: RecentProjectsCardPro
      <Card className="h-full flex flex-col">
        <div className="flex items-center justify-between mb-3 flex-shrink-0">
          <h2 className="text-sm font-bold text-foreground">Recent Projects</h2>
-        <button
-          onClick={() => navigate('/projects')}
-          className="text-xs font-semibold transition-colors duration-150 hover:opacity-80"
-          style={{ color: 'var(--primary)' }}
-        >
+        <Button type="link" size="small" onClick={() => navigate('/projects')}>
           View All
-        </button>
+        </Button>
       </div>
 
       <div className="flex flex-col gap-2 flex-1 overflow-y-auto scrollbar-thin -mr-2 pr-2">
@@ -53,21 +51,14 @@ const RecentProjectsCard = ({ projects, loading = false }: RecentProjectsCardPro
                 <p className="text-xs font-semibold text-foreground truncate">{project.name}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{formatDate(project.startDate)}</p>
               </div>
-              <span
-                className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                  project.status === 'Completed'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : project.status === 'In Progress'
-                    ? 'bg-blue-100 text-blue-700'
-                    : project.status === 'Overdue'
-                    ? 'bg-rose-100 text-rose-700'
-                    : project.status === 'On Hold'
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
+              <Badge
+                style={{
+                  background: project.status === 'Completed' ? '#ECFDF5' : project.status === 'In Progress' ? '#EFF6FF' : project.status === 'Overdue' ? '#FEF2F2' : project.status === 'On Hold' ? '#FFFBEB' : '#F3F4F6',
+                  color: project.status === 'Completed' ? '#059669' : project.status === 'In Progress' ? '#2563EB' : project.status === 'Overdue' ? '#DC2626' : project.status === 'On Hold' ? '#D97706' : '#6B7280',
+                }}
               >
                 {project.status}
-              </span>
+              </Badge>
             </div>
           ))
         )}

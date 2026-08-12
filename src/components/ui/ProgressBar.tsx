@@ -16,7 +16,7 @@ export default function ProgressBar({
       percent={value}
       showInfo={false}
       strokeColor={color}
-      trailColor="var(--muted)"
+      railColor="var(--muted)"
       size={{ height }}
     />
   );

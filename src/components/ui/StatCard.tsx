@@ -57,6 +57,7 @@ const StatCard = memo(function StatCard({
       yAxis: { visible: false },
       legend: { enabled: false },
       tooltip: { enabled: false },
+      accessibility: { enabled: false },
       plotOptions: { area: { marker: { enabled: false }, lineWidth: 1.5, states: { hover: { lineWidth: 1.5 } }, animation: { duration: 200 } } },
       series: [{ type: 'area', data: sparklineData, color: sparklineColor, fillColor: { linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 }, stops: [[0, sparklineColor + '30'], [1, sparklineColor + '00']] }, lineWidth: 1.5, animation: { duration: 200 } }],
     });

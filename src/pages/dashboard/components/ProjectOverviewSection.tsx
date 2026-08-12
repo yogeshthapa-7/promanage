@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import DropdownMenu from '@/components/ui/DropdownMenu';
 import type { Project } from '@/lib/projects-data';
 
 interface ProjectOverviewSectionProps {
@@ -19,7 +21,6 @@ const STATUS_COLORS: Record<string, string> = {
 export default function ProjectOverviewSection({ projects, loading = false }: ProjectOverviewSectionProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const [period, setPeriod] = useState('This Month');
-  const [periodOpen, setPeriodOpen] = useState(false);
 
   const statusBreakdown = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -52,23 +53,20 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
 
   return (
      <Card className="h-full relative">
-       <div className="flex items-center justify-between mb-3">
-         <h2 className="text-sm font-bold text-foreground">Project Overview</h2>
-        <div className="relative">
-          <button onClick={() => setPeriodOpen(!periodOpen)}           className="btn-ghost text-xs flex items-center gap-1.5 py-1 px-2.5">
-            {period}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          {periodOpen && (
-            <div className="absolute right-0 top-full mt-1 bg-slate-50 border border-slate-200 rounded-xl py-1 z-10" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.10)', minWidth: '120px' }}>
-              {periods.map((p) => (
-                <button key={`period-${p}`} onClick={() => { setPeriod(p); setPeriodOpen(false); }} className="w-full text-left px-3 py-2 text-sm font-medium hover:bg-white hover:shadow-sm transition-colors" style={{ color: p === period ? 'var(--primary)' : 'var(--foreground)' }}>
-                  {p}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-bold text-foreground">Project Overview</h2>
+        <DropdownMenu
+          trigger={
+            <Button size="small" className="text-xs flex items-center gap-1.5">
+              {period}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </Button>
+          }
+          items={periods.map((p) => ({
+            label: p,
+            onClick: () => setPeriod(p),
+          }))}
+        />
       </div>
 
       <div className="flex items-center gap-4">

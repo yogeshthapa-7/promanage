@@ -190,41 +190,43 @@ export default function UsersPage() {
             {totalFiltered} total records
           </span>
         </div>
-        <Card hover>
-          <div className="overflow-x-auto">
-            <table className="w-full border-separate border-spacing-y-1.5">
-            <thead>
-              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                <th className="rounded-l-xl bg-slate-50 px-5 py-3">Username</th>
-                <th className="bg-slate-50 px-4 py-3">Full name</th>
-                <th className="bg-slate-50 px-4 py-3">User Group</th>
-                <th className="bg-slate-50 px-4 py-3">Theme</th>
-                <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <TableSkeleton columns={5} rows={6} message="Loading users..." />
-              ) : paginatedUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-base text-slate-400">
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                paginatedUsers.map((u) => (
-                  <UserRow
-                    key={u.id}
-                    user={u}
-                    onEditUser={handleEditUser}
-                    onDeleteUser={handleDeleteUser}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        </Card>
+        {loading ? (
+          <TableSkeleton columns={5} rows={6} message="Loading users..." />
+        ) : (
+          <Card hover>
+            <div className="overflow-x-auto">
+              <table className="w-full border-separate border-spacing-y-1.5">
+                <thead>
+                  <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="rounded-l-xl bg-slate-50 px-5 py-3">Username</th>
+                    <th className="bg-slate-50 px-4 py-3">Full name</th>
+                    <th className="bg-slate-50 px-4 py-3">User Group</th>
+                    <th className="bg-slate-50 px-4 py-3">Theme</th>
+                    <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-base text-slate-400">
+                        No users found
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedUsers.map((u) => (
+                      <UserRow
+                        key={u.id}
+                        user={u}
+                        onEditUser={handleEditUser}
+                        onDeleteUser={handleDeleteUser}
+                      />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
 
         <Pagination
           total={totalFiltered}

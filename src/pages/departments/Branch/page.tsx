@@ -2,9 +2,12 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
-import { Modal, message } from 'antd';
+import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import SearchInput from '@/components/ui/SearchInput';
 import { apiCall } from '@/lib/api';
 import { fetchBranches, type Branch } from '@/lib/branches-data';
 
@@ -119,107 +122,68 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Branch Name / शाखा नाम
             </label>
-            <input
-              type="text"
-              placeholder="Search by branch name..."
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-            />
+            <SearchInput value={searchName} onChange={setSearchName} placeholder="Search by branch name..." />
           </div>
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Branch Code / शाखा कोड
             </label>
-            <input
-              type="text"
-              placeholder="Search by branch code..."
-              value={searchCode}
-              onChange={(e) => setSearchCode(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-            />
+            <SearchInput value={searchCode} onChange={setSearchCode} placeholder="Search by branch code..." />
           </div>
 
           <div className="flex-1 min-w-[220px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Main Branch / मुख्य शाखा
             </label>
-            <input
-              type="text"
-              placeholder="Search by main branch name..."
-              value={searchMainBranch}
-              onChange={(e) => setSearchMainBranch(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-            />
+            <SearchInput value={searchMainBranch} onChange={setSearchMainBranch} placeholder="Search by main branch name..." />
           </div>
 
           <div className="flex-1 min-w-[220px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Department / विभाग
             </label>
-            <input
-              type="text"
-              placeholder="Search by department name..."
-              value={searchDepartment}
-              onChange={(e) => setSearchDepartment(e.target.value)}
-              className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
-            />
+            <SearchInput value={searchDepartment} onChange={setSearchDepartment} placeholder="Search by department name..." />
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={refreshBranches}
-              className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium py-2.5 px-7 rounded-full shadow-xs transition-all text-sm cursor-pointer active:scale-95"
-            >
-              Search
-            </button>
-            <button
-              onClick={handleClear}
-              className="bg-white hover:bg-slate-50 text-slate-700 font-medium py-2.5 px-6 rounded-full shadow-xs transition-all text-sm cursor-pointer border border-slate-100 active:scale-95"
-            >
-              Clear
-            </button>
+            <Button type="primary" onClick={refreshBranches}>Search</Button>
+            <Button onClick={handleClear}>Clear</Button>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
-          <span>Show</span>
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="rounded-xl border-none bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </select>
-          <span>entries</span>
-        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
+            <span>Show</span>
+            <Select
+              value={pageSize}
+              onChange={(value) => {
+                setPageSize(Number(value));
+                setCurrentPage(1);
+              }}
+              className="w-20"
+              options={[
+                { value: 10, label: '10' },
+                { value: 20, label: '20' },
+                { value: 50, label: '50' },
+              ]}
+            />
+            <span>entries</span>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
-            <Copy className="w-3.5 h-3.5" /> Copy
-          </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
-            <FileSpreadsheet className="w-3.5 h-3.5" /> CSV
-          </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-600 font-medium px-3.5 py-1.5 rounded-xl text-sm shadow-xs border border-slate-100 flex items-center gap-1.5 transition">
-            <Printer className="w-3.5 h-3.5" /> Print
-          </button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
+            <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
+            <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />}>Print</Button>
+          </div>
         </div>
-      </div>
 
       <div className="text-base text-slate-500 font-medium -mt-2">
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
-      <div className="bg-white rounded-t-3xl rounded-b-xl shadow-xs border border-slate-100/80 overflow-hidden">
+      <Card hover>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
@@ -257,20 +221,8 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
                     </td>
                     <td className="py-4 px-6 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(branch)}
-                          className="bg-purple-50 hover:bg-purple-100 text-purple-600 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
-                        >
-                          <Pencil className="w-3 h-3" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(branch)}
-                          className="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3.5 py-1.5 rounded-full flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Delete
-                        </button>
+                        <Button size="sm" onClick={() => handleEdit(branch)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
+                        <Button size="sm" danger onClick={() => handleDelete(branch)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
                       </div>
                     </td>
                   </tr>
@@ -279,7 +231,7 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       <div className="flex justify-end pt-2">
         <Pagination

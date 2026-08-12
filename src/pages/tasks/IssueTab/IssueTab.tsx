@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
-import { Modal, message } from "antd";
+import { Modal, message, Button } from "antd";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
@@ -117,41 +119,39 @@ export default function IssueTab({ project }: IssueTabProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-end">
-        <button
-          onClick={() => { /* open add-issue modal / navigate */ }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm cursor-pointer whitespace-nowrap"
-        >
+        <Button type="primary" onClick={() => { /* open add-issue modal / navigate */ }}>
           Add Issue
-        </button>
+        </Button>
       </div>
 
       {issuesLoading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div>
+        <Card>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div>
+        </Card>
       ) : issues.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
+        <Card>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
+        </Card>
       ) : (
         issues.map((issue) => (
-          <div key={issue.IssuesID} className="rounded-xl border border-slate-200 bg-white p-4">
+          <Card key={issue.IssuesID} hover>
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
                   {issue.LabelInfoName && (
-                    <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold border"
+                    <Badge
                       style={{
-                        backgroundColor: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
+                        background: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
                         color: issue.LabelColor || undefined,
                         borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
                       }}
                     >
                       {issue.LabelInfoName}
-                    </span>
+                    </Badge>
                   )}
                   {issue.WorkStatusName && (
-                    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold bg-slate-100 text-slate-700">
-                      {issue.WorkStatusName}
-                    </span>
+                    <Badge>{issue.WorkStatusName}</Badge>
                   )}
                   <span>•</span>
                   <span>Raised by: {issue.RaisedBy || "—"}</span>
@@ -163,18 +163,15 @@ export default function IssueTab({ project }: IssueTabProps) {
                 )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                {issue.CanEdit && <span className="text-sm text-blue-600 font-semibold">Edit</span>}
+                {issue.CanEdit && <Button type="link" size="small">Edit</Button>}
                 {issue.CanDelete && (
-                  <button
-                    onClick={() => handleDeleteIssue(issue)}
-                    className="text-sm text-rose-600 font-semibold hover:text-rose-700 transition cursor-pointer"
-                  >
+                  <Button type="link" size="small" danger onClick={() => handleDeleteIssue(issue)}>
                     Delete
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
-          </div>
+          </Card>
         ))
       )}
     </div>

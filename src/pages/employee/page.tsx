@@ -3,8 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Download, Printer, Upload } from 'lucide-react';
 import { Modal, message } from 'antd';
+import { Button, Input, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
+import Card from '@/components/ui/Card';
+import SearchInput from '@/components/ui/SearchInput';
 import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
@@ -231,78 +234,34 @@ export default function EmployeePage() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setEditEmployee(null);
-            setShowEmployeeModal(true);
-          }}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 shadow-sm"
-        >
-          <UserPlus className="h-4 w-4" strokeWidth={2.5} />
+        <Button type="primary" onClick={() => { setEditEmployee(null); setShowEmployeeModal(true); }} icon={<UserPlus className="h-4 w-4" strokeWidth={2.5} />}>
           Add Employee
-        </button>
+        </Button>
       </div>
       <hr className="border-slate-200 my-6" />
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Full Name</div>
-          <input
-            placeholder="Search by full name..."
-            value={fullnameFilter}
-            onChange={(e) => setFullnameFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          />
+          <SearchInput value={fullnameFilter} onChange={setFullnameFilter} placeholder="Search by full name..." />
         </div>
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Address</div>
-          <input
-            placeholder="Search by address..."
-            value={addressFilter}
-            onChange={(e) => setAddressFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          />
+          <SearchInput value={addressFilter} onChange={setAddressFilter} placeholder="Search by address..." />
         </div>
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Phone</div>
-          <input
-            placeholder="Search by phone..."
-            value={phoneFilter}
-            onChange={(e) => setPhoneFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-          />
+          <SearchInput value={phoneFilter} onChange={setPhoneFilter} placeholder="Search by phone..." />
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={handleSearch}
-            className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
-          >
-            Search
-          </button>
-          <button
-            onClick={handleClear}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
-            Clear
-          </button>
+          <Button type="primary" onClick={handleSearch}>Search</Button>
+          <Button onClick={handleClear}>Clear</Button>
         </div>
       </div>
 
       <div className="mt-3 flex items-center gap-2">
-        <button
-          onClick={triggerExcelUpload}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          <Upload className="h-4 w-4" />
-          Upload Excel
-        </button>
-        <button
-          onClick={handleExcelExport}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          <Download className="h-4 w-4" />
-          Download Excel
-        </button>
+        <Button icon={<Upload className="h-4 w-4" />} onClick={triggerExcelUpload}>Upload Excel</Button>
+        <Button icon={<Download className="h-4 w-4" />} onClick={handleExcelExport}>Download Excel</Button>
         <input
           ref={fileInputRef}
           type="file"
@@ -316,48 +275,32 @@ export default function EmployeePage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="text-base text-slate-500">Show</span>
-            <select
+            <Select
               value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
+              onChange={(value) => {
+                setPageSize(Number(value));
                 setCurrentPage(1);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
+              className="w-20"
+              options={[
+                { value: 20, label: '20' },
+                { value: 50, label: '50' },
+                { value: 100, label: '100' },
+              ]}
+            />
             <span className="text-base text-slate-500">entries</span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 transition"
-            >
-              <Copy className="h-3.5 w-3.5" />
-              Copy
-            </button>
-            <button
-              onClick={handleCSVExport}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 transition"
-            >
-              <Download className="h-3.5 w-3.5" />
-              CSV
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 transition"
-            >
-              <Printer className="h-3.5 w-3.5" />
-              Print
-            </button>
+            <Button size="small" icon={<Copy className="h-3.5 w-3.5" />} onClick={handleCopy}>Copy</Button>
+            <Button size="small" icon={<Download className="h-3.5 w-3.5" />} onClick={handleCSVExport}>CSV</Button>
+            <Button size="small" icon={<Printer className="h-3.5 w-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>
         <div className="mb-2 text-base text-slate-500">
           Showing {employees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + employees.length} of {totalFiltered} entries
         </div>
-        <div className="overflow-x-auto rounded-xl bg-white border border-slate-200">
+        <Card hover>
+        <div className="overflow-x-auto">
           <table className="w-full border-separate border-spacing-y-1.5">
             <thead>
               <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -410,20 +353,8 @@ export default function EmployeePage() {
                     </td>
                     <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEditEmployee(emp)}
-                          className="rounded-lg px-3 py-1.5 text-sm font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 transition"
-                        >
-                          <Edit2 className="h-3.5 w-3.5 inline mr-1" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEmployee(emp)}
-                          className="rounded-lg px-3 py-1.5 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 inline mr-1" />
-                          Delete
-                        </button>
+                        <Button size="small" onClick={() => handleEditEmployee(emp)} icon={<Edit2 className="h-3.5 w-3.5" />}>Edit</Button>
+                        <Button size="small" danger onClick={() => handleDeleteEmployee(emp)} icon={<Trash2 className="h-3.5 w-3.5" />}>Delete</Button>
                       </div>
                     </td>
                   </tr>
@@ -432,6 +363,7 @@ export default function EmployeePage() {
             </tbody>
           </table>
         </div>
+        </Card>
 
         <Pagination
           total={totalFiltered}

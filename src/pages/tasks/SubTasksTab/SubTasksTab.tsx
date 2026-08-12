@@ -4,6 +4,11 @@ import { fetchSubTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem } from "@/lib/tasks-data";
 import Pagination from "@/components/ui/Pagination";
 import { CardPanelSkeleton } from "@/components/ui/Loaders";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import SearchInput from "@/components/ui/SearchInput";
+import Badge from "@/components/ui/Badge";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface SubTasksTabProps {
   project: ApiProject;
@@ -99,21 +104,15 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search subtasks..."
-            className="text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 w-full bg-white focus:outline-none focus:border-purple-500"
-          />
-        </form>
-        <button
-  onClick={() => { /* open add-subtask modal / navigate */ }}
-  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm cursor-pointer whitespace-nowrap"
->
-  Add New Subtask
-</button>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search subtasks..."
+          containerClassName="flex-1 max-w-md"
+        />
+        <Button type="primary" onClick={() => { /* open add-subtask modal / navigate */ }}>
+          Add New Subtask
+        </Button>
       </div>
 
       {error && (
@@ -138,15 +137,15 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
             const statusClass = statusColor[sub.WorkStatusName] ?? "bg-gray-100 text-gray-700";
             const priorityClass = priorityColor[sub.PriorityName] ?? "bg-gray-100 text-gray-700";
             return (
-              <div key={sub.SubTaskInfoID} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col gap-3">
+              <Card key={sub.SubTaskInfoID} hover className="flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="text-base font-bold text-slate-900 truncate">{sub.SubTaskTitle}</h3>
                     {sub.SubTaskCode && <p className="text-base text-muted-foreground font-mono mt-0.5">{sub.SubTaskCode}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold ${priorityClass}`}>{sub.PriorityName}</span>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-semibold ${statusClass}`}>{sub.WorkStatusName}</span>
+                    <Badge className={priorityClass}>{sub.PriorityName}</Badge>
+                    <Badge className={statusClass}>{sub.WorkStatusName}</Badge>
                   </div>
                 </div>
 
@@ -154,22 +153,14 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {sub.SubTaskManagerPhoto ? (
-                      <img
-                        src={sub.SubTaskManagerPhoto}
-                        alt={sub.SubTaskManagerName || ""}
-                        className="w-7 h-7 rounded-full object-cover border border-slate-200"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600">
-                        {(sub.SubTaskManagerName || "?").charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <Avatar src={sub.SubTaskManagerPhoto} alt={sub.SubTaskManagerName || ""} size={28}>
+                      {(sub.SubTaskManagerName || "?").charAt(0).toUpperCase()}
+                    </Avatar>
                     <span className="text-sm font-medium text-slate-700 truncate max-w-[140px]">{sub.SubTaskManagerName || "—"}</span>
                   </div>
                   <span className="text-base text-muted-foreground">Weightage: {sub.Weightage}</span>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
