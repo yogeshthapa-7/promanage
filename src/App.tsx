@@ -14,6 +14,10 @@ import EmployeePage from './pages/employee/page'
 import NotFound from './pages/not-found';
 import DepartmentPage from './pages/departments/department/page';
 import OrganizationPage from './pages/Organizations/page';
+import PolicyPage from './pages/Policy/policy';
+import BudgetPage from './pages/Budget/budget';
+import ExpensePage from './pages/Expense/expense';
+import ClientPage from './pages/Client/client';
 
 function App() {
   return (
@@ -71,6 +75,27 @@ function App() {
             <AppLayout showTopbar={false}><OrganizationPage /></AppLayout>
           </ProtectedRoute>
         } />
+        <Route path="/Policy" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><PolicyPage /></AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/Budget" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><BudgetPage /></AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/Expense" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><ExpensePage /></AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/Client" element={
+          <ProtectedRoute>
+            <AppLayout showTopbar={false}><ClientPage /></AppLayout>
+          </ProtectedRoute>
+        } />
+
         <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />
       </Routes>
     </BrowserRouter>

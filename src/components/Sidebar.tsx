@@ -87,6 +87,34 @@ const navItems: NavItem[] = [
     href: '/Organizations',
     section: 'TEAM',
   },
+  {
+    id: 'policy',
+    label: 'Policy Program',
+    icon: <Building2 size={18} />,
+    href: '/Policy',
+    section: 'POLICY',
+  },
+  {
+    id: 'budget',
+    label: 'Budget',
+    icon: <Building2 size={18} />,
+    href: '/Budget',
+    section: 'POLICY',
+  },
+  {
+    id: 'expense',
+    label: 'Expense',
+    icon: <Building2 size={18} />,
+    href: '/Expense',
+    section: 'POLICY',
+  },
+  {
+    id: 'client',
+    label: 'Client',
+    icon: <Building2 size={18} />,
+    href: '/Client',
+    section: 'POLICY',
+  },
 ];
 
 interface SidebarProps {
@@ -105,6 +133,10 @@ function getActiveNavId(pathname: string): string {
     '/employee': 'employee',
     '/departments': 'departments',
     '/Organizations': 'organizations',
+    '/Policy': 'policy',
+    '/Budget': 'budget',
+    '/Expense': 'expense',
+    '/Client': 'client',
   };
 
   return map[pathname] ?? 'dashboard';
@@ -121,6 +153,7 @@ export default function Sidebar({
 
   const mainNav = navItems.filter((item) => !item.section);
   const teamNav = navItems.filter((item) => item.section === 'TEAM');
+  const policyNav = navItems.filter((item) => item.section === 'POLICY');
 
   return (
     <aside
@@ -450,6 +483,155 @@ export default function Sidebar({
 
           <div className="space-y-1.5">
             {teamNav.map((item) => {
+              const isActive = activeId === item.id;
+
+              return (
+                <Link
+                  key={item.id}
+                  to={item.href}
+                  title={item.label}
+                  className={`
+                    group
+                    relative
+                    flex
+                    items-center
+                    gap-3
+                    rounded-xl
+                    transition-all
+                    duration-200
+                    ease-out
+                    ${
+                      collapsed
+                        ? 'justify-center px-2 py-3'
+                        : 'px-3.5 py-3'
+                    }
+                    ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-slate-400 hover:text-slate-100'
+                    }
+                  `}
+                >
+                  {/* Active background */}
+                  {isActive && (
+                    <>
+                      <span
+                        className="
+                          absolute
+                          inset-0
+                          rounded-xl
+                          bg-gradient-to-r
+                          from-blue-600/25
+                          via-blue-500/15
+                          to-transparent
+                          border
+                          border-blue-400/10
+                        "
+                      />
+
+                      <span
+                        className="
+                          absolute
+                          left-0
+                          top-2
+                          bottom-2
+                          w-[3px]
+                          rounded-r-full
+                          bg-gradient-to-b
+                          from-blue-300
+                          to-blue-600
+                          shadow-[0_0_12px_rgba(59,130,246,.8)]
+                        "
+                      />
+                    </>
+                  )}
+
+                  {/* Hover */}
+                  {!isActive && (
+                    <span
+                      className="
+                        absolute
+                        inset-0
+                        rounded-xl
+                        bg-white/[0.035]
+                        opacity-0
+                        group-hover:opacity-100
+                        transition-opacity
+                        duration-200
+                      "
+                    />
+                  )}
+
+                  {/* Icon */}
+                  <span
+                    className={`
+                      relative
+                      z-10
+                      flex
+                      items-center
+                      justify-center
+                      flex-shrink-0
+                      transition-all
+                      duration-200
+                      ${
+                        isActive
+                          ? 'text-blue-300'
+                          : 'text-slate-500 group-hover:text-blue-300'
+                      }
+                      group-hover:scale-105
+                    `}
+                  >
+                    {item.icon}
+                  </span>
+
+                  {/* Text */}
+                  {!collapsed && (
+                    <span
+                      className="
+                        relative
+                        z-10
+                        flex-1
+                        truncate
+                        text-[13px]
+                        font-semibold
+                        tracking-[-0.01em]
+                      "
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* =====================================================
+            POLICY
+        ====================================================== */}
+        <div className="mt-7">
+          {!collapsed ? (
+            <div className="flex items-center gap-3 px-3 mb-3">
+              <span
+                className="
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                  text-slate-500
+                "
+              >
+                Policy
+              </span>
+
+              <div className="flex-1 h-px bg-white/[0.06]" />
+            </div>
+          ) : (
+            <div className="mx-2 my-4 h-px bg-white/[0.08]" />
+          )}
+
+          <div className="space-y-1.5">
+            {policyNav.map((item) => {
               const isActive = activeId === item.id;
 
               return (

@@ -16,9 +16,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Expose the client so non-React data libraries (server-side search lists)
-// can route requests through React Query's cache and avoid hammering the
-// backend during rapid page/tab navigation.
 (globalThis as unknown as { __promanageQueryClient?: typeof queryClient }).__promanageQueryClient = queryClient;
 
 createRoot(document.getElementById('root')!).render(

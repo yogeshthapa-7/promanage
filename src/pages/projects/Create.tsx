@@ -99,6 +99,38 @@ const ModalContent = memo(
     const [policyProgramOptions, setPolicyProgramOptions] = useState<{ value: string; label: string }[]>([]);
     const [budgetOptions, setBudgetOptions] = useState<{ value: string; label: string }[]>([]);
     const [clientOptions, setClientOptions] = useState<{ value: string; label: string }[]>([]);
+    //fetch and populate the client name
+    const [editingClientName, setEditingClientName] = useState<string>('');
+
+        useEffect(() => {
+      if (open && editingProject?.ClientInfoID && clientOptions.length > 0) {
+        const clientId = String(editingProject.ClientInfoID);
+        const exists = clientOptions.some(o => o.value === clientId);
+        if (!exists) {
+          let cancelled = false;
+          const fetchAndAddClient = async () => {
+            try {
+              const res = await apiCall(`${API_BASE}/ClientInfo/SelectList`);
+              if (!res.ok) return;
+              const data = await res.json();
+              const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
+              const client = list.find((item: any) => String(item.Value || item.ClientInfoID) === clientId);
+              if (!cancelled && client) {
+                setClientOptions(prev => [...prev, { 
+                  value: String(client.Value || client.ClientInfoID), 
+                  label: String(client.Name || '') 
+                }]);
+              }
+            } catch (err) {
+              console.error('Failed to fetch client:', err);
+            }
+          };
+          fetchAndAddClient();
+          return () => { cancelled = true; };
+        }
+      }
+    }, [open, editingProject?.ClientInfoID, clientOptions]);
+
     const [projectTypeOptions, setProjectTypeOptions] = useState<{ value: string; label: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ value: string; label: string }[]>([]);
     const [expenseInfoOptions, setExpenseInfoOptions] = useState<{ value: string; label: string }[]>([]);
@@ -194,7 +226,7 @@ const ModalContent = memo(
           statusName: statusId || editingProject.WorkStatusName,
           policyAndProgram: editingProject.PolicyProgramIDs,
           budget: editingProject.BudgetInfoIDs,
-          clientName: clientId || editingProject.ProjectHeadEmpName,
+          clientName: clientId || String(editingProject.ClientInfoID),
           projectType: projectTypeId || editingProject.ProjectTypeName,
           department: String(editingProject.DepartmentID),
           expenseInfo: String(editingProject.ExpenseInfoID),
@@ -263,7 +295,7 @@ const ModalContent = memo(
            PolicyProgramIDArray: values.policyAndProgram ? [values.policyAndProgram] : [],
            BudgetInfoIDs: values.budget,
            BudgetInfoIDArray: values.budget ? [values.budget] : [],
-           ClientInfoID: values.clientName ? Number(values.clientName) : 0,
+           ClientInfoID: values.clientName ? String(values.clientName) : 0,
            DepartmentID: values.department ? Number(values.department) : 0,
            ExpenseInfoID: Number(values.expenseInfo),
            ProjectType: Number(values.projectType),
@@ -638,7 +670,7 @@ const ModalContent = memo(
                   <Form.Item
                     label={
                       <span className="text-sm font-semibold text-slate-700">
-                        Project Head Image
+                        File Upload
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
                     }
