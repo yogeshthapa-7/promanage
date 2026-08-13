@@ -32,6 +32,8 @@ export default function CreateMainBranchDrawer({
   const [departmentLoading, setDepartmentLoading] = useState(false);
   const isEdit = !!editingBranch;
 
+  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
+
   useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
@@ -162,7 +164,7 @@ export default function CreateMainBranchDrawer({
               className="rounded-lg"
               allowClear
               loading={departmentLoading}
-              popupStyle={{ zIndex: 10000 }}
+              getPopupContainer={getPopupParent}
             />
           </Form.Item>
         </div>

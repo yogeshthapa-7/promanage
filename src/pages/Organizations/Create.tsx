@@ -36,6 +36,8 @@ export default function CreateOrganizationModal({
   const [parentOrgsLoading, setParentOrgsLoading] = useState(false);
   const isEdit = !!editingOrganization;
 
+  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
+
   const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
   useEffect(() => {
@@ -160,6 +162,7 @@ export default function CreateOrganizationModal({
               className="rounded-md"
               allowClear
               loading={parentOrgsLoading}
+              getPopupContainer={getPopupParent}
             />
           </Form.Item>
         </div>

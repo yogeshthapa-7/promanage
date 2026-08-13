@@ -26,6 +26,8 @@ export default function CreateDepartmentDrawer({
   const [deptOptions, setDeptOptions] = useState<DepartmentSelectOption[]>([]);
   const [deptOptionsLoading, setDeptOptionsLoading] = useState(false);
 
+  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
+
   useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
@@ -137,7 +139,7 @@ export default function CreateDepartmentDrawer({
               className="rounded-lg"
               allowClear
               loading={deptOptionsLoading}
-              popupStyle={{ zIndex: 10000 }}
+              getPopupContainer={getPopupParent}
             />
           </Form.Item>
         </div>

@@ -4,7 +4,7 @@ import { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { Form, Input, Select, InputNumber, Row, Col, Button, message } from 'antd';
 import { Save } from 'lucide-react';
 import Drawer from '@/components/drawer';
-import NepaliDatePicker from '@/components/NepaliDatePicker';
+import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import type { ApiProject } from '@/lib/projects-data';
 import { apiCall } from '@/lib/api';
 
@@ -394,7 +394,7 @@ const DrawerContent = memo(
                   name="startDate"
                   rules={[{ required: true, message: 'कृपया शुरू मिति प्रविष्ट गर्नुहोस्' }]}
                 >
-                  <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
                 </Form.Item>
               </Col>
               <Col span={8}>
@@ -640,7 +640,7 @@ const DrawerContent = memo(
                   name="bankGuaranteeIssueDate"
                   rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
                 >
-                  <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -654,7 +654,7 @@ const DrawerContent = memo(
                   name="bankGuaranteeExpiryDate"
                   rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
                 >
-                  <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
                 </Form.Item>
               </Col>
             </Row>

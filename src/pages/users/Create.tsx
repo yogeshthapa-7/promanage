@@ -30,6 +30,8 @@ export default function UserFormModal({
   const [organizationOpen, setOrganizationOpen] = useState(false);
   const isEdit = !!editingUser;
 
+  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
+
   useEffect(() => {
     if (open) {
       setOptionsLoading(true);
@@ -162,16 +164,17 @@ export default function UserFormModal({
                rules={[{ required: true, message: 'कृपया प्रयोगकर्ता समूह चयन गर्नुहोस्' }]}
                initialValue="Employee"
              >
-               <Select
-                 placeholder="समूह चयन गर्नुहोस्"
-                 className="rounded-lg"
-                 options={userGroupOptions}
-                 loading={optionsLoading}
-                 showSearch
-                 optionFilterProp="label"
-                 open={userGroupOpen && open}
-                 onDropdownVisibleChange={(visible) => setUserGroupOpen(visible)}
-               />
+                <Select
+                  placeholder="समूह चयन गर्नुहोस्"
+                  className="rounded-lg"
+                  options={userGroupOptions}
+                  loading={optionsLoading}
+                  showSearch
+                  optionFilterProp="label"
+                  open={userGroupOpen && open}
+                  onDropdownVisibleChange={(visible) => setUserGroupOpen(visible)}
+                  getPopupContainer={getPopupParent}
+                />
              </Form.Item>
            </Col>
            <Col span={12}>
@@ -180,17 +183,18 @@ export default function UserFormModal({
                name="organization"
                rules={[{ required: true, message: 'कृपया संगठनको नाम प्रविष्ट गर्नुहोस्' }]}
              >
-               <Select
-                 placeholder="संगठन चयन गर्नुहोस्"
-                 className="rounded-lg"
-                 options={organizationOptions}
-                 loading={optionsLoading}
-                 showSearch
-                 optionFilterProp="label"
-                 allowClear
-                 open={organizationOpen && open}
-                 onDropdownVisibleChange={(visible) => setOrganizationOpen(visible)}
-               />
+                <Select
+                  placeholder="संगठन चयन गर्नुहोस्"
+                  className="rounded-lg"
+                  options={organizationOptions}
+                  loading={optionsLoading}
+                  showSearch
+                  optionFilterProp="label"
+                  allowClear
+                  open={organizationOpen && open}
+                  onDropdownVisibleChange={(visible) => setOrganizationOpen(visible)}
+                  getPopupContainer={getPopupParent}
+                />
              </Form.Item>
            </Col>
          </Row>
@@ -203,16 +207,17 @@ export default function UserFormModal({
                rules={[{ required: true, message: 'कृपया theme चयन गर्नुहोस्' }]}
                initialValue="Facebook"
              >
-               <Select
-                 placeholder="Select theme"
-                 className="rounded-lg"
-                 options={[
-                   { value: 'Facebook', label: 'Facebook' },
-                   { value: 'Apple', label: 'Apple' },
-                   { value: 'Google', label: 'Google' },
-                   { value: 'Transparent', label: 'Transparent' },
-                 ]}
-               />
+                <Select
+                  placeholder="Select theme"
+                  className="rounded-lg"
+                  options={[
+                    { value: 'Facebook', label: 'Facebook' },
+                    { value: 'Apple', label: 'Apple' },
+                    { value: 'Google', label: 'Google' },
+                    { value: 'Transparent', label: 'Transparent' },
+                  ]}
+                  getPopupContainer={getPopupParent}
+                />
              </Form.Item>
            </Col>
          </Row>

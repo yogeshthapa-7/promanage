@@ -12,6 +12,7 @@
   "dependencies": {
     "@ant-design/icons": "^6.3.2",
     "@heroicons/react": "^2.2.0",
+    "@remotemerge/nepali-date-converter": "^1.2.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-query": "^5.101.4",
     "antd": "^6.5.2",

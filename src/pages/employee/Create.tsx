@@ -71,6 +71,8 @@ export default function EmployeeSetupModal({
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | null>(null);
   const [selectedMainBranchId, setSelectedMainBranchId] = useState<number | null>(null);
 
+  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
+
   const isEdit = !!editingEmployee;
 
    const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -384,7 +386,7 @@ export default function EmployeeSetupModal({
                 name="Gender"
                 rules={[{ required: true, message: 'कृपया लिङ्ग चयन गर्नुहोस्' }]}
               >
-                <Select placeholder="चयन गर्नुहोस्" options={GENDER_OPTIONS} className="rounded-md" />
+                <Select placeholder="चयन गर्नुहोस्" options={GENDER_OPTIONS} className="rounded-md" getPopupContainer={getPopupParent} />
               </Form.Item>
 
               <Form.Item
@@ -392,7 +394,7 @@ export default function EmployeeSetupModal({
                 name="DOB"
                 rules={[{ required: true, message: 'कृपया जन्म मिति चयन गर्नुहोस्' }]}
               >
-                <DatePicker className="w-full rounded-md" />
+                <DatePicker className="w-full rounded-md" getPopupContainer={getPopupParent} />
               </Form.Item>
 
               <Form.Item
@@ -416,7 +418,7 @@ export default function EmployeeSetupModal({
                 name="EmployeeStatus"
                 rules={[{ required: true, message: 'कृपया स्थिति चयन गर्नुहोस्' }]}
               >
-                <Select placeholder="चयन गर्नुहोस्" options={STATUS_OPTIONS} className="rounded-md" />
+                <Select placeholder="चयन गर्नुहोस्" options={STATUS_OPTIONS} className="rounded-md" getPopupContainer={getPopupParent} />
               </Form.Item>
             </div>
           </Col>
@@ -434,6 +436,7 @@ export default function EmployeeSetupModal({
                   className="rounded-md"
                   loading={fetchingData}
                   allowClear
+                  getPopupContainer={getPopupParent}
                 />
               </Form.Item>
 
@@ -449,6 +452,7 @@ export default function EmployeeSetupModal({
                   loading={fetchingData}
                   onChange={handleDepartmentChange}
                   allowClear
+                  getPopupContainer={getPopupParent}
                 />
               </Form.Item>
 
@@ -464,6 +468,7 @@ export default function EmployeeSetupModal({
                   loading={fetchingData}
                   onChange={handleMainBranchChange}
                   allowClear
+                  getPopupContainer={getPopupParent}
                 />
               </Form.Item>
 
@@ -478,6 +483,7 @@ export default function EmployeeSetupModal({
                   className="rounded-md"
                   loading={fetchingData}
                   allowClear
+                  getPopupContainer={getPopupParent}
                 />
               </Form.Item>
             </div>
