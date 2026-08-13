@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle } from 'lucide-react';
 
 interface NavItem { id: string; label: string; icon: React.ReactNode; href: string; badge?: number; section?: string; }
 interface SidebarProps { collapsed?: boolean; onToggle?: () => void; }
@@ -13,14 +13,14 @@ const navItems: NavItem[] = [
   { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={18} />, href: '/tasks' },
   { id: 'analytics', label: 'Analytics', icon: <ChartLine size={18} />, href: '/analytics' },
   { id: 'team-members', label: 'Team Members', icon: <Users size={18} />, href: '/team', section: 'TEAM' },
-  { id: 'users', label: 'Users', icon: <Users size={18} />, href: '/users', section: 'TEAM' },
+  { id: 'users', label: 'Users', icon: <UserCircle size={18} />, href: '/users', section: 'TEAM' },
   { id: 'employee', label: 'Employee', icon: <User size={18} />, href: '/employee', section: 'TEAM' },
   { id: 'departments', label: 'Departments', icon: <Building size={18} />, href: '/departments', section: 'TEAM' },
   { id: 'organizations', label: 'Organization', icon: <Building2 size={18} />, href: '/Organizations', section: 'TEAM' },
-  { id: 'policy', label: 'Policy Program', icon: <Building2 size={18} />, href: '/Policy', section: 'POLICY' },
-  { id: 'budget', label: 'Budget', icon: <Building2 size={18} />, href: '/Budget', section: 'POLICY' },
-  { id: 'expense', label: 'Expense', icon: <Building2 size={18} />, href: '/Expense', section: 'POLICY' },
-  { id: 'client', label: 'Client', icon: <Building2 size={18} />, href: '/Client', section: 'POLICY' },
+  { id: 'policy', label: 'Policy Program', icon: <File size={18} />, href: '/Policy', section: 'POLICY' },
+  { id: 'budget', label: 'Budget', icon: <Wallet2 size={18} />, href: '/Budget', section: 'POLICY' },
+  { id: 'expense', label: 'Expense', icon: <CreditCard size={18} />, href: '/Expense', section: 'POLICY' },
+  { id: 'client', label: 'Client', icon: <Handshake size={18} />, href: '/Client', section: 'POLICY' },
 ];
 
 function getActiveNavId(pathname: string): string {
