@@ -299,7 +299,7 @@ export default function EmployeePage() {
         <div className="mb-2 text-base text-slate-500">
           Showing {employees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + employees.length} of {totalFiltered} entries
         </div>
-        <Card hover>
+        <Card>
         <div className="overflow-x-auto">
           <table className="w-full border-separate border-spacing-y-1.5">
             <thead>
@@ -325,8 +325,22 @@ export default function EmployeePage() {
                   </td>
                 </tr>
               ) : (
-                employees.map((emp) => (
-                  <tr key={emp.EmployeeInfoID} className="text-sm text-slate-700">
+                employees.map((emp) => {
+                  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+                  };
+                  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  };
+
+                  return (
+                  <tr
+                    key={emp.EmployeeInfoID}
+                    className="text-sm text-slate-700"
+                    onMouseEnter={handleRowMouseEnter}
+                    onMouseLeave={handleRowMouseLeave}
+                  >
                     <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
                       {emp.SN}
                     </td>
@@ -358,7 +372,7 @@ export default function EmployeePage() {
                       </div>
                     </td>
                   </tr>
-                ))
+                );})
               )}
             </tbody>
           </table>

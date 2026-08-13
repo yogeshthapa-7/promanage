@@ -183,7 +183,7 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
-      <Card hover>
+      <Card>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
@@ -205,8 +205,22 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
                   </td>
                 </tr>
               ) : (
-                branches.map((branch, index) => (
-                  <tr key={branch.id ?? `branch-${index}`} className="hover:bg-slate-50/50 transition">
+                branches.map((branch, index) => {
+                  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+                  };
+                  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  };
+
+                  return (
+                  <tr
+                    key={branch.id ?? `branch-${index}`}
+                    className="hover:bg-slate-50/50 transition"
+                    onMouseEnter={handleRowMouseEnter}
+                    onMouseLeave={handleRowMouseLeave}
+                  >
                     <td className="py-4 px-6 text-center text-slate-400 font-medium">
                       {branch.sn}
                     </td>
@@ -225,9 +239,9 @@ export default function BranchPage({ activeTab, onTabChange }: BranchPageProps) 
                         <Button size="sm" danger onClick={() => handleDelete(branch)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
                       </div>
                     </td>
-                  </tr>
-                ))
-              )}
+                    </tr>
+                  );})
+                )}
             </tbody>
           </table>
         </div>

@@ -193,7 +193,7 @@ export default function UsersPage() {
         {loading ? (
           <TableSkeleton columns={5} rows={6} message="Loading users..." />
         ) : (
-          <Card hover>
+          <Card>
             <div className="overflow-x-auto">
               <table className="w-full border-separate border-spacing-y-1.5">
                 <thead>
@@ -264,8 +264,20 @@ function UserRow({
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
 }) {
+  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    e.currentTarget.style.transform = 'scale(1.02)';
+    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+  };
+  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    e.currentTarget.style.transform = 'scale(1)';
+  };
+
   return (
-    <tr className="text-sm text-slate-700">
+    <tr
+      className="text-sm text-slate-700"
+      onMouseEnter={handleRowMouseEnter}
+      onMouseLeave={handleRowMouseLeave}
+    >
       <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
         <div className="text-slate-700 font-medium">{user.email}</div>
       </td>
