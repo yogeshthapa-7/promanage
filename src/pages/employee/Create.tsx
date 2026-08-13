@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import dayjs from 'dayjs';
-import { Form, Input, Select, DatePicker, Upload, Button, Row, Col, message } from 'antd';
+import { Form, Input, Select, Upload, Button, Row, Col, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { Employee } from '@/lib/employees-data';
 import { apiCall } from '@/lib/api';
 import Drawer from '@/components/drawer';
+import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 
 interface EmployeeSetupModalProps {
   open: boolean;
@@ -126,7 +126,7 @@ export default function EmployeeSetupModal({
             Phone: editingEmployee.Phone || '',
             Email: editingEmployee.Email || '',
             Gender: parseValidId(editingEmployee.Gender) ?? 1,
-            DOB: editingEmployee.DOB ? dayjs(editingEmployee.DOB, ['YYYY/M/D', 'YYYY-MM-DD']) : null,
+            DOB: editingEmployee.DOB || undefined,
             OrganizationOfficeID: orgOfficeId,
             DepartmentID: deptId,
             MainBranchID: mainBranchId,
@@ -262,7 +262,7 @@ export default function EmployeeSetupModal({
            Phone: values.Phone || '',
            Email: values.Email || '',
            Gender: values.Gender || 1,
-           DOB: values.DOB ? values.DOB.format('YYYY-MM-DD') : '',
+            DOB: values.DOB ? values.DOB.replace(/\//g, '-') : '',
            OrganizationOfficeID: values.OrganizationOfficeID || 1,
            DepartmentID: values.DepartmentID || 0,
            DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
@@ -394,7 +394,7 @@ export default function EmployeeSetupModal({
                 name="DOB"
                 rules={[{ required: true, message: 'कृपया जन्म मिति चयन गर्नुहोस्' }]}
               >
-                <DatePicker className="w-full rounded-md" getPopupContainer={getPopupParent} />
+                <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="w-full" />
               </Form.Item>
 
               <Form.Item
