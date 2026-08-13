@@ -9,6 +9,7 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
+import Drawer from '@/components/drawer';
 import { fetchBudgets, type Budget } from '@/lib/budget-data';
 import { apiCall } from '@/lib/api';
 
@@ -23,6 +24,7 @@ export default function BudgetPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -62,7 +64,33 @@ export default function BudgetPage() {
   };
 
   const handleAddNew = () => {
-    message.info('Add Budget form coming soon');
+    setIsDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false);
+  };
+
+  const handleDrawerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    try {
+      const formData = new FormData(e.currentTarget);
+      const name = formData.get('name') as string;
+
+      const res = await apiCall(`${API_BASE}/SaveBudgetInfo`, {
+        method: 'POST',
+        body: JSON.stringify({ Name: name }),
+      });
+
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+      message.success('Budget created successfully');
+      setIsDrawerOpen(false);
+      setRefreshKey((prev) => prev + 1);
+    } catch (err) {
+      if (err instanceof Error) {
+        message.error(err.message || 'Failed to create budget');
+      }
+    }
   };
 
   const handleDelete = async (budget: Budget) => {
@@ -231,6 +259,45 @@ export default function BudgetPage() {
           />
         )}
       </div>
+
+      <Drawer
+        open={isDrawerOpen}
+        onClose={handleDrawerClose}
+        title="New Budget"
+        subtitle="Create a new budget allocation."
+        width={480}
+      >
+        <form onSubmit={handleDrawerSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
+              Budget Name <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              required
+              placeholder="Enter budget name"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-slate-50/50 focus:bg-white focus:border-purple-500 outline-none transition-all"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-border/50">
+            <Button
+              type="text"
+              onClick={handleDrawerClose}
+              className="text-slate-500 hover:!text-slate-600 font-medium h-auto py-1.5 px-3 text-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
+            >
+              Create Budget
+            </Button>
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 }

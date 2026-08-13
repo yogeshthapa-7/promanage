@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { Modal, Form, Input, Select, DatePicker, Upload, Button, Row, Col, message } from 'antd';
+import { Form, Input, Select, DatePicker, Upload, Button, Row, Col, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { Employee } from '@/lib/employees-data';
 import { apiCall } from '@/lib/api';
+import Drawer from '@/components/drawer';
 
 interface EmployeeSetupModalProps {
   open: boolean;
@@ -103,7 +104,6 @@ export default function EmployeeSetupModal({
         setBranches(branchData);
 
         if (editingEmployee) {
-          // Helper to safely parse numbers and return undefined if 0/null/empty so input stays blank
           const parseValidId = (val: string | number | null | undefined) => {
             if (!val) return undefined;
             const num = Number(val);
@@ -153,7 +153,6 @@ export default function EmployeeSetupModal({
     };
   }, [open, editingEmployee, form]);
 
-  // Option lists with label protection
   const orgOfficeOptions = orgOffices.map((item) => ({
     value: Number(item.OrganizationOfficeID),
     label: item.OrganizationOfficeName,
@@ -164,7 +163,6 @@ export default function EmployeeSetupModal({
     label: item.DepartmentName,
   }));
 
-  // Preserve named fallback for Department if not in main list
   if (
     editingEmployee?.DepartmentID &&
     Number(editingEmployee.DepartmentID) !== 0 &&
@@ -176,7 +174,6 @@ export default function EmployeeSetupModal({
     });
   }
 
-  // Filter Main Branches with Edit Mode fallback
   const filteredMainBranchOptions = mainBranches
     .filter((item) => {
       if (!selectedDepartmentId) return true;
@@ -202,7 +199,6 @@ export default function EmployeeSetupModal({
     });
   }
 
-  // Filter Branches with Edit Mode fallback
   const filteredBranchOptions = branches
     .filter((item) => {
       if (!selectedMainBranchId) return true;
@@ -290,79 +286,51 @@ export default function EmployeeSetupModal({
            body: JSON.stringify(body),
          });
 
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      let savedEmployee: Employee | undefined;
-      try {
-        savedEmployee = await res.json();
-      } catch {
-        // Fallback for non-JSON responses
-      }
+       let savedEmployee: Employee | undefined;
+       try {
+         savedEmployee = await res.json();
+       } catch {
+         // Fallback for non-JSON responses
+       }
 
-      message.success(
-        isEdit ? 'कर्मचारी विवरण सफलतापूर्वक अपडेट गरियो' : 'कर्मचारी विवरण सफलतापूर्वक सुरक्षित गरियो'
-      );
-      form.resetFields();
-      setFileList([]);
-      setSelectedDepartmentId(null);
-      setSelectedMainBranchId(null);
-      onClose();
-      onSuccess(savedEmployee);
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(
-          err.message ||
-            (isEdit
-              ? 'कर्मचारी विवरण अपडेट गर्न असफल भयो'
-              : 'कर्मचारी विवरण सुरक्षित गर्न असफल भयो')
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
+       message.success(
+         isEdit ? 'कर्मचारी विवरण सफलतापूर्वक अपडेट गरियो' : 'कर्मचारी विवरण सफलतापूर्वक सुरक्षित गरियो'
+       );
+       form.resetFields();
+       setFileList([]);
+       setSelectedDepartmentId(null);
+       setSelectedMainBranchId(null);
+       onClose();
+       onSuccess(savedEmployee);
+     } catch (err) {
+       if (err instanceof Error) {
+         message.error(
+           err.message ||
+             (isEdit
+               ? 'कर्मचारी विवरण अपडेट गर्न असफल भयो'
+               : 'कर्मचारी विवरण सुरक्षित गर्न असफल भयो')
+         );
+       }
+     } finally {
+       setLoading(false);
+     }
+  };
+
+  const resetAndClose = () => {
+    setFileList([]);
+    setSelectedDepartmentId(null);
+    setSelectedMainBranchId(null);
+    onClose();
   };
 
   return (
-    <Modal
+    <Drawer
       open={open}
-      destroyOnHidden
-      title={
-        <div className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-3">
-          Employee Setup Form
-        </div>
-      }
-      onCancel={() => {
-        setFileList([]);
-        setSelectedDepartmentId(null);
-        setSelectedMainBranchId(null);
-        onClose();
-      }}
-      centered
+      onClose={resetAndClose}
+      title="Employee Setup Form"
       width={760}
-      footer={
-        <div className="flex justify-end items-center gap-3 pt-2">
-          <Button
-            type="primary"
-            loading={loading}
-            onClick={handleSubmit}
-            className="bg-emerald-500 hover:!bg-emerald-600 border-none px-5 rounded-md font-medium h-9 text-white"
-          >
-            सुरक्षित गर्नुहोस्
-          </Button>
-          <Button
-            type="text"
-            onClick={onClose}
-            className="text-sky-500 hover:!text-sky-600 font-medium h-9 px-4"
-          >
-            Cancel
-          </Button>
-        </div>
-      }
-      styles={{
-        body: { paddingTop: 12, paddingBottom: 8, background: '#fff' },
-        header: { background: '#fff', paddingBottom: 0 },
-        content: { background: '#fff' },
-      }}
     >
       <Form
         key={editingEmployee ? editingEmployee.EmployeeInfoID : 'new'}
@@ -562,6 +530,24 @@ export default function EmployeeSetupModal({
           </Col>
         </Row>
       </Form>
-    </Modal>
+
+      <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-border/50">
+        <Button
+          type="text"
+          onClick={resetAndClose}
+          className="text-slate-500 hover:!text-slate-600 font-medium h-auto py-1.5 px-3 text-sm"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="primary"
+          loading={loading}
+          onClick={handleSubmit}
+          className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
+        >
+          सुरक्षित गर्नुहोस्
+        </Button>
+      </div>
+    </Drawer>
   );
 }

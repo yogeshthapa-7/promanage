@@ -18,7 +18,7 @@ import {
   Calendar,
   CheckCircle2,
 } from "lucide-react";
-import { Modal, Form, Input, Select, Slider, message, Upload } from "antd";
+import { Modal, Form, Input, Select, Slider, Upload, message } from "antd";
 import DropdownMenu from "@/components/ui/DropdownMenu";
 import Card from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
@@ -27,6 +27,7 @@ import Badge from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
 import SearchInput from "@/components/ui/SearchInput";
+import Drawer from "@/components/drawer";
 
 type MemberRole = "Admin" | "Member" | "Guest";
 type MemberStatus = "Active" | "Away" | "On Leave";
@@ -701,12 +702,12 @@ export default function TeamMembersPage() {
         </div>
       </div>
 
-      {/* Modal: View Details */}
-      <Modal
+      {/* Drawer: View Details */}
+      <Drawer
         open={viewMember !== null}
+        onClose={() => setViewMember(null)}
         title={viewMember?.name || ""}
-        footer={null}
-        onCancel={() => setViewMember(null)}
+        width={420}
       >
         {viewMember && (
           <div className="flex flex-col gap-4">
@@ -764,30 +765,14 @@ export default function TeamMembersPage() {
             </div>
           </div>
         )}
-      </Modal>
+      </Drawer>
 
-      {/* Modal: Edit Member */}
-      <Modal
+      {/* Drawer: Edit Member */}
+      <Drawer
         open={editMember !== null}
+        onClose={() => setEditMember(null)}
         title="Edit Team Member"
-        okText="Save Changes"
-        cancelText="Cancel"
-        onOk={() => {
-          editForm.validateFields().then((values) => {
-            const avatarUrl = editAvatarFileRef.current
-              ? URL.createObjectURL(editAvatarFileRef.current)
-              : editMember!.avatar;
-            setMembers((prev) =>
-              prev.map((m) =>
-                m.id === editMember?.id ? { ...m, ...values, avatar: avatarUrl } : m
-              )
-            );
-            setEditMember(null);
-            editAvatarFileRef.current = null;
-            message.success("Member updated successfully");
-          });
-        }}
-        onCancel={() => setEditMember(null)}
+        width={480}
       >
         <Form form={editForm} layout="vertical">
           <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
@@ -847,41 +832,38 @@ export default function TeamMembersPage() {
             </Upload>
           </Form.Item>
         </Form>
-      </Modal>
 
-      {/* Modal: Invite Member */}
-      <Modal
+        <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-slate-100">
+          <Button onClick={() => setEditMember(null)}>Cancel</Button>
+          <Button
+            type="primary"
+            onClick={() => {
+              editForm.validateFields().then((values) => {
+                const avatarUrl = editAvatarFileRef.current
+                  ? URL.createObjectURL(editAvatarFileRef.current)
+                  : editMember!.avatar;
+                setMembers((prev) =>
+                  prev.map((m) =>
+                    m.id === editMember?.id ? { ...m, ...values, avatar: avatarUrl } : m
+                  )
+                );
+                setEditMember(null);
+                editAvatarFileRef.current = null;
+                message.success("Member updated successfully");
+              });
+            }}
+          >
+            Save Changes
+          </Button>
+        </div>
+      </Drawer>
+
+      {/* Drawer: Invite Member */}
+      <Drawer
         open={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
         title="Add New Team Member"
-        okText="Create Member"
-        cancelText="Cancel"
-        onOk={() => {
-          inviteForm.validateFields().then((values) => {
-            const avatarUrl = inviteAvatarFileRef.current
-              ? URL.createObjectURL(inviteAvatarFileRef.current)
-              : `https://i.pravatar.cc/64?img=${Math.floor(Math.random() * 50)}`;
-            const newMember: TeamMember = {
-              id: Date.now().toString(),
-              name: values.name,
-              email: values.email,
-              role: values.role || "Member",
-              title: values.title || "Team Member",
-              department: values.department || "General",
-              avatar: avatarUrl,
-              status: "Active",
-              workload: 0,
-              location: "Remote",
-              projectsCount: 0,
-              skills: ["Onboarding"],
-            };
-            setMembers((prev) => [newMember, ...prev]);
-            setShowInviteModal(false);
-            inviteForm.resetFields();
-            inviteAvatarFileRef.current = null;
-            message.success("Invitation sent successfully");
-          });
-        }}
-        onCancel={() => setShowInviteModal(false)}
+        width={480}
       >
         <Form form={inviteForm} layout="vertical">
           <Form.Item name="name" label="Full Name" rules={[{ required: true, message: "Please enter full name" }]}>
@@ -932,7 +914,42 @@ export default function TeamMembersPage() {
             </Upload>
           </Form.Item>
         </Form>
-      </Modal>
+
+        <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-slate-100">
+          <Button onClick={() => setShowInviteModal(false)}>Cancel</Button>
+          <Button
+            type="primary"
+            onClick={() => {
+              inviteForm.validateFields().then((values) => {
+                const avatarUrl = inviteAvatarFileRef.current
+                  ? URL.createObjectURL(inviteAvatarFileRef.current)
+                  : `https://i.pravatar.cc/64?img=${Math.floor(Math.random() * 50)}`;
+                const newMember: TeamMember = {
+                  id: Date.now().toString(),
+                  name: values.name,
+                  email: values.email,
+                  role: values.role || "Member",
+                  title: values.title || "Team Member",
+                  department: values.department || "General",
+                  avatar: avatarUrl,
+                  status: "Active",
+                  workload: 0,
+                  location: "Remote",
+                  projectsCount: 0,
+                  skills: ["Onboarding"],
+                };
+                setMembers((prev) => [newMember, ...prev]);
+                setShowInviteModal(false);
+                inviteForm.resetFields();
+                inviteAvatarFileRef.current = null;
+                message.success("Invitation sent successfully");
+              });
+            }}
+          >
+            Create Member
+          </Button>
+        </div>
+      </Drawer>
     </div>
   );
 }

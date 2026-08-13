@@ -9,6 +9,7 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
+import Drawer from '@/components/drawer';
 import { fetchExpenses, type Expense } from '@/lib/expense-data';
 import { apiCall } from '@/lib/api';
 
@@ -23,6 +24,7 @@ export default function ExpensePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -62,7 +64,33 @@ export default function ExpensePage() {
   };
 
   const handleAddNew = () => {
-    message.info('Add Expense form coming soon');
+    setIsDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false);
+  };
+
+  const handleDrawerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    try {
+      const formData = new FormData(e.currentTarget);
+      const title = formData.get('title') as string;
+
+      const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
+        method: 'POST',
+        body: JSON.stringify({ Title: title }),
+      });
+
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+      message.success('Expense created successfully');
+      setIsDrawerOpen(false);
+      setRefreshKey((prev) => prev + 1);
+    } catch (err) {
+      if (err instanceof Error) {
+        message.error(err.message || 'Failed to create expense');
+      }
+    }
   };
 
   const handleDelete = async (expense: Expense) => {
@@ -235,6 +263,45 @@ export default function ExpensePage() {
           />
         )}
       </div>
+
+      <Drawer
+        open={isDrawerOpen}
+        onClose={handleDrawerClose}
+        title="New Expense"
+        subtitle="Record a new expense entry."
+        width={480}
+      >
+        <form onSubmit={handleDrawerSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
+              Expense Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="title"
+              required
+              placeholder="Enter expense title"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-slate-50/50 focus:bg-white focus:border-purple-500 outline-none transition-all"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-border/50">
+            <Button
+              type="text"
+              onClick={handleDrawerClose}
+              className="text-slate-500 hover:!text-slate-600 font-medium h-auto py-1.5 px-3 text-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
+            >
+              Create Expense
+            </Button>
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 }

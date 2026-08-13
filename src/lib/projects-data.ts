@@ -1,10 +1,29 @@
 'use client';
 
 import { Server, Smartphone, Globe, Megaphone, ShieldCheck, FolderKanban } from 'lucide-react';
-import type { ProjectFormData } from '@/components/modal';
 
 export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue';
 export type ProjectPriority = 'Urgent' | 'High' | 'Medium' | 'Low';
+
+export interface ProjectFormData {
+  id?: string;
+  title: string;
+  status: ProjectStatus;
+  priority: ProjectPriority;
+  category: string;
+  description: string;
+  startDate: string;
+  submissionDate: string;
+  targetEndDate: string;
+  client: string;
+  projectManager: string;
+  progress: number;
+  daysLeft: string;
+  tasksCompleted: number;
+  totalTasks: number;
+  budget: string;
+  teamMembers: string;
+}
 
 export interface TeamMember {
   id: string;

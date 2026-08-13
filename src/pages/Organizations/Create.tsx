@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, Button, message } from 'antd';
+import { Form, Input, Select, Button, message } from 'antd';
+import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 
 export interface Organization {
@@ -117,33 +118,11 @@ export default function CreateOrganizationModal({
   };
 
   return (
-    <Modal
+    <Drawer
       open={open}
-      title={
-        <div className="text-base font-semibold text-slate-700 pb-3 border-b border-slate-100">
-          {isEdit ? 'Organization सम्पादन' : 'Organization फारम'}
-        </div>
-      }
-      onCancel={onClose}
-      centered
+      onClose={onClose}
+      title={isEdit ? 'Organization सम्पादन' : 'Organization फारम'}
       width={520}
-      footer={
-        <div className="flex justify-end items-center pt-2">
-          <Button
-            type="primary"
-            loading={loading}
-            onClick={handleSubmit}
-            className="bg-[#10b981] hover:!bg-[#059669] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
-          >
-            {isEdit ? 'अपडेट गर्नुहोस्' : 'सुरक्षित गर्नुहोस्'}
-          </Button>
-        </div>
-      }
-      styles={{
-        body: { paddingTop: 20, paddingBottom: 12, background: '#fff' },
-        header: { background: '#fff', paddingBottom: 0 },
-        content: { padding: '20px 24px', borderRadius: '8px' },
-      }}
     >
       <Form
         form={form}
@@ -185,6 +164,17 @@ export default function CreateOrganizationModal({
           </Form.Item>
         </div>
       </Form>
-    </Modal>
+
+      <div className="flex justify-end items-center pt-4 mt-4 border-t border-slate-100">
+        <Button
+          type="primary"
+          loading={loading}
+          onClick={handleSubmit}
+          className="bg-[#10b981] hover:!bg-[#059669] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
+        >
+          {isEdit ? 'अपडेट गर्नुहोस्' : 'सुरक्षित गर्नुहोस्'}
+        </Button>
+      </div>
+    </Drawer>
   );
 }

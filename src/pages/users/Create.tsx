@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, Row, Col, message } from 'antd';
+import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import type { User, UserGroup, OrganizationSelect } from '@/lib/users-data';
 import { fetchUserGroups, fetchOrganizations, saveUser } from '@/lib/users-data';
+import Drawer from '@/components/drawer';
 
 interface UserFormModalProps {
   open: boolean;
@@ -117,37 +118,20 @@ export default function UserFormModal({
   const userGroupOptions = userGroups.map(g => ({ value: g.UserGroupName, label: g.UserGroupName }));
   const organizationOptions = organizations.map(o => ({ value: o.Title, label: o.Title }));
 
+  const drawerTitle = isEdit ? 'प्रयोगकर्ता सम्पादन' : 'प्रयोगकर्ता फारम';
 
   return (
-    <Modal
+    <Drawer
       open={open}
-      title={
-        <div className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-4">
-          {isEdit ? 'प्रयोगकर्ता सम्पादन' : 'प्रयोगकर्ता फारम'}
-        </div>
-      }
-      okText={isEdit ? 'अपडेट गर्नुहोस्' : 'सुरक्षित गर्नुहोस्'}
-      cancelText="रद्द गर्नुहोस्"
-      confirmLoading={loading}
-      onOk={handleSubmit}
-      onCancel={onClose}
-      centered
+      onClose={onClose}
+      title={drawerTitle}
       width={640}
-      className="user-form-modal"
-      afterClose={() => {
-        setUserGroupOpen(false);
-        setOrganizationOpen(false);
-      }}
-      styles={{
-        body: { paddingTop: 20, background: '#fff' },
-        header: { paddingBottom: 0, background: '#fff' },
-      }}
     >
       <Form
         form={form}
         layout="vertical"
         size="middle"
-        requiredMark="required"
+        requiredMark={true}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -170,7 +154,7 @@ export default function UserFormModal({
           </Col>
         </Row>
 
-<Row gutter={16}>
+        <Row gutter={16}>
            <Col span={12}>
              <Form.Item
                label="प्रयोगकर्ता समूह"
@@ -233,47 +217,66 @@ export default function UserFormModal({
            </Col>
          </Row>
 
-          <Row gutter={16}>
-           <Col span={12}>
-             <Form.Item
-               label="पासवर्ड"
-               name="password"
-               rules={
-                 isEdit
-                   ? []
-                   : [
-                       { required: true, message: 'कृपया पासवर्ड प्रविष्ट गर्नुहोस्' },
-                       { min: 6, message: 'पासवर्ड कम्तिमा ६ अंकको हुनुपर्छ' },
-                     ]
-               }
-             >
-               <Input.Password placeholder={isEdit ? 'पासवर्ड परिवर्तन गर्न चयन गर्नुहोस्' : '६+ अंकको पासवर्ड'} className="rounded-lg" />
-             </Form.Item>
-           </Col>
-           <Col span={12}>
-             {!isEdit && (
-               <Form.Item
-                 label="पासवर्ड सुनिश्चित"
-                 name="confirmPassword"
-                 dependencies={['password']}
-                 rules={[
-                   { required: true, message: 'कृपया पासवर्ड पुनः प्रविष्ट गर्नुहोस्' },
-                   ({ getFieldValue }) => ({
-                     validator(_, value) {
-                       if (!value || getFieldValue('password') === value) {
-                         return Promise.resolve();
-                       }
-                       return Promise.reject(new Error('पासवर्डहरू मिलेन'));
-                     },
-                   }),
-                 ]}
-               >
-                 <Input.Password placeholder="पासवर्ड पुनः प्रविष्ट गर्नुहोस्" className="rounded-lg" />
-               </Form.Item>
-             )}
-           </Col>
-         </Row>
+           <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="पासवर्ड"
+                name="password"
+                rules={
+                  isEdit
+                    ? []
+                    : [
+                        { required: true, message: 'कृपया पासवर्ड प्रविष्ट गर्नुहोस्' },
+                        { min: 6, message: 'पासवर्ड कम्तिमा ६ अंकको हुनुपर्छ' },
+                      ]
+                }
+              >
+                <Input.Password placeholder={isEdit ? 'पासवर्ड परिवर्तन गर्न चयन गर्नुहोस्' : '६+ अंकको पासवर्ड'} className="rounded-lg" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              {!isEdit && (
+                <Form.Item
+                  label="पासवर्ड सुनिश्चित"
+                  name="confirmPassword"
+                  dependencies={['password']}
+                  rules={[
+                    { required: true, message: 'कृपया पासवर्ड पुनः प्रविष्ट गर्नुहोस्' },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue('password') === value) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(new Error('पासवर्डहरू मिलेन'));
+                      },
+                    }),
+                  ]}
+                >
+                  <Input.Password placeholder="पासवर्ड पुनः प्रविष्ट गर्नुहोस्" className="rounded-lg" />
+                </Form.Item>
+              )}
+            </Col>
+          </Row>
       </Form>
-    </Modal>
+
+      <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-border/50">
+        <Button
+          type="text"
+          onClick={onClose}
+          className="text-slate-500 hover:!text-slate-600 font-medium h-auto py-1.5 px-3 text-sm"
+        >
+          रद्द गर्नुहोस्
+        </Button>
+        <Button
+          type="primary"
+          loading={loading}
+          onClick={handleSubmit}
+          className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
+        >
+          {isEdit ? 'अपडेट गर्नुहोस्' : 'सुरक्षित गर्नुहोस्'}
+        </Button>
+      </div>
+    </Drawer>
   );
 }
+

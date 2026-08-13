@@ -3,26 +3,22 @@
 import { useState, useEffect } from 'react';
 import { 
   Plus, 
-  // Upload, 
-  // Download, 
   Copy, 
   FileSpreadsheet, 
   Printer,
   Pencil,
-  Trash2,
-  FileInputIcon
+  Trash2
 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
-import { InputNumber } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
-// import DepartmentFormModal from './DepartmentFormModal';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -45,13 +41,13 @@ export default function DepartmentPage() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>('department');
+  const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
+  const [deptNameLoading, setDeptNameLoading] = useState(false);
 
   // Filter Form States
   const [filterDeptId, setFilterDeptId] = useState<string | undefined>(undefined);
   const [filterDeptCode, setFilterDeptCode] = useState('');
   const [filterMainDept, setFilterMainDept] = useState<string | undefined>(undefined);
-  const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
-  const [deptNameLoading, setDeptNameLoading] = useState(false);
 
   const debouncedDeptCode = useDebounce(filterDeptCode, 300);
   const debouncedMainDept = useDebounce(filterMainDept, 300);
@@ -145,6 +141,45 @@ export default function DepartmentPage() {
     });
   };
 
+  const handleDrawerClose = () => {
+    setShowFormModal(false);
+    setEditingDept(null);
+  };
+
+  const handleDrawerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData(e.currentTarget);
+      const name = formData.get('name') as string;
+      const code = formData.get('code') as string;
+      const parentId = formData.get('parentId') as string;
+
+      const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+      const url = editingDept
+        ? `${API_BASE}/SaveDepartment`
+        : `${API_BASE}/SaveDepartment`;
+
+      const body = editingDept
+        ? { DepartmentID: Number(editingDept.id), DepartmentName: name, DepartmentCode: code, ParentDepartmentID: Number(parentId) || 0 }
+        : { DepartmentName: name, DepartmentCode: code, ParentDepartmentID: Number(parentId) || 0 };
+
+      const res = await apiCall(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+      message.success(editingDept ? 'Department updated successfully' : 'Department created successfully');
+      handleDrawerClose();
+      refreshDepartments();
+    } catch (err) {
+      if (err instanceof Error) {
+        message.error(err.message || 'Failed to save department');
+      }
+    }
+  };
+
   return (
     /* Direct Page Canvas - Background wave/gradient style */
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
@@ -200,7 +235,6 @@ export default function DepartmentPage() {
   <label className="block text-sm font-semibold text-slate-500 mb-1.5">
     Department Code / विभाग कोड
   </label>
-  {/* <div className="relative flex items-center h-11 w-full rounded-xl border border-slate-200 bg-white px-3 shadow-2xs transition-all duration-200 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-400/20 hover:border-slate-300"> */}
     <Input
       type="text"
       placeholder="Search by department code..."
@@ -208,7 +242,6 @@ export default function DepartmentPage() {
       onChange={(e) => setFilterDeptCode(e.target.value)}
       className="w-full rounded-2xl border-none bg-white py-2.5 px-4 text-sm text-slate-700 shadow-xs focus:ring-2 focus:ring-violet-400 outline-none transition placeholder:text-slate-300"
     />
-  {/* </div> */}
 </div>
 
            <div className="flex-1 min-w-[220px]">
@@ -230,45 +263,45 @@ export default function DepartmentPage() {
             </div>
          </div>
 
-        {/* Excel Upload/Download Row
-        <div className="flex items-center gap-3">
-          <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
-            <Upload className="w-3.5 h-3.5 text-slate-500" />
-            Upload Excel
-          </button>
-          <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
-            <Download className="w-3.5 h-3.5 text-slate-500" />
-            Download Excel
-          </button>
-        </div> */}
-      </div>
+         {/* Excel Upload/Download Row
+         <div className="flex items-center gap-3">
+           <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
+             <Upload className="w-3.5 h-3.5 text-slate-500" />
+             Upload Excel
+           </button>
+           <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
+             <Download className="w-3.5 h-3.5 text-slate-500" />
+             Download Excel
+           </button>
+         </div> */}
+       </div>
 
       {/* 3. Table Controls Bar (Entries + Export utilities) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-          <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
-            <span>Show</span>
-            <Select
-              value={pageSize}
-              onChange={(value) => {
-                setPageSize(Number(value));
-                setCurrentPage(1);
-              }}
-              className="w-20"
-              options={[
-                { value: 10, label: '10' },
-                { value: 20, label: '20' },
-                { value: 50, label: '50' },
-              ]}
-            />
-            <span>entries</span>
-          </div>
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+           <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
+             <span>Show</span>
+             <Select
+               value={pageSize}
+               onChange={(value) => {
+                 setPageSize(Number(value));
+                 setCurrentPage(1);
+               }}
+               className="w-20"
+               options={[
+                 { value: 10, label: '10' },
+                 { value: 20, label: '20' },
+                 { value: 50, label: '50' },
+               ]}
+             />
+             <span>entries</span>
+           </div>
 
-          <div className="flex items-center gap-2">
-            <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
-            <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
-            <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />}>Print</Button>
-          </div>
-        </div>
+           <div className="flex items-center gap-2">
+             <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
+             <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
+             <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />}>Print</Button>
+           </div>
+         </div>
 
       <div className="text-base text-slate-500 font-medium -mt-2">
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
@@ -373,7 +406,7 @@ export default function DepartmentPage() {
     Add New Main Branch
   </button>
           </div>
-          <MainBranchPage activeTab={activeTab} onTabChange={setActiveTab} />
+          <MainBranchPage activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as 'department' | 'mainbranch' | 'branch')} />
         </>
       )}
       {activeTab === 'branch' && (
@@ -395,26 +428,77 @@ export default function DepartmentPage() {
     Add New Branch
   </button>
           </div>
-          <BranchPage activeTab={activeTab} onTabChange={setActiveTab} />
+          <BranchPage activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as 'department' | 'mainbranch' | 'branch')} />
         </>
       )}
 
-      {/* Modal
-      <DepartmentFormModal
+      <Drawer
         open={showFormModal}
-        onClose={() => {
-          setShowFormModal(false);
-          setEditingDept(null);
-        }}
-        onSuccess={() => {
-          setShowFormModal(false);
-          setEditingDept(null);
-          setCurrentPage(1);
-          refreshDepartments();
-          message.success('Department saved successfully');
-        }}
-        editingDepartment={editingDept}
-      /> */}
+        onClose={handleDrawerClose}
+        title={editingDept ? 'Edit Department' : 'New Department'}
+        subtitle={editingDept ? 'Update department details.' : 'Fill in the details to create a new department.'}
+        width={480}
+      >
+        <form onSubmit={handleDrawerSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
+              Department Name <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              required
+              defaultValue={editingDept?.name}
+              placeholder="Enter department name"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-slate-50/50 focus:bg-white focus:border-purple-500 outline-none transition-all"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
+              Department Code <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="code"
+              required
+              defaultValue={editingDept?.departmentCode}
+              placeholder="Enter department code"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-slate-50/50 focus:bg-white focus:border-purple-500 outline-none transition-all"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
+              Parent Department
+            </label>
+            <Select
+              placeholder="Select parent department"
+              defaultValue={editingDept?.parentDepartmentId ? String(editingDept.parentDepartmentId) : undefined}
+              options={deptNameOptions}
+              className="w-full"
+              allowClear
+              loading={deptNameLoading}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-border/50">
+            <Button
+              type="text"
+              onClick={handleDrawerClose}
+              className="text-slate-500 hover:!text-slate-600 font-medium h-auto py-1.5 px-3 text-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
+            >
+              {editingDept ? 'Update' : 'Create'}
+            </Button>
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 }
