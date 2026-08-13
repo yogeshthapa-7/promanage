@@ -87,48 +87,52 @@ export default function Drawer({
         onClick={close}
       />
 
-      <div
-        className={`relative h-full bg-white shadow-2xl border-l border-border/80 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-          visible ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{
-          width,
-          marginLeft: 'auto',
-          transform: visible ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-        }}
-        onTransitionEnd={handleTransitionEnd}
-      >
-        {(title || subtitle) && (
-          <div className="flex items-start justify-between px-6 pt-6 pb-4 shrink-0">
-            <div>
-              {title && (
-                <h2 className="text-lg font-bold text-foreground">{title}</h2>
-              )}
-              {subtitle && (
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={close}
-              className="p-1.5 rounded-lg hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+     <div
+  className={`relative h-full bg-gradient-to-b from-[#F8FAFC] via-[#F5F8FC] to-[#EEF3F8] shadow-2xl border-l border-slate-200 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+    visible ? 'translate-x-0' : 'translate-x-full'
+  }`}
+  style={{
+    width,
+    marginLeft: 'auto',
+    transform: visible ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
+    willChange: 'transform',
+    backfaceVisibility: 'hidden',
+  }}
+  onTransitionEnd={handleTransitionEnd}
+>
+  {(title || subtitle) && (
+    <div className="relative flex items-start justify-between px-7 pt-7 pb-5 shrink-0 border-b border-slate-200/80 bg-white/70">
+      <div>
+        {title && (
+          <h2 className="text-xl font-bold tracking-tight text-[#172554]">
+            {title}
+          </h2>
         )}
 
-        <div
-          className="flex-1 overflow-y-auto px-6 py-4"
-          style={{ maxHeight: 'calc(100vh - 100px)' }}
-        >
-          {children}
-        </div>
+        {subtitle && (
+          <p className="text-sm text-slate-500 mt-1">
+            {subtitle}
+          </p>
+        )}
       </div>
+
+      <button
+        type="button"
+        onClick={close}
+        className="p-2 rounded-xl text-slate-400 hover:text-[#172554] hover:bg-slate-100 transition-all cursor-pointer"
+      >
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  )}
+
+  <div
+    className="flex-1 overflow-y-auto px-7 py-6"
+    style={{ maxHeight: 'calc(100vh - 100px)' }}
+  >
+    {children}
+  </div>
+</div>
     </div>,
     document.body
   );
