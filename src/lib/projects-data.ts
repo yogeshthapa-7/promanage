@@ -112,6 +112,8 @@ export interface ApiProject {
   CanEdit: boolean;
   CanDelete: boolean;
   CanChangeStatus: boolean;
+  ClientName?: string | null;
+  ClientInfoName?: string | null;
 }
 
 const projectTypeMap: Record<number, string> = {
@@ -202,7 +204,7 @@ export function mapApiProjectToProject(api: ApiProject): Project {
     description: api.Description,
     icon: getIconForCategory(category),
     iconBg: getIconBgForCategory(category),
-    client: api.ProjectHeadEmpName,
+    client: api.ClientName || api.ClientInfoName || api.ProjectHeadEmpName,
     manager: api.ProjectHeadEmpName,
     managerAvatar: api.ProjectHeadEmpPhoto,
     progressColor: statusProgressColor[status] || 'bg-gray-300',

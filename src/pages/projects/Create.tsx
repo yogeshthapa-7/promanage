@@ -209,7 +209,8 @@ const DrawerContent = memo(
       if (open && editingProject) {
         const projectHeadId = projectHeadOptions.find(o => o.label === editingProject.ProjectHeadEmpName)?.value;
         const statusId = statusOptions.find(o => o.label === editingProject.WorkStatusName)?.value;
-        const clientId = clientOptions.find(o => o.value === String(editingProject.ClientInfoID))?.value;
+        const clientId = clientOptions.find(o => o.value === String(editingProject.ClientInfoID) || 
+      o.label === (editingProject as any).ClientName)?.value;
         const projectTypeId = projectTypeOptions.find(o => o.label === editingProject.ProjectTypeName)?.value;
         const priorityValue = editingProject.PriorityName ? ({ urgent: 1, high: 2, medium: 3, low: 4 }[editingProject.PriorityName.toLowerCase()] ?? 3) : 3;
 
@@ -224,7 +225,7 @@ const DrawerContent = memo(
           statusName: statusId || editingProject.WorkStatusName,
           policyAndProgram: editingProject.PolicyProgramIDs,
           budget: editingProject.BudgetInfoIDs,
-          clientName: clientId || String(editingProject.ClientInfoID),
+          ClientName: clientId || (editingProject as any).ClientName || '',
           projectType: projectTypeId || editingProject.ProjectTypeName,
           department: String(editingProject.DepartmentID),
           expenseInfo: String(editingProject.ExpenseInfoID),
@@ -288,16 +289,16 @@ const DrawerContent = memo(
            Description: values.description,
            TotalBudget: values.totalBudget,
            Priority: values.priority1 ? Number(values.priority1) : 2,
-           WorkStatusID: Number(values.statusName),
+           WorkStatusID: isNaN(Number(values.statusName)) ? (editingProject?.WorkStatusID || 0) : Number(values.statusName),
            PolicyProgramIDs: values.policyAndProgram,
            PolicyProgramIDArray: values.policyAndProgram ? [values.policyAndProgram] : [],
            BudgetInfoIDs: values.budget,
            BudgetInfoIDArray: values.budget ? [values.budget] : [],
-           ClientInfoID: values.clientName ? String(values.clientName) : 0,
+           ClientInfoID: isNaN(Number(values.ClientName)) ? (editingProject?.ClientInfoID || 0) : Number(values.ClientName),
            DepartmentID: values.department ? Number(values.department) : 0,
            ExpenseInfoID: Number(values.expenseInfo),
-           ProjectType: Number(values.projectType),
-           ProjectHeadEmpID: Number(values.projectHeadName),
+           ProjectType: isNaN(Number(values.projectType)) ? (editingProject?.ProjectType || 0) : Number(values.projectType),
+           ProjectHeadEmpID: isNaN(Number(values.projectHeadName)) ? (editingProject?.ProjectHeadEmpID || 0) : Number(values.projectHeadName),
            BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
            BankGuranteeExpiryDate: values.bankGuaranteeExpiryDate || '',
            IsPolicyRelated: 0,
@@ -542,7 +543,7 @@ const DrawerContent = memo(
                       <span className="text-red-500 ml-0.5">*</span>
                     </span>
                   }
-                  name="clientName"
+                  name="ClientName"
                   rules={[{ required: true, message: 'कृपया ग्राहकको नाम चयन गर्नुहोस्' }]}
                 >
                   <Select
