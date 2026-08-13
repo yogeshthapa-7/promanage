@@ -45,6 +45,7 @@ function buildSearchBody(params: FetchBudgetsParams) {
     },
     param: {
       BudgetInfoID: 0,
+      BudgetInfoName: params.search,
     },
   };
 }

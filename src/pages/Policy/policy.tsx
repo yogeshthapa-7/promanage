@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
-import { message } from 'antd';
+import { Modal, message } from 'antd';
+import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
@@ -14,12 +15,14 @@ import { apiCall } from '@/lib/api';
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 export default function PolicyPage() {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalFiltered, setTotalFiltered] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [refreshKey, setRefreshKey] = useState(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -51,10 +54,11 @@ export default function PolicyPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [currentPage, pageSize, searchQuery]);
+  }, [currentPage, pageSize, refreshKey]);
 
   const handleSearch = () => {
     setCurrentPage(1);
+    setRefreshKey((prev) => prev + 1);
   };
 
   const handleAddNew = () => {
@@ -62,13 +66,29 @@ export default function PolicyPage() {
   };
 
   const handleDelete = async (policy: Policy) => {
-    const res = await apiCall(`${API_BASE}/DeletePolicyProgram?id=${policy.id}`, {
-      method: 'GET',
+    Modal.confirm({
+      title: 'Delete Policy',
+      content: `Are you sure you want to delete "${policy.name || 'this policy'}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeletePolicyProgram?id=${policy.id}`, {
+            method: 'GET',
+          });
+
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+          message.success('Policy deleted successfully');
+          queryClient.invalidateQueries({ queryKey: ['policies'] });
+          setRefreshKey((prev) => prev + 1);
+        } catch (err) {
+          if (err instanceof Error) {
+            message.error(err.message || 'Failed to delete policy');
+          }
+        }
+      },
     });
-
-    if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
-    setCurrentPage(1);
   };
 
   return (
@@ -99,6 +119,7 @@ export default function PolicyPage() {
                 }
                 debounceTimerRef.current = setTimeout(() => {
                   setCurrentPage(1);
+                  setRefreshKey((prev) => prev + 1);
                 }, 400);
               }}
               placeholder="Search by policy name..."

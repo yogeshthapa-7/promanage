@@ -52,6 +52,14 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/ClientInfo/ServerSearch`;
 
 function buildSearchBody(params: FetchClientsParams) {
+  const param: Record<string, unknown> = {
+    ClientInfoID: 0,
+  };
+
+  if (params.search.trim()) {
+    param.ClientName = params.search.trim();
+  }
+
   return {
     model: {
       draw: 1,
@@ -59,9 +67,7 @@ function buildSearchBody(params: FetchClientsParams) {
       length: params.length,
       search: { value: '', regex: '' },
     },
-    param: {
-      ClientInfoID: 0,
-    },
+    param,
   };
 }
 

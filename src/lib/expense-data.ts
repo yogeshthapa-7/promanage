@@ -47,6 +47,7 @@ function buildSearchBody(params: FetchExpensesParams) {
     },
     param: {
       ExpenseInfoID: 0,
+      ExpenseTitle: params.search,
     },
   };
 }
