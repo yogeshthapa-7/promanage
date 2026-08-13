@@ -96,7 +96,7 @@ function App() {
             <AppLayout showTopbar={false}><DepartmentPage /></AppLayout>
           </ProtectedRoute>
         } />
-         <Route path="/Organizations" element={
+        <Route path="/Organizations" element={
           <ProtectedRoute>
             <AppLayout showTopbar={false}><OrganizationPage /></AppLayout>
           </ProtectedRoute>

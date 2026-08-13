@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   Plus, 
   Copy, 
@@ -15,6 +16,7 @@ import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Drawer from '@/components/drawer';
+import CreateDepartmentDrawer from './Create';
 import { apiCall } from '@/lib/api';
 import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
@@ -32,6 +34,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function DepartmentPage() {
+  const queryClient = useQueryClient();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalFiltered, setTotalFiltered] = useState(0);
@@ -39,6 +42,7 @@ export default function DepartmentPage() {
   const [pageSize, setPageSize] = useState(20);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>('department');
   const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
@@ -110,8 +114,11 @@ export default function DepartmentPage() {
   };
 
   const handleAddNew = () => {
-    setEditingDept(null);
-    setShowFormModal(true);
+    setShowCreateModal(true);
+  };
+
+  const handleCreateDrawerClose = () => {
+    setShowCreateModal(false);
   };
 
   const handleEdit = (dept: Department) => {
@@ -132,8 +139,9 @@ export default function DepartmentPage() {
              `${API_BASE}/DeleteDepartment?id=${dept.id}`,
              { method: 'GET' }
            );
-          message.success('Deleted successfully');
-          refreshDepartments();
+           message.success('Deleted successfully');
+           queryClient.invalidateQueries({ queryKey: ['departments', 'search'] });
+           refreshDepartments();
         } catch {
           message.error('Failed to delete department');
         }
@@ -159,9 +167,12 @@ export default function DepartmentPage() {
         ? `${API_BASE}/SaveDepartment`
         : `${API_BASE}/SaveDepartment`;
 
-      const body = editingDept
-        ? { DepartmentID: Number(editingDept.id), DepartmentName: name, DepartmentCode: code, ParentDepartmentID: Number(parentId) || 0 }
-        : { DepartmentName: name, DepartmentCode: code, ParentDepartmentID: Number(parentId) || 0 };
+      const body = {
+        DepartmentID: Number(editingDept!.id),
+        DepartmentName: name,
+        DepartmentCode: code,
+        ParentDepartmentID: Number(parentId) || 0,
+      };
 
       const res = await apiCall(url, {
         method: 'POST',
@@ -170,7 +181,8 @@ export default function DepartmentPage() {
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      message.success(editingDept ? 'Department updated successfully' : 'Department created successfully');
+      message.success('Department updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['departments', 'search'] });
       handleDrawerClose();
       refreshDepartments();
     } catch (err) {
@@ -389,54 +401,20 @@ export default function DepartmentPage() {
 
       {activeTab === 'mainbranch' && (
         <>
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                मुख्य शाखा
-              </h2>
-              <p className="text-base text-slate-500 mt-1">
-                मुख्य शाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
-              </p>
-            </div>
-             <button
-    onClick={handleAddNew}
-    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
-  >
-    <Plus className="w-4 h-4" />
-    Add New Main Branch
-  </button>
-          </div>
-          <MainBranchPage activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as 'department' | 'mainbranch' | 'branch')} />
+          <MainBranchPage />
         </>
       )}
       {activeTab === 'branch' && (
         <>
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                शाखा
-              </h2>
-              <p className="text-base text-slate-500 mt-1">
-                शाखा अभिलेखहरू मुख्य शाखा तथा विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
-              </p>
-            </div>
-             <button
-    onClick={handleAddNew}
-    className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
-  >
-    <Plus className="w-4 h-4" />
-    Add New Branch
-  </button>
-          </div>
-          <BranchPage activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as 'department' | 'mainbranch' | 'branch')} />
+          <BranchPage />
         </>
       )}
 
       <Drawer
         open={showFormModal}
         onClose={handleDrawerClose}
-        title={editingDept ? 'Edit Department' : 'New Department'}
-        subtitle={editingDept ? 'Update department details.' : 'Fill in the details to create a new department.'}
+        title={'Edit Department'}
+        subtitle={'Update department details.'}
         width={480}
       >
         <form onSubmit={handleDrawerSubmit} className="space-y-4">
@@ -494,11 +472,17 @@ export default function DepartmentPage() {
               type="primary"
               className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
             >
-              {editingDept ? 'Update' : 'Create'}
+              Update
             </Button>
           </div>
         </form>
       </Drawer>
+
+      <CreateDepartmentDrawer
+        open={showCreateModal}
+        onClose={handleCreateDrawerClose}
+        onSuccess={refreshDepartments}
+      />
     </div>
   );
 }

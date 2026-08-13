@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
@@ -18,11 +19,7 @@ import {
   fetchDepartmentSelectList,
   type DepartmentSelectOption,
 } from '@/lib/departments-data';
-
-interface MainBranchPageProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+import CreateMainBranchDrawer from './Create';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -35,7 +32,8 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPageProps) {
+export default function MainBranchPage() {
+  const queryClient = useQueryClient();
   const [mainBranches, setMainBranches] = useState<MainBranch[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalFiltered, setTotalFiltered] = useState(0);
@@ -145,6 +143,7 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
             { method: 'GET' }
           );
           message.success('Deleted successfully');
+          queryClient.invalidateQueries({ queryKey: ['mainBranches', 'search'] });
           refreshMainBranches();
         } catch {
           message.error('Failed to delete main branch');
@@ -155,6 +154,24 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
 
   return (
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            मुख्य शाखा
+          </h2>
+          <p className="text-base text-slate-500 mt-1">
+            मुख्य शाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
+          </p>
+        </div>
+        <button
+          onClick={handleAddNew}
+          className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          Add New Main Branch
+        </button>
+      </div>
+
       <div className="space-y-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
@@ -318,6 +335,13 @@ export default function MainBranchPage({ activeTab, onTabChange }: MainBranchPag
           pageSizeOptions={[10, 20, 50]}
         />
       </div>
+
+      <CreateMainBranchDrawer
+        open={showFormModal}
+        onClose={() => setShowFormModal(false)}
+        onSuccess={refreshMainBranches}
+        editingBranch={editingBranch}
+      />
     </div>
   );
 }
