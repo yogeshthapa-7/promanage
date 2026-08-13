@@ -342,333 +342,351 @@ const DrawerContent = memo(
           requiredMark={false}
           validateTrigger={['onBlur']}
         >
-          <Row gutter={12}>
-            <Col span={24}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    परियोजनाको नाम
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="projectName"
-                rules={[{ required: true, message: 'कृपया परियोजनाको नाम प्रविष्ट गर्नुहोस्' }]}
-              >
-                <Input className="rounded-md border-slate-300 h-9 text-sm" />
-              </Form.Item>
-            </Col>
-          </Row>
+          <fieldset className="border border-slate-200 rounded-lg p-4">
+            <legend className="text-sm font-semibold text-slate-700 px-2">Basic Information</legend>
+            <Row gutter={12}>
+              <Col span={24}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      परियोजनाको नाम
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="projectName"
+                  rules={[{ required: true, message: 'कृपया परियोजनाको नाम प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <Input className="rounded-md border-slate-300 h-9 text-sm" />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Row gutter={12}>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    परियोजना प्रमुख नाम
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="projectHeadName"
-                rules={[{ required: true, message: 'कृपया छनौट गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder=""
-                  options={projectHeadOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    शुरू मिति
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="startDate"
-                rules={[{ required: true, message: 'कृपया शुरू मिति प्रविष्ट गर्नुहोस्' }]}
-              >
-                <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    परियोजना अवधि
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="projectDuration"
-                initialValue={0}
-                rules={[{ required: true, message: 'कृपया अवधि प्रविष्ट गर्नुहोस्' }]}
-              >
-                <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={12}>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      परियोजना प्रमुख नाम
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="projectHeadName"
+                  rules={[{ required: true, message: 'कृपया छनौट गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder=""
+                    options={projectHeadOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      शुरू मिति
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="startDate"
+                  rules={[{ required: true, message: 'कृपया शुरू मिति प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      परियोजना अवधि
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="projectDuration"
+                  initialValue={0}
+                  rules={[{ required: true, message: 'कृपया अवधि प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Row gutter={12}>
-            <Col span={24}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    विवरण
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="description"
-                rules={[{ required: true, message: 'कृपया विवरण प्रविष्ट गर्नुहोस्' }]}
-              >
-                <Input.TextArea rows={3} className="rounded-md border-slate-300 text-sm" />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={12}>
+              <Col span={24}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      विवरण
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="description"
+                  rules={[{ required: true, message: 'कृपया विवरण प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <Input.TextArea rows={3} className="rounded-md border-slate-300 text-sm" />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Row gutter={12}>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    प्राथमिकता 1
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="priority1"
-                rules={[{ required: true, message: 'कृपया प्राथमिकता छनौट गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="--select--"
-                  options={PRIORITY_OPTIONS}
-                  className="rounded-md h-9 text-sm"
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    कुल बजेट
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="totalBudget"
-                initialValue={0}
-                rules={[{ required: true, message: 'कृपया कुल बजेट प्रविष्ट गर्नुहोस्' }]}
-              >
-                <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    स्थिति नाम
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="statusName"
-                rules={[{ required: true, message: 'कृपया स्थिति नाम चयन गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="कृपया स्थिति नाम चयन गर्नुहोस्"
-                  options={statusOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={12}>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      प्राथमिकता 1
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="priority1"
+                  rules={[{ required: true, message: 'कृपया प्राथमिकता छनौट गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="--select--"
+                    options={PRIORITY_OPTIONS}
+                    className="rounded-md h-9 text-sm"
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      स्थिति नाम
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="statusName"
+                  rules={[{ required: true, message: 'कृपया स्थिति नाम चयन गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="कृपया स्थिति नाम चयन गर्नुहोस्"
+                    options={statusOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </fieldset>
 
-          <Row gutter={12}>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    नीति तथा कार्यक्रम
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="policyAndProgram"
-                rules={[{ required: true, message: 'कृपया विवरण प्रविष्ट गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="कृपया छनौट गर्नुहोस्"
-                  options={policyProgramOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    बजेट
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="budget"
-                rules={[{ required: true, message: 'कृपया बजेट प्रविष्ट गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="कृपया बजेट छनौट गर्नुहोस्"
-                  options={budgetOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    ग्राहकको नाम
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="clientName"
-                rules={[{ required: true, message: 'कृपया ग्राहकको नाम चयन गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="कृपया ग्राहकको नाम चयन गर्नुहोस्"
-                  options={clientOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+          <fieldset className="border border-slate-200 rounded-lg p-4">
+            <legend className="text-sm font-semibold text-slate-700 px-2">Financial Information</legend>
+            <Row gutter={12}>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      कुल बजेट
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="totalBudget"
+                  initialValue={0}
+                  rules={[{ required: true, message: 'कृपया कुल बजेट प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      नीति तथा कार्यक्रम
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="policyAndProgram"
+                  rules={[{ required: true, message: 'कृपया विवरण प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="कृपया छनौट गर्नुहोस्"
+                    options={policyProgramOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      बजेट
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="budget"
+                  rules={[{ required: true, message: 'कृपया बजेट प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="कृपया बजेट छनौट गर्नुहोस्"
+                    options={budgetOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Row gutter={12}>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    परियोजना प्रकार
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="projectType"
-                rules={[{ required: true, message: 'कृपया परियोजना प्रकार चयन गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="कृपया परियोजना प्रकार चयन गर्नुहोस्"
-                  options={projectTypeOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    विभाग
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="department"
-                initialValue=""
-                rules={[{ required: true, message: 'कृपया विभाग चयन गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="प्रशासन विभाग"
-                  allowClear
-                  options={departmentOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    खर्च जानकारी
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="expenseInfo"
-                rules={[{ required: true, message: 'कृपया खर्च चयन गर्नुहोस्' }]}
-              >
-                <Select
-                  placeholder="कृपया खर्च चयन गर्नुहोस्"
-                  options={expenseInfoOptions}
-                  className="rounded-md h-9 text-sm"
-                  loading={optionsLoading}
-                  getPopupContainer={getPopupParent}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={12}>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      ग्राहकको नाम
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="clientName"
+                  rules={[{ required: true, message: 'कृपया ग्राहकको नाम चयन गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="कृपया ग्राहकको नाम चयन गर्नुहोस्"
+                    options={clientOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </fieldset>
 
-          <Row gutter={12}>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    Bank Guarantee Issue Date
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="bankGuaranteeIssueDate"
-                rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
-              >
-                <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    Bank Guarantee Expiry Date
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="bankGuaranteeExpiryDate"
-                rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
-              >
-                <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
-              </Form.Item>
-            </Col>
-          </Row>
+          <fieldset className="border border-slate-200 rounded-lg p-4">
+            <legend className="text-sm font-semibold text-slate-700 px-2">Project Details</legend>
+            <Row gutter={12}>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      परियोजना प्रकार
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="projectType"
+                  rules={[{ required: true, message: 'कृपया परियोजना प्रकार चयन गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="कृपया परियोजना प्रकार चयन गर्नुहोस्"
+                    options={projectTypeOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      विभाग
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="department"
+                  initialValue=""
+                  rules={[{ required: true, message: 'कृपया विभाग चयन गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="प्रशासन विभाग"
+                    allowClear
+                    options={departmentOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      खर्च जानकारी
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="expenseInfo"
+                  rules={[{ required: true, message: 'कृपया खर्च चयन गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="कृपया खर्च चयन गर्नुहोस्"
+                    options={expenseInfoOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </fieldset>
 
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item
-                label={
-                  <span className="text-sm font-semibold text-slate-700">
-                    File Upload
-                    <span className="text-red-500 ml-0.5">*</span>
-                  </span>
-                }
-                name="projectHeadEmpPhoto"
-                initialValue=""
-              >
-                <input type="hidden" />
-              </Form.Item>
-              <div className="flex items-center gap-2">
-                <div className="bg-[#e5e7eb] text-slate-700 px-3 py-1.5 rounded-md text-sm min-w-[120px] truncate border border-slate-300">
-                  {selectedFileName || 'Upload here'}
+          <fieldset className="border border-slate-200 rounded-lg p-4">
+            <legend className="text-sm font-semibold text-slate-700 px-2">Bank Guarantee Information</legend>
+            <Row gutter={12}>
+              <Col span={12}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      Bank Guarantee Issue Date
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="bankGuaranteeIssueDate"
+                  rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      Bank Guarantee Expiry Date
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="bankGuaranteeExpiryDate"
+                  rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
+                >
+                  <NepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </fieldset>
+
+          <fieldset className="border border-slate-200 rounded-lg p-4">
+            <legend className="text-sm font-semibold text-slate-700 px-2">Document</legend>
+            <Row gutter={12}>
+              <Col span={12}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      File Upload
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="projectHeadEmpPhoto"
+                  initialValue=""
+                >
+                  <input type="hidden" />
+                </Form.Item>
+                <div className="flex items-center gap-2">
+                  <div className="bg-[#e5e7eb] text-slate-700 px-3 py-1.5 rounded-md text-sm min-w-[120px] truncate border border-slate-300">
+                    {selectedFileName || 'Upload here'}
+                  </div>
+                  <label className="bg-[#6b7280] hover:bg-[#4b5563] text-white px-4 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors shadow-sm">
+                    Browse
+                    <input type="file" className="hidden" onChange={handleFileChange} />
+                  </label>
                 </div>
-                <label className="bg-[#6b7280] hover:bg-[#4b5563] text-white px-4 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors shadow-sm">
-                  Browse
-                  <input type="file" className="hidden" onChange={handleFileChange} />
-                </label>
-              </div>
-            </Col>
-          </Row>
+              </Col>
+            </Row>
+          </fieldset>
         </Form>
 
         <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-border/50">
