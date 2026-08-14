@@ -112,8 +112,8 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {subTasks.map((sub) => {
-            const statusClass = statusColor[sub.WorkStatusName] ?? "bg-gray-100 text-gray-700";
-            const priorityClass = priorityColor[sub.PriorityName] ?? "bg-gray-100 text-gray-700";
+            const statusClass = statusColor[sub.WorkStatusName] ?? "!bg-gray-100 !text-gray-700";
+            const priorityClass = priorityColor[sub.PriorityName] ?? "!bg-gray-100 !text-gray-700";
             return (
               <Card key={sub.SubTaskInfoID} hover className="flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">

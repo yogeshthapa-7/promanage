@@ -40,6 +40,7 @@ export interface TaskItem {
   Description: string;
   Attachments: string;
   ProjectInfoID: number;
+  ProjectInfoName: string;
   DueDate: string;
   TaskManagerName: string;
   WorkStatusIconName: string;
@@ -49,6 +50,9 @@ export interface TaskItem {
   DueInfo: string;
   PriorityName: string;
   InvolvedEmployeesDetail: unknown | null;
+  CanEdit: boolean;
+  CanDelete: boolean;
+  CanChangeStatus: boolean;
   TaskManagerInfo?: TaskManagerInfo;
 }
 
@@ -75,18 +79,18 @@ export interface SubTaskItem {
 }
 
 export const statusColor: Record<string, string> = {
-  "In Progress": "bg-blue-100 text-blue-700",
-  Completed: "bg-emerald-100 text-emerald-700",
-  Overdue: "bg-rose-100 text-rose-700",
-  "On Hold": "bg-amber-100 text-amber-700",
-  "Not Started": "bg-gray-100 text-gray-700",
+  "In Progress": "!bg-blue-100 !text-blue-700",
+  Completed: "!bg-emerald-100 !text-emerald-700",
+  Overdue: "!bg-rose-100 !text-rose-700",
+  "On Hold": "!bg-amber-100 !text-amber-700",
+  "Not Started": "!bg-gray-100 !text-gray-700",
 };
 
 export const priorityColor: Record<string, string> = {
-  Urgent: "bg-rose-100 text-rose-700",
-  High: "bg-amber-100 text-amber-700",
-  Medium: "bg-blue-100 text-blue-700",
-  Low: "bg-gray-100 text-gray-700",
+  Urgent: "!bg-rose-100 !text-rose-700",
+  High: "!bg-amber-100 !text-amber-700",
+  Medium: "!bg-blue-100 !text-blue-700",
+  Low: "!bg-gray-100 !text-gray-700",
 };
 
 interface FetchResult<T> {
