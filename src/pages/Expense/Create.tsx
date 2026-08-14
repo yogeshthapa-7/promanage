@@ -12,39 +12,51 @@ interface CreateExpenseDrawerProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editingExpense?: Expense | null;
 }
 
-export default function CreateExpenseDrawer({ open, onClose, onSuccess }: CreateExpenseDrawerProps) {
+export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingExpense }: CreateExpenseDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (open) {
-      form.resetFields();
+      if (editingExpense) {
+        form.setFieldsValue({ title: editingExpense.title, code: editingExpense.code });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [open, form]);
+  }, [open, form, editingExpense]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
+      const isEdit = !!editingExpense;
+      const body = {
+        ExpenseInfoID: isEdit ? editingExpense?.id : 0,
+        ExpenseTitle: values.title,
+        ExpenseCode: values.code,
+      };
+
       const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
         method: 'POST',
-        body: JSON.stringify({ ExpenseInfoID: 0, ExpenseTitle: values.title, ExpenseCode: values.code }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      message.success('Expense created successfully');
+      message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
       form.resetFields();
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       onClose();
       onSuccess();
     } catch (err) {
       if (err instanceof Error) {
-        message.error(err.message || 'Failed to create expense');
+        message.error(err.message || 'Failed to save expense');
       }
     } finally {
       setLoading(false);
@@ -52,13 +64,13 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess }: Create
   };
 
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      title="New Expense"
-      subtitle="Record a new expense entry."
-      width={480}
-    >
+      <Drawer
+        open={open}
+        onClose={onClose}
+        title={editingExpense ? 'Edit Expense' : 'New Expense'}
+        subtitle={editingExpense ? 'Update expense details.' : 'Record a new expense entry.'}
+        width={480}
+      >
       <Form
         form={form}
         layout="vertical"
@@ -111,7 +123,7 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess }: Create
           onClick={handleSubmit}
           className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
         >
-          Create Expense
+          {editingExpense ? 'Update Expense' : 'Create Expense'}
         </Button>
       </div>
     </Drawer>

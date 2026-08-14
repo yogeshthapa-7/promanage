@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { fetchTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem, TaskManagerInfo } from "@/lib/tasks-data";
@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
+import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 
 export type { TaskItem, SubTaskItem, TaskManagerInfo };
 
@@ -20,87 +21,42 @@ interface TasksTabProps {
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
-function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: string; Photo?: string } }) {
-  const photo = worker.Photo;
-  const name = worker.Fullname || "?";
-  const initial = name.charAt(0).toUpperCase();
-
-  return (
-    <div className="flex items-center gap-2">
-      {photo ? (
-        <img
-          src={photo}
-          alt={name}
-          className="w-7 h-7 rounded-full object-cover border border-slate-200"
-        />
-      ) : (
-        <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600">
-          {initial}
-        </div>
-      )}
-      <span className="text-sm font-medium text-slate-700 truncate max-w-[140px]">{name}</span>
-    </div>
-  );
-}
-
-  export default function TasksTab({ project, selectedTask, onTaskSelect }: TasksTabProps) {
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+export default function TasksTab({ project, selectedTask, onTaskSelect }: TasksTabProps) {
   const [search, setSearch] = useState("");
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const projectId = project.ProjectInfoID ?? Number(project.id);
 
-  const loadTasks = useCallback(async (signal: AbortSignal, page: number, size: number, searchVal: string) => {
-    setLoading(true);
-    setError(null);
-    setTasks([]);
-
-    try {
-      const result = await fetchTasks({
+  const {
+    data: tasks,
+    total,
+    loading,
+    currentPage,
+    setCurrentPage,
+    setPageSize,
+  } = usePaginatedList<TaskItem>({
+    fetcher: (params: PaginatedListParams) => {
+      const page = Math.floor((params.start as number) / (params.length as number)) + 1;
+      return fetchTasks({
         projectId,
         page,
-        pageSize: size,
-        search: searchVal,
-        signal,
-      });
-      if (signal.aborted) return;
-      setTasks(result.items);
-      setTotal(result.total);
-    } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-        setError(err.message);
-      }
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    loadTasks(controller.signal, currentPage, pageSize, search);
-    return () => controller.abort();
-  }, [loadTasks, currentPage, pageSize]);
+        pageSize: params.length as number,
+        search: (params.search as string) || search,
+        signal: params.signal,
+      }).then((result) => ({
+        items: result.items,
+        total: result.total,
+      }));
+    },
+    initialPageSize: 20,
+    extraDeps: [search, projectId],
+  });
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    debounceTimerRef.current = setTimeout(() => {
-      setCurrentPage(1);
-    }, 400);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    loadTasks(new AbortController().signal, 1, pageSize, search);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => setCurrentPage(1), 400);
   };
 
   const handleSelect = (task: TaskItem) => {
@@ -112,7 +68,7 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
       <div className="flex items-center justify-between gap-3">
         <SearchInput
           value={search}
-          onChange={setSearch}
+          onChange={handleSearchChange}
           placeholder="Search tasks..."
           containerClassName="flex-1 max-w-md"
         />
@@ -120,10 +76,6 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
           Add New Task
         </Button>
       </div>
-
-      {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>
-      )}
 
       {loading ? (
         <CardPanelSkeleton count={6} />
@@ -152,9 +104,7 @@ function WorkerInfo({ worker }: { worker: { EmployeeInfoID: number; Fullname: st
                     {task.TaskCode && <p className="text-base text-muted-foreground font-mono mt-0.5">{task.TaskCode}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <Badge style={{ background: statusClass.includes('bg-') ? undefined : undefined, color: statusClass.includes('text-') ? undefined : undefined }} className={statusClass}>
-                      {task.WorkStatusName}
-                    </Badge>
+                    <Badge className={statusClass}>{task.WorkStatusName}</Badge>
                     <Badge className={priorityClass}>{task.PriorityName}</Badge>
                   </div>
                 </div>

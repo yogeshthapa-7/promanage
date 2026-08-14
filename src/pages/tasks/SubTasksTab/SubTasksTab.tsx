@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { fetchSubTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem } from "@/lib/tasks-data";
@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
+import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 
 interface SubTasksTabProps {
   project: ApiProject;
@@ -18,54 +19,44 @@ interface SubTasksTabProps {
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps) {
-  const [subTasks, setSubTasks] = useState<SubTaskItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const projectId = project.ProjectInfoID ?? Number(project.id);
 
-  useEffect(() => {
-    setCurrentPage(1);
-    setSearch("");
-  }, [selectedTask]);
-
-  const loadSubTasks = useCallback(async (signal: AbortSignal, page: number, size: number, searchVal: string) => {
-    if (!selectedTask) return;
-    setLoading(true);
-    setError(null);
-    setSubTasks([]);
-
-    try {
-      const result = await fetchSubTasks({
+  const {
+    data: subTasks,
+    total,
+    loading,
+    currentPage,
+    setCurrentPage,
+    setPageSize,
+  } = usePaginatedList<SubTaskItem>({
+    fetcher: (params: PaginatedListParams) => {
+      if (!selectedTask) return Promise.resolve({ items: [], total: 0 });
+      const page = Math.floor((params.start as number) / (params.length as number)) + 1;
+      return fetchSubTasks({
         projectId,
         taskInfoId: selectedTask.TaskInfoID,
         page,
-        pageSize: size,
-        search: searchVal,
-        signal,
-      });
-      if (signal.aborted) return;
-      setSubTasks(result.items);
-      setTotal(result.total);
-    } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-        setError(err.message);
-      }
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
-  }, [projectId, selectedTask]);
+        pageSize: params.length as number,
+        search: (params.search as string) || search,
+        signal: params.signal,
+      }).then((result) => ({
+        items: result.items,
+        total: result.total,
+      }));
+    },
+    initialPageSize: 20,
+    extraDeps: [search, projectId, selectedTask?.TaskInfoID],
+  });
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reset pagination on task change */
   useEffect(() => {
-    const controller = new AbortController();
-    loadSubTasks(controller.signal, currentPage, pageSize, search);
-    return () => controller.abort();
-  }, [loadSubTasks, currentPage, pageSize]);
+    setCurrentPage(1);
+    setSearch("");
+  }, [selectedTask, setCurrentPage]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -76,13 +67,6 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
     debounceTimerRef.current = setTimeout(() => {
       setCurrentPage(1);
     }, 400);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    const controller = new AbortController();
-    loadSubTasks(controller.signal, 1, pageSize, search);
   };
 
   if (!selectedTask) {
@@ -106,7 +90,7 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
       <div className="flex items-center justify-between gap-3">
         <SearchInput
           value={search}
-          onChange={setSearch}
+          onChange={handleSearchChange}
           placeholder="Search subtasks..."
           containerClassName="flex-1 max-w-md"
         />
@@ -124,12 +108,6 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
       ) : subTasks.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center">
           <p className="text-base text-slate-500 mb-3">This task does not have any subtasks yet.</p>
-          {/* <button
-            onClick={() => {}}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
-          >
-            Create New Subtask
-          </button> */}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

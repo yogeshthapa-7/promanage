@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import { Modal, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,58 +12,55 @@ import Pagination from '@/components/ui/Pagination';
 import { fetchClients, type Client } from '@/lib/client-data';
 import { apiCall } from '@/lib/api';
 import CreateClientDrawer from './Create';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
+function fetchClientsPage(params: PaginatedListParams): Promise<{ items: Client[]; total: number }> {
+  return fetchClients({
+    search: (params.search as string) || '',
+    start: params.start as number,
+    length: params.length as number,
+    signal: params.signal,
+  }).then((result) => ({
+    items: result.clients,
+    total: result.filtered,
+  }));
+}
 
 export default function ClientPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalFiltered, setTotalFiltered] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-
-    fetchClients({
-      search: searchQuery,
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (!cancelled) {
-          setClients(result.clients);
-          setTotalFiltered(result.filtered);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, refreshKey]);
+  const {
+    data: clients,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<Client>({
+    fetcher: fetchClientsPage,
+    initialPageSize: 20,
+    extraDeps: [searchQuery],
+  });
 
   const handleSearch = () => {
     setCurrentPage(1);
-    setRefreshKey((prev) => prev + 1);
   };
 
   const handleAddNew = () => {
+    setEditingClient(null);
+    setShowFormModal(true);
+  };
+
+  const handleEdit = (client: Client) => {
+    setEditingClient(client);
     setShowFormModal(true);
   };
 
@@ -83,7 +80,7 @@ export default function ClientPage() {
 
           message.success('Client deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['clients'] });
-          setRefreshKey((prev) => prev + 1);
+          refetch();
         } catch (err) {
           if (err instanceof Error) {
             message.error(err.message || 'Failed to delete client');
@@ -119,10 +116,9 @@ export default function ClientPage() {
                 if (debounceTimerRef.current) {
                   clearTimeout(debounceTimerRef.current);
                 }
-                debounceTimerRef.current = setTimeout(() => {
-                  setCurrentPage(1);
-                  setRefreshKey((prev) => prev + 1);
-                }, 400);
+                 debounceTimerRef.current = setTimeout(() => {
+                   setCurrentPage(1);
+                 }, 400);
               }}
               placeholder="Search by client name..."
               containerClassName="flex-1"
@@ -204,6 +200,7 @@ export default function ClientPage() {
                   <Button
                     type="primary"
                     size="sm"
+                    onClick={() => handleEdit(client)}
                     icon={
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -249,8 +246,9 @@ export default function ClientPage() {
 
       <CreateClientDrawer
         open={showFormModal}
-        onClose={() => setShowFormModal(false)}
-        onSuccess={() => setRefreshKey((prev) => prev + 1)}
+        onClose={() => { setShowFormModal(false); setEditingClient(null); }}
+        onSuccess={refetch}
+        editingClient={editingClient}
       />
     </div>
   );

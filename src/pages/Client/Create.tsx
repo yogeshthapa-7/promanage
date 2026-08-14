@@ -12,49 +12,65 @@ interface CreateClientDrawerProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editingClient?: Client | null;
 }
 
-export default function CreateClientDrawer({ open, onClose, onSuccess }: CreateClientDrawerProps) {
+export default function CreateClientDrawer({ open, onClose, onSuccess, editingClient }: CreateClientDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (open) {
-      form.resetFields();
+      if (editingClient) {
+        form.setFieldsValue({
+          clientName: editingClient.clientName,
+          clientCode: editingClient.clientCode,
+          contactPerson: editingClient.contactPerson,
+          contactNo: editingClient.contactNo,
+          email: editingClient.email,
+          address: editingClient.address,
+          logo: editingClient.logo,
+        });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [open, form]);
+  }, [open, form, editingClient]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
+      const isEdit = !!editingClient;
+      const body = {
+        ClientInfoID: isEdit ? editingClient?.id : 0,
+        ClientName: values.clientName,
+        ClientCode: values.clientCode,
+        ContactPerson: values.contactPerson,
+        ContactNo: values.contactNo,
+        Email: values.email,
+        Address: values.address,
+        ClientStatus: isEdit ? editingClient?.clientStatus : 0,
+        Logo: values.logo || '',
+      };
+
       const res = await apiCall(`${API_BASE}/SaveClientInfo`, {
         method: 'POST',
-        body: JSON.stringify({
-          ClientInfoID: 0,
-          ClientName: values.clientName,
-          ClientCode: values.clientCode,
-          ContactPerson: values.contactPerson,
-          ContactNo: values.contactNo,
-          Email: values.email,
-          Address: values.address,
-          ClientStatus: 0,
-          Logo: values.logo || '',
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      message.success('Client created successfully');
+      message.success(isEdit ? 'Client updated successfully' : 'Client created successfully');
       form.resetFields();
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       onClose();
       onSuccess();
     } catch (err) {
       if (err instanceof Error) {
-        message.error(err.message || 'Failed to create client');
+        message.error(err.message || 'Failed to save client');
       }
     } finally {
       setLoading(false);
@@ -62,13 +78,13 @@ export default function CreateClientDrawer({ open, onClose, onSuccess }: CreateC
   };
 
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      title="New Client"
-      subtitle="Add a new client to the system."
-      width={480}
-    >
+      <Drawer
+        open={open}
+        onClose={onClose}
+        title={editingClient ? 'Edit Client' : 'New Client'}
+        subtitle={editingClient ? 'Update client details.' : 'Add a new client to the system.'}
+        width={480}
+      >
       <Form
         form={form}
         layout="vertical"
@@ -198,7 +214,7 @@ export default function CreateClientDrawer({ open, onClose, onSuccess }: CreateC
           onClick={handleSubmit}
           className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
         >
-          Create Client
+          {editingClient ? 'Update Client' : 'Create Client'}
         </Button>
       </div>
     </Drawer>

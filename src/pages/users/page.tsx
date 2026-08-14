@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   UserPlus,
 } from 'lucide-react';
@@ -8,11 +8,11 @@ import { Button, Input, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import { fetchUsers, ROLE_STYLE, fetchUserGroups, deleteUser } from '@/lib/users-data';
 import type { User } from '@/lib/users-data';
 import UserFormModal from './Create';
 import { message, Modal } from 'antd';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -29,44 +29,37 @@ export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [titleFilter, setTitleFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [totalFiltered, setTotalFiltered] = useState(0);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [userGroups, setUserGroups] = useState<{ UserGroupId: number; UserGroupName: string }[]>([]);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const fetchData = useCallback((signal?: AbortSignal) => {
-    setLoading(true);
-    fetchUsers({
-      search: debouncedSearch,
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      theme: titleFilter,
-      role: roleFilter,
-      signal,
-    })
-      .then((result) => {
-        setUsers(result.users);
-        setTotalFiltered(result.filtered);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        setLoading(false);
-        message.error('Failed to load users');
-      });
-  }, [debouncedSearch, currentPage, pageSize, titleFilter, roleFilter]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchData(controller.signal);
-    return () => controller.abort();
-  }, [fetchData]);
+  const {
+    data: users,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<User>({
+    fetcher: (params: PaginatedListParams) =>
+      fetchUsers({
+        search: debouncedSearch,
+        start: params.start as number,
+        length: params.length as number,
+        theme: titleFilter,
+        role: roleFilter,
+        signal: params.signal,
+      }).then((result) => ({
+        items: result.users,
+        total: result.filtered,
+      })),
+    initialPageSize: 20,
+    extraDeps: [debouncedSearch, titleFilter, roleFilter],
+  });
 
   useEffect(() => {
     fetchUserGroups().then((groups) => {
@@ -91,8 +84,7 @@ export default function UsersPage() {
         const userId = Number(user.id);
         const result = await deleteUser(userId);
         if (result.success) {
-          setUsers((prev) => prev.filter((u) => u.id !== user.id));
-          setTotalFiltered((prev) => prev - 1);
+          refetch();
         } else {
           message.error(result.message || 'Failed to delete user');
         }
@@ -249,7 +241,7 @@ export default function UsersPage() {
         }}
         editingUser={editUser}
         existingUsers={users}
-        onSuccess={fetchData}
+        onSuccess={refetch}
       />
     </div>
   );

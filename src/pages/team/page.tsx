@@ -1,8 +1,8 @@
+/* eslint-disable react-refresh/only-export-components -- page file exports data constant alongside component */
 import Pagination from "@/components/ui/Pagination";
 import { useState, useCallback, useMemo, memo, useEffect, useRef } from "react";
 import Highcharts from "highcharts";
 import {
-  Search,
   ChevronDown,
   ChevronUp,
   Users,
@@ -11,7 +11,6 @@ import {
   Clock,
   Briefcase,
   TrendingUp,
-  TrendingDown,
   MoreHorizontal,
   MapPin,
   Shield,
@@ -20,14 +19,11 @@ import {
 } from "lucide-react";
 import { Modal, Form, Input, Select, Slider, Upload, message } from "antd";
 import DropdownMenu from "@/components/ui/DropdownMenu";
-import Card from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
 import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
-import { Avatar } from "@/components/ui/Avatar";
-import ProgressBar from "@/components/ui/ProgressBar";
 import SearchInput from "@/components/ui/SearchInput";
 import Drawer from "@/components/drawer";
+import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 
 type MemberRole = "Admin" | "Member" | "Guest";
 type MemberStatus = "Active" | "Away" | "On Leave";
@@ -233,8 +229,26 @@ export default function TeamMembersPage() {
     return result;
   }, [activeTab, searchQuery, roleFilter, deptFilter, statusFilter, sortField, sortDir, members]);
 
+  const {
+    data: paginatedMembers,
+    total: totalFiltered,
+    currentPage,
+    setCurrentPage,
+    refetch,
+  } = usePaginatedList<TeamMember>({
+    fetcher: (params: PaginatedListParams) => {
+      const start = params.start as number;
+      const length = params.length as number;
+      const items = filteredMembers.slice(start, start + length);
+      return { items, total: filteredMembers.length };
+    },
+    initialPageSize: 10,
+    extraDeps: [filteredMembers],
+  });
+
   const deleteMember = (id: string) => {
     setMembers((prev) => prev.filter((m) => m.id !== id));
+    refetch();
   };
 
   const handleEditMember = (member: TeamMember) => {
@@ -533,7 +547,10 @@ export default function TeamMembersPage() {
         <MemberTable
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          filteredMembers={filteredMembers}
+          paginatedMembers={paginatedMembers}
+          totalFiltered={totalFiltered}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
           onViewMember={setViewMember}
           onEditMember={handleEditMember}
           onDeleteMember={handleDeleteMember}
@@ -958,31 +975,31 @@ export default function TeamMembersPage() {
 function MemberTable({
   activeTab,
   onTabChange,
-  filteredMembers,
+  paginatedMembers,
+  totalFiltered,
+  currentPage,
+  onPageChange,
   onViewMember,
   onEditMember,
   onDeleteMember,
 }: {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  filteredMembers: TeamMember[];
+  paginatedMembers: TeamMember[];
+  totalFiltered: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
   onViewMember: (member: TeamMember) => void;
   onEditMember: (member: TeamMember) => void;
   onDeleteMember: (member: TeamMember) => void;
 }) {
-  const [currentPage, setCurrentPage] = useState(1);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const allChecked = filteredMembers.length > 0 && filteredMembers.every((m) => checked[m.id]);
-  const pageSize = 10;
-  const paginatedMembers = filteredMembers.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const allChecked = paginatedMembers.length > 0 && paginatedMembers.every((m) => checked[m.id]);
 
   const handleToggleAll = useCallback(() => {
     if (allChecked) setChecked({});
-    else setChecked(Object.fromEntries(filteredMembers.map((m) => [m.id, true])));
-  }, [allChecked, filteredMembers]);
+    else setChecked(Object.fromEntries(paginatedMembers.map((m) => [m.id, true])));
+  }, [allChecked, paginatedMembers]);
 
   const handleToggleRow = useCallback((id: string) => {
     setChecked((c) => ({ ...c, [id]: !c[id] }));
@@ -1045,14 +1062,14 @@ function MemberTable({
         </table>
       </div>
 
-      {filteredMembers.length > pageSize && (
+      {totalFiltered > 0 && (
         <div className="px-5 pb-4 pt-2">
           <Pagination
-            total={filteredMembers.length}
+            total={totalFiltered}
             currentPage={currentPage}
-            pageSize={pageSize}
-            onPageChange={setCurrentPage}
-            totalLabel={`${filteredMembers.length} members`}
+            pageSize={10}
+            onPageChange={onPageChange}
+            totalLabel={`${totalFiltered} members`}
           />
         </div>
       )}
@@ -1149,75 +1166,3 @@ const MemberRow = memo(function MemberRow({
   );
 });
 
-function FilterSelect({
-  label,
-  value,
-  onSelect,
-  options,
-}: {
-  label: string;
-  value: string;
-  onSelect: (val: string) => void;
-  options: string[];
-}) {
-  return (
-    <div>
-      <div className="mb-1 text-sm font-medium text-slate-500">{label}</div>
-      <select
-        value={value}
-        onChange={(e) => onSelect(e.target.value)}
-        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100"
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function Sparkline({
-  data,
-  color,
-  width = 90,
-  height = 32,
-}: {
-  data: number[];
-  color: string;
-  width?: number;
-  height?: number;
-}) {
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-  const stepX = width / (data.length - 1);
-  const pts = data.map((v, i) => {
-    const x = i * stepX;
-    const y = height - ((v - min) / range) * (height - 4) - 2;
-    return `${x},${y}`;
-  });
-  const areaPath = `M0,${height} L${pts.join(" L")} L${width},${height} Z`;
-  const gid = `spark-${color.replace(/[^a-z0-9]/gi, "")}`;
-
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaPath} fill={`url(#${gid})`} />
-      <polyline
-        points={pts.join(" ")}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}

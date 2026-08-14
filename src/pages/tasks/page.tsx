@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, X } from "lucide-react";
-import { Button, Tabs } from 'antd';
+import { ArrowLeft } from "lucide-react";
+import { Button } from 'antd';
 import { apiCall } from "@/lib/api";
 import type { ApiProject } from "@/lib/projects-data";
 import TasksTab from "./TasksTab/TasksTab";
@@ -16,6 +16,7 @@ import Pagination from "@/components/ui/Pagination";
 import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
+import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const PROJECTS_API = `${API_BASE}/ProjectInfo/ServerSearch`;
@@ -40,56 +41,41 @@ const buildProjectSearchBody = (start: number, length: number, search?: string) 
 const tabs = ["Task", "SubTask", "Discussion", "Issue", "Milestone", "Timeline", "Kanban"] as const;
 type Tab = typeof tabs[number];
 
+function fetchProjectsPage(params: PaginatedListParams): Promise<{ items: ApiProject[]; total: number }> {
+  return apiCall(PROJECTS_API, {
+    method: "POST",
+    body: JSON.stringify(buildProjectSearchBody(params.start as number, params.length as number, params.search as string)),
+    signal: params.signal,
+  }).then(async (res) => {
+    if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+    const json = await res.json();
+    const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
+    return { items: rows, total: json.recordsTotal ?? rows.length };
+  });
+}
+
 export default function TasksPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const project = (location.state as { project?: ApiProject } | undefined)?.project;
   const [activeTab, setActiveTab] = useState<Tab>("Task");
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
-
-  useEffect(() => {
-    setSelectedTask(null);
-    setActiveTab("Task");
-  }, [project]);
-
-  const [projects, setProjects] = useState<ApiProject[]>([]);
-  const [projectsLoading, setProjectsLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (project) return;
-    const controller = new AbortController();
-    let cancelled = false;
-    setProjectsLoading(true);
-    const start = (currentPage - 1) * PROJECTS_PAGE_SIZE;
-    apiCall(PROJECTS_API, {
-      method: "POST",
-      body: JSON.stringify(buildProjectSearchBody(start, PROJECTS_PAGE_SIZE, searchQuery)),
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-        const json = await res.json();
-        const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
-        if (!cancelled) {
-          setProjects(rows);
-          setTotalRecords(json.recordsTotal ?? rows.length);
-        }
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-      })
-      .finally(() => {
-        if (!cancelled) setProjectsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [project, currentPage]);
+  const projectKey = project ? (project.ProjectInfoID ?? project.id) : 'none';
+
+  const {
+    data: projects,
+    total: totalRecords,
+    loading: projectsLoading,
+    currentPage,
+    setCurrentPage,
+  } = usePaginatedList<ApiProject>({
+    fetcher: fetchProjectsPage,
+    initialPageSize: PROJECTS_PAGE_SIZE,
+    extraDeps: [searchQuery],
+  });
 
   const handleSelectProject = (item: ApiProject) => {
     navigate("/tasks", { state: { project: item } });
@@ -111,7 +97,7 @@ export default function TasksPage() {
 
     switch (activeTab) {
       case "Task":
-        return <TasksTab project={project} selectedTask={selectedTask} onTaskSelect={handleTaskSelect} />;
+        return <TasksTab key={selectedTask?.TaskInfoID ?? 'none'} project={project} selectedTask={selectedTask} onTaskSelect={handleTaskSelect} />;
       case "SubTask":
         return <SubTasksTab project={project} selectedTask={selectedTask} />;
       case "Discussion":
@@ -180,7 +166,7 @@ export default function TasksPage() {
           </div>
 
           <div className="mt-6">
-            {renderTabContent()}
+            <div key={projectKey}>{renderTabContent()}</div>
           </div>
 
           <hr className="border-slate-200 my-6" />

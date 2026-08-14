@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import {
-  Search,
   Filter,
   LayoutGrid,
   List,
@@ -15,11 +14,9 @@ import {
   Eye,
   Pencil,
   Trash2,
-  X,
   ChevronDown,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
-import StatCard from '@/components/ui/StatCard';
 import Pagination from '@/components/ui/Pagination';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
@@ -28,109 +25,36 @@ import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
 import DropdownMenu from '@/components/ui/DropdownMenu';
 import { apiCall } from '@/lib/api';
-import { projects as fallbackProjects, mapApiProjectToProject } from '@/lib/projects-data';
+import { mapApiProjectToProject } from '@/lib/projects-data';
 import type { ProjectStatus, Project, ApiProject } from '@/lib/projects-data';
-import { getStatCards } from '@/pages/dashboard/components/statCardsData';
-import { useDashboardStats } from '@/pages/dashboard/components/useDashboardStats';
 import ProjectFormModal from './Create';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 type SortField = 'name' | 'status' | 'priority' | 'progress' | 'dueDate';
-type SortDir = 'asc' | 'desc';
-
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/ProjectInfo/ServerSearch`;
-const PROJECTS_CACHE_KEY_PREFIX = 'promanage:projects:list:';
-const PROJECTS_CACHE_TTL_MS = 5 * 60 * 1000;
 
-type ProjectsCacheEntry = {
-  data: ApiProject[];
-  total: number;
-  cachedAt: number;
-};
-
-function getProjectsCacheKey(start: number, length: number, searchQuery: string): string {
-  return `${PROJECTS_CACHE_KEY_PREFIX}${start}:${length}:${searchQuery.trim().toLowerCase()}`;
-}
-
-function readProjectsCache(cacheKey: string): ProjectsCacheEntry | null {
-  try {
-    const raw = sessionStorage.getItem(cacheKey);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw) as ProjectsCacheEntry;
-    if (!parsed || !Array.isArray(parsed.data) || typeof parsed.total !== 'number' || typeof parsed.cachedAt !== 'number') {
-      return null;
-    }
-
-    if (Date.now() - parsed.cachedAt > PROJECTS_CACHE_TTL_MS) {
-      sessionStorage.removeItem(cacheKey);
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writeProjectsCache(cacheKey: string, payload: { data: ApiProject[]; total: number }): void {
-  try {
-    sessionStorage.setItem(
-      cacheKey,
-      JSON.stringify({
-        ...payload,
-        cachedAt: Date.now(),
-      } satisfies ProjectsCacheEntry)
-    );
-  } catch {
-    // Ignore storage failures and keep the live data path working.
-  }
-}
-
-const serverSearchBody = {
-  model: {
-    draw: 1,
-    start: 0,
-    length: 20,
-    columns: [
-      { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-    ],
-    search: { value: '', regex: '' },
-    order: [{ column: 0, dir: 'desc' }],
-  },
-  param: {
-    ProjectInfoID: 0,
-  },
-};
-
-async function fetchProjects(
-  start: number,
-  length: number,
-  searchQuery: string = '',
-  signal?: AbortSignal
-): Promise<{ data: Project[]; rawData: ApiProject[]; total: number }> {
-  const cleanSearch = (searchQuery || '').trim();
+async function fetchProjectsPage(
+  params: PaginatedListParams
+): Promise<{ items: Project[]; total: number }> {
+  const { start, length, signal } = params;
+  const searchQuery = (params.search as string) || '';
 
   const body = {
     model: {
       draw: 1,
-      start: Math.max(0, start),
-      length: Math.max(1, length),
-      // Keep column search value empty to prevent server SQL string-builder crashes
+      start: Math.max(0, start as number),
+      length: Math.max(1, length as number),
       columns: [
         { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
         { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
         { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
       ],
-      search: { value: cleanSearch, regex: '' },
+      search: { value: searchQuery.trim(), regex: '' },
       order: [{ column: 0, dir: 'desc' }],
     },
-    param: {
-      ProjectInfoID: 0,
-    },
+    param: { ProjectInfoID: 0 },
   };
 
   const res = await apiCall(API_URL, {
@@ -140,85 +64,43 @@ async function fetchProjects(
     signal,
   }, 60000);
 
-  if (!res.ok) {
-    throw new Error(`Server responded with ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
   const json = await res.json();
   const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
   const mapped = rows.map(mapApiProjectToProject);
   const total = json?.recordsTotal ?? json?.recordsFiltered ?? mapped.length;
 
-  return { data: mapped, rawData: rows, total };
+  return { items: mapped, total };
 }
-
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'All'>('All');
   const [filterOpen, setFilterOpen] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [sortOpen, setSortOpen] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const { users, employees, departments, organizations, tasks } = useDashboardStats(projects.length);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const pageSize = 9;
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    const start = (currentPage - 1) * pageSize;
-    const cacheKey = getProjectsCacheKey(start, pageSize, searchQuery);
-    const cached = readProjectsCache(cacheKey);
-
-    if (cached) {
-      setProjects(cached.data.map(mapApiProjectToProject));
-      setTotalRecords(cached.total);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-
-    fetchProjects(start, pageSize, searchQuery, controller.signal)
-      .then((result) => {
-        if (!cancelled) {
-          setProjects(result.data);
-          setTotalRecords(result.total);
-          setLoading(false);
-          writeProjectsCache(cacheKey, { data: result.rawData, total: result.total });
-        }
-      })
-      .catch((err) => {
-        if (err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')) return;
-        if (!cancelled) {
-          if (!cached) {
-            setProjects(fallbackProjects);
-            setTotalRecords(fallbackProjects.length);
-          }
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, searchQuery]);
+  const {
+    data: projects,
+    total: totalRecords,
+    loading,
+    currentPage,
+    setCurrentPage,
+    refetch,
+  } = usePaginatedList<Project>({
+    fetcher: fetchProjectsPage,
+    initialPageSize: pageSize,
+    extraDeps: [searchQuery],
+  });
 
   const statusOptions: (ProjectStatus | 'All')[] = [
-    'All',
-    'In Progress',
-    'Completed',
-    'On Hold',
-    'Not Started',
-    'Overdue',
+    'All', 'In Progress', 'Completed', 'On Hold', 'Not Started', 'Overdue',
   ];
 
   const sortOptions: { label: string; value: SortField }[] = [
@@ -235,12 +117,25 @@ export default function ProjectsPage() {
   };
 
   const openEditModal = async (project: Project) => {
-    const res = await apiCall(`${API_URL}`, {
+    const body = {
+      model: {
+        draw: 1,
+        start: 0,
+        length: 1,
+        columns: [
+          { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
+        ],
+        search: { value: '', regex: '' },
+        order: [{ column: 0, dir: 'desc' }],
+      },
+      param: { ProjectInfoID: Number(project.id) },
+    };
+    const res = await apiCall(API_URL, {
       method: 'POST',
-      body: JSON.stringify({
-        ...serverSearchBody,
-        param: { ProjectInfoID: Number(project.id) },
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
     if (!res.ok) return;
     const json = await res.json();
@@ -257,37 +152,14 @@ export default function ProjectsPage() {
   }, []);
 
   const handleModalSuccess = useCallback(() => {
-    const start = (currentPage - 1) * pageSize;
-    const cacheKey = getProjectsCacheKey(start, pageSize, searchQuery);
-    fetchProjects(start, pageSize, searchQuery)
-      .then((result) => {
-        setProjects(result.data);
-        setTotalRecords(result.total);
-        writeProjectsCache(cacheKey, { data: result.rawData, total: result.total });
-      })
-      .catch(() => {
-        const cached = readProjectsCache(cacheKey);
-        if (cached) {
-          setProjects(cached.data.map(mapApiProjectToProject));
-          setTotalRecords(cached.total);
-          return;
-        }
-        setProjects(fallbackProjects);
-        setTotalRecords(fallbackProjects.length);
-      });
-  }, [currentPage, pageSize, searchQuery]);
+    refetch();
+  }, [refetch]);
 
   const handleViewProject = (project: Project) => {
     navigate(`/projects/${project.id}`);
   };
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('asc');
-    }
+  const handleSort = () => {
     setSortOpen(false);
     setCurrentPage(1);
   };
@@ -321,7 +193,7 @@ export default function ProjectsPage() {
     message.success('Export completed');
   };
 
-    const handleDeleteClick = (project: Project) => {
+  const handleDeleteClick = (project: Project) => {
     Modal.confirm({
       title: 'Delete Project',
       content: `Are you sure you want to delete "${project.title || project.name}"?`,
@@ -332,26 +204,9 @@ export default function ProjectsPage() {
           const res = await apiCall(`${API_BASE}/DeleteProjectInfo?id=${project.id}`, {
             method: 'GET',
           });
-          if (!res.ok) throw new Error(`Failed to delete: ${res.statusText}`);
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
           message.success('Project deleted successfully');
-          const start = (currentPage - 1) * pageSize;
-          const cacheKey = getProjectsCacheKey(start, pageSize, searchQuery);
-          fetchProjects(start, pageSize, searchQuery)
-            .then((result) => {
-              setProjects(result.data);
-              setTotalRecords(result.total);
-              writeProjectsCache(cacheKey, { data: result.rawData, total: result.total });
-            })
-            .catch(() => {
-              const cached = readProjectsCache(cacheKey);
-              if (cached) {
-                setProjects(cached.data.map(mapApiProjectToProject));
-                setTotalRecords(cached.total);
-                return;
-              }
-              setProjects(fallbackProjects);
-              setTotalRecords(fallbackProjects.length);
-            });
+          refetch();
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Delete failed');
         }
@@ -360,18 +215,9 @@ export default function ProjectsPage() {
   };
 
   const totalPages = Math.ceil(totalRecords / pageSize);
-  const statsPayload = {
-    projects: projects.length,
-    users,
-    employees,
-    departments,
-    organizations,
-    tasks,
-  };
 
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
-      {/* 1. Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Projects</h1>
@@ -379,31 +225,20 @@ export default function ProjectsPage() {
             Manage, organize and monitor all your projects in one place.
           </p>
         </div>
-
-        {/* Header Action Tools */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Search */}
           <SearchInput
             value={searchQuery}
             onChange={(value) => {
               setSearchQuery(value);
-              if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-              }
-              debounceTimerRef.current = setTimeout(() => {
-                setCurrentPage(1);
-              }, 400);
+              if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+              debounceTimerRef.current = setTimeout(() => setCurrentPage(1), 400);
             }}
             placeholder="Search projects..."
             containerClassName="w-48 lg:w-56"
           />
-
-          {/* New Project Button */}
           <Button type="primary" onClick={openCreateModal} icon={<Plus className="w-4 h-4" />}>
             New Project
           </Button>
-
-          {/* Filter Button */}
           <div className="relative">
             <DropdownMenu
               trigger={
@@ -421,8 +256,6 @@ export default function ProjectsPage() {
               }))}
             />
           </div>
-
-          {/* Sort Button */}
           <div className="relative">
             <DropdownMenu
               trigger={
@@ -437,18 +270,14 @@ export default function ProjectsPage() {
               }))}
             />
           </div>
-
-          {/* View Toggle */}
           <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
             <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
             <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
           </div>
-
-           {/* Export Button */}
           <Button onClick={handleExport} icon={<Download className="w-3.5 h-3.5 text-muted-foreground" />}>
             Export
           </Button>
-         </div>
+        </div>
       </div>
       <hr className="border-slate-200 my-4" />
 
@@ -456,27 +285,7 @@ export default function ProjectsPage() {
         <CardGridSkeleton count={9} columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" />
       ) : (
         <>
-          {/* 2. Top Metric Cards Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            {getStatCards(statsPayload).map((stat) => (
-              <StatCard
-                key={stat.id}
-                title={stat.title}
-                value={stat.value}
-                trend={stat.trend}
-                trendUp={stat.trendUp}
-                iconBg={stat.iconBg}
-                iconColor={stat.iconColor}
-                iconType={stat.iconType}
-                sparklineData={stat.sparklineData}
-                sparklineColor={stat.sparklineColor}
-              />
-            ))}
-          </div>
-
-          {/* 3. Main Content Area */}
           <div className="space-y-4">
-            {/* Projects Title */}
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-foreground">Projects</h2>
               <span className="text-base text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
@@ -485,141 +294,80 @@ export default function ProjectsPage() {
             </div>
 
             {viewMode === 'grid' ? (
-              /* Projects Cards Grid */
-               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 {projects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
-
                   return (
-                     <Card
-                       key={project.id}
-                       hover
-                       className="flex flex-col min-h-[280px] cursor-pointer overflow-hidden"
-                       onClick={() => handleViewProject(project)}
-                     >
-                   {/* Top content grows to fill available space */}
-                   <div className="flex flex-col gap-3 flex-1">
-                    {/* Card Header */}
-                    <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${project.iconBg} shrink-0`}>
-                      <Icon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold text-foreground truncate" title={projectTitle}>
-                            {projectTitle}
-                          </h3>
-                          {project.starred && (
-                            <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0" />
-                          )}
+                    <Card key={project.id} hover className="flex flex-col min-h-[280px] cursor-pointer overflow-hidden" onClick={() => handleViewProject(project)}>
+                      <div className="flex flex-col gap-3 flex-1">
+                        <div className="flex items-start gap-4">
+                          <div className={`p-3 rounded-xl ${project.iconBg} shrink-0`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-bold text-foreground truncate" title={projectTitle}>{projectTitle}</h3>
+                              {project.starred && <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0" />}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge>{project.status}</Badge>
+                          <span className="text-sm text-muted-foreground">{project.priority} priority</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground font-medium">Progress</span>
+                            <span className="font-bold text-foreground">{project.progress}%</span>
+                          </div>
+                          <ProgressBar value={project.progress} color={project.progressColor.replace('bg-', '#')} />
+                        </div>
+                        <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-2.5 py-1.5">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Start Date</p>
+                            <p className="text-sm font-medium text-foreground tabular-nums truncate">{project.startDate}</p>
+                          </div>
+                          <div className="min-w-0 text-right">
+                            <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Due Date</p>
+                            <p className="text-sm font-medium text-foreground tabular-nums truncate">{project.dueDate}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Status & Priority */}
-                    <div className="flex items-center gap-3">
-                      <Badge>
-                        {project.status}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {project.priority} priority
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground font-medium">Progress</span>
-                        <span className="font-bold text-foreground">{project.progress}%</span>
+                      <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border/60">
+                        <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />}>View</Button>
+                        <Button size="small" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />}>Edit</Button>
+                        <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />}>Delete</Button>
                       </div>
-                      <ProgressBar value={project.progress} color={project.progressColor.replace('bg-', '#')} />
-                    </div>
-
-                    {/* Key dates */}
-                    <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-2.5 py-1.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                          Start Date
-                        </p>
-                        <p className="text-sm font-medium text-foreground tabular-nums truncate">
-                          {project.startDate}
-                        </p>
-                      </div>
-                      <div className="min-w-0 text-right">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                          Due Date
-                        </p>
-                        <p className="text-sm font-medium text-foreground tabular-nums truncate">
-                          {project.dueDate}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons — pinned to bottom */}
-                  <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border/60">
-                    <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />}>
-                      View
-                    </Button>
-                    <Button size="small" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />}>
-                      Edit
-                    </Button>
-                    <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />}>
-                      Delete
-                    </Button>
-                  </div>
                     </Card>
                   );
                 })}
               </div>
             ) : (
-              /* List View */
               <Card hover className="space-y-2">
                 {projects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
-
                   return (
-                    <Card
-                      key={project.id}
-                      hover
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer"
-                      onClick={() => handleViewProject(project)}
-                    >
-                  <div className={`p-2 rounded-xl ${project.iconBg} shrink-0`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="text-sm font-bold text-foreground truncate">{projectTitle}</h3>
-                        {project.starred && (
-                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
-                        )}
+                    <Card key={project.id} hover className="flex items-center gap-3 px-4 py-2.5 cursor-pointer" onClick={() => handleViewProject(project)}>
+                      <div className={`p-2 rounded-xl ${project.iconBg} shrink-0`}><Icon className="w-4 h-4" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="text-sm font-bold text-foreground truncate">{projectTitle}</h3>
+                          {project.starred && <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />}
+                        </div>
                       </div>
-                    </div>
-
-                  <Badge>
-                        {project.status}
-                      </Badge>
-
-                  <span className="hidden md:inline-block text-sm text-muted-foreground w-24 truncate">
-                    {project.priority}
-                  </span>
-
-                  <div className="hidden lg:flex items-center gap-3 w-48">
-                    <ProgressBar value={project.progress} color={project.progressColor.replace('bg-', '#')} />
-                    <span className="text-sm font-semibold text-foreground w-8 text-right">
-                      {project.progress}%
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />} />
-                    <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />} />
-                    <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
-                  </div>
+                      <Badge>{project.status}</Badge>
+                      <span className="hidden md:inline-block text-sm text-muted-foreground w-24 truncate">{project.priority}</span>
+                      <div className="hidden lg:flex items-center gap-3 w-48">
+                        <ProgressBar value={project.progress} color={project.progressColor.replace('bg-', '#')} />
+                        <span className="text-sm font-semibold text-foreground w-8 text-right">{project.progress}%</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />} />
+                        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />} />
+                        <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
+                      </div>
                     </Card>
                   );
                 })}
@@ -637,8 +385,6 @@ export default function ProjectsPage() {
           </div>
         </>
       )}
-
-      {/* Toast Notification */}
 
       <ProjectFormModal
         open={isModalOpen}

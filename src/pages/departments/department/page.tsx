@@ -21,6 +21,7 @@ import { apiCall } from '@/lib/api';
 import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -33,22 +34,30 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+function fetchDepartmentsPage(params: PaginatedListParams): Promise<{ items: Department[]; total: number }> {
+  return fetchDepartments({
+    search: '',
+    start: params.start as number,
+    length: params.length as number,
+    departmentId: params.departmentId as string | undefined,
+    code: params.code as string | undefined,
+    mainDept: params.mainDept as string | undefined,
+    signal: params.signal,
+  }).then((result) => ({
+    items: result.departments,
+    total: result.filtered || result.departments.length,
+  }));
+}
+
 export default function DepartmentPage() {
   const queryClient = useQueryClient();
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalFiltered, setTotalFiltered] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>('department');
   const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
   const [deptNameLoading, setDeptNameLoading] = useState(false);
 
-  // Filter Form States
   const [filterDeptId, setFilterDeptId] = useState<string | undefined>(undefined);
   const [filterDeptCode, setFilterDeptCode] = useState('');
   const [filterMainDept, setFilterMainDept] = useState<string | undefined>(undefined);
@@ -56,43 +65,24 @@ export default function DepartmentPage() {
   const debouncedDeptCode = useDebounce(filterDeptCode, 300);
   const debouncedMainDept = useDebounce(filterMainDept, 300);
 
+  const isDepartmentTab = activeTab === 'department';
 
-   useEffect(() => {
-    if (activeTab !== 'department') return;
+  const {
+    data: departments,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<Department>({
+    fetcher: fetchDepartmentsPage,
+    initialPageSize: 20,
+    extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab],
+  });
 
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    fetchDepartments({
-      search: '',
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      departmentId: filterDeptId,
-      code: debouncedDeptCode,
-      mainDept: debouncedMainDept,
-      signal: controller.signal,
-    })
-       .then((result) => {
-         if (!cancelled) {
-           setDepartments(result.departments);
-           setTotalFiltered(result.filtered || result.departments.length);
-           setLoading(false);
-         }
-       })
-       .catch((err) => {
-         if (err.name === 'AbortError') return;
-         if (!cancelled) {
-           setDepartments([]);
-           setTotalFiltered(0);
-           setLoading(false);
-         }
-       });
-     return () => {
-       cancelled = true;
-       controller.abort();
-     };
-    }, [currentPage, pageSize, filterDeptId, debouncedDeptCode, debouncedMainDept, refreshKey, activeTab]);
-
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
   useEffect(() => {
     const controller = new AbortController();
     setDeptNameLoading(true);
@@ -103,8 +93,9 @@ export default function DepartmentPage() {
       });
     return () => controller.abort();
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  const refreshDepartments = () => setRefreshKey((prev) => prev + 1);
+  const refreshDepartments = () => refetch();
 
   const handleClear = () => {
     setFilterDeptId(undefined);

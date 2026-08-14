@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import { Modal, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,58 +12,55 @@ import Pagination from '@/components/ui/Pagination';
 import { fetchBudgets, type Budget } from '@/lib/budget-data';
 import { apiCall } from '@/lib/api';
 import CreateBudgetDrawer from './Create';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
+function fetchBudgetsPage(params: PaginatedListParams): Promise<{ items: Budget[]; total: number }> {
+  return fetchBudgets({
+    search: (params.search as string) || '',
+    start: params.start as number,
+    length: params.length as number,
+    signal: params.signal,
+  }).then((result) => ({
+    items: result.budgets,
+    total: result.filtered,
+  }));
+}
 
 export default function BudgetPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalFiltered, setTotalFiltered] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-
-    fetchBudgets({
-      search: searchQuery,
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (!cancelled) {
-          setBudgets(result.budgets);
-          setTotalFiltered(result.filtered);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, refreshKey]);
+  const {
+    data: budgets,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<Budget>({
+    fetcher: fetchBudgetsPage,
+    initialPageSize: 20,
+    extraDeps: [searchQuery],
+  });
 
   const handleSearch = () => {
     setCurrentPage(1);
-    setRefreshKey((prev) => prev + 1);
   };
 
   const handleAddNew = () => {
+    setEditingBudget(null);
+    setShowFormModal(true);
+  };
+
+  const handleEdit = (budget: Budget) => {
+    setEditingBudget(budget);
     setShowFormModal(true);
   };
 
@@ -83,7 +80,7 @@ export default function BudgetPage() {
 
           message.success('Budget deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['budgets'] });
-          setRefreshKey((prev) => prev + 1);
+          refetch();
         } catch (err) {
           if (err instanceof Error) {
             message.error(err.message || 'Failed to delete budget');
@@ -119,10 +116,9 @@ export default function BudgetPage() {
                 if (debounceTimerRef.current) {
                   clearTimeout(debounceTimerRef.current);
                 }
-                debounceTimerRef.current = setTimeout(() => {
-                  setCurrentPage(1);
-                  setRefreshKey((prev) => prev + 1);
-                }, 400);
+                 debounceTimerRef.current = setTimeout(() => {
+                   setCurrentPage(1);
+                 }, 400);
               }}
               placeholder="Search by budget name..."
               containerClassName="flex-1"
@@ -191,6 +187,7 @@ export default function BudgetPage() {
                   <Button
                     type="primary"
                     size="sm"
+                    onClick={() => handleEdit(budget)}
                     icon={
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -236,8 +233,9 @@ export default function BudgetPage() {
 
       <CreateBudgetDrawer
         open={showFormModal}
-        onClose={() => setShowFormModal(false)}
-        onSuccess={() => setRefreshKey((prev) => prev + 1)}
+        onClose={() => { setShowFormModal(false); setEditingBudget(null); }}
+        onSuccess={refetch}
+        editingBudget={editingBudget}
       />
     </div>
   );

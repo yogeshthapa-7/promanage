@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Building2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Building2 } from 'lucide-react';
 import { Modal, message } from 'antd';
-import { Button, Input, Select } from 'antd';
+import { Button, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
@@ -11,51 +11,40 @@ import SearchInput from '@/components/ui/SearchInput';
 import { fetchOrganizations, type Organization } from '@/lib/organizations-data';
 import CreateOrganizationModal from './Create';
 import { apiCall } from '@/lib/api';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+
+function fetchOrganizationsPage(params: PaginatedListParams): Promise<{ items: Organization[]; total: number }> {
+  return fetchOrganizations({
+    search: (params.search as string) || '',
+    start: params.start as number,
+    length: params.length as number,
+    signal: params.signal,
+  }).then((result) => ({
+    items: result.organizations,
+    total: result.filtered,
+  }));
+}
 
 export default function OrganizationPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalFiltered, setTotalFiltered] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    fetchOrganizations({
-      search: searchQuery,
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (!cancelled) {
-          setOrganizations(result.organizations);
-          setTotalFiltered(result.filtered);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, refreshKey]);
-
-  const refreshOrganizations = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
+  const {
+    data: organizations,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<Organization>({
+    fetcher: fetchOrganizationsPage,
+    initialPageSize: 20,
+    extraDeps: [searchQuery],
+  });
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -88,7 +77,7 @@ export default function OrganizationPage() {
           if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
           message.success(`Organization "${org.title}" deleted successfully`);
-          refreshOrganizations();
+          refetch();
         } catch (err) {
           if (err instanceof Error) {
             message.error(err.message || 'Failed to delete organization');
@@ -102,7 +91,7 @@ export default function OrganizationPage() {
     setShowCreateModal(false);
     setEditingOrg(null);
     setCurrentPage(1);
-    refreshOrganizations();
+    refetch();
     message.success('Organization saved successfully');
   };
 

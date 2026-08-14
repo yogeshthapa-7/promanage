@@ -12,39 +12,50 @@ interface CreateBudgetDrawerProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editingBudget?: Budget | null;
 }
 
-export default function CreateBudgetDrawer({ open, onClose, onSuccess }: CreateBudgetDrawerProps) {
+export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBudget }: CreateBudgetDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (open) {
-      form.resetFields();
+      if (editingBudget) {
+        form.setFieldsValue({ name: editingBudget.name });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [open, form]);
+  }, [open, form, editingBudget]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
+      const isEdit = !!editingBudget;
+      const body = {
+        BudgetInfoID: isEdit ? editingBudget?.id : 0,
+        BudgetInfoName: values.name,
+      };
+
       const res = await apiCall(`${API_BASE}/SaveBudgetInfo`, {
         method: 'POST',
-        body: JSON.stringify({ BudgetInfoID: 0, BudgetInfoName: values.name }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      message.success('Budget created successfully');
+      message.success(isEdit ? 'Budget updated successfully' : 'Budget created successfully');
       form.resetFields();
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       onClose();
       onSuccess();
     } catch (err) {
       if (err instanceof Error) {
-        message.error(err.message || 'Failed to create budget');
+        message.error(err.message || 'Failed to save budget');
       }
     } finally {
       setLoading(false);
@@ -52,13 +63,13 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess }: CreateB
   };
 
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      title="New Budget"
-      subtitle="Create a new budget allocation."
-      width={480}
-    >
+      <Drawer
+        open={open}
+        onClose={onClose}
+        title={editingBudget ? 'Edit Budget' : 'New Budget'}
+        subtitle={editingBudget ? 'Update budget details.' : 'Create a new budget allocation.'}
+        width={480}
+      >
       <Form
         form={form}
         layout="vertical"
@@ -96,7 +107,7 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess }: CreateB
           onClick={handleSubmit}
           className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
         >
-          Create Budget
+          {editingBudget ? 'Update Budget' : 'Create Budget'}
         </Button>
       </div>
     </Drawer>

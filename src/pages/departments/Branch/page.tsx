@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
@@ -12,65 +12,59 @@ import SearchInput from '@/components/ui/SearchInput';
 import { apiCall } from '@/lib/api';
 import { fetchBranches, type Branch } from '@/lib/branches-data';
 import CreateBranchDrawer from './Create';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+
+const mockBranches: Branch[] = [
+  { id: '1', sn: 1, name: 'शाखा - प्रशासन', branchCode: 'B-001', mainBranchId: 1, mainBranchName: 'मुख्य शाखा - प्रशासन', departmentId: 19, departmentName: 'प्रशासन विभाग', orderKey: 1 },
+  { id: '2', sn: 2, name: 'शाखा - वित्त', branchCode: 'B-002', mainBranchId: 2, mainBranchName: 'मुख्य शाखा - वित्त', departmentId: 27, departmentName: 'वित्त विभाग', orderKey: 2 },
+  { id: '3', sn: 3, name: 'शाखा - सामाजिक विकास', branchCode: 'B-003', mainBranchId: 3, mainBranchName: 'मुख्य शाखा - सामाजिक विकास', departmentId: 26, departmentName: 'सामाजिक विकास विभाग', orderKey: 3 },
+];
+
+function fetchBranchesPage(params: PaginatedListParams): Promise<{ items: Branch[]; total: number }> {
+  return fetchBranches({
+    search: '',
+    start: params.start as number,
+    length: params.length as number,
+    name: params.name as string,
+    code: params.code as string,
+    mainBranchName: params.mainBranchName as string,
+    departmentName: params.departmentName as string,
+    signal: params.signal,
+  }).then((result) => ({
+    items: result.branches.length ? result.branches : mockBranches,
+    total: result.filtered || mockBranches.length,
+  })).catch(() => ({
+    items: mockBranches,
+    total: mockBranches.length,
+  }));
+}
 
 export default function BranchPage() {
   const queryClient = useQueryClient();
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalFiltered, setTotalFiltered] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const [searchName, setSearchName] = useState('');
   const [searchCode, setSearchCode] = useState('');
   const [searchMainBranch, setSearchMainBranch] = useState('');
   const [searchDepartment, setSearchDepartment] = useState('');
 
-  const mockBranches: Branch[] = useMemo(() => [
-    { id: '1', sn: 1, name: 'शाखा - प्रशासन', branchCode: 'B-001', mainBranchId: 1, mainBranchName: 'मुख्य शाखा - प्रशासन', departmentId: 19, departmentName: 'प्रशासन विभाग', orderKey: 1 },
-    { id: '2', sn: 2, name: 'शाखा - वित्त', branchCode: 'B-002', mainBranchId: 2, mainBranchName: 'मुख्य शाखा - वित्त', departmentId: 27, departmentName: 'वित्त विभाग', orderKey: 2 },
-    { id: '3', sn: 3, name: 'शाखा - सामाजिक विकास', branchCode: 'B-003', mainBranchId: 3, mainBranchName: 'मुख्य शाखा - सामाजिक विकास', departmentId: 26, departmentName: 'सामाजिक विकास विभाग', orderKey: 3 },
-  ], []);
+  const {
+    data: branches,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<Branch>({
+    fetcher: fetchBranchesPage,
+    initialPageSize: 20,
+    extraDeps: [searchName, searchCode, searchMainBranch, searchDepartment],
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    fetchBranches({
-      search: '',
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      name: searchName,
-      code: searchCode,
-      mainBranchName: searchMainBranch,
-      departmentName: searchDepartment,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (!cancelled) {
-          setBranches(result.branches.length ? result.branches : mockBranches);
-          setTotalFiltered(result.filtered || mockBranches.length);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        if (!cancelled) {
-          setBranches(mockBranches);
-          setTotalFiltered(mockBranches.length);
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, searchName, searchCode, searchMainBranch, searchDepartment, refreshKey, mockBranches]);
-
-  const refreshBranches = () => setRefreshKey((prev) => prev + 1);
+  const refreshBranches = () => refetch();
 
   const handleClear = () => {
     setSearchName('');
@@ -105,7 +99,7 @@ export default function BranchPage() {
           );
           message.success('Deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['branches', 'search'] });
-          refreshBranches();
+          refetch();
         } catch {
           message.error('Failed to delete branch');
         }

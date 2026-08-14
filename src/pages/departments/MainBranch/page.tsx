@@ -8,7 +8,6 @@ import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { apiCall } from '@/lib/api';
 import {
   fetchMainBranches,
   fetchMainBranchSelectList,
@@ -20,6 +19,7 @@ import {
   type DepartmentSelectOption,
 } from '@/lib/departments-data';
 import CreateMainBranchDrawer from './Create';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -32,16 +32,25 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+function fetchMainBranchesPage(params: PaginatedListParams): Promise<{ items: MainBranch[]; total: number }> {
+  return fetchMainBranches({
+    search: '',
+    start: params.start as number,
+    length: params.length as number,
+    mainBranchId: params.mainBranchId as number | undefined,
+    code: params.code as string | undefined,
+    departmentId: params.departmentId as number | undefined,
+    signal: params.signal,
+  }).then((result) => ({
+    items: result.mainBranches,
+    total: result.filtered || result.mainBranches.length,
+  }));
+}
+
 export default function MainBranchPage() {
   const queryClient = useQueryClient();
-  const [mainBranches, setMainBranches] = useState<MainBranch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalFiltered, setTotalFiltered] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [editingBranch, setEditingBranch] = useState<MainBranch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const [filterMainBranchId, setFilterMainBranchId] = useState<string | undefined>(undefined);
   const [filterDepartmentId, setFilterDepartmentId] = useState<string | undefined>(undefined);
@@ -54,6 +63,7 @@ export default function MainBranchPage() {
 
   const debouncedCode = useDebounce(filterCode, 300);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
   useEffect(() => {
     const controller = new AbortController();
     setMainBranchLoading(true);
@@ -65,6 +75,7 @@ export default function MainBranchPage() {
     return () => controller.abort();
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
   useEffect(() => {
     const controller = new AbortController();
     setDepartmentLoading(true);
@@ -75,42 +86,24 @@ export default function MainBranchPage() {
       });
     return () => controller.abort();
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    fetchMainBranches({
-      search: '',
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      mainBranchId: filterMainBranchId ? Number(filterMainBranchId) : undefined,
-      code: debouncedCode,
-      departmentId: filterDepartmentId ? Number(filterDepartmentId) : undefined,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (!cancelled) {
-          setMainBranches(result.mainBranches);
-          setTotalFiltered(result.filtered || result.mainBranches.length);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        if (!cancelled) {
-          setMainBranches([]);
-          setTotalFiltered(0);
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [currentPage, pageSize, filterMainBranchId, filterDepartmentId, debouncedCode, refreshKey]);
+  const {
+    data: mainBranches,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<MainBranch>({
+    fetcher: fetchMainBranchesPage,
+    initialPageSize: 20,
+    extraDeps: [filterMainBranchId, filterDepartmentId, debouncedCode],
+  });
 
-  const refreshMainBranches = () => setRefreshKey((prev) => prev + 1);
+  const refreshMainBranches = () => refetch();
 
   const handleClear = () => {
     setFilterMainBranchId(undefined);
@@ -144,7 +137,7 @@ export default function MainBranchPage() {
           );
           message.success('Deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['mainBranches', 'search'] });
-          refreshMainBranches();
+          refetch();
         } catch {
           message.error('Failed to delete main branch');
         }

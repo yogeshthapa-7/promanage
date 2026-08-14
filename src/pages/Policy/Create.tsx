@@ -12,39 +12,50 @@ interface CreatePolicyDrawerProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editingPolicy?: Policy | null;
 }
 
-export default function CreatePolicyDrawer({ open, onClose, onSuccess }: CreatePolicyDrawerProps) {
+export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPolicy }: CreatePolicyDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (open) {
-      form.resetFields();
+      if (editingPolicy) {
+        form.setFieldsValue({ name: editingPolicy.name });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [open, form]);
+  }, [open, form, editingPolicy]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
+      const isEdit = !!editingPolicy;
+      const body = {
+        PolicyProgramID: isEdit ? editingPolicy?.id : 0,
+        PolicyProgramName: values.name,
+      };
+
       const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
         method: 'POST',
-        body: JSON.stringify({ PolicyProgramID: 0, PolicyProgramName: values.name }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      message.success('Policy created successfully');
+      message.success(isEdit ? 'Policy updated successfully' : 'Policy created successfully');
       form.resetFields();
       queryClient.invalidateQueries({ queryKey: ['policies'] });
       onClose();
       onSuccess();
     } catch (err) {
       if (err instanceof Error) {
-        message.error(err.message || 'Failed to create policy');
+        message.error(err.message || 'Failed to save policy');
       }
     } finally {
       setLoading(false);
@@ -52,13 +63,13 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess }: CreateP
   };
 
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      title="New Policy"
-      subtitle="Create a new policy program."
-      width={480}
-    >
+      <Drawer
+        open={open}
+        onClose={onClose}
+        title={editingPolicy ? 'Edit Policy' : 'New Policy'}
+        subtitle={editingPolicy ? 'Update policy details.' : 'Create a new policy program.'}
+        width={480}
+      >
       <Form
         form={form}
         layout="vertical"
@@ -96,7 +107,7 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess }: CreateP
           onClick={handleSubmit}
           className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
         >
-          Create Policy
+          {editingPolicy ? 'Update Policy' : 'Create Policy'}
         </Button>
       </div>
     </Drawer>

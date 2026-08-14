@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Download, Printer, Upload } from 'lucide-react';
 import { Modal, message } from 'antd';
-import { Button, Input, Select } from 'antd';
+import { Button, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
@@ -12,6 +12,7 @@ import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
 import { apiCall } from '@/lib/api';
+import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -29,54 +30,45 @@ export default function EmployeePage() {
   const [fullnameFilter, setFullnameFilter] = useState('');
   const [addressFilter, setAddressFilter] = useState('');
   const [phoneFilter, setPhoneFilter] = useState('');
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [totalFiltered, setTotalFiltered] = useState(0);
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const fetchData = useCallback((signal?: AbortSignal) => {
-    setLoading(true);
-    fetchEmployees({
-      search: debouncedSearch,
-      start: (currentPage - 1) * pageSize,
-      length: pageSize,
-      fullname: fullnameFilter,
-      address: addressFilter,
-      phone: phoneFilter,
-      signal,
-    })
-      .then((result) => {
-        setEmployees(result.employees);
-        setTotalFiltered(result.filtered);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        console.error('Failed to fetch employees:', err);
-        setLoading(false);
-      });
-  }, [debouncedSearch, currentPage, pageSize, fullnameFilter, addressFilter, phoneFilter]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchData(controller.signal);
-    return () => {
-      controller.abort();
-    };
-  }, [fetchData]);
+  const {
+    data: employees,
+    total: totalFiltered,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<Employee>({
+    fetcher: (params: PaginatedListParams) =>
+      fetchEmployees({
+        search: debouncedSearch,
+        start: params.start as number,
+        length: params.length as number,
+        fullname: fullnameFilter,
+        address: addressFilter,
+        phone: phoneFilter,
+        signal: params.signal,
+      }).then((result) => ({
+        items: result.employees,
+        total: result.filtered,
+      })),
+    initialPageSize: 20,
+    extraDeps: [debouncedSearch, fullnameFilter, addressFilter, phoneFilter],
+  });
 
   const handleEditEmployee = (employee: Employee) => {
     setEditEmployee(employee);
     setShowEmployeeModal(true);
   };
 
-  const handleDeleteEmployee = (employee: Employee) => {
+  const handleDeleteEmployee = async (employee: Employee) => {
     Modal.confirm({
       title: 'Remove Employee',
       content: `Are you sure you want to remove <strong>${employee.Fullname}</strong> from the system?`,
@@ -88,9 +80,8 @@ export default function EmployeePage() {
           const deleteUrl = `${API_BASE}/DeleteEmployeeInfo?id=${employee.EmployeeInfoID}`;
           const res = await apiCall(deleteUrl, { method: 'GET' });
           if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-          setEmployees((prev) => prev.filter((e) => e.EmployeeInfoID !== employee.EmployeeInfoID));
-          setTotalFiltered((prev) => prev - 1);
           message.success('Employee removed successfully');
+          refetch();
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Failed to delete employee');
         }
@@ -399,7 +390,7 @@ export default function EmployeePage() {
           setEditEmployee(null);
         }}
         editingEmployee={editEmployee}
-        onSuccess={fetchData}
+        onSuccess={refetch}
       />
     </div>
   );
