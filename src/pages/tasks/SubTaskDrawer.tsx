@@ -108,7 +108,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   }, [task?.TaskInfoID]);
 
   useEffect(() => {
-    if (!open || !projectId) return;
+    if (!open || activeTab !== 'discussion' || !projectId) return;
     const controller = new AbortController();
     let cancelled = false;
 
@@ -156,6 +156,17 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
         if (!cancelled) setDiscussionsLoading(false);
       });
 
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [open, activeTab, projectId]);
+
+  useEffect(() => {
+    if (!open || activeTab !== 'milestone' || !projectId) return;
+    const controller = new AbortController();
+    let cancelled = false;
+
     setMilestonesLoading(true);
     setMilestones([]);
     apiCall(MILESTONE_API, {
@@ -199,6 +210,17 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
         if (!cancelled) setMilestonesLoading(false);
       });
 
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [open, activeTab, projectId]);
+
+  useEffect(() => {
+    if (!open || activeTab !== 'timeline' || !projectId) return;
+    const controller = new AbortController();
+    let cancelled = false;
+
     setTimelinesLoading(true);
     setTimelines([]);
     apiCall(TIMELINE_API, {
@@ -236,7 +258,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       cancelled = true;
       controller.abort();
     };
-  }, [open, project, projectId, task?.TaskInfoID]);
+  }, [open, activeTab, projectId]);
 
   const handleDeleteDiscussion = (discussion: DiscussionItem) => {
     Modal.confirm({
@@ -273,31 +295,38 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             <p className="text-base text-slate-500 mb-3">This task does not have any subtasks yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {subTasks.map((sub) => {
               const statusClass = statusColor[sub.WorkStatusName] ?? '!bg-gray-100 !text-gray-700';
               const priorityClass = priorityColor[sub.PriorityName] ?? '!bg-gray-100 !text-gray-700';
               return (
-                <Card key={sub.SubTaskInfoID} hover className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-base font-bold text-slate-900 truncate">{sub.SubTaskTitle}</h3>
-                      {sub.SubTaskCode && <p className="text-base text-muted-foreground font-mono mt-0.5">{sub.SubTaskCode}</p>}
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <Badge className={priorityClass}>{sub.PriorityName}</Badge>
-                      <Badge className={statusClass}>{sub.WorkStatusName}</Badge>
-                    </div>
+                <Card key={sub.SubTaskInfoID} hover padding="" className="flex flex-col gap-5 p-8">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-lg font-bold text-slate-900 leading-snug truncate" title={sub.SubTaskTitle}>{sub.SubTaskTitle}</h3>
+                    {sub.ProjectName && (
+                      <p className="text-sm font-medium text-slate-500 truncate" title={sub.ProjectName}>{sub.ProjectName}</p>
+                    )}
                   </div>
-                  <p className="text-base text-slate-500 line-clamp-3">{task?.Description || 'No description available.'}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Avatar src={sub.SubTaskManagerPhoto || ''} alt={sub.SubTaskManagerName || ''} size={28}>
-                        {(sub.SubTaskManagerName || '?').charAt(0).toUpperCase()}
-                      </Avatar>
-                      <span className="text-sm font-medium text-slate-700 truncate max-w-[140px]">{sub.SubTaskManagerName || '—'}</span>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className={priorityClass}>{sub.PriorityName}</Badge>
+                    <Badge className={statusClass}>{sub.WorkStatusName}</Badge>
+                  </div>
+
+                  {sub.TaskInfoName && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
+                      <span className="font-medium truncate" title={sub.TaskInfoName}>{sub.TaskInfoName}</span>
                     </div>
-                    <span className="text-base text-muted-foreground">Weightage: {sub.Weightage}</span>
+                  )}
+
+                  <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+                    <Avatar src={sub.SubTaskManagerPhoto || ''} alt={sub.SubTaskManagerName || ''} size={40}>
+                      {(sub.SubTaskManagerName || '?').charAt(0).toUpperCase()}
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-800 truncate" title={sub.SubTaskManagerName}>{sub.SubTaskManagerName || '—'}</p>
+                      <p className="text-sm text-slate-500">Manager</p>
+                    </div>
                   </div>
                 </Card>
               );
@@ -360,7 +389,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
         ) : milestones.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No milestones found.</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {milestones.map((milestone) => {
               const progressColor = milestone.Progress >= 75 ? '#10B981' : milestone.Progress >= 40 ? '#3B82F6' : milestone.Progress > 0 ? '#F59E0B' : '#D1D5DB';
               return (
@@ -449,7 +478,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const drawerSubtitle = `Task #${task.TaskInfoID}`;
 
   return (
-    <Drawer open={open} onClose={onClose} title={drawerTitle} subtitle={drawerSubtitle} width={840}>
+    <Drawer open={open} onClose={onClose} title={drawerTitle} subtitle={drawerSubtitle} width={1100}>
       <div className="space-y-5">
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex flex-col gap-3">
