@@ -13,6 +13,7 @@ import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginated
 import { statusColor } from "@/lib/tasks-data";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from "./viewtaskdrawer";
+import SubTaskDrawer from "./SubTaskDrawer";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
@@ -53,6 +54,8 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
+  const [subTaskDrawerOpen, setSubTaskDrawerOpen] = useState(false);
+  const [viewingTaskForSubTasks, setViewingTaskForSubTasks] = useState<TaskItem | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const projectId = project?.ProjectInfoID;
@@ -112,7 +115,8 @@ export default function TasksPage() {
   };
 
   const handleViewSubTasks = (task: TaskItem) => {
-    message.info(`View subtasks for: ${task.TaskTitle}`);
+    setViewingTaskForSubTasks(task);
+    setSubTaskDrawerOpen(true);
   };
 
   const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -285,6 +289,12 @@ export default function TasksPage() {
         open={viewDrawerOpen}
         onClose={() => setViewDrawerOpen(false)}
         taskId={viewingTaskId}
+      />
+      <SubTaskDrawer
+        open={subTaskDrawerOpen}
+        onClose={() => setSubTaskDrawerOpen(false)}
+        project={project as ApiProject}
+        task={viewingTaskForSubTasks}
       />
     </div>
   );
