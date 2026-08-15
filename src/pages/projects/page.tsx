@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import {
@@ -15,6 +15,10 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
+  FolderKanban,
+  ListChecks,
+  Building2,
+  Briefcase,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Pagination from '@/components/ui/Pagination';
@@ -27,6 +31,7 @@ import DropdownMenu from '@/components/ui/DropdownMenu';
 import { apiCall } from '@/lib/api';
 import { mapApiProjectToProject } from '@/lib/projects-data';
 import type { ProjectStatus, Project, ApiProject } from '@/lib/projects-data';
+import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/lib/stats-data';
 import ProjectFormModal from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -83,6 +88,8 @@ export default function ProjectsPage() {
   const [sortOpen, setSortOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
+  const [stats, setStats] = useState({ projects: 0, tasks: 0, organizations: 0, departments: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
   const pageSize = 9;
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -93,11 +100,49 @@ export default function ProjectsPage() {
     currentPage,
     setCurrentPage,
     refetch,
-  } = usePaginatedList<Project>({
+   } = usePaginatedList<Project>({
     fetcher: fetchProjectsPage,
     initialPageSize: pageSize,
     extraDeps: [searchQuery],
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    setStatsLoading(true);
+    (async () => {
+      try {
+        const results = await Promise.allSettled([
+          fetchProjectCount(),
+          fetchTaskCount(),
+          fetchOrganizationCount(),
+          fetchDepartmentCount(),
+        ]);
+        if (cancelled) return;
+        setStats({
+          projects: results[0].status === 'fulfilled' ? results[0].value : 0,
+          tasks: results[1].status === 'fulfilled' ? results[1].value : 0,
+          organizations: results[2].status === 'fulfilled' ? results[2].value : 0,
+          departments: results[3].status === 'fulfilled' ? results[3].value : 0,
+        });
+        results.forEach((result, idx) => {
+          if (result.status === 'rejected') {
+            console.error(`Stats fetch ${idx} failed:`, result.reason);
+          }
+        });
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+      } finally {
+        if (!cancelled) {
+          setStatsLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, []);
 
   const statusOptions: (ProjectStatus | 'All')[] = [
     'All', 'In Progress', 'Completed', 'On Hold', 'Not Started', 'Overdue',
@@ -280,6 +325,57 @@ export default function ProjectsPage() {
         </div>
       </div>
       <hr className="border-slate-200 my-4" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card hover padding="p-4" className="transition-transform duration-200 ease-out">
+          <div className="flex items-start justify-between">
+            <div className="p-2.5 rounded-xl bg-violet-100 text-violet-600">
+              <FolderKanban className="w-5 h-5" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Projects</p>
+              <p className="text-xl font-bold text-slate-900">{statsLoading ? '—' : stats.projects.toLocaleString()}</p>
+            </div>
+          </div>
+          <p className="text-sm text-slate-500 mt-3">Total active and completed projects</p>
+        </Card>
+        <Card hover padding="p-4" className="transition-transform duration-200 ease-out">
+          <div className="flex items-start justify-between">
+            <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600">
+              <ListChecks className="w-5 h-5" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Tasks</p>
+              <p className="text-xl font-bold text-slate-900">{statsLoading ? '—' : stats.tasks.toLocaleString()}</p>
+            </div>
+          </div>
+          <p className="text-sm text-slate-500 mt-3">All tasks across every project</p>
+        </Card>
+        <Card hover padding="p-4" className="transition-transform duration-200 ease-out">
+          <div className="flex items-start justify-between">
+            <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-600">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Organizations</p>
+              <p className="text-xl font-bold text-slate-900">{statsLoading ? '—' : stats.organizations.toLocaleString()}</p>
+            </div>
+          </div>
+          <p className="text-sm text-slate-500 mt-3">Registered organizations in the system</p>
+        </Card>
+        <Card hover padding="p-4" className="transition-transform duration-200 ease-out">
+          <div className="flex items-start justify-between">
+            <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
+              <Briefcase className="w-5 h-5" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Departments</p>
+              <p className="text-xl font-bold text-slate-900">{statsLoading ? '—' : stats.departments.toLocaleString()}</p>
+            </div>
+          </div>
+          <p className="text-sm text-slate-500 mt-3">Departments across all organizations</p>
+        </Card>
+      </div>
 
       {loading ? (
         <CardGridSkeleton count={9} columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" />
