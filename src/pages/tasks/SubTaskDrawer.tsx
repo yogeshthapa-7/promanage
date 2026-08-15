@@ -295,7 +295,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             <p className="text-base text-slate-500 mb-3">This task does not have any subtasks yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {subTasks.map((sub) => {
               const statusClass = statusColor[sub.WorkStatusName] ?? '!bg-gray-100 !text-gray-700';
               const priorityClass = priorityColor[sub.PriorityName] ?? '!bg-gray-100 !text-gray-700';
@@ -478,7 +478,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const drawerSubtitle = `Task #${task.TaskInfoID}`;
 
   return (
-    <Drawer open={open} onClose={onClose} title={drawerTitle} subtitle={drawerSubtitle} width={1100}>
+    <Drawer open={open} onClose={onClose} title={drawerTitle} subtitle={drawerSubtitle} width={760}>
       <div className="space-y-5">
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex flex-col gap-3">
