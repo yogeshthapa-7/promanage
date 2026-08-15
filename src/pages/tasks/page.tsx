@@ -12,6 +12,7 @@ import Badge from "@/components/ui/Badge";
 import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 import { statusColor } from "@/lib/tasks-data";
 import CreateTaskDrawer from "./createtasks";
+import ViewTaskDrawer from "./viewtaskdrawer";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
@@ -50,6 +51,8 @@ export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
+  const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
+  const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const projectId = project?.ProjectInfoID;
@@ -78,7 +81,8 @@ export default function TasksPage() {
   };
 
   const handleViewTask = (task: TaskItem) => {
-    message.info(`View task: ${task.TaskTitle}`);
+    setViewingTaskId(task.TaskInfoID);
+    setViewDrawerOpen(true);
   };
 
   const handleEditTask = (task: TaskItem) => {
@@ -276,6 +280,11 @@ export default function TasksPage() {
         onSuccess={refetch}
         editingTask={editingTask}
         project={project}
+      />
+      <ViewTaskDrawer
+        open={viewDrawerOpen}
+        onClose={() => setViewDrawerOpen(false)}
+        taskId={viewingTaskId}
       />
     </div>
   );
