@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
@@ -19,23 +19,45 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
-const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number) => ({
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
+const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, taskName?: string, projectName?: string, managerName?: string) => ({
   model: {
     draw: 1,
     start,
     length,
+    columns: [
+      { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: search || "", regex: '' } },
+      { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: taskName || "", regex: '' } },
+      { data: 'TaskCode', name: 'TaskCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
+      { data: 'ProjectInfoName', name: 'ProjectInfoName', searchable: true, orderable: true, search: { value: projectName || "", regex: '' } },
+      { data: 'TaskManagerName', name: 'TaskManagerName', searchable: true, orderable: true, search: { value: managerName || "", regex: '' } },
+      { data: 'WorkStatusName', name: 'WorkStatusName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+      { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+    ],
     search: { value: search || "", regex: "" },
+    order: [{ column: 1, dir: 'desc' }],
   },
   param: {
     TaskInfoID: 0,
     ProjectInfoID: projectId ?? 0,
+    TaskTitle: taskName || "",
+    TaskManagerName: managerName || "",
+    ProjectInfoName: projectName || "",
   },
 });
 
-function fetchTasksPage(params: PaginatedListParams & { projectId?: number }): Promise<{ items: TaskItem[]; total: number }> {
+function fetchTasksPage(params: PaginatedListParams & { projectId?: number; taskName?: string; projectName?: string; managerName?: string }): Promise<{ items: TaskItem[]; total: number }> {
   return apiCall(TASKS_API, {
     method: "POST",
-    body: JSON.stringify(buildTaskSearchBody(params.start as number, params.length as number, params.search as string, params.projectId)),
+    body: JSON.stringify(buildTaskSearchBody(params.start as number, params.length as number, params.search as string, params.projectId, params.taskName, params.projectName, params.managerName)),
     signal: params.signal,
   }).then(async (res) => {
     if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -49,18 +71,23 @@ export default function TasksPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const project = (location.state as { project?: ApiProject } | undefined)?.project;
-  const [searchQuery, setSearchQuery] = useState("");
+  const [taskNameSearch, setTaskNameSearch] = useState("");
+  const [projectNameSearch, setProjectNameSearch] = useState("");
+  const [managerNameSearch, setManagerNameSearch] = useState("");
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
   const [subTaskDrawerOpen, setSubTaskDrawerOpen] = useState(false);
   const [viewingTaskForSubTasks, setViewingTaskForSubTasks] = useState<TaskItem | null>(null);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedTaskName = useDebounce(taskNameSearch, 300);
+  const debouncedProjectName = useDebounce(projectNameSearch, 300);
+  const debouncedManagerName = useDebounce(managerNameSearch, 300);
 
   const projectId = project?.ProjectInfoID;
 
-  const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId }), [projectId]);
+  const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId, taskName: debouncedTaskName, projectName: debouncedProjectName, managerName: debouncedManagerName }), [projectId, debouncedTaskName, debouncedProjectName, debouncedManagerName]);
 
   const {
     data: tasks,
@@ -74,13 +101,19 @@ export default function TasksPage() {
   } = usePaginatedList<TaskItem>({
     fetcher,
     initialPageSize: 20,
-    extraDeps: [searchQuery, projectId],
+    extraDeps: [debouncedTaskName, debouncedProjectName, debouncedManagerName, projectId],
   });
 
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => setCurrentPage(1), 400);
+  const handleTaskNameSearchChange = (value: string) => {
+    setTaskNameSearch(value);
+  };
+
+  const handleProjectNameSearchChange = (value: string) => {
+    setProjectNameSearch(value);
+  };
+
+  const handleManagerNameSearchChange = (value: string) => {
+    setManagerNameSearch(value);
   };
 
   const handleViewTask = (task: TaskItem) => {
@@ -119,8 +152,19 @@ export default function TasksPage() {
     setSubTaskDrawerOpen(true);
   };
 
-  const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const end = Math.min(currentPage * pageSize, total);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedTaskName, debouncedProjectName, debouncedManagerName]);
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesProject = !projectNameSearch || task.ProjectInfoName?.toLowerCase().includes(projectNameSearch.toLowerCase());
+    const matchesManager = !managerNameSearch || task.TaskManagerName?.toLowerCase().includes(managerNameSearch.toLowerCase());
+    return matchesProject && matchesManager;
+  });
+
+  const filteredTotal = filteredTasks.length;
+  const start = filteredTotal === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, filteredTotal);
 
   return (
     <div className="fade-in text-slate-800">
@@ -157,6 +201,38 @@ export default function TasksPage() {
         </Card>
       )}
 
+      <div className="flex justify-end mb-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Task Name</label>
+            <SearchInput
+              value={taskNameSearch}
+              onChange={handleTaskNameSearchChange}
+              placeholder="Search task name..."
+              containerClassName="w-40 sm:w-48"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Project Name</label>
+            <SearchInput
+              value={projectNameSearch}
+              onChange={handleProjectNameSearchChange}
+              placeholder="Search project name..."
+              containerClassName="w-40 sm:w-48"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Manager Name</label>
+            <SearchInput
+              value={managerNameSearch}
+              onChange={handleManagerNameSearchChange}
+              placeholder="Search manager name..."
+              containerClassName="w-40 sm:w-48"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
           <span>Show</span>
@@ -171,18 +247,10 @@ export default function TasksPage() {
           />
           <span>entries</span>
         </div>
-        <div className="flex items-center gap-3">
-          <SearchInput
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search tasks..."
-            containerClassName="flex-1 max-w-md"
-          />
-        </div>
       </div>
 
       <div className="text-base text-slate-500 font-medium mt-2">
-        Showing {start} to {end} of {total} entries
+        Showing {start} to {end} of {filteredTotal} entries
       </div>
 
       <Card className="mt-4">
@@ -190,7 +258,7 @@ export default function TasksPage() {
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="px-4 py-3 text-center text-sm text-slate-400">Loading tasks...</div>
           </div>
-        ) : tasks.length === 0 ? (
+        ) : filteredTasks.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-base text-slate-400">
             No tasks found.
           </div>
@@ -208,7 +276,7 @@ export default function TasksPage() {
                 </tr>
               </thead>
               <tbody>
-                {tasks.map((task) => {
+                {filteredTasks.map((task) => {
                   const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
                     e.currentTarget.style.transform = 'scale(1.01)';
                     e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
@@ -266,7 +334,7 @@ export default function TasksPage() {
 
       <div className="flex justify-end pt-2">
         <Pagination
-          total={total}
+          total={filteredTotal}
           currentPage={currentPage}
           pageSize={pageSize}
           onPageChange={setCurrentPage}
