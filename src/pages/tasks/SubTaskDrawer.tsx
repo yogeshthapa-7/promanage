@@ -13,7 +13,7 @@ import SearchInput from '@/components/ui/SearchInput';
 import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -60,6 +60,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskDrawerProps) {
   const [activeTab, setActiveTab] = useState('subtasks');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingSubTask, setEditingSubTask] = useState<SubTaskItem | null>(null);
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
@@ -303,6 +304,11 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     });
   };
 
+  const handleEditSubTask = (subtask: SubTaskItem) => {
+    setEditingSubTask(subtask);
+    setIsCreateModalOpen(true);
+  };
+
   const tabItems = useMemo(() => {
     const subtaskPane = (
       <div className="space-y-4">
@@ -312,6 +318,23 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             Add New Subtask
           </Button>
         </div>
+        {isCreateModalOpen && (
+          <SubTaskCreate
+            open={isCreateModalOpen}
+            onClose={() => {
+              setIsCreateModalOpen(false);
+              setEditingSubTask(null);
+            }}
+            onSuccess={() => {
+              refetch();
+              setEditingSubTask(null);
+            }}
+            project={project}
+            selectedTask={task}
+            editingSubTask={editingSubTask}
+            modal={false}
+          />
+        )}
         {subTasksLoading ? (
           <Card><div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading subtasks...</div></Card>
         ) : subTasks.length === 0 ? (
@@ -332,7 +355,10 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
                         <p className="text-sm font-medium text-slate-500 truncate" title={sub.ProjectName}>{sub.ProjectName}</p>
                       )}
                     </div>
-                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteSubTask(sub)} />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditSubTask(sub)} />
+                      <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteSubTask(sub)} />
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
@@ -497,7 +523,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       { key: 'milestone', label: 'Milestone', children: milestonePane },
       { key: 'timeline', label: 'Timeline', children: timelinePane },
     ];
-  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, timelines, timelinesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total]);
+  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, timelines, timelinesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask]);
 
   if (!task) return null;
 
@@ -540,18 +566,6 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
 
         <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
       </div>
-
-      {task && (
-        <SubTaskCreate
-          open={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={() => {
-            refetch();
-          }}
-          project={project}
-          selectedTask={task}
-        />
-      )}
     </Drawer>
   );
 }
