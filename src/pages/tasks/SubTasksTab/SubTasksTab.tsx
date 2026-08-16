@@ -2,6 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { fetchSubTasks, statusColor, priorityColor } from "@/lib/tasks-data";
 import type { TaskItem, SubTaskItem } from "@/lib/tasks-data";
+import { apiCall } from "@/lib/api";
+import { message, Modal } from "antd";
+import { Trash2 } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
 import { CardPanelSkeleton } from "@/components/ui/Loaders";
 import Card from "@/components/ui/Card";
@@ -17,6 +20,7 @@ interface SubTasksTabProps {
 }
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 
 export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps) {
   const [search, setSearch] = useState("");
@@ -31,6 +35,7 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
     currentPage,
     setCurrentPage,
     setPageSize,
+    refetch,
   } = usePaginatedList<SubTaskItem>({
     fetcher: (params: PaginatedListParams) => {
       if (!selectedTask) return Promise.resolve({ items: [], total: 0 });
@@ -67,6 +72,26 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
     debounceTimerRef.current = setTimeout(() => {
       setCurrentPage(1);
     }, 400);
+  };
+
+  const handleDeleteSubTask = (subtask: SubTaskItem) => {
+    Modal.confirm({
+      title: "Delete Subtask",
+      content: `Are you sure you want to delete "${subtask.SubTaskTitle}"?`,
+      okText: "Delete",
+      okType: "danger",
+      style: { zIndex: 10000 },
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteSubTaskInfo?id=${subtask.SubTaskInfoID}`, { method: "GET" });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success("Subtask deleted successfully");
+          refetch();
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : "Failed to delete subtask");
+        }
+      },
+    });
   };
 
   if (!selectedTask) {
@@ -124,6 +149,9 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Badge className={priorityClass}>{sub.PriorityName}</Badge>
                     <Badge className={statusClass}>{sub.WorkStatusName}</Badge>
+                    <Button type="text" size="sm" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteSubTask(sub)}>
+                      <span className="sr-only">Delete</span>
+                    </Button>
                   </div>
                 </div>
 

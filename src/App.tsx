@@ -46,6 +46,9 @@ function App() {
           },
         },
       }}
+      modal={{
+        style: { zIndex: 10001 },
+      }}
     >
       <BrowserRouter>
       <Routes>

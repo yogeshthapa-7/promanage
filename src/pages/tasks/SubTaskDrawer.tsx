@@ -92,6 +92,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     pageSize,
     setCurrentPage,
     setPageSize,
+    refetch,
   } = usePaginatedList<SubTaskItem>({
     fetcher,
     initialPageSize: 20,
@@ -266,6 +267,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       content: `Are you sure you want to delete "${discussion.DiscussionTitle}"?`,
       okText: 'Delete',
       okType: 'danger',
+      zIndex: 10000,
       onOk: async () => {
         try {
           const res = await apiCall(`${API_BASE}/DeleteProjectDiscussion?id=${discussion.ProjectDiscussionID}`, { method: 'GET' });
@@ -274,6 +276,26 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
           setDiscussions((prev) => prev.filter((d) => d.ProjectDiscussionID !== discussion.ProjectDiscussionID));
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Failed to delete discussion');
+        }
+      },
+    });
+  };
+
+  const handleDeleteSubTask = (subtask: SubTaskItem) => {
+    Modal.confirm({
+      title: 'Delete Subtask',
+      content: `Are you sure you want to delete "${subtask.SubTaskTitle}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      zIndex: 10000,
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteSubTaskInfo?id=${subtask.SubTaskInfoID}`, { method: 'GET' });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success('Subtask deleted successfully');
+          refetch();
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Failed to delete subtask');
         }
       },
     });
@@ -301,11 +323,14 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
               const priorityClass = priorityColor[sub.PriorityName] ?? '!bg-gray-100 !text-gray-700';
               return (
                 <Card key={sub.SubTaskInfoID} hover padding="" className="flex flex-col gap-5 p-8">
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-lg font-bold text-slate-900 leading-snug truncate" title={sub.SubTaskTitle}>{sub.SubTaskTitle}</h3>
-                    {sub.ProjectName && (
-                      <p className="text-sm font-medium text-slate-500 truncate" title={sub.ProjectName}>{sub.ProjectName}</p>
-                    )}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <h3 className="text-lg font-bold text-slate-900 leading-snug truncate" title={sub.SubTaskTitle}>{sub.SubTaskTitle}</h3>
+                      {sub.ProjectName && (
+                        <p className="text-sm font-medium text-slate-500 truncate" title={sub.ProjectName}>{sub.ProjectName}</p>
+                      )}
+                    </div>
+                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteSubTask(sub)} />
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
