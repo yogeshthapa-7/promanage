@@ -14,6 +14,7 @@ import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { Plus, Trash2 } from 'lucide-react';
+import SubTaskCreate from './SubTasksTab/Create';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
@@ -58,6 +59,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskDrawerProps) {
   const [activeTab, setActiveTab] = useState('subtasks');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
@@ -306,7 +308,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <SearchInput placeholder="Search subtasks..." containerClassName="flex-1 max-w-md" />
-          <Button type="primary" icon={<Plus size={16} />}>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
             Add New Subtask
           </Button>
         </div>
@@ -538,6 +540,18 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
 
         <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
       </div>
+
+      {task && (
+        <SubTaskCreate
+          open={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={() => {
+            refetch();
+          }}
+          project={project}
+          selectedTask={task}
+        />
+      )}
     </Drawer>
   );
 }

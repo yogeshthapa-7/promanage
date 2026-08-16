@@ -13,6 +13,7 @@ import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
+import SubTaskCreate from "./Create";
 
 interface SubTasksTabProps {
   project: ApiProject;
@@ -25,6 +26,7 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps) {
   const [search, setSearch] = useState("");
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const projectId = project.ProjectInfoID ?? Number(project.id);
 
@@ -119,14 +121,10 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
           placeholder="Search subtasks..."
           containerClassName="flex-1 max-w-md"
         />
-        <Button type="primary" onClick={() => { /* open add-subtask modal / navigate */ }}>
+        <Button type="primary" onClick={() => setIsCreateModalOpen(true)}>
           Add New Subtask
         </Button>
       </div>
-
-      {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>
-      )}
 
       {loading ? (
         <CardPanelSkeleton count={6} />
@@ -183,6 +181,17 @@ export default function SubTasksTab({ project, selectedTask }: SubTasksTabProps)
         }}
         pageSizeOptions={PAGE_SIZE_OPTIONS}
         totalLabel={`Showing ${subTasks.length ? (currentPage - 1) * pageSize + 1 : 0} to ${Math.min(currentPage * pageSize, total)} of ${total} subtasks`}
+      />
+
+      <SubTaskCreate
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          refetch();
+          setCurrentPage(1);
+        }}
+        project={project}
+        selectedTask={selectedTask}
       />
     </div>
   );
