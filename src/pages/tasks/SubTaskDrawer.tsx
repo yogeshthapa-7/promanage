@@ -15,6 +15,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { Plus, Trash2, Pencil } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
+import DiscussionCreate from './DiscussionTab/Create';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
@@ -63,6 +64,8 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [editingSubTask, setEditingSubTask] = useState<SubTaskItem | null>(null);
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
+  const [isDiscussionCreateModalOpen, setIsDiscussionCreateModalOpen] = useState(false);
+  const [discussionRefreshTrigger, setDiscussionRefreshTrigger] = useState(0);
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
   const [timelines, setTimelines] = useState<TimelineItem[]>([]);
@@ -164,7 +167,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       cancelled = true;
       controller.abort();
     };
-  }, [open, activeTab, projectId]);
+  }, [open, activeTab, projectId, discussionRefreshTrigger]);
 
   useEffect(() => {
     if (!open || activeTab !== 'milestone' || !projectId) return;
@@ -406,8 +409,19 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     const discussionPane = (
       <div className="space-y-3">
         <div className="flex items-center justify-end">
-          <Button type="primary" icon={<Plus size={16} />}>Add Discussion</Button>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsDiscussionCreateModalOpen(true)}>Add Discussion</Button>
         </div>
+        {isDiscussionCreateModalOpen && (
+          <DiscussionCreate
+            open={isDiscussionCreateModalOpen}
+            onClose={() => setIsDiscussionCreateModalOpen(false)}
+            onSuccess={() => {
+              setIsDiscussionCreateModalOpen(false);
+              setDiscussionRefreshTrigger((prev) => prev + 1);
+            }}
+            project={{ ProjectInfoID: projectId || 0, ProjectName: project?.ProjectName }}
+          />
+        )}
         {discussionsLoading ? (
           <Card><div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading discussions...</div></Card>
         ) : discussions.length === 0 ? (
@@ -523,7 +537,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       { key: 'milestone', label: 'Milestone', children: milestonePane },
       { key: 'timeline', label: 'Timeline', children: timelinePane },
     ];
-  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, timelines, timelinesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask]);
+  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, timelines, timelinesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen]);
 
   if (!task) return null;
 

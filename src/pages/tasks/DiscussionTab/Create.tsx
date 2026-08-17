@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Button, message, DatePicker } from 'antd';
-import dayjs from 'dayjs';
+import { Modal, Form, Input, Select, Button, message } from 'antd';
 import { apiCall } from '@/lib/api';
+import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 
 interface DiscussionCreateProps {
   open: boolean;
@@ -30,16 +30,18 @@ export default function DiscussionCreate({
   onClose,
   onSuccess,
   project,
-  modal = true,
+  modal = false,
 }: DiscussionCreateProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [createdDate, setCreatedDate] = useState('');
 
   const projectId = project?.ProjectInfoID ?? null;
 
   useEffect(() => {
     if (open) {
       form.resetFields();
+      setCreatedDate('');
     }
   }, [open, form]);
 
@@ -58,7 +60,7 @@ export default function DiscussionCreate({
         ProjectInfoID: projectId,
         Priority: Number(values.Priority),
         PriorityName: PRIORITY_OPTIONS.find((opt) => opt.value === Number(values.Priority))?.label || '',
-        CreatedDate: values.CreatedDate ? dayjs(values.CreatedDate).format('YYYY/MM/DD') : dayjs().format('YYYY/MM/DD'),
+        CreatedDate: createdDate || '',
       };
 
       const res = await apiCall(`${API_BASE}/SaveProjectDiscussion`, {
@@ -70,6 +72,7 @@ export default function DiscussionCreate({
 
       message.success('Discussion created successfully');
       form.resetFields();
+      setCreatedDate('');
       onClose();
       onSuccess();
     } catch (err) {
@@ -121,10 +124,13 @@ export default function DiscussionCreate({
           label={
             <span className="text-slate-600 font-medium text-sm">Created Date</span>
           }
-          name="CreatedDate"
-          initialValue={dayjs()}
         >
-          <DatePicker className="rounded-md w-full" format="YYYY/MM/DD" />
+          <AntdNepaliDatePicker
+            value={createdDate}
+            onChange={setCreatedDate}
+            placeholder="YYYY/MM/DD"
+            className="rounded-md w-full"
+          />
         </Form.Item>
       </div>
 

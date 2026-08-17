@@ -147,15 +147,17 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         </div>
       </Card>
     ))}
-    <DiscussionCreate
-      open={isCreateOpen}
-      onClose={() => setIsCreateOpen(false)}
-      onSuccess={() => {
-        setIsCreateOpen(false);
-        discussionsRefetch();
-      }}
-      project={project}
-    />
+    {isCreateOpen && (
+      <DiscussionCreate
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSuccess={() => {
+          setIsCreateOpen(false);
+          discussionsRefetch();
+        }}
+        project={project}
+      />
+    )}
   </div>
 );
 }
