@@ -324,6 +324,32 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     setIsCreateModalOpen(true);
   };
 
+  const handleEditMilestone = (milestone: MilestoneItem) => {
+    setEditingMilestone(milestone);
+    setIsMilestoneCreateModalOpen(true);
+  };
+
+  const handleDeleteMilestone = (milestone: MilestoneItem) => {
+    Modal.confirm({
+      title: 'Delete Milestone',
+      content: `Are you sure you want to delete "${milestone.MilestoneTitle}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      zIndex: 10000,
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteProjectMilestone?id=${milestone.ProjectMilestoneID}`, { method: 'GET' });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success('Milestone deleted successfully');
+          setMilestones((prev) => prev.filter((m) => m.ProjectMilestoneID !== milestone.ProjectMilestoneID));
+          setMilestoneRefreshTrigger((prev) => prev + 1);
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Failed to delete milestone');
+        }
+      },
+    });
+  };
+
   const tabItems = useMemo(() => {
     const subtaskPane = (
       <div className="space-y-4">
@@ -492,22 +518,26 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             {milestones.map((milestone) => {
               const progressColor = milestone.Progress >= 75 ? '#10B981' : milestone.Progress >= 40 ? '#3B82F6' : milestone.Progress > 0 ? '#F59E0B' : '#D1D5DB';
               return (
-                <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
-                    <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
-                  </div>
-                  {milestone.Summary && <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>}
-                  <ProgressBar value={Math.min(milestone.Progress, 100)} color={progressColor} />
-                  <div className="flex items-center justify-between text-base text-muted-foreground">
-                    <span>Start: {milestone.StartDate || '—'}</span>
-                    <span>End: {milestone.EndDate || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                    <span className="text-base text-muted-foreground">Milestone Cost</span>
-                    <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
-                  </div>
-                </Card>
+                  <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
+                      <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
+                    </div>
+                    {milestone.Summary && <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>}
+                    <ProgressBar value={Math.min(milestone.Progress, 100)} color={progressColor} />
+                    <div className="flex items-center justify-between text-base text-muted-foreground">
+                      <span>Start: {milestone.StartDate || '—'}</span>
+                      <span>End: {milestone.EndDate || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <span className="text-base text-muted-foreground">Milestone Cost</span>
+                      <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                      <Button size="small" onClick={() => handleEditMilestone(milestone)}>Edit</Button>
+                      <Button size="small" danger onClick={() => handleDeleteMilestone(milestone)}>Delete</Button>
+                    </div>
+                  </Card>
               );
             })}
           </div>

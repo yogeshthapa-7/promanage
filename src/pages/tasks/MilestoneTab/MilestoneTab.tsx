@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Modal, message, Button } from "antd";
-import { Trash2 } from "lucide-react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import Card from "@/components/ui/Card";
@@ -23,9 +22,10 @@ interface MilestoneItem {
 
 interface MilestoneTabProps {
   project: ApiProject;
+  onEdit?: (milestone: MilestoneItem) => void;
 }
 
-export default function MilestoneTab({ project }: MilestoneTabProps) {
+export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
 
@@ -82,7 +82,13 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
     };
   }, [project]);
 
-  const handleDeleteMilestone = (milestone: MilestoneItem) => {
+  const handleEdit = (milestone: MilestoneItem) => {
+    if (onEdit) {
+      onEdit(milestone);
+    }
+  };
+
+  const handleDelete = (milestone: MilestoneItem) => {
     Modal.confirm({
       title: "Delete Milestone",
       content: `Are you sure you want to delete "${milestone.MilestoneTitle}"?`,
@@ -134,10 +140,7 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
           <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteMilestone(milestone)} />
-                <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
-              </div>
+              <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
             </div>
 
             {milestone.Summary && (
@@ -154,6 +157,11 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               <span className="text-base text-muted-foreground">Milestone Cost</span>
               <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button size="small" onClick={() => handleEdit(milestone)}>Edit</Button>
+              <Button size="small" danger onClick={() => handleDelete(milestone)}>Delete</Button>
             </div>
           </Card>
         );
