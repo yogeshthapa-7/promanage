@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
+import { Pencil, Trash2 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
 
@@ -29,6 +30,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [discussions, setDiscussions] = useState<ProjectDiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingDiscussion, setEditingDiscussion] = useState<ProjectDiscussionItem | null>(null);
 
   const discussionsRefetch = () => {
     const controller = new AbortController();
@@ -52,7 +54,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         param: {
           ProjectDiscussionID: 0,
           DiscussionTitle: "",
-            ProjectInfoID: project.ProjectInfoID ?? 0,
+          ProjectInfoID: project.ProjectInfoID ?? 0,
           Priority: 0,
           PriorityName: "",
           RaisedBy: "",
@@ -82,6 +84,11 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
       cancelled = true;
       controller.abort();
     };
+  };
+
+  const handleEditDiscussion = (discussion: ProjectDiscussionItem) => {
+    setEditingDiscussion(discussion);
+    setIsCreateOpen(true);
   };
 
   const handleDeleteDiscussion = (discussion: ProjectDiscussionItem) => {
@@ -127,37 +134,44 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   return (
   <div className="space-y-3">
     <div className="flex items-center justify-end">
-      <Button type="primary" onClick={() => setIsCreateOpen(true)}>
+      <Button type="primary" onClick={() => { setEditingDiscussion(null); setIsCreateOpen(true); }}>
         Add Discussion
       </Button>
     </div>
     {discussions.map((d) => (
       <Card key={d.ProjectDiscussionID} hover>
-        <h4 className="text-base font-bold text-slate-900">{d.DiscussionTitle}</h4>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
-          <span>Priority: {d.PriorityName}</span>
-          <span>•</span>
-          <span>{d.CreatedDate}</span>
-          {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
-          {d.HasUserRightToDelete && (
-            <Button type="link" size="small" danger onClick={() => handleDeleteDiscussion(d)}>
-              Deletable
-            </Button>
-          )}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h4 className="text-base font-bold text-slate-900 truncate">{d.DiscussionTitle}</h4>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
+              <span>Priority: {d.PriorityName}</span>
+              <span>•</span>
+              <span>{d.CreatedDate}</span>
+              {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {d.HasUserRightToEdit && (
+              <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />
+            )}
+            {d.HasUserRightToDelete && (
+              <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
+            )}
+          </div>
         </div>
       </Card>
     ))}
-    {isCreateOpen && (
-      <DiscussionCreate
-        open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onSuccess={() => {
-          setIsCreateOpen(false);
-          discussionsRefetch();
-        }}
-        project={project}
-      />
-    )}
+    <DiscussionCreate
+      open={isCreateOpen}
+      onClose={() => { setIsCreateOpen(false); setEditingDiscussion(null); }}
+      onSuccess={() => {
+        setIsCreateOpen(false);
+        setEditingDiscussion(null);
+        discussionsRefetch();
+      }}
+      project={project}
+      editingDiscussion={editingDiscussion}
+    />
   </div>
 );
 }

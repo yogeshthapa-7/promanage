@@ -13,6 +13,12 @@ interface DiscussionCreateProps {
     ProjectInfoID: number;
     ProjectName?: string;
   };
+  editingDiscussion?: {
+    ProjectDiscussionID: number;
+    DiscussionTitle: string;
+    Priority: number;
+    CreatedDate: string;
+  } | null;
   modal?: boolean;
 }
 
@@ -30,6 +36,7 @@ export default function DiscussionCreate({
   onClose,
   onSuccess,
   project,
+  editingDiscussion,
   modal = false,
 }: DiscussionCreateProps) {
   const [form] = Form.useForm();
@@ -37,13 +44,21 @@ export default function DiscussionCreate({
   const [createdDate, setCreatedDate] = useState('');
 
   const projectId = project?.ProjectInfoID ?? null;
+  const isEditing = !!editingDiscussion;
 
   useEffect(() => {
     if (open) {
       form.resetFields();
       setCreatedDate('');
+      if (editingDiscussion) {
+        form.setFieldsValue({
+          DiscussionTitle: editingDiscussion.DiscussionTitle,
+          Priority: editingDiscussion.Priority,
+        });
+        setCreatedDate(editingDiscussion.CreatedDate || '');
+      }
     }
-  }, [open, form]);
+  }, [open, form, editingDiscussion]);
 
   const handleSubmit = async () => {
     if (!projectId) {
@@ -55,7 +70,7 @@ export default function DiscussionCreate({
       setLoading(true);
 
       const body = {
-        ProjectDiscussionID: 0,
+        ProjectDiscussionID: isEditing ? editingDiscussion!.ProjectDiscussionID : 0,
         DiscussionTitle: values.DiscussionTitle,
         ProjectInfoID: projectId,
         Priority: Number(values.Priority),
@@ -70,14 +85,14 @@ export default function DiscussionCreate({
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      message.success('Discussion created successfully');
+      message.success(isEditing ? 'Discussion updated successfully' : 'Discussion created successfully');
       form.resetFields();
       setCreatedDate('');
       onClose();
       onSuccess();
     } catch (err) {
       if (err instanceof Error) {
-        message.error(err.message || 'Failed to create discussion');
+        message.error(err.message || 'Failed to save discussion');
       }
     } finally {
       setLoading(false);
@@ -144,7 +159,7 @@ export default function DiscussionCreate({
           onClick={handleSubmit}
           className="rounded-md"
         >
-          Create Discussion
+          {isEditing ? 'Update Discussion' : 'Create Discussion'}
         </Button>
       </div>
     </Form>
@@ -154,7 +169,7 @@ export default function DiscussionCreate({
     <Modal
       open={open}
       onCancel={onClose}
-      title="Create New Discussion"
+      title={isEditing ? 'Edit Discussion' : 'Create New Discussion'}
       width={480}
       footer={null}
       destroyOnClose

@@ -32,6 +32,7 @@ interface SubTaskDrawerProps {
 interface DiscussionItem {
   ProjectDiscussionID: number;
   DiscussionTitle: string;
+  Priority: number;
   PriorityName: string;
   CreatedDate: string;
   HasUserRightToEdit: boolean;
@@ -65,6 +66,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [isDiscussionCreateModalOpen, setIsDiscussionCreateModalOpen] = useState(false);
+  const [editingDiscussion, setEditingDiscussion] = useState<DiscussionItem | null>(null);
   const [discussionRefreshTrigger, setDiscussionRefreshTrigger] = useState(0);
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
@@ -287,6 +289,11 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     });
   };
 
+  const handleEditDiscussion = (discussion: DiscussionItem) => {
+    setEditingDiscussion(discussion);
+    setIsDiscussionCreateModalOpen(true);
+  };
+
   const handleDeleteSubTask = (subtask: SubTaskItem) => {
     Modal.confirm({
       title: 'Delete Subtask',
@@ -409,17 +416,19 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     const discussionPane = (
       <div className="space-y-3">
         <div className="flex items-center justify-end">
-          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsDiscussionCreateModalOpen(true)}>Add Discussion</Button>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => { setEditingDiscussion(null); setIsDiscussionCreateModalOpen(true); }}>Add Discussion</Button>
         </div>
         {isDiscussionCreateModalOpen && (
           <DiscussionCreate
             open={isDiscussionCreateModalOpen}
-            onClose={() => setIsDiscussionCreateModalOpen(false)}
+            onClose={() => { setIsDiscussionCreateModalOpen(false); setEditingDiscussion(null); }}
             onSuccess={() => {
               setIsDiscussionCreateModalOpen(false);
+              setEditingDiscussion(null);
               setDiscussionRefreshTrigger((prev) => prev + 1);
             }}
             project={{ ProjectInfoID: projectId || 0, ProjectName: project?.ProjectName }}
+            editingDiscussion={editingDiscussion}
           />
         )}
         {discussionsLoading ? (
@@ -431,9 +440,14 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             <Card key={d.ProjectDiscussionID} hover>
               <div className="flex items-start justify-between gap-3">
                 <h4 className="text-base font-bold text-slate-900">{d.DiscussionTitle}</h4>
-                {d.HasUserRightToDelete && (
-                  <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
-                )}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {d.HasUserRightToEdit && (
+                    <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />
+                  )}
+                  {d.HasUserRightToDelete && (
+                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
+                  )}
+                </div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
                 <span>Priority: {d.PriorityName}</span>
