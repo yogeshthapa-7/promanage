@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Modal, message, Button } from "antd";
+import { Trash2 } from "lucide-react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import Card from "@/components/ui/Card";
@@ -80,6 +82,26 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
     };
   }, [project]);
 
+  const handleDeleteMilestone = (milestone: MilestoneItem) => {
+    Modal.confirm({
+      title: "Delete Milestone",
+      content: `Are you sure you want to delete "${milestone.MilestoneTitle}"?`,
+      okText: "Delete",
+      okType: "danger",
+      zIndex: 10000,
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteProjectMilestone?id=${milestone.ProjectMilestoneID}`, { method: "GET" });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success("Milestone deleted successfully");
+          setMilestones((prev) => prev.filter((m) => m.ProjectMilestoneID !== milestone.ProjectMilestoneID));
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : "Failed to delete milestone");
+        }
+      },
+    });
+  };
+
   if (milestonesLoading) {
     return (
       <Card>
@@ -97,7 +119,7 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {milestones.map((milestone) => {
         const progressColor =
           milestone.Progress >= 75
@@ -112,7 +134,10 @@ export default function MilestoneTab({ project }: MilestoneTabProps) {
           <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
-              <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteMilestone(milestone)} />
+                <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
+              </div>
             </div>
 
             {milestone.Summary && (

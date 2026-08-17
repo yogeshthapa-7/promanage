@@ -9,6 +9,7 @@ import { fetchSubTasks, statusColor, priorityColor } from '@/lib/tasks-data';
 import { apiCall } from '@/lib/api';
 import Pagination from '@/components/ui/Pagination';
 import Card from '@/components/ui/Card';
+import ProgressBar from '@/components/ui/ProgressBar';
 import SearchInput from '@/components/ui/SearchInput';
 import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
@@ -16,6 +17,7 @@ import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginated
 import { Plus, Trash2, Pencil } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
 import DiscussionCreate from './DiscussionTab/Create';
+import MilestoneCreate from './MilestoneTab/Create';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
@@ -70,6 +72,9 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [discussionRefreshTrigger, setDiscussionRefreshTrigger] = useState(0);
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
+  const [isMilestoneCreateModalOpen, setIsMilestoneCreateModalOpen] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
+  const [milestoneRefreshTrigger, setMilestoneRefreshTrigger] = useState(0);
   const [timelines, setTimelines] = useState<TimelineItem[]>([]);
   const [timelinesLoading, setTimelinesLoading] = useState(false);
 
@@ -223,7 +228,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       cancelled = true;
       controller.abort();
     };
-  }, [open, activeTab, projectId]);
+  }, [open, activeTab, projectId, milestoneRefreshTrigger]);
 
   useEffect(() => {
     if (!open || activeTab !== 'timeline' || !projectId) return;
@@ -463,14 +468,27 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     const milestonePane = (
       <div className="space-y-4">
         <div className="flex items-center justify-end">
-          <Button type="primary" icon={<Plus size={16} />}>Add Milestone</Button>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => { setEditingMilestone(null); setIsMilestoneCreateModalOpen(true); }}>Add Milestone</Button>
         </div>
+        {isMilestoneCreateModalOpen && (
+          <MilestoneCreate
+            open={isMilestoneCreateModalOpen}
+            onClose={() => { setIsMilestoneCreateModalOpen(false); setEditingMilestone(null); }}
+            onSuccess={() => {
+              setIsMilestoneCreateModalOpen(false);
+              setEditingMilestone(null);
+              setMilestoneRefreshTrigger((prev) => prev + 1);
+            }}
+            project={{ ProjectInfoID: projectId || 0, ProjectName: project?.ProjectName }}
+            editingMilestone={editingMilestone}
+          />
+        )}
         {milestonesLoading ? (
           <Card><div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading milestones...</div></Card>
         ) : milestones.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No milestones found.</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {milestones.map((milestone) => {
               const progressColor = milestone.Progress >= 75 ? '#10B981' : milestone.Progress >= 40 ? '#3B82F6' : milestone.Progress > 0 ? '#F59E0B' : '#D1D5DB';
               return (
@@ -551,7 +569,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       { key: 'milestone', label: 'Milestone', children: milestonePane },
       { key: 'timeline', label: 'Timeline', children: timelinePane },
     ];
-  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, timelines, timelinesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen]);
+  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, timelines, timelinesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, isMilestoneCreateModalOpen, editingMilestone]);
 
   if (!task) return null;
 
