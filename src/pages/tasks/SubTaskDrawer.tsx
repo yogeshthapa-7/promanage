@@ -18,11 +18,13 @@ import { Plus, Trash2, Pencil } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
 import DiscussionCreate from './DiscussionTab/Create';
 import MilestoneCreate from './MilestoneTab/Create';
+import TimelineTab from './TimelineTab/TimelineTab';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
 const MILESTONE_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
 const TIMELINE_API = `${API_BASE}/ProjectTimelineInfo/ServerSearch`;
+const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
 
 interface SubTaskDrawerProps {
   open: boolean;
@@ -51,12 +53,26 @@ interface MilestoneItem {
   Summary: string;
 }
 
-interface TimelineItem {
-  TraceID: number;
-  TraceKeyName: string;
-  Remarks: string;
+
+
+interface IssueItem {
+  IssuesID: number;
+  IssuesTitle: string;
+  LabelInfoID: number;
+  Comments: string;
+  Attachments: string;
+  ProjectInfoID: number;
+  WorkStatusID: number;
+  ProjectInfoName: string;
+  WorkStatusName: string;
+  LabelInfoName: string;
+  LabelColor: string;
   CreatedDate: string;
-  CreatedTime: string;
+  RaisedBy: string;
+  WorkStatusColor: string;
+  CanChangeStatus: boolean;
+  CanEdit: boolean;
+  CanDelete: boolean;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -75,8 +91,10 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [isMilestoneCreateModalOpen, setIsMilestoneCreateModalOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
   const [milestoneRefreshTrigger, setMilestoneRefreshTrigger] = useState(0);
-  const [timelines, setTimelines] = useState<TimelineItem[]>([]);
-  const [timelinesLoading, setTimelinesLoading] = useState(false);
+  const [issues, setIssues] = useState<IssueItem[]>([]);
+  const [issuesLoading, setIssuesLoading] = useState(false);
+  const [issueRefreshTrigger, setIssueRefreshTrigger] = useState(0);
+
 
   const projectId = project?.ProjectInfoID ?? (project ? Number(project.id) : null) ?? task?.ProjectInfoID ?? null;
   const taskId = task?.TaskInfoID ?? null;
@@ -231,13 +249,13 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   }, [open, activeTab, projectId, milestoneRefreshTrigger]);
 
   useEffect(() => {
-    if (!open || activeTab !== 'timeline' || !projectId) return;
+    if (!open || activeTab !== 'issue' || !projectId) return;
     const controller = new AbortController();
     let cancelled = false;
 
-    setTimelinesLoading(true);
-    setTimelines([]);
-    apiCall(TIMELINE_API, {
+    setIssuesLoading(true);
+    setIssues([]);
+    apiCall(ISSUES_API, {
       method: 'POST',
       body: JSON.stringify({
         model: {
@@ -245,12 +263,30 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
           start: 0,
           length: 20,
           columns: [
-            { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+            { data: 'IssuesID', name: 'IssuesID', searchable: true, orderable: true, search: { value: '', regex: '' } },
           ],
           search: { value: '', regex: '' },
           order: [{ column: 0, dir: 'desc' }],
         },
-        param: { ProjectInfoID: projectId },
+        param: {
+          IssuesID: 0,
+          IssuesTitle: '',
+          LabelInfoID: 0,
+          Comments: '',
+          Attachments: '',
+          ProjectInfoID: projectId,
+          WorkStatusID: 0,
+          ProjectInfoName: '',
+          WorkStatusName: '',
+          LabelInfoName: '',
+          LabelColor: '',
+          CreatedDate: '',
+          RaisedBy: '',
+          WorkStatusColor: '',
+          CanChangeStatus: true,
+          CanEdit: true,
+          CanDelete: true,
+        },
       }),
       signal: controller.signal,
     })
@@ -258,21 +294,23 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
         const json = await res.json();
         if (!cancelled) {
-          setTimelines(Array.isArray(json?.data) ? (json.data as TimelineItem[]) : []);
+          setIssues(Array.isArray(json?.data) ? (json.data as IssueItem[]) : []);
         }
       })
       .catch((err) => {
         if (err.name !== 'AbortError') console.error(err);
       })
       .finally(() => {
-        if (!cancelled) setTimelinesLoading(false);
+        if (!cancelled) setIssuesLoading(false);
       });
 
     return () => {
       cancelled = true;
       controller.abort();
     };
-  }, [open, activeTab, projectId]);
+  }, [open, activeTab, projectId, issueRefreshTrigger]);
+
+
 
   const handleDeleteDiscussion = (discussion: DiscussionItem) => {
     Modal.confirm({
@@ -491,6 +529,75 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       </div>
     );
 
+    const issuePane = (
+      <div className="space-y-3">
+        <div className="flex items-center justify-end">
+          <Button type="primary" onClick={() => message.info('Issue create coming soon')}>
+            Add Issue
+          </Button>
+        </div>
+        {issuesLoading ? (
+          <Card><div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div></Card>
+        ) : issues.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
+        ) : (
+          issues.map((issue) => (
+            <Card key={issue.IssuesID} hover>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-base font-bold text-slate-900">{issue.IssuesTitle}</h4>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
+                    {issue.LabelInfoName && (
+                      <Badge
+                        style={{
+                          background: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
+                          color: issue.LabelColor || undefined,
+                          borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
+                        }}
+                      >
+                        {issue.LabelInfoName}
+                      </Badge>
+                    )}
+                    {issue.WorkStatusName && <Badge>{issue.WorkStatusName}</Badge>}
+                    <span>•</span>
+                    <span>Raised by: {issue.RaisedBy || '—'}</span>
+                    <span>•</span>
+                    <span>{issue.CreatedDate}</span>
+                  </div>
+                  {issue.Comments && <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>}
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {issue.CanEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => message.info('Edit issue coming soon')} />}
+                  {issue.CanDelete && (
+                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => {
+                      Modal.confirm({
+                        title: 'Delete Issue',
+                        content: `Are you sure you want to delete "${issue.IssuesTitle}"?`,
+                        okText: 'Delete',
+                        okType: 'danger',
+                        zIndex: 10000,
+                        onOk: async () => {
+                          try {
+                            const res = await apiCall(`${API_BASE}/DeleteIssues?id=${issue.IssuesID}`, { method: 'GET' });
+                            if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+                            message.success('Issue deleted successfully');
+                            setIssues((prev) => prev.filter((i) => i.IssuesID !== issue.IssuesID));
+                            setIssueRefreshTrigger((prev) => prev + 1);
+                          } catch (err) {
+                            message.error(err instanceof Error ? err.message : 'Failed to delete issue');
+                          }
+                        },
+                      });
+                    }} />
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+    );
+
     const milestonePane = (
       <div className="space-y-4">
         <div className="flex items-center justify-end">
@@ -545,61 +652,16 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       </div>
     );
 
-    const timelinePane = (
-      <div className="w-full max-w-5xl mx-auto px-4 py-8 font-sans select-none">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Project Timeline</h2>
-          <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">{project?.ProjectName || 'Progress Overview'}</p>
-        </div>
-        {timelinesLoading ? (
-          <Card><div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading timeline...</div></Card>
-        ) : timelines.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No progress history found for this project.</div>
-        ) : (
-          <div className="relative w-full">
-            <div className="timeline-rail absolute top-0 bottom-0 left-4 md:left-1/2 md:-translate-x-1/2 w-[2px] h-full pointer-events-none" />
-            <div className="w-full flex flex-col gap-8 relative">
-              {timelines.map((item, idx) => {
-                const isLeft = idx % 2 === 0;
-                const itemNumber = timelines.length - idx;
-                return (
-                  <div key={item.TraceID + idx} className="w-full flex flex-col md:flex-row items-start md:items-center relative">
-                    <div className={`w-full md:w-1/2 ${isLeft ? 'md:pr-8 md:ml-auto md:pl-0' : 'md:pl-8'} flex justify-start md:justify-end`}>
-                      <Card className="group w-full max-w-md">
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-sm font-bold uppercase tracking-wider text-indigo-600">{item.TraceKeyName || 'Milestone'}</span>
-                          <span className="text-sm font-mono font-bold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-600">#{String(itemNumber).padStart(2, '0')}</span>
-                        </div>
-                        <h4 className="text-sm font-semibold text-slate-800 tracking-tight leading-relaxed whitespace-pre-line mt-2">{item.Remarks || 'No logged descriptions recorded.'}</h4>
-                        <div className="flex items-center gap-2 pt-3 border-t border-slate-100 text-sm font-medium text-slate-400">
-                          <span className="bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded font-mono border border-slate-100">ID: #{item.TraceID}</span>
-                          <span>{item.CreatedDate}</span>
-                          <span>•</span>
-                          <span>{item.CreatedTime}</span>
-                        </div>
-                      </Card>
-                    </div>
-                    <div className="timeline-step absolute top-0 bottom-0 left-4 md:left-1/2 md:-translate-x-1/2" />
-                    <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 flex items-center justify-center z-20">
-                      <div className="w-3 h-3 rounded-full border-2 border-indigo-600 bg-white" />
-                    </div>
-                    <div className="hidden md:block w-1/2" />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    );
+
 
     return [
       { key: 'subtasks', label: 'Sub Tasks', children: subtaskPane },
       { key: 'discussion', label: 'Discussion', children: discussionPane },
+      { key: 'issue', label: 'Issue', children: issuePane },
       { key: 'milestone', label: 'Milestone', children: milestonePane },
-      { key: 'timeline', label: 'Timeline', children: timelinePane },
+      { key: 'timeline', label: 'Timeline', children: <TimelineTab project={project} projectId={projectId} /> },
     ];
-  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, timelines, timelinesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, isMilestoneCreateModalOpen, editingMilestone]);
+  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, isMilestoneCreateModalOpen, editingMilestone, issues, issuesLoading, issueRefreshTrigger]);
 
   if (!task) return null;
 
