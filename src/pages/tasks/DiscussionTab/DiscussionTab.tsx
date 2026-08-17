@@ -3,6 +3,7 @@ import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
+import DiscussionCreate from "./Create";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
@@ -27,27 +28,9 @@ interface DiscussionTabProps {
 export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [discussions, setDiscussions] = useState<ProjectDiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const handleDeleteDiscussion = (discussion: ProjectDiscussionItem) => {
-    Modal.confirm({
-      title: 'Delete Discussion',
-      content: `Are you sure you want to delete "${discussion.DiscussionTitle}"?`,
-      okText: 'Delete',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          const res = await apiCall(`${API_BASE}/DeleteProjectDiscussion?id=${discussion.ProjectDiscussionID}`, { method: 'GET' });
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-          message.success('Discussion deleted successfully');
-          setDiscussions((prev) => prev.filter((d) => d.ProjectDiscussionID !== discussion.ProjectDiscussionID));
-        } catch (err) {
-          message.error(err instanceof Error ? err.message : 'Failed to delete discussion');
-        }
-      },
-    });
-  };
-
-  useEffect(() => {
+  const discussionsRefetch = () => {
     const controller = new AbortController();
     let cancelled = false;
     setDiscussionsLoading(true);
@@ -69,7 +52,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         param: {
           ProjectDiscussionID: 0,
           DiscussionTitle: "",
-          ProjectInfoID: project.ProjectInfoID ?? Number(project.id),
+            ProjectInfoID: project.ProjectInfoID ?? 0,
           Priority: 0,
           PriorityName: "",
           RaisedBy: "",
@@ -99,6 +82,30 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
       cancelled = true;
       controller.abort();
     };
+  };
+
+  const handleDeleteDiscussion = (discussion: ProjectDiscussionItem) => {
+    Modal.confirm({
+      title: 'Delete Discussion',
+      content: `Are you sure you want to delete "${discussion.DiscussionTitle}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      zIndex: 10000,
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteProjectDiscussion?id=${discussion.ProjectDiscussionID}`, { method: 'GET' });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success('Discussion deleted successfully');
+          setDiscussions((prev) => prev.filter((d) => d.ProjectDiscussionID !== discussion.ProjectDiscussionID));
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Failed to delete discussion');
+        }
+      },
+    });
+  };
+
+  useEffect(() => {
+    discussionsRefetch();
   }, [project]);
 
   if (discussionsLoading) {
@@ -120,7 +127,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   return (
   <div className="space-y-3">
     <div className="flex items-center justify-end">
-      <Button type="primary" onClick={() => { /* open add-discussion modal / navigate */ }}>
+      <Button type="primary" onClick={() => setIsCreateOpen(true)}>
         Add Discussion
       </Button>
     </div>
@@ -140,6 +147,15 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         </div>
       </Card>
     ))}
+    <DiscussionCreate
+      open={isCreateOpen}
+      onClose={() => setIsCreateOpen(false)}
+      onSuccess={() => {
+        setIsCreateOpen(false);
+        discussionsRefetch();
+      }}
+      project={project}
+    />
   </div>
 );
 }
