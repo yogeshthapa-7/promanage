@@ -9,6 +9,7 @@ interface SubTaskSearchProps {
   open: boolean;
   onClose: () => void;
   onSearch: (values: Record<string, unknown>) => void;
+  onClear?: () => void;
   project: {
     ProjectInfoID: number;
     ProjectName?: string;
@@ -63,7 +64,7 @@ const extractIdAndName = (obj: Record<string, unknown>): SelectListItem | null =
   return null;
 };
 
-export default function SubTaskSearch({ open, onClose, onSearch, project, selectedTask, modal = true }: SubTaskSearchProps) {
+export default function SubTaskSearch({ open, onClose, onSearch, onClear, project, selectedTask, modal = true }: SubTaskSearchProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);

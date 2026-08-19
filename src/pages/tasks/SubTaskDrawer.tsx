@@ -14,7 +14,7 @@ import ProgressBar from '@/components/ui/ProgressBar';
 import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
-import { Plus, Trash2, Pencil, Search } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search, RotateCcw } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
 import SubTaskSearch from './SubTasksTab/Search';
 import DiscussionCreate from './DiscussionTab/Create';
@@ -85,6 +85,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingSubTask, setEditingSubTask] = useState<SubTaskItem | null>(null);
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
+  const [allDiscussions, setAllDiscussions] = useState<DiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [isDiscussionCreateModalOpen, setIsDiscussionCreateModalOpen] = useState(false);
   const [editingDiscussion, setEditingDiscussion] = useState<DiscussionItem | null>(null);
@@ -96,6 +97,21 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     WorkStatusID: undefined as number | undefined,
     SubTaskManagerID: undefined as number | undefined,
   });
+
+  const handleClearSubTaskSearch = () => {
+    setSubTaskFilters({
+      SubTaskTitle: '',
+      Priority: undefined,
+      WorkStatusID: undefined,
+      SubTaskManagerID: undefined,
+    });
+    setIsSubTaskSearchModalOpen(false);
+  };
+
+  const handleClearDiscussionSearch = () => {
+    setDiscussions(allDiscussions);
+    setIsDiscussionSearchModalOpen(false);
+  };
   const [isDiscussionSearchModalOpen, setIsDiscussionSearchModalOpen] = useState(false);
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
@@ -194,7 +210,9 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
         const json = await res.json();
         if (!cancelled) {
-          setDiscussions(Array.isArray(json?.data) ? (json.data as DiscussionItem[]) : []);
+          const data = Array.isArray(json?.data) ? (json.data as DiscussionItem[]) : [];
+          setDiscussions(data);
+          setAllDiscussions(data);
         }
       })
       .catch((err) => {
@@ -438,10 +456,13 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             <Button icon={<Search size={16} />} onClick={() => setIsSubTaskSearchModalOpen(true)}>
               Search
             </Button>
-            <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
-              Add New Subtask
+            <Button onClick={handleClearSubTaskSearch}>
+              Clear
             </Button>
           </div>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
+            Add New Subtask
+          </Button>
         </div>
         {isCreateModalOpen && (
           <SubTaskCreate
@@ -472,6 +493,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
                 SubTaskManagerID: values.SubTaskManagerID ? Number(values.SubTaskManagerID) : undefined,
               });
             }}
+            onClear={handleClearSubTaskSearch}
             project={project}
             selectedTask={task}
             modal={false}
@@ -552,8 +574,11 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             <Button icon={<Search size={16} />} onClick={() => setIsDiscussionSearchModalOpen(true)}>
               Search
             </Button>
-            <Button type="primary" icon={<Plus size={16} />} onClick={() => { setEditingDiscussion(null); setIsDiscussionCreateModalOpen(true); }}>Add Discussion</Button>
+            <Button icon={<RotateCcw size={16} />} onClick={handleClearDiscussionSearch}>
+              Clear
+            </Button>
           </div>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => { setEditingDiscussion(null); setIsDiscussionCreateModalOpen(true); }}>Add Discussion</Button>
         </div>
         {isDiscussionCreateModalOpen && (
           <DiscussionCreate
@@ -575,15 +600,16 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             onSearch={(values) => {
               const searchTitle = String(values.DiscussionTitle || '').toLowerCase();
               const priority = Number(values.Priority);
-              setDiscussions((prev) => {
-                if (!searchTitle && !priority) return prev;
-                return prev.filter((d) => {
+              setDiscussions(() => {
+                if (!searchTitle && !priority) return allDiscussions;
+                return allDiscussions.filter((d) => {
                   const matchesTitle = !searchTitle || d.DiscussionTitle.toLowerCase().includes(searchTitle);
                   const matchesPriority = !priority || d.Priority === priority;
                   return matchesTitle && matchesPriority;
                 });
               });
             }}
+            onClear={handleClearDiscussionSearch}
             project={{ ProjectInfoID: projectId || 0, ProjectName: project?.ProjectName }}
             modal={false}
           />

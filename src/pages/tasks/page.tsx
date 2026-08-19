@@ -95,8 +95,8 @@ export default function TasksPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const project = (location.state as { project?: ApiProject } | undefined)?.project;
-  const [selectedTaskId, setSelectedTaskId] = useState<number | undefined>(undefined);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>(undefined);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
   const [managerNameSearch, setManagerNameSearch] = useState("");
   const [taskOptions, setTaskOptions] = useState<{ value: string; label: string }[]>([]);
   const [projectOptions, setProjectOptions] = useState<{ value: string; label: string }[]>([]);
@@ -112,7 +112,7 @@ export default function TasksPage() {
 
   const projectId = project?.ProjectInfoID;
 
-  const activeProjectFilter = selectedProjectId ?? (selectedTaskId ? undefined : projectId);
+  const activeProjectFilter = selectedProjectId ? Number(selectedProjectId) : (selectedTaskId ? undefined : projectId);
 
   const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId: activeProjectFilter, managerName: debouncedManagerName }), [activeProjectFilter, debouncedManagerName]);
 
@@ -131,14 +131,14 @@ export default function TasksPage() {
     extraDeps: [debouncedManagerName, activeProjectFilter],
   });
 
-  const handleTaskSelect = (value: number | string | undefined) => {
-    setSelectedTaskId(value ? Number(value) : undefined);
+  const handleTaskSelect = (value: string | undefined) => {
+    setSelectedTaskId(value);
     setSelectedProjectId(undefined);
     setManagerNameSearch("");
   };
 
-  const handleProjectSelect = (value: number | string | undefined) => {
-    setSelectedProjectId(value ? Number(value) : undefined);
+  const handleProjectSelect = (value: string | undefined) => {
+    setSelectedProjectId(value);
     setSelectedTaskId(undefined);
     setManagerNameSearch("");
   };
@@ -224,8 +224,8 @@ export default function TasksPage() {
   }, [selectedTaskId, selectedProjectId, debouncedManagerName]);
 
   const filteredTasks = tasks.filter((task) => {
-    const matchesTask = !selectedTaskId || task.TaskInfoID === selectedTaskId;
-    const matchesProject = !selectedProjectId && !projectId || task.ProjectInfoID === (selectedProjectId ?? projectId);
+    const matchesTask = !selectedTaskId || String(task.TaskInfoID) === selectedTaskId;
+    const matchesProject = !selectedProjectId && !projectId || String(task.ProjectInfoID) === String(selectedProjectId ?? projectId);
     const matchesManager = !managerNameSearch || task.TaskManagerName?.toLowerCase().includes(managerNameSearch.toLowerCase());
     return matchesTask && matchesProject && matchesManager;
   });

@@ -8,6 +8,7 @@ interface DiscussionSearchProps {
   open: boolean;
   onClose: () => void;
   onSearch: (values: Record<string, unknown>) => void;
+  onClear?: () => void;
   project: {
     ProjectInfoID: number;
     ProjectName?: string;
@@ -24,7 +25,7 @@ const PRIORITY_OPTIONS = [
   { label: 'Low', value: 4 },
 ];
 
-export default function DiscussionSearch({ open, onClose, onSearch, project, modal = true }: DiscussionSearchProps) {
+export default function DiscussionSearch({ open, onClose, onSearch, onClear, project, modal = true }: DiscussionSearchProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 

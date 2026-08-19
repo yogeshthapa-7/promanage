@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
-import { Search, Pencil, Trash2 } from "lucide-react";
+import { Search, Pencil, Trash2, RotateCcw } from "lucide-react";
 import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
 import DiscussionSearch from "./Search";
@@ -29,10 +29,12 @@ interface DiscussionTabProps {
 
 export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [discussions, setDiscussions] = useState<ProjectDiscussionItem[]>([]);
+  const [allDiscussions, setAllDiscussions] = useState<ProjectDiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDiscussion, setEditingDiscussion] = useState<ProjectDiscussionItem | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
 
   const discussionsRefetch = () => {
     const controller = new AbortController();
@@ -72,7 +74,9 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
         const json = await res.json();
         if (!cancelled) {
-          setDiscussions(Array.isArray(json?.data) ? json.data : []);
+          const data = Array.isArray(json?.data) ? json.data : [];
+          setDiscussions(data);
+          setAllDiscussions(data);
         }
       })
       .catch((err) => {
@@ -86,6 +90,12 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
       cancelled = true;
       controller.abort();
     };
+  };
+
+  const handleClearDiscussionSearch = () => {
+    setIsSearchOpen(false);
+    setIsSearchActive(false);
+    setDiscussions(allDiscussions);
   };
 
   const handleEditDiscussion = (discussion: ProjectDiscussionItem) => {
@@ -117,22 +127,6 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
     discussionsRefetch();
   }, [project]);
 
-  if (discussionsLoading) {
-    return (
-      <Card>
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading discussions...</div>
-    </Card>
-    );
-  }
-
-  if (discussions.length === 0) {
-    return (
-      <Card>
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No discussions found.</div>
-      </Card>
-    );
-  }
-
   return (
   <div className="space-y-4">
     <div className="flex items-center justify-between gap-3">
@@ -140,10 +134,13 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
           Search
         </Button>
-        <Button type="primary" onClick={() => { setEditingDiscussion(null); setIsCreateOpen(true); }}>
-          Add Discussion
+        <Button icon={<RotateCcw size={16} />} onClick={handleClearDiscussionSearch}>
+          Clear
         </Button>
       </div>
+      <Button type="primary" onClick={() => { setEditingDiscussion(null); setIsCreateOpen(true); }}>
+        Add Discussion
+      </Button>
     </div>
     {isSearchOpen && (
       <DiscussionSearch
@@ -152,42 +149,56 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         onSearch={(values) => {
           const searchTitle = String(values.DiscussionTitle || '').toLowerCase();
           const priority = Number(values.Priority);
-          setDiscussions((prev) => {
-            if (!searchTitle && !priority) return prev;
-            return prev.filter((d) => {
+          setIsSearchActive(true);
+          setDiscussions(() => {
+            if (!searchTitle && !priority) return allDiscussions;
+            return allDiscussions.filter((d) => {
               const matchesTitle = !searchTitle || d.DiscussionTitle.toLowerCase().includes(searchTitle);
               const matchesPriority = !priority || d.Priority === priority;
               return matchesTitle && matchesPriority;
             });
           });
         }}
+        onClear={handleClearDiscussionSearch}
         project={project}
         modal={false}
       />
     )}
-    {discussions.map((d) => (
-      <Card key={d.ProjectDiscussionID} hover>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h4 className="text-base font-bold text-slate-900 truncate">{d.DiscussionTitle}</h4>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
-              <span>Priority: {d.PriorityName}</span>
-              <span>•</span>
-              <span>{d.CreatedDate}</span>
-              {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {d.HasUserRightToEdit && (
-              <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />
-            )}
-            {d.HasUserRightToDelete && (
-              <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
-            )}
-          </div>
+    {discussionsLoading ? (
+      <Card>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading discussions...</div>
+      </Card>
+    ) : discussions.length === 0 ? (
+      <Card>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">
+          {isSearchActive ? 'No discussions match your search.' : 'No discussions found.'}
         </div>
       </Card>
-    ))}
+    ) : (
+      discussions.map((d) => (
+        <Card key={d.ProjectDiscussionID} hover>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h4 className="text-base font-bold text-slate-900 truncate">{d.DiscussionTitle}</h4>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
+                <span>Priority: {d.PriorityName}</span>
+                <span>•</span>
+                <span>{d.CreatedDate}</span>
+                {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {d.HasUserRightToEdit && (
+                <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />
+              )}
+              {d.HasUserRightToDelete && (
+                <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
+              )}
+            </div>
+          </div>
+        </Card>
+      ))
+    )}
     <DiscussionCreate
       open={isCreateOpen}
       onClose={() => { setIsCreateOpen(false); setEditingDiscussion(null); }}
