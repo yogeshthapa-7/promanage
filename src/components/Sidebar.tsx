@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag } from 'lucide-react';
 
 interface NavItem { id: string; label: string; icon: React.ReactNode; href: string; badge?: number; section?: string; }
 interface SidebarProps { collapsed?: boolean; onToggle?: () => void; }
@@ -21,10 +21,11 @@ const navItems: NavItem[] = [
   { id: 'budget', label: 'Budget', icon: <Wallet2 size={18} />, href: '/Budget', section: 'POLICY' },
   { id: 'expense', label: 'Expense', icon: <CreditCard size={18} />, href: '/Expense', section: 'POLICY' },
   { id: 'client', label: 'Client', icon: <Handshake size={18} />, href: '/Client', section: 'POLICY' },
+  { id: 'label', label: 'Label Info', icon: <Tag size={18} />, href: '/Label', section: 'POLICY' },
 ];
 
 function getActiveNavId(pathname: string): string {
-  const map: Record<string, string> = { '/dashboard': 'dashboard', '/projects': 'projects', '/tasks': 'tasks', '/analytics': 'analytics', '/team': 'team-members', '/users': 'users', '/employee': 'employee', '/departments': 'departments', '/Organizations': 'organizations', '/Policy': 'policy', '/Budget': 'budget', '/Expense': 'expense', '/Client': 'client' };
+  const map: Record<string, string> = { '/dashboard': 'dashboard', '/projects': 'projects', '/tasks': 'tasks', '/analytics': 'analytics', '/team': 'team-members', '/users': 'users', '/employee': 'employee', '/departments': 'departments', '/Organizations': 'organizations', '/Policy': 'policy', '/Budget': 'budget', '/Expense': 'expense', '/Client': 'client', '/Label': 'label' };
   return map[pathname] ?? 'dashboard';
 }
 
