@@ -70,8 +70,8 @@ const buildTaskSearchBody = (start: number, length: number, search?: string, pro
     order: [{ column: 1, dir: 'desc' }],
   },
   param: {
-    TaskInfoID: taskId ?? 0,
-    ProjectInfoID: projectIdSearch ?? projectId ?? 0,
+    TaskInfoID: 0,
+    ProjectInfoID: projectId ?? 0,
     TaskTitle: "",
     TaskManagerName: managerName || "",
     ProjectInfoName: "",
@@ -112,7 +112,9 @@ export default function TasksPage() {
 
   const projectId = project?.ProjectInfoID;
 
-  const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId, taskId: selectedTaskId, projectIdSearch: selectedProjectId, managerName: debouncedManagerName }), [projectId, selectedTaskId, selectedProjectId, debouncedManagerName]);
+  const activeProjectFilter = selectedProjectId ?? (selectedTaskId ? undefined : projectId);
+
+  const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId: activeProjectFilter, managerName: debouncedManagerName }), [activeProjectFilter, debouncedManagerName]);
 
   const {
     data: tasks,
@@ -126,19 +128,25 @@ export default function TasksPage() {
   } = usePaginatedList<TaskItem>({
     fetcher,
     initialPageSize: 20,
-    extraDeps: [selectedTaskId, selectedProjectId, debouncedManagerName, projectId],
+    extraDeps: [debouncedManagerName, activeProjectFilter],
   });
 
-  const handleTaskSelect = (value: number | undefined) => {
-    setSelectedTaskId(value);
+  const handleTaskSelect = (value: number | string | undefined) => {
+    setSelectedTaskId(value ? Number(value) : undefined);
+    setSelectedProjectId(undefined);
+    setManagerNameSearch("");
   };
 
-  const handleProjectSelect = (value: number | undefined) => {
-    setSelectedProjectId(value);
+  const handleProjectSelect = (value: number | string | undefined) => {
+    setSelectedProjectId(value ? Number(value) : undefined);
+    setSelectedTaskId(undefined);
+    setManagerNameSearch("");
   };
 
   const handleManagerNameSearchChange = (value: string) => {
     setManagerNameSearch(value);
+    setSelectedTaskId(undefined);
+    setSelectedProjectId(undefined);
   };
 
   const handleViewTask = (task: TaskItem) => {

@@ -62,6 +62,14 @@ export default function DiscussionSearch({ open, onClose, onSearch, project, mod
       form={form}
       layout="vertical"
       requiredMark={false}
+      onValuesChange={(changedValues) => {
+        const changedKey = Object.keys(changedValues)[0];
+        if (changedKey === 'DiscussionTitle') {
+          form.setFieldsValue({ Priority: undefined });
+        } else if (changedKey === 'Priority') {
+          form.setFieldsValue({ DiscussionTitle: undefined });
+        }
+      }}
     >
       <div className="grid grid-cols-1 gap-4">
         <Form.Item

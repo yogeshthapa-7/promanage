@@ -156,6 +156,18 @@ export default function SubTaskSearch({ open, onClose, onSearch, project, select
       form={form}
       layout="vertical"
       requiredMark={false}
+      onValuesChange={(changedValues) => {
+        const changedKey = Object.keys(changedValues)[0];
+        if (changedKey === 'SubTaskTitle') {
+          form.setFieldsValue({ Priority: undefined, WorkStatusID: undefined, SubTaskManagerID: undefined });
+        } else if (changedKey === 'Priority') {
+          form.setFieldsValue({ SubTaskTitle: undefined, WorkStatusID: undefined, SubTaskManagerID: undefined });
+        } else if (changedKey === 'WorkStatusID') {
+          form.setFieldsValue({ SubTaskTitle: undefined, Priority: undefined, SubTaskManagerID: undefined });
+        } else if (changedKey === 'SubTaskManagerID') {
+          form.setFieldsValue({ SubTaskTitle: undefined, Priority: undefined, WorkStatusID: undefined });
+        }
+      }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Form.Item
