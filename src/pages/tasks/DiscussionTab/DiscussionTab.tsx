@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
-import { Pencil, Trash2 } from "lucide-react";
+import { Search, Pencil, Trash2 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
+import DiscussionSearch from "./Search";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
@@ -31,6 +32,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDiscussion, setEditingDiscussion] = useState<ProjectDiscussionItem | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const discussionsRefetch = () => {
     const controller = new AbortController();
@@ -132,12 +134,37 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   }
 
   return (
-  <div className="space-y-3">
-    <div className="flex items-center justify-end">
-      <Button type="primary" onClick={() => { setEditingDiscussion(null); setIsCreateOpen(true); }}>
-        Add Discussion
-      </Button>
+  <div className="space-y-4">
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
+          Search
+        </Button>
+        <Button type="primary" onClick={() => { setEditingDiscussion(null); setIsCreateOpen(true); }}>
+          Add Discussion
+        </Button>
+      </div>
     </div>
+    {isSearchOpen && (
+      <DiscussionSearch
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSearch={(values) => {
+          const searchTitle = String(values.DiscussionTitle || '').toLowerCase();
+          const priority = Number(values.Priority);
+          setDiscussions((prev) => {
+            if (!searchTitle && !priority) return prev;
+            return prev.filter((d) => {
+              const matchesTitle = !searchTitle || d.DiscussionTitle.toLowerCase().includes(searchTitle);
+              const matchesPriority = !priority || d.Priority === priority;
+              return matchesTitle && matchesPriority;
+            });
+          });
+        }}
+        project={project}
+        modal={false}
+      />
+    )}
     {discussions.map((d) => (
       <Card key={d.ProjectDiscussionID} hover>
         <div className="flex items-start justify-between gap-3">

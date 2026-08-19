@@ -371,8 +371,11 @@ export async function fetchSubTasks(params: {
   pageSize: number;
   search?: string;
   signal?: AbortSignal;
+  priority?: number;
+  workStatusId?: number;
+  managerId?: number;
 }): Promise<FetchResult<SubTaskItem>> {
-  const { projectId, taskInfoId, page, pageSize, search = '', signal } = params;
+  const { projectId, taskInfoId, page, pageSize, search = '', signal, priority, workStatusId, managerId } = params;
   const start = (page - 1) * pageSize;
 
   try {
@@ -394,12 +397,12 @@ export async function fetchSubTasks(params: {
           SubTaskInfoID: 0,
           SubTaskTitle: '',
           SubTaskCode: '',
-          SubTaskManagerID: 0,
+          SubTaskManagerID: managerId ?? 0,
           InvolvedEmployees: '',
           Weightage: 0,
           OrderKey: 0,
-          Priority: 0,
-          WorkStatusID: 0,
+          Priority: priority ?? 0,
+          WorkStatusID: workStatusId ?? 0,
           TaskInfoID: taskInfoId,
           ProjectInfoID: projectId,
         },

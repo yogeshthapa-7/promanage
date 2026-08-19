@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Tabs, Button, message, Modal } from 'antd';
+import { Tabs, Button, message, Modal, Select, Input } from 'antd';
 import Drawer from '@/components/drawer';
 import type { ApiProject } from '@/lib/projects-data';
 import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
@@ -11,13 +11,14 @@ import { calculateProgressFromDates } from '@/lib/nepali-date';
 import Pagination from '@/components/ui/Pagination';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
-import SearchInput from '@/components/ui/SearchInput';
 import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
-import { Plus, Trash2, Pencil } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
+import SubTaskSearch from './SubTasksTab/Search';
 import DiscussionCreate from './DiscussionTab/Create';
+import DiscussionSearch from './DiscussionTab/Search';
 import MilestoneCreate from './MilestoneTab/Create';
 import IssueCreate from './IssueTab/Create';
 import TimelineTab from './TimelineTab/TimelineTab';
@@ -88,6 +89,14 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [isDiscussionCreateModalOpen, setIsDiscussionCreateModalOpen] = useState(false);
   const [editingDiscussion, setEditingDiscussion] = useState<DiscussionItem | null>(null);
   const [discussionRefreshTrigger, setDiscussionRefreshTrigger] = useState(0);
+  const [isSubTaskSearchModalOpen, setIsSubTaskSearchModalOpen] = useState(false);
+  const [subTaskFilters, setSubTaskFilters] = useState({
+    SubTaskTitle: '',
+    Priority: undefined as number | undefined,
+    WorkStatusID: undefined as number | undefined,
+    SubTaskManagerID: undefined as number | undefined,
+  });
+  const [isDiscussionSearchModalOpen, setIsDiscussionSearchModalOpen] = useState(false);
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
   const [isMilestoneCreateModalOpen, setIsMilestoneCreateModalOpen] = useState(false);
@@ -111,13 +120,16 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       taskInfoId: taskId,
       page,
       pageSize: params.length as number,
-      search: (params.search as string) || '',
+      search: (params.search as string) || subTaskFilters.SubTaskTitle,
+      priority: subTaskFilters.Priority,
+      workStatusId: subTaskFilters.WorkStatusID,
+      managerId: subTaskFilters.SubTaskManagerID,
       signal: params.signal,
     }).then((result) => ({
       items: result.items,
       total: result.total,
     }));
-  }, [projectId, taskId]);
+  }, [projectId, taskId, subTaskFilters]);
 
   const {
     data: subTasks,
@@ -131,7 +143,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   } = usePaginatedList<SubTaskItem>({
     fetcher,
     initialPageSize: 20,
-    extraDeps: [projectId, taskId],
+    extraDeps: [projectId, taskId, subTaskFilters],
   });
 
   useEffect(() => {
@@ -422,10 +434,14 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     const subtaskPane = (
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <SearchInput placeholder="Search subtasks..." containerClassName="flex-1 max-w-md" />
-          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
-            Add New Subtask
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button icon={<Search size={16} />} onClick={() => setIsSubTaskSearchModalOpen(true)}>
+              Search
+            </Button>
+            <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
+              Add New Subtask
+            </Button>
+          </div>
         </div>
         {isCreateModalOpen && (
           <SubTaskCreate
@@ -441,6 +457,23 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             project={project}
             selectedTask={task}
             editingSubTask={editingSubTask}
+            modal={false}
+          />
+        )}
+        {isSubTaskSearchModalOpen && (
+          <SubTaskSearch
+            open={isSubTaskSearchModalOpen}
+            onClose={() => setIsSubTaskSearchModalOpen(false)}
+            onSearch={(values) => {
+              setSubTaskFilters({
+                SubTaskTitle: String(values.SubTaskTitle || ''),
+                Priority: values.Priority ? Number(values.Priority) : undefined,
+                WorkStatusID: values.WorkStatusID ? Number(values.WorkStatusID) : undefined,
+                SubTaskManagerID: values.SubTaskManagerID ? Number(values.SubTaskManagerID) : undefined,
+              });
+            }}
+            project={project}
+            selectedTask={task}
             modal={false}
           />
         )}
@@ -513,9 +546,14 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     );
 
     const discussionPane = (
-      <div className="space-y-3">
-        <div className="flex items-center justify-end">
-          <Button type="primary" icon={<Plus size={16} />} onClick={() => { setEditingDiscussion(null); setIsDiscussionCreateModalOpen(true); }}>Add Discussion</Button>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button icon={<Search size={16} />} onClick={() => setIsDiscussionSearchModalOpen(true)}>
+              Search
+            </Button>
+            <Button type="primary" icon={<Plus size={16} />} onClick={() => { setEditingDiscussion(null); setIsDiscussionCreateModalOpen(true); }}>Add Discussion</Button>
+          </div>
         </div>
         {isDiscussionCreateModalOpen && (
           <DiscussionCreate
@@ -530,12 +568,33 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             editingDiscussion={editingDiscussion}
           />
         )}
+        {isDiscussionSearchModalOpen && (
+          <DiscussionSearch
+            open={isDiscussionSearchModalOpen}
+            onClose={() => setIsDiscussionSearchModalOpen(false)}
+            onSearch={(values) => {
+              const searchTitle = String(values.DiscussionTitle || '').toLowerCase();
+              const priority = Number(values.Priority);
+              setDiscussions((prev) => {
+                if (!searchTitle && !priority) return prev;
+                return prev.filter((d) => {
+                  const matchesTitle = !searchTitle || d.DiscussionTitle.toLowerCase().includes(searchTitle);
+                  const matchesPriority = !priority || d.Priority === priority;
+                  return matchesTitle && matchesPriority;
+                });
+              });
+            }}
+            project={{ ProjectInfoID: projectId || 0, ProjectName: project?.ProjectName }}
+            modal={false}
+          />
+        )}
         {discussionsLoading ? (
           <Card><div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading discussions...</div></Card>
         ) : discussions.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No discussions found.</div>
         ) : (
-          discussions.map((d) => (
+          <div className="space-y-4">
+          {discussions.map((d) => (
             <Card key={d.ProjectDiscussionID} hover>
               <div className="flex items-start justify-between gap-3">
                 <h4 className="text-base font-bold text-slate-900">{d.DiscussionTitle}</h4>
@@ -554,7 +613,8 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
                 <span>{d.CreatedDate}</span>
               </div>
             </Card>
-          ))
+          ))}
+          </div>
         )}
       </div>
     );
@@ -694,7 +754,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       { key: 'milestone', label: 'Milestone', children: milestonePane },
       { key: 'timeline', label: 'Timeline', children: <TimelineTab project={project} projectId={projectId} /> },
     ];
-  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, editingDiscussion, isMilestoneCreateModalOpen, editingMilestone, isIssueCreateModalOpen, editingIssue, issues, issuesLoading, issueRefreshTrigger]);
+  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, editingDiscussion, isMilestoneCreateModalOpen, editingMilestone, isIssueCreateModalOpen, editingIssue, issues, issuesLoading, issueRefreshTrigger, discussionRefreshTrigger, milestoneRefreshTrigger, isSubTaskSearchModalOpen, isDiscussionSearchModalOpen, subTaskFilters]);
 
   if (!task) return null;
 
