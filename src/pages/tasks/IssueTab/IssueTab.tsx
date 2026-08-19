@@ -4,6 +4,7 @@ import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
+import { Pencil, Trash2 } from "lucide-react";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
@@ -24,8 +25,8 @@ interface IssueItem {
   RaisedBy: string;
   WorkStatusColor: string;
   CanChangeStatus: boolean;
-  CanEdit: boolean;
-  CanDelete: boolean;
+  HasUserRightToEdit: boolean;
+  HasUserRightToDelete: boolean;
 }
 
 interface IssueTabProps {
@@ -162,14 +163,14 @@ export default function IssueTab({ project }: IssueTabProps) {
                   <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>
                 )}
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {issue.CanEdit && <Button type="link" size="small">Edit</Button>}
-                {issue.CanDelete && (
-                  <Button type="link" size="small" danger onClick={() => handleDeleteIssue(issue)}>
-                    Delete
-                  </Button>
-                )}
-              </div>
+               <div className="flex items-center gap-1 shrink-0">
+                 {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => message.info('Edit issue coming soon')} />}
+                 {issue.HasUserRightToDelete && (
+                   <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(issue)}>
+                     Delete
+                   </Button>
+                 )}
+               </div>
             </div>
           </Card>
         ))

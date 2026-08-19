@@ -19,6 +19,7 @@ import { Plus, Trash2, Pencil } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
 import DiscussionCreate from './DiscussionTab/Create';
 import MilestoneCreate from './MilestoneTab/Create';
+import IssueCreate from './IssueTab/Create';
 import TimelineTab from './TimelineTab/TimelineTab';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -72,8 +73,8 @@ interface IssueItem {
   RaisedBy: string;
   WorkStatusColor: string;
   CanChangeStatus: boolean;
-  CanEdit: boolean;
-  CanDelete: boolean;
+  HasUserRightToEdit: boolean;
+  HasUserRightToDelete: boolean;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -95,6 +96,8 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [issues, setIssues] = useState<IssueItem[]>([]);
   const [issuesLoading, setIssuesLoading] = useState(false);
   const [issueRefreshTrigger, setIssueRefreshTrigger] = useState(0);
+  const [isIssueCreateModalOpen, setIsIssueCreateModalOpen] = useState(false);
+  const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
 
 
   const projectId = project?.ProjectInfoID ?? (project ? Number(project.id) : null) ?? task?.ProjectInfoID ?? null;
@@ -368,6 +371,32 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     setIsMilestoneCreateModalOpen(true);
   };
 
+  const handleEditIssue = (issue: IssueItem) => {
+    setEditingIssue(issue);
+    setIsIssueCreateModalOpen(true);
+  };
+
+  const handleDeleteIssue = (issue: IssueItem) => {
+    Modal.confirm({
+      title: 'Delete Issue',
+      content: `Are you sure you want to delete "${issue.IssuesTitle}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      zIndex: 10000,
+      onOk: async () => {
+        try {
+          const res = await apiCall(`${API_BASE}/DeleteIssues?id=${issue.IssuesID}`, { method: 'GET' });
+          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          message.success('Issue deleted successfully');
+          setIssues((prev) => prev.filter((i) => i.IssuesID !== issue.IssuesID));
+          setIssueRefreshTrigger((prev) => prev + 1);
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : 'Failed to delete issue');
+        }
+      },
+    });
+  };
+
   const handleDeleteMilestone = (milestone: MilestoneItem) => {
     Modal.confirm({
       title: 'Delete Milestone',
@@ -533,10 +562,31 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
     const issuePane = (
       <div className="space-y-3">
         <div className="flex items-center justify-end">
-          <Button type="primary" onClick={() => message.info('Issue create coming soon')}>
-            Add Issue
-          </Button>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => { setEditingIssue(null); setIsIssueCreateModalOpen(true); }}>Add Issue</Button>
         </div>
+        {isIssueCreateModalOpen && (
+          <IssueCreate
+            open={isIssueCreateModalOpen}
+            onClose={() => { setIsIssueCreateModalOpen(false); setEditingIssue(null); }}
+            onSuccess={(savedIssue) => {
+              setIsIssueCreateModalOpen(false);
+              setEditingIssue(null);
+              if (savedIssue && savedIssue.IssuesID) {
+                setIssues((prev) => {
+                  const exists = prev.some((i) => i.IssuesID === savedIssue.IssuesID);
+                  if (exists) {
+                    return prev.map((i) => (i.IssuesID === savedIssue.IssuesID ? { ...i, ...savedIssue } : i));
+                  }
+                  return [{ ...savedIssue } as IssueItem, ...prev];
+                });
+              } else {
+                setIssueRefreshTrigger((prev) => prev + 1);
+              }
+            }}
+            project={{ ProjectInfoID: projectId || 0, ProjectName: project?.ProjectName }}
+            editingIssue={editingIssue}
+          />
+        )}
         {issuesLoading ? (
           <Card><div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div></Card>
         ) : issues.length === 0 ? (
@@ -568,28 +618,9 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
                   {issue.Comments && <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {issue.CanEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => message.info('Edit issue coming soon')} />}
-                  {issue.CanDelete && (
-                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => {
-                      Modal.confirm({
-                        title: 'Delete Issue',
-                        content: `Are you sure you want to delete "${issue.IssuesTitle}"?`,
-                        okText: 'Delete',
-                        okType: 'danger',
-                        zIndex: 10000,
-                        onOk: async () => {
-                          try {
-                            const res = await apiCall(`${API_BASE}/DeleteIssues?id=${issue.IssuesID}`, { method: 'GET' });
-                            if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-                            message.success('Issue deleted successfully');
-                            setIssues((prev) => prev.filter((i) => i.IssuesID !== issue.IssuesID));
-                            setIssueRefreshTrigger((prev) => prev + 1);
-                          } catch (err) {
-                            message.error(err instanceof Error ? err.message : 'Failed to delete issue');
-                          }
-                        },
-                      });
-                    }} />
+                  {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditIssue(issue)} />}
+                  {issue.HasUserRightToDelete && (
+                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(issue)} />
                   )}
                 </div>
               </div>
@@ -663,7 +694,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       { key: 'milestone', label: 'Milestone', children: milestonePane },
       { key: 'timeline', label: 'Timeline', children: <TimelineTab project={project} projectId={projectId} /> },
     ];
-  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, isMilestoneCreateModalOpen, editingMilestone, issues, issuesLoading, issueRefreshTrigger]);
+  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, editingDiscussion, isMilestoneCreateModalOpen, editingMilestone, isIssueCreateModalOpen, editingIssue, issues, issuesLoading, issueRefreshTrigger]);
 
   if (!task) return null;
 
