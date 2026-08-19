@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App } from 'antd';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/login/page';
@@ -52,6 +52,7 @@ function App() {
       }}
     >
       <BrowserRouter>
+      <App>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
@@ -133,7 +134,8 @@ function App() {
 
         <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />
       </Routes>
-    </BrowserRouter>
+      </App>
+      </BrowserRouter>
     </ConfigProvider>
   );
 }

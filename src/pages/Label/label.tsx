@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Plus } from 'lucide-react';
-import { Modal, message } from 'antd';
+import { App } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
@@ -30,6 +30,7 @@ function fetchLabelsPage(params: PaginatedListParams): Promise<{ items: Label[];
 
 export default function LabelPage() {
   const queryClient = useQueryClient();
+  const { message, modal } = App.useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingLabel, setEditingLabel] = useState<Label | null>(null);
@@ -65,7 +66,7 @@ export default function LabelPage() {
   };
 
   const handleDelete = async (label: Label) => {
-    Modal.confirm({
+    modal.confirm({
       title: 'Delete Label',
       content: `Are you sure you want to delete "${label.name || 'this label'}"?`,
       okText: 'Delete',

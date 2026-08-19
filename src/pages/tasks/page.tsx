@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Eye, Pencil, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash2, Plus, LayoutList, LayoutGrid } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
 import { apiCall } from "@/lib/api";
 import type { ApiProject } from "@/lib/projects-data";
@@ -10,7 +10,7 @@ import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
 import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
-import { statusColor } from "@/lib/tasks-data";
+import { statusColor, priorityColor } from "@/lib/tasks-data";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from "./viewtaskdrawer";
 import SubTaskDrawer from "./SubTaskDrawer";
@@ -107,6 +107,7 @@ export default function TasksPage() {
   const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
   const [subTaskDrawerOpen, setSubTaskDrawerOpen] = useState(false);
   const [viewingTaskForSubTasks, setViewingTaskForSubTasks] = useState<TaskItem | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const debouncedManagerName = useDebounce(managerNameSearch, 300);
 
@@ -252,6 +253,24 @@ export default function TasksPage() {
           <Button type="primary" onClick={() => { setEditingTask(null); setShowFormModal(true); }} icon={<Plus className="w-4 h-4" />}>
             Add New Task
           </Button>
+          <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+              title="List view"
+            >
+              <LayoutList className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+              title="Grid view"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -340,7 +359,7 @@ export default function TasksPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-base text-slate-400">
             No tasks found.
           </div>
-        ) : (
+        ) : viewMode === 'list' ? (
           <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-y-1.5">
               <thead>
@@ -406,6 +425,69 @@ export default function TasksPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filteredTasks.map((task) => (
+              <Card key={task.TaskInfoID} hover className="group overflow-hidden flex flex-col">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
+                      {task.TaskTitle}
+                    </h3>
+                    {task.TaskCode && (
+                      <div className="text-xs text-slate-400 font-mono mt-0.5">{task.TaskCode}</div>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                    #{task.TaskInfoID}
+                  </span>
+                </div>
+
+                <div className="space-y-2 mb-4 flex-1">
+                  <div className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-slate-400 shrink-0">Project</span>
+                    <span className="font-semibold text-slate-700 truncate">{task.ProjectInfoName || "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-slate-400 shrink-0">Manager</span>
+                    <span className="font-semibold text-slate-700 truncate">{task.TaskManagerName || "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-slate-400 shrink-0">Due Date</span>
+                    <span className="font-semibold text-slate-700">{task.DueDate || "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-slate-400 shrink-0">Status</span>
+                    <Badge className={statusColor[task.WorkStatusName] ?? "!bg-gray-100 !text-gray-700"}>
+                      {task.WorkStatusName}
+                    </Badge>
+                  </div>
+                  {task.PriorityName && (
+                    <div className="flex items-center justify-between text-sm gap-2">
+                      <span className="text-slate-400 shrink-0">Priority</span>
+                      <Badge className={priorityColor[task.PriorityName] ?? "!bg-gray-100 !text-gray-700"}>
+                        {task.PriorityName}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                  <Button type="link" size="small" onClick={() => handleViewSubTasks(task)} icon={<Eye className="w-4 h-4" />}>
+                    Subtasks
+                  </Button>
+                  <div className="flex-1" />
+                  <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
+                  {task.CanEdit && (
+                    <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
+                  )}
+                  {task.CanDelete && (
+                    <Button type="text" size="small" danger onClick={() => handleDeleteTask(task)} icon={<Trash2 className="w-4 h-4" />} />
+                  )}
+                </div>
+              </Card>
+            ))}
           </div>
         )}
       </Card>
