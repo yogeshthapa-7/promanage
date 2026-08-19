@@ -7,6 +7,7 @@ import type { ApiProject } from '@/lib/projects-data';
 import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
 import { fetchSubTasks, statusColor, priorityColor } from '@/lib/tasks-data';
 import { apiCall } from '@/lib/api';
+import { calculateProgressFromDates } from '@/lib/nepali-date';
 import Pagination from '@/components/ui/Pagination';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
@@ -623,15 +624,16 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {milestones.map((milestone) => {
-              const progressColor = milestone.Progress >= 75 ? '#10B981' : milestone.Progress >= 40 ? '#3B82F6' : milestone.Progress > 0 ? '#F59E0B' : '#D1D5DB';
+              const calculatedProgress = calculateProgressFromDates(milestone.StartDate, milestone.EndDate, milestone.Progress);
+              const progressColor = calculatedProgress >= 75 ? '#10B981' : calculatedProgress >= 40 ? '#3B82F6' : calculatedProgress > 0 ? '#F59E0B' : '#D1D5DB';
               return (
                   <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
-                      <span className="text-sm font-bold text-slate-700">{milestone.Progress}%</span>
+                      <span className="text-sm font-bold text-slate-700">{calculatedProgress}%</span>
                     </div>
                     {milestone.Summary && <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>}
-                    <ProgressBar value={Math.min(milestone.Progress, 100)} color={progressColor} />
+                    <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
                     <div className="flex items-center justify-between text-base text-muted-foreground">
                       <span>Start: {milestone.StartDate || '—'}</span>
                       <span>End: {milestone.EndDate || '—'}</span>
