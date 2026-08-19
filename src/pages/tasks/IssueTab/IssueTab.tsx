@@ -134,7 +134,8 @@ export default function IssueTab({ project }: IssueTabProps) {
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
         </Card>
       ) : (
-        issues.map((issue) => (
+        <div className="space-y-4">
+        {issues.map((issue) => (
           <Card key={issue.IssuesID} hover>
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -174,6 +175,7 @@ export default function IssueTab({ project }: IssueTabProps) {
             </div>
           </Card>
         ))
+        </div>
       )}
     </div>
   );

@@ -113,7 +113,7 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
       </div>
 
       {/* Timeline Stream */}
-      <div className="relative w-full flex flex-col">
+      <div className="relative w-full flex flex-col gap-6">
         {timelines.map((item, idx) => {
           const palette = getStepColor(idx);
           const nextPalette = getStepColor(idx + 1);
