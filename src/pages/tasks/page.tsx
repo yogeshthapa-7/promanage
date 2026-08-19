@@ -28,16 +28,40 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, taskName?: string, projectName?: string, managerName?: string) => ({
+const extractIdAndName = (obj: Record<string, unknown>): { id: number | string; name: string } | null => {
+  if (obj.Value !== undefined && obj.Name !== undefined) {
+    return { id: Number(obj.Value), name: String(obj.Name) };
+  }
+  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
+  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
+  let id: number | string | undefined;
+  let name: string | undefined;
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
+      id = value as number | string;
+    }
+    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
+      name = String(value);
+    }
+    if (id !== undefined && name !== undefined) break;
+  }
+  if (id !== undefined && name !== undefined) {
+    return { id: id as number | string, name };
+  }
+  return null;
+};
+
+const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, taskId?: number, projectIdSearch?: number, managerName?: string) => ({
   model: {
     draw: 1,
     start,
     length,
     columns: [
       { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: search || "", regex: '' } },
-      { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: taskName || "", regex: '' } },
+      { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
       { data: 'TaskCode', name: 'TaskCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      { data: 'ProjectInfoName', name: 'ProjectInfoName', searchable: true, orderable: true, search: { value: projectName || "", regex: '' } },
+      { data: 'ProjectInfoName', name: 'ProjectInfoName', searchable: true, orderable: true, search: { value: '', regex: '' } },
       { data: 'TaskManagerName', name: 'TaskManagerName', searchable: true, orderable: true, search: { value: managerName || "", regex: '' } },
       { data: 'WorkStatusName', name: 'WorkStatusName', searchable: true, orderable: true, search: { value: '', regex: '' } },
       { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
@@ -46,18 +70,18 @@ const buildTaskSearchBody = (start: number, length: number, search?: string, pro
     order: [{ column: 1, dir: 'desc' }],
   },
   param: {
-    TaskInfoID: 0,
-    ProjectInfoID: projectId ?? 0,
-    TaskTitle: taskName || "",
+    TaskInfoID: taskId ?? 0,
+    ProjectInfoID: projectIdSearch ?? projectId ?? 0,
+    TaskTitle: "",
     TaskManagerName: managerName || "",
-    ProjectInfoName: projectName || "",
+    ProjectInfoName: "",
   },
 });
 
-function fetchTasksPage(params: PaginatedListParams & { projectId?: number; taskName?: string; projectName?: string; managerName?: string }): Promise<{ items: TaskItem[]; total: number }> {
+function fetchTasksPage(params: PaginatedListParams & { projectId?: number; taskId?: number; projectIdSearch?: number; managerName?: string }): Promise<{ items: TaskItem[]; total: number }> {
   return apiCall(TASKS_API, {
     method: "POST",
-    body: JSON.stringify(buildTaskSearchBody(params.start as number, params.length as number, params.search as string, params.projectId, params.taskName, params.projectName, params.managerName)),
+    body: JSON.stringify(buildTaskSearchBody(params.start as number, params.length as number, params.search as string, params.projectId, params.taskId, params.projectIdSearch, params.managerName)),
     signal: params.signal,
   }).then(async (res) => {
     if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -71,9 +95,12 @@ export default function TasksPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const project = (location.state as { project?: ApiProject } | undefined)?.project;
-  const [taskNameSearch, setTaskNameSearch] = useState("");
-  const [projectNameSearch, setProjectNameSearch] = useState("");
+  const [selectedTaskId, setSelectedTaskId] = useState<number | undefined>(undefined);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>(undefined);
   const [managerNameSearch, setManagerNameSearch] = useState("");
+  const [taskOptions, setTaskOptions] = useState<{ value: string; label: string }[]>([]);
+  const [projectOptions, setProjectOptions] = useState<{ value: string; label: string }[]>([]);
+  const [selectLoading, setSelectLoading] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
@@ -81,13 +108,11 @@ export default function TasksPage() {
   const [subTaskDrawerOpen, setSubTaskDrawerOpen] = useState(false);
   const [viewingTaskForSubTasks, setViewingTaskForSubTasks] = useState<TaskItem | null>(null);
 
-  const debouncedTaskName = useDebounce(taskNameSearch, 300);
-  const debouncedProjectName = useDebounce(projectNameSearch, 300);
   const debouncedManagerName = useDebounce(managerNameSearch, 300);
 
   const projectId = project?.ProjectInfoID;
 
-  const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId, taskName: debouncedTaskName, projectName: debouncedProjectName, managerName: debouncedManagerName }), [projectId, debouncedTaskName, debouncedProjectName, debouncedManagerName]);
+  const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId, taskId: selectedTaskId, projectIdSearch: selectedProjectId, managerName: debouncedManagerName }), [projectId, selectedTaskId, selectedProjectId, debouncedManagerName]);
 
   const {
     data: tasks,
@@ -101,15 +126,15 @@ export default function TasksPage() {
   } = usePaginatedList<TaskItem>({
     fetcher,
     initialPageSize: 20,
-    extraDeps: [debouncedTaskName, debouncedProjectName, debouncedManagerName, projectId],
+    extraDeps: [selectedTaskId, selectedProjectId, debouncedManagerName, projectId],
   });
 
-  const handleTaskNameSearchChange = (value: string) => {
-    setTaskNameSearch(value);
+  const handleTaskSelect = (value: number | undefined) => {
+    setSelectedTaskId(value);
   };
 
-  const handleProjectNameSearchChange = (value: string) => {
-    setProjectNameSearch(value);
+  const handleProjectSelect = (value: number | undefined) => {
+    setSelectedProjectId(value);
   };
 
   const handleManagerNameSearchChange = (value: string) => {
@@ -153,13 +178,48 @@ export default function TasksPage() {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
+    setSelectLoading(true);
+    Promise.allSettled([
+      apiCall(`${API_BASE}/TaskInfo/SelectList`, { method: 'GET', signal: controller.signal }),
+      apiCall(`${API_BASE}/ProjectInfo/SelectList`, { method: 'GET', signal: controller.signal }),
+    ]).then((results) => {
+      const [taskResult, projectResult] = results as [
+        PromiseSettledResult<Response>,
+        PromiseSettledResult<Response>,
+      ];
+
+      if (taskResult.status === 'fulfilled' && taskResult.value.ok) {
+        taskResult.value.json().then((json: unknown) => {
+          const data = Array.isArray(json) ? json : Array.isArray((json as { data?: unknown[] })?.data) ? (json as { data: unknown[] }).data : Array.isArray((json as { Data?: unknown[] })?.Data) ? (json as { Data: unknown[] }).Data : [];
+          const mapped = data.map((obj: Record<string, unknown>) => extractIdAndName(obj)).filter((item): item is { id: number | string; name: string } => item !== null);
+          setTaskOptions(mapped.map((item) => ({ value: String(item.id), label: item.name })));
+        });
+      }
+
+      if (projectResult.status === 'fulfilled' && projectResult.value.ok) {
+        projectResult.value.json().then((json: unknown) => {
+          const data = Array.isArray(json) ? json : Array.isArray((json as { data?: unknown[] })?.data) ? (json as { data: unknown[] }).data : Array.isArray((json as { Data?: unknown[] })?.Data) ? (json as { Data: unknown[] }).Data : [];
+          const mapped = data.map((obj: Record<string, unknown>) => extractIdAndName(obj)).filter((item): item is { id: number | string; name: string } => item !== null);
+          setProjectOptions(mapped.map((item) => ({ value: String(item.id), label: item.name })));
+        });
+      }
+
+      setSelectLoading(false);
+    });
+
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedTaskName, debouncedProjectName, debouncedManagerName]);
+  }, [selectedTaskId, selectedProjectId, debouncedManagerName]);
 
   const filteredTasks = tasks.filter((task) => {
-    const matchesProject = !projectNameSearch || task.ProjectInfoName?.toLowerCase().includes(projectNameSearch.toLowerCase());
+    const matchesTask = !selectedTaskId || task.TaskInfoID === selectedTaskId;
+    const matchesProject = !selectedProjectId && !projectId || task.ProjectInfoID === (selectedProjectId ?? projectId);
     const matchesManager = !managerNameSearch || task.TaskManagerName?.toLowerCase().includes(managerNameSearch.toLowerCase());
-    return matchesProject && matchesManager;
+    return matchesTask && matchesProject && matchesManager;
   });
 
   const filteredTotal = filteredTasks.length;
@@ -205,20 +265,30 @@ export default function TasksPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Task Name</label>
-            <SearchInput
-              value={taskNameSearch}
-              onChange={handleTaskNameSearchChange}
-              placeholder="Search task name..."
-              containerClassName="w-40 sm:w-48"
+            <Select
+              value={selectedTaskId}
+              onChange={handleTaskSelect}
+              placeholder="Select task"
+              options={taskOptions}
+              className="w-40 sm:w-48"
+              loading={selectLoading}
+              allowClear
+              showSearch
+              optionFilterProp="label"
             />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Project Name</label>
-            <SearchInput
-              value={projectNameSearch}
-              onChange={handleProjectNameSearchChange}
-              placeholder="Search project name..."
-              containerClassName="w-40 sm:w-48"
+            <Select
+              value={selectedProjectId}
+              onChange={handleProjectSelect}
+              placeholder="Select project"
+              options={projectOptions}
+              className="w-40 sm:w-48"
+              loading={selectLoading}
+              allowClear
+              showSearch
+              optionFilterProp="label"
             />
           </div>
           <div className="flex flex-col gap-1">
