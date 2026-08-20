@@ -29,7 +29,6 @@ export default function CreateLabelDrawer({ open, onClose, onSuccess, editingLab
         form.setFieldsValue({
           LabelName: editingLabel.name,
           LabelCode: editingLabel.code,
-          LabelColor: editingLabel.color,
         });
       } else {
         form.resetFields();
@@ -46,7 +45,6 @@ export default function CreateLabelDrawer({ open, onClose, onSuccess, editingLab
         LabelInfoID: isEditing ? editingLabel!.id : 0,
         LabelName: values.LabelName,
         LabelCode: values.LabelCode,
-        LabelColor: values.LabelColor || '',
       };
 
       const res = await apiCall(`${API_BASE}/SaveLabelInfo`, {
@@ -110,20 +108,6 @@ export default function CreateLabelDrawer({ open, onClose, onSuccess, editingLab
           >
             <Input
               placeholder="e.g. 0x1"
-              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-blue-500"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={
-              <span className="text-sm font-semibold text-foreground">
-                Color
-              </span>
-            }
-            name="LabelColor"
-          >
-            <Input
-              placeholder="e.g. red"
               className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-blue-500"
             />
           </Form.Item>

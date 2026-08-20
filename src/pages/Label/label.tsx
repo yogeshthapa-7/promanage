@@ -188,18 +188,6 @@ export default function LabelPage() {
                       <span className="font-semibold text-slate-700">{label.code}</span>
                     </div>
                   )}
-                  {label.color && (
-                    <div className="flex items-center justify-between text-sm gap-2">
-                      <span className="text-slate-400 shrink-0">Color</span>
-                      <span className="flex items-center gap-2">
-                        <span
-                          className="inline-block w-4 h-4 rounded-full border border-slate-200"
-                          style={{ backgroundColor: label.color }}
-                        />
-                        <span className="font-semibold text-slate-700">{label.color}</span>
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex items-center gap-2 pt-3 border-t border-slate-100">

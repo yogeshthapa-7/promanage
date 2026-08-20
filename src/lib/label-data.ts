@@ -5,7 +5,6 @@ export interface Label {
   id: number;
   name: string;
   code: string;
-  color: string;
 }
 
 interface ApiLabelResponse {
@@ -20,7 +19,6 @@ interface ApiLabelRow {
   LabelInfoID: number;
   LabelName: string;
   LabelCode: string;
-  LabelColor: string;
 }
 
 interface FetchLabelsParams {
@@ -98,18 +96,16 @@ function mapApiRowToLabel(row: ApiLabelRow): Label {
     id: row.LabelInfoID,
     name: row.LabelName,
     code: row.LabelCode,
-    color: row.LabelColor,
   };
 }
 
-export async function createLabel(data: { name: string; code: string; color: string }): Promise<Label> {
+export async function createLabel(data: { name: string; code: string }): Promise<Label> {
   const res = await apiCall(`${API_BASE}/SaveLabelInfo`, {
     method: 'POST',
     body: JSON.stringify({
       LabelInfoID: 0,
       LabelName: data.name,
       LabelCode: data.code,
-      LabelColor: data.color,
     }),
   });
   if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -120,18 +116,16 @@ export async function createLabel(data: { name: string; code: string; color: str
     id: Number(item.LabelInfoID ?? 0),
     name: String(item.LabelName ?? data.name),
     code: String(item.LabelCode ?? data.code),
-    color: String(item.LabelColor ?? data.color),
   };
 }
 
-export async function updateLabel(id: number, data: { name: string; code: string; color: string }): Promise<Label> {
+export async function updateLabel(id: number, data: { name: string; code: string }): Promise<Label> {
   const res = await apiCall(`${API_BASE}/SaveLabelInfo`, {
     method: 'POST',
     body: JSON.stringify({
       LabelInfoID: id,
       LabelName: data.name,
       LabelCode: data.code,
-      LabelColor: data.color,
     }),
   });
   if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -142,7 +136,6 @@ export async function updateLabel(id: number, data: { name: string; code: string
     id: Number(item.LabelInfoID ?? id),
     name: String(item.LabelName ?? data.name),
     code: String(item.LabelCode ?? data.code),
-    color: String(item.LabelColor ?? data.color),
   };
 }
 
