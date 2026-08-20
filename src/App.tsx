@@ -20,7 +20,7 @@ import ExpensePage from './pages/Expense/expense';
 import ClientPage from './pages/Client/client';
 import LabelPage from './pages/Label/label';
 
-function App() {
+function RootApp() {
   return (
     <ConfigProvider
       theme={{
@@ -140,4 +140,4 @@ function App() {
   );
 }
 
-export default App;
+export default RootApp;
