@@ -5,6 +5,7 @@ import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import type { User, UserGroup, OrganizationSelect } from '@/lib/users-data';
 import { fetchUserGroups, fetchOrganizations, saveUser } from '@/lib/users-data';
 import Drawer from '@/components/drawer';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 interface UserFormModalProps {
   open: boolean;
@@ -28,9 +29,21 @@ export default function UserFormModal({
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [userGroupOpen, setUserGroupOpen] = useState(false);
   const [organizationOpen, setOrganizationOpen] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
   const isEdit = !!editingUser;
 
   const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
+
+  const calculatePasswordStrength = (password: string): number => {
+    if (!password) return 0;
+    let score = 0;
+    if (password.length >= 8) score += 25;
+    if (/[a-z]/.test(password)) score += 25;
+    if (/[A-Z]/.test(password)) score += 25;
+    if (/[0-9]/.test(password)) score += 25;
+    if (/[^A-Za-z0-9]/.test(password)) score += 10;
+    return Math.min(score, 100);
+  };
 
   useEffect(() => {
     if (open) {
@@ -134,6 +147,11 @@ export default function UserFormModal({
         layout="vertical"
         size="middle"
         requiredMark={true}
+        onValuesChange={(changedValues) => {
+          if ('password' in changedValues) {
+            setPasswordStrength(calculatePasswordStrength(changedValues.password || ''));
+          }
+        }}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -232,12 +250,30 @@ export default function UserFormModal({
                     ? []
                     : [
                         { required: true, message: 'कृपया पासवर्ड प्रविष्ट गर्नुहोस्' },
-                        { min: 6, message: 'पासवर्ड कम्तिमा ६ अंकको हुनुपर्छ' },
+                        { min: 8, message: 'पासवर्ड कम्तिमा ८ अंकको हुनुपर्छ' },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value) return Promise.resolve();
+                            const hasUpper = /[A-Z]/.test(value);
+                            const hasLower = /[a-z]/.test(value);
+                            const hasNumber = /[0-9]/.test(value);
+                            const hasSpecial = /[^A-Za-z0-9]/.test(value);
+                            if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+                              return Promise.reject(new Error('अपरकेस, लोअरकेस, अंक र विशेष क्यारेक्टर समावेश गर्नुहोस्'));
+                            }
+                            return Promise.resolve();
+                          },
+                        }),
                       ]
                 }
               >
-                <Input.Password placeholder={isEdit ? 'पासवर्ड परिवर्तन गर्न चयन गर्नुहोस्' : '६+ अंकको पासवर्ड'} className="rounded-lg" />
+                <Input.Password placeholder={isEdit ? 'पासवर्ड परिवर्तन गर्न चयन गर्नुहोस्' : '८+ अंकको पासवर्ड'} className="rounded-lg" />
               </Form.Item>
+              {!isEdit && passwordStrength > 0 && (
+                <div className="mb-2">
+                  <ProgressBar value={passwordStrength} color={passwordStrength >= 70 ? '#10B981' : passwordStrength >= 40 ? '#F59E0B' : '#EF4444'} />
+                </div>
+              )}
             </Col>
             <Col span={12}>
               {!isEdit && (

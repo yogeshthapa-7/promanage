@@ -8,6 +8,7 @@ import type { Employee } from '@/lib/employees-data';
 import { apiCall } from '@/lib/api';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 interface EmployeeSetupModalProps {
   open: boolean;
@@ -65,6 +66,7 @@ export default function EmployeeSetupModal({
   const [departments, setDepartments] = useState<DepartmentItem[]>([]);
   const [mainBranches, setMainBranches] = useState<MainBranchItem[]>([]);
   const [branches, setBranches] = useState<BranchItem[]>([]);
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
   const [fetchingData, setFetchingData] = useState(false);
 
@@ -74,6 +76,17 @@ export default function EmployeeSetupModal({
   const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
 
   const isEdit = !!editingEmployee;
+
+  const calculatePasswordStrength = (password: string): number => {
+    if (!password) return 0;
+    let score = 0;
+    if (password.length >= 8) score += 25;
+    if (/[a-z]/.test(password)) score += 25;
+    if (/[A-Z]/.test(password)) score += 25;
+    if (/[0-9]/.test(password)) score += 25;
+    if (/[^A-Za-z0-9]/.test(password)) score += 10;
+    return Math.min(score, 100);
+  };
 
    const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -342,6 +355,11 @@ export default function EmployeeSetupModal({
         requiredMark={false}
         autoComplete="off"
         className="employee-setup-form"
+        onValuesChange={(changedValues) => {
+          if ('Password' in changedValues) {
+            setPasswordStrength(calculatePasswordStrength(changedValues.Password || ''));
+          }
+        }}
       >
         <Row gutter={12}>
           <Col span={12}>
@@ -505,12 +523,30 @@ export default function EmployeeSetupModal({
                     ? []
                     : [
                         { required: true, message: 'कृपया पासवर्ड प्रविष्ट गर्नुहोस्' },
-                        { min: 6, message: 'पासवर्ड कम्तिमा ६ अंकको हुनुपर्छ' },
+                        { min: 8, message: 'पासवर्ड कम्तिमा ८ अंकको हुनुपर्छ' },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value) return Promise.resolve();
+                            const hasUpper = /[A-Z]/.test(value);
+                            const hasLower = /[a-z]/.test(value);
+                            const hasNumber = /[0-9]/.test(value);
+                            const hasSpecial = /[^A-Za-z0-9]/.test(value);
+                            if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+                              return Promise.reject(new Error('अपरकेस, लोअरकेस, अंक र विशेष क्यारेक्टर समावेश गर्नुहोस्'));
+                            }
+                            return Promise.resolve();
+                          },
+                        }),
                       ]
                 }
               >
                 <Input.Password className="rounded-md" autoComplete="new-password" />
               </Form.Item>
+              {!isEdit && passwordStrength > 0 && (
+                <div className="mb-2">
+                  <ProgressBar value={passwordStrength} color={passwordStrength >= 70 ? '#10B981' : passwordStrength >= 40 ? '#F59E0B' : '#EF4444'} />
+                </div>
+              )}
 
               {!isEdit && (
                 <Form.Item
