@@ -6,6 +6,7 @@ import LoginPage from './pages/login/page';
 import DashboardPage from './pages/dashboard/page';
 import ProjectDetailsPage from './pages/projects/projectdetails';
 import ProjectsPage from './pages/projects/page';
+import TaskAndSubtasks from './pages/projects/TaskAndSubtasks';
 import TasksPage from './pages/tasks/page';
 import TeamPage from './pages/team/page';
 import UsersPage from './pages/users/page';
@@ -131,6 +132,11 @@ function RootApp() {
              <AppLayout showTopbar={false}><LabelPage /></AppLayout>
            </ProtectedRoute>
          } />
+         <Route path="/projects/:id/tasks"element={
+            <ProtectedRoute>
+              <AppLayout showTopbar={false}><TaskAndSubtasks /></AppLayout>
+            </ProtectedRoute>
+          }/>
 
         <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />
       </Routes>

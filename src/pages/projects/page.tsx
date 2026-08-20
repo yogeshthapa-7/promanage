@@ -204,6 +204,10 @@ export default function ProjectsPage() {
     navigate(`/projects/${project.id}`);
   };
 
+  const handleViewProjectTasks = (project: Project) => {
+  navigate(`/projects/${project.id}/tasks`);
+};
+
   const handleSort = () => {
     setSortOpen(false);
     setCurrentPage(1);
@@ -431,6 +435,7 @@ export default function ProjectsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border/60">
+                        <Button size="small" type="primary" onClick={(e) => {e.stopPropagation(); handleViewProjectTasks(project);}} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">Tasks</Button>
                         <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />}>View</Button>
                         <Button size="small" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />}>Edit</Button>
                         <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />}>Delete</Button>
