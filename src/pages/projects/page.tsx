@@ -417,16 +417,16 @@ export default function ProjectsPage() {
                             <span className="text-muted-foreground font-medium">Progress</span>
                             <span className="font-bold text-foreground">{project.progress}%</span>
                           </div>
-                          <ProgressBar value={project.progress} color={project.progressColor.replace('bg-', '#')} />
+                          <ProgressBar value={project.progress} color={project.progressColor} />
                         </div>
                         <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-2.5 py-1.5">
                           <div className="min-w-0">
                             <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Start Date</p>
-                            <p className="text-sm font-medium text-foreground tabular-nums truncate">{project.startDate}</p>
+                            <p className="text-sm font-medium text-foreground tabular-nums truncate">{project.startDateBs}</p>
                           </div>
                           <div className="min-w-0 text-right">
                             <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Due Date</p>
-                            <p className="text-sm font-medium text-foreground tabular-nums truncate">{project.dueDate}</p>
+                            <p className="text-sm font-medium text-foreground tabular-nums truncate">{project.dueDateBs}</p>
                           </div>
                         </div>
                       </div>
@@ -456,7 +456,7 @@ export default function ProjectsPage() {
                       <Badge>{project.status}</Badge>
                       <span className="hidden md:inline-block text-sm text-muted-foreground w-24 truncate">{project.priority}</span>
                       <div className="hidden lg:flex items-center gap-3 w-48">
-                        <ProgressBar value={project.progress} color={project.progressColor.replace('bg-', '#')} />
+                         <ProgressBar value={project.progress} color={project.progressColor} />
                         <span className="text-sm font-semibold text-foreground w-8 text-right">{project.progress}%</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">

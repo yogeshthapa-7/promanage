@@ -90,12 +90,12 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
       </td>
 
       <td className="px-4 py-2.5">
-        <span className="text-xs tabular-nums text-muted-foreground">{project.startDate}</span>
+        <span className="text-xs tabular-nums text-muted-foreground">{project.startDateBs}</span>
       </td>
 
       <td className="px-4 py-2.5">
         <span className="text-xs tabular-nums font-medium" style={{ color: project.status === 'Overdue' ? '#EF4444' : 'var(--muted-foreground)' }}>
-          {project.dueDate}
+          {project.dueDateBs}
         </span>
       </td>
 

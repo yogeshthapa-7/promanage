@@ -15,6 +15,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
+import DateConverter from '@remotemerge/nepali-date-converter';
 
 // --- Lookup Maps & Helpers ---
 const priorityLabelMap: Record<number, string> = { 1: 'Urgent', 2: 'High', 3: 'Medium', 4: 'Low' };
@@ -47,7 +48,19 @@ function hexToRgba(hex: string | null | undefined, alpha: number): string {
   return isNaN(r) || isNaN(g) || isNaN(b) ? `rgba(107, 114, 128, ${alpha})` : `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-const formatDate = (dateStr?: string | null) => (!dateStr || dateStr.startsWith('0001') ? '—' : dateStr);
+const formatDate = (dateStr?: string | null) => {
+  if (!dateStr || dateStr.startsWith('0001')) return '—';
+  try {
+    const parts = dateStr.replace(/-/g, '/').split('/');
+    if (parts.length === 3) {
+      const bs = new DateConverter(dateStr).toBs();
+      return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.date).padStart(2, '0')}`;
+    }
+  } catch {
+    // fallback: return original if conversion fails
+  }
+  return dateStr;
+};
 const formatCurrency = (amount?: number) => `Rs. ${(amount ?? 0).toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // --- API Fetcher (ProjectInfo only) ---
