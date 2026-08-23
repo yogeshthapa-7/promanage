@@ -27,10 +27,11 @@ const toNepaliNumerals = (num: number | string): string =>
 const padZero = (num: number): string => String(num).padStart(2, '0');
 
 interface AntdNepaliDatePickerProps {
-  value?: string; // Expects "YYYY/MM/DD" or "YYYY-MM-DD"
+  value?: string;
   onChange?: (dateStr: string) => void;
   placeholder?: string;
   className?: string;
+  returnEnglishDate?: boolean;
 }
 
 export default function AntdNepaliDatePicker({
@@ -38,6 +39,7 @@ export default function AntdNepaliDatePicker({
   onChange,
   placeholder = 'YYYY/MM/DD',
   className = '',
+  returnEnglishDate = false,
 }: AntdNepaliDatePickerProps) {
   const [open, setOpen] = useState(false);
 
@@ -62,21 +64,46 @@ export default function AntdNepaliDatePicker({
   // Sync external value
   useEffect(() => {
     if (value) {
-      const parts = value.replace(/-/g, '/').split('/');
-      if (parts.length === 3) {
-        const y = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10);
-        const d = parseInt(parts[2], 10);
-        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-          setSelectedBs({ year: y, month: m, date: d });
-          setViewYear(y);
-          setViewMonth(m);
+      if (returnEnglishDate) {
+        try {
+          const adDate = new Date(value);
+          if (!isNaN(adDate.getTime())) {
+            const adStr = `${adDate.getFullYear()}/${padZero(adDate.getMonth() + 1)}/${padZero(adDate.getDate())}`;
+            const bs = new DateConverter(adStr).toBs();
+            setSelectedBs({ year: bs.year, month: bs.month, date: bs.date });
+            setViewYear(bs.year);
+            setViewMonth(bs.month);
+          }
+        } catch {
+          const parts = value.replace(/-/g, '/').split('/');
+          if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            const d = parseInt(parts[2], 10);
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+              setSelectedBs({ year: y, month: m, date: d });
+              setViewYear(y);
+              setViewMonth(m);
+            }
+          }
+        }
+      } else {
+        const parts = value.replace(/-/g, '/').split('/');
+        if (parts.length === 3) {
+          const y = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10);
+          const d = parseInt(parts[2], 10);
+          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+            setSelectedBs({ year: y, month: m, date: d });
+            setViewYear(y);
+            setViewMonth(m);
+          }
         }
       }
     } else {
       setSelectedBs(null);
     }
-  }, [value]);
+  }, [value, returnEnglishDate]);
 
   // Compute month information: start weekday offset and total days in month
   const monthInfo = useMemo(() => {
@@ -126,9 +153,20 @@ export default function AntdNepaliDatePicker({
   };
 
   const handleSelectDay = (day: number) => {
-    const formatted = `${viewYear}/${padZero(viewMonth)}/${padZero(day)}`;
+    const formattedBs = `${viewYear}/${padZero(viewMonth)}/${padZero(day)}`;
     setSelectedBs({ year: viewYear, month: viewMonth, date: day });
-    onChange?.(formatted);
+
+    if (returnEnglishDate) {
+      try {
+        const ad = new DateConverter(formattedBs).toAd();
+        const adStr = `${ad.year}-${padZero(ad.month)}-${padZero(ad.date)}`;
+        onChange?.(adStr);
+      } catch {
+        onChange?.(formattedBs);
+      }
+    } else {
+      onChange?.(formattedBs);
+    }
     setOpen(false);
   };
 

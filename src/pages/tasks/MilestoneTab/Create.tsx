@@ -239,6 +239,7 @@ export default function MilestoneCreate({
               placeholder="YYYY/MM/DD"
               className="rounded-md w-full"
               style={{ width: '100%' }}
+              returnEnglishDate
             />
           </Form.Item>
 
@@ -266,6 +267,7 @@ export default function MilestoneCreate({
               placeholder="YYYY/MM/DD"
               className="rounded-md w-full"
               style={{ width: '100%' }}
+              returnEnglishDate
             />
           </Form.Item>
         </div>

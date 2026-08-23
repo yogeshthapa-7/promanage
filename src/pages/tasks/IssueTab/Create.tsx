@@ -346,6 +346,7 @@ export default function IssueCreate({
             onChange={setCreatedDate}
             placeholder="YYYY/MM/DD"
             className="rounded-md w-full"
+            returnEnglishDate
           />
         </Form.Item>
 
