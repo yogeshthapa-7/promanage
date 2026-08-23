@@ -19,7 +19,16 @@ export default function DropdownMenu({ trigger, items, className }: DropdownMenu
   }));
 
   return (
-    <AntDropdown menu={{ items: menuItems }} placement="bottomRight" className={className}>
+    <AntDropdown
+      menu={{
+        items: menuItems,
+        style: { zIndex: 9999 },
+      }}
+      placement="bottomRight"
+      className={className}
+      trigger={['click']}
+      getPopupContainer={() => document.body}
+    >
       {trigger}
     </AntDropdown>
   );
