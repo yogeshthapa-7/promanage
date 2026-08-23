@@ -150,10 +150,10 @@ export default function MainBranchPage() {
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            मुख्य शाखा
+           महाशाखा
           </h2>
           <p className="text-base text-slate-500 mt-1">
-            मुख्य शाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
+           महाशाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
         <button
@@ -169,7 +169,7 @@ export default function MainBranchPage() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Main Branch Name / मुख्य शाखा नाम
+              Main Branch Name /महाशाखा नाम
             </label>
             <Select
               placeholder="Search by main branch name..."
@@ -207,7 +207,7 @@ export default function MainBranchPage() {
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Main Branch Code / मुख्य शाखा कोड
+              Main Branch Code /महाशाखा कोड
             </label>
             <Input
               type="text"
@@ -261,7 +261,7 @@ export default function MainBranchPage() {
             <thead>
               <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
                 <th className="py-4 px-6 text-center w-16">S.N.</th>
-                <th className="py-4 px-6">Main Branch Name / मुख्य शाखा नाम</th>
+                <th className="py-4 px-6">Main Branch Name /महाशाखा नाम</th>
                 <th className="py-4 px-6">Department / विभाग</th>
                 <th className="py-4 px-6 text-center w-40">Actions</th>
               </tr>

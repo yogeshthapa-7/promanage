@@ -190,7 +190,7 @@ export default function DepartmentPage() {
       {/* 2. Tabs */}
       <div className="flex items-center gap-1 border-b border-slate-200">
         <Button type="text" onClick={() => setActiveTab('department')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'department' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>विभाग</Button>
-        <Button type="text" onClick={() => setActiveTab('mainbranch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'mainbranch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>मुख्य शाखा</Button>
+        <Button type="text" onClick={() => setActiveTab('mainbranch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'mainbranch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>महाशाखा</Button>
         <Button type="text" onClick={() => setActiveTab('branch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'branch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>शाखा</Button>
       </div>
 

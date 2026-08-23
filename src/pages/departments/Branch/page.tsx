@@ -115,7 +115,7 @@ export default function BranchPage() {
             शाखा
           </h2>
           <p className="text-base text-slate-500 mt-1">
-            शाखा अभिलेखहरू मुख्य शाखा तथा विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
+            शाखा अभिलेखहरूमहाशाखा तथा विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
         <button
@@ -145,7 +145,7 @@ export default function BranchPage() {
 
           <div className="flex-1 min-w-[220px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Main Branch / मुख्य शाखा
+              Main Branch /महाशाखा
             </label>
             <SearchInput value={searchMainBranch} onChange={setSearchMainBranch} placeholder="Search by main branch name..." />
           </div>
@@ -201,7 +201,7 @@ export default function BranchPage() {
               <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
                 <th className="py-4 px-6 text-center w-16">S.N.</th>
                 <th className="py-4 px-6">Branch Name / शाखा नाम</th>
-                <th className="py-4 px-6">Main Branch / मुख्य शाखा</th>
+                <th className="py-4 px-6">Main Branch /महाशाखा</th>
                 <th className="py-4 px-6">Department / विभाग</th>
                 <th className="py-4 px-6 text-center w-40">Actions</th>
               </tr>

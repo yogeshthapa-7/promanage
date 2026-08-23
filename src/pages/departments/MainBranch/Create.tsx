@@ -122,7 +122,7 @@ export default function CreateMainBranchDrawer({
           <Form.Item
             label={
               <span className="text-sm font-semibold text-slate-600">
-                Main Branch Name / मुख्य शाखा नाम <span className="text-rose-500">*</span>
+                Main Branch Name /महाशाखा नाम <span className="text-rose-500">*</span>
               </span>
             }
             name="name"
@@ -137,7 +137,7 @@ export default function CreateMainBranchDrawer({
           <Form.Item
             label={
               <span className="text-sm font-semibold text-slate-600">
-                Main Branch Code / मुख्य शाखा कोड <span className="text-rose-500">*</span>
+                Main Branch Code /महाशाखा कोड <span className="text-rose-500">*</span>
               </span>
             }
             name="code"

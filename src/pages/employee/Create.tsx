@@ -477,7 +477,7 @@ export default function EmployeeSetupModal({
               <Form.Item
                 label={<span className="text-slate-700 font-semibold text-[13px]">मुख्य शाखा<span className="text-red-500 ml-0.5">*</span></span>}
                 name="MainBranchID"
-                rules={[{ required: true, message: 'कृपया मुख्य शाखा चयन गर्नुहोस्' }]}
+                rules={[{ required: true, message: 'कृपयामहाशाखा चयन गर्नुहोस्' }]}
               >
                 <Select
                   placeholder="मुख्य शाखा चयन गर्नुहोस्"

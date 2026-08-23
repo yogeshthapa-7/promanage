@@ -169,7 +169,7 @@ export default function CreateBranchDrawer({
           <Form.Item
             label={
               <span className="text-sm font-semibold text-slate-600">
-                Main Branch / मुख्य शाखा <span className="text-rose-500">*</span>
+                Main Branch /महाशाखा <span className="text-rose-500">*</span>
               </span>
             }
             name="mainBranchId"
