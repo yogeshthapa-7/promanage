@@ -3,7 +3,10 @@
     margin: 15mm;
   }
 
-  body {
+  html, body, #root {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
@@ -11,11 +14,30 @@
     print-color-adjust: exact;
   }
 
+  /* Override layout wrappers that prevent pagination */
+  .h-screen,
+  .max-h-screen,
+  .overflow-hidden,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .overflow-auto,
+  .flex-1,
+  main {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .print-area * {
+    overflow: visible !important;
+  }
+
   aside,
   header,
   nav,
   .sidebar,
-  .topbar {
+  .topbar,
+  .fixed.inset-0.z-0 {
     display: none !important;
   }
 
