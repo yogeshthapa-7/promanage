@@ -216,7 +216,7 @@ export default function EmployeePage() {
   };
 
   return (
-    <div className="fade-in text-slate-800">
+    <div className="print-area fade-in text-slate-800">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Employees</h1>

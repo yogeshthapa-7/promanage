@@ -183,36 +183,40 @@ export default function DepartmentPage() {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     /* Direct Page Canvas - Background wave/gradient style */
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       
       {/* 2. Tabs */}
-      <div className="flex items-center gap-1 border-b border-slate-200">
+      <div className="flex items-center gap-1 border-b border-slate-200 no-print">
         <Button type="text" onClick={() => setActiveTab('department')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'department' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>विभाग</Button>
         <Button type="text" onClick={() => setActiveTab('mainbranch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'mainbranch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>महाशाखा</Button>
         <Button type="text" onClick={() => setActiveTab('branch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'branch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>शाखा</Button>
       </div>
 
       {activeTab === 'department' && (
-        <>
-      {/* 1. Department Header */}
+        <div className="print-area">
+       {/* 1. Department Header */}
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             विभागहरू
           </h2>
-          <p className="text-base text-slate-500 mt-1">
+          <p className="text-base text-slate-500 mt-1 no-print">
             विभागीय अभिलेखहरू तथा अभिभावक‑सन्तान संगठन संरचना व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
-        <Button type="primary" onClick={handleAddNew} icon={<Plus className="w-4 h-4" />}>
+        <Button type="primary" onClick={handleAddNew} icon={<Plus className="w-4 h-4" />} className="no-print">
           Add New Department
         </Button>
       </div>
 
       {/* 2. Filters & Actions Row */}
-      <div className="space-y-4">
+      <div className="space-y-4 no-print">
         {/* Single Row: Inputs + Inline Search & Clear */}
         <div className="flex flex-wrap items-end gap-3">
            <div className="flex-1 min-w-[200px]">
@@ -280,7 +284,7 @@ export default function DepartmentPage() {
        </div>
 
       {/* 3. Table Controls Bar (Entries + Export utilities) */}
-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
            <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
              <span>Show</span>
              <Select
@@ -302,11 +306,11 @@ export default function DepartmentPage() {
            <div className="flex items-center gap-2">
              <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
              <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
-             <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />}>Print</Button>
+              <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
            </div>
          </div>
 
-      <div className="text-base text-slate-500 font-medium -mt-2">
+      <div className="text-base text-slate-500 font-medium mt-3 no-print">
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
@@ -322,7 +326,7 @@ export default function DepartmentPage() {
                   <th className="py-4 px-6 text-center w-16">S.N.</th>
                   <th className="py-4 px-6">Department Name / विभागको नाम</th>
                   <th className="py-4 px-6">Parent Department / प्रमुख विभाग</th>
-                  <th className="py-4 px-6 text-center w-40">Actions</th>
+                  <th className="py-4 px-6 text-center w-40 no-print">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -358,7 +362,7 @@ export default function DepartmentPage() {
                       <td className="py-4 px-6 font-medium text-slate-600">
                         {dept.parentDepartmentName || ' '}
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-6 text-center no-print">
                         <div className="flex items-center justify-center gap-2">
                           <Button size="sm" onClick={() => handleEdit(dept)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
                           <Button size="sm" danger onClick={() => handleDelete(dept)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
@@ -374,7 +378,7 @@ export default function DepartmentPage() {
       </Card>
 
       {/* 5. Pagination */}
-      <div className="flex justify-end pt-2">
+      <div className="flex justify-end pt-2 no-print">
         <Pagination
           total={totalFiltered}
           currentPage={currentPage}
@@ -387,18 +391,18 @@ export default function DepartmentPage() {
           pageSizeOptions={[10, 20, 50]}
         />
       </div>
-        </>
+        </div>
       )}
 
       {activeTab === 'mainbranch' && (
-        <>
+        <div className="print-area">
           <MainBranchPage />
-        </>
+        </div>
       )}
       {activeTab === 'branch' && (
-        <>
+        <div className="print-area">
           <BranchPage />
-        </>
+        </div>
       )}
 
       <Drawer

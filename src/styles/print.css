@@ -1,0 +1,97 @@
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  aside,
+  header,
+  nav,
+  .sidebar,
+  .topbar {
+    display: none !important;
+  }
+
+  button,
+  input,
+  select,
+  textarea,
+  .no-print {
+    display: none !important;
+  }
+
+  .ant-select,
+  .ant-select-selector,
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-pagination,
+  .ant-form,
+  .ant-modal,
+  .ant-drawer,
+  .ant-btn {
+    display: none !important;
+  }
+
+  .print-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  .print-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  .print-area thead {
+    display: table-header-group !important;
+  }
+
+  .print-area tbody {
+    display: table-row-group !important;
+  }
+
+  .print-area tr {
+    page-break-inside: avoid !important;
+  }
+
+  .print-area th,
+  .print-area td {
+    padding: 8px 12px !important;
+    border: 1px solid #ddd !important;
+    text-align: left !important;
+    font-size: 11pt !important;
+  }
+
+  .print-area [class*="Card"],
+  .print-area .card,
+  .print-area [class*="glass-card"] {
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    border-radius: 0 !important;
+  }
+
+  .print-area tr:hover {
+    background: transparent !important;
+  }
+
+  .print-area h1,
+  .print-area h2,
+  .print-area h3 {
+    color: #000 !important;
+  }
+}

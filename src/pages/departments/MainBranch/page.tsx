@@ -145,27 +145,31 @@ export default function MainBranchPage() {
     });
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
+    <div className="print-area fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
            महाशाखा
           </h2>
-          <p className="text-base text-slate-500 mt-1">
+          <p className="text-base text-slate-500 mt-1 no-print">
            महाशाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
         <button
           onClick={handleAddNew}
-          className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95"
+          className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95 no-print"
         >
           <Plus className="w-4 h-4" />
           Add New Main Branch
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 no-print">
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
@@ -225,7 +229,7 @@ export default function MainBranchPage() {
         </div>
       </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
           <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
             <span>Show</span>
             <Select
@@ -247,11 +251,11 @@ export default function MainBranchPage() {
           <div className="flex items-center gap-2">
             <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
             <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
-            <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />}>Print</Button>
+            <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>
 
-      <div className="text-base text-slate-500 font-medium -mt-2">
+      <div className="text-base text-slate-500 font-medium mt-3 no-print">
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
@@ -263,7 +267,7 @@ export default function MainBranchPage() {
                 <th className="py-4 px-6 text-center w-16">S.N.</th>
                 <th className="py-4 px-6">Main Branch Name /महाशाखा नाम</th>
                 <th className="py-4 px-6">Department / विभाग</th>
-                <th className="py-4 px-6 text-center w-40">Actions</th>
+                <th className="py-4 px-6 text-center w-40 no-print">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -301,7 +305,7 @@ export default function MainBranchPage() {
                     <td className="py-4 px-6 font-medium text-slate-600">
                       {branch.departmentName || '-'}
                     </td>
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-4 px-6 text-center no-print">
                       <div className="flex items-center justify-center gap-2">
                         <Button size="sm" onClick={() => handleEdit(branch)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
                         <Button size="sm" danger onClick={() => handleDelete(branch)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
@@ -315,7 +319,7 @@ export default function MainBranchPage() {
         </div>
       </Card>
 
-      <div className="flex justify-end pt-2">
+      <div className="flex justify-end pt-2 no-print">
         <Pagination
           total={totalFiltered}
           currentPage={currentPage}
