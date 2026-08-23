@@ -7,8 +7,6 @@ import { Modal, message } from 'antd';
 import {
   ArrowLeft,
   FolderOpen,
-  ChevronDown,
-  ChevronRight,
   Users,
   CornerDownRight,
   LayoutGrid,
@@ -196,10 +194,10 @@ async function deleteSubTaskById(id: number) {
   const res = await apiCall(`${getBase()}/DeleteSubTaskInfo?id=${id}`, { method: 'GET' });
   if (!res.ok) throw new Error('Failed to delete subtask');
 }
+
 const LoadingSkeleton = () => (
   <BlockSkeleton lines={3} className="max-w-screen-2xl mx-auto space-y-4" message="Loading tasks..." />
 );
-
 
 function SubTaskRow({ subtask, onEdit, onDelete }: { subtask: RawEntity; onEdit: () => void; onDelete: () => void }) {
   const t = extractEntity(subtask, SUBTASK_KEYS);
@@ -219,112 +217,143 @@ function SubTaskRow({ subtask, onEdit, onDelete }: { subtask: RawEntity; onEdit:
   );
 }
 
-function TaskGridCard({
+// Shared popup for viewing/editing/deleting a task's subtasks — used by both grid and list views
+function SubtasksModal({
+  open,
   task,
-  onView,
-  onEdit,
-  onDelete,
+  onClose,
   onAddSubtask,
-  onEditSubtask, // NEW
+  onEditSubtask,
 }: {
-  task: RawEntity;
-  onView: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  open: boolean;
+  task: RawEntity | null;
+  onClose: () => void;
   onAddSubtask: () => void;
-  onEditSubtask: (subtask: RawEntity) => void; // NEW
+  onEditSubtask: (subtask: RawEntity) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const t = extractEntity(task, TASK_KEYS);
+  const queryClient = useQueryClient();
+  const t = task ? extractEntity(task, TASK_KEYS) : null;
 
   const { data: subtasks = [], isLoading } = useQuery({
-    queryKey: ['task-subtasks', t.id],
-    queryFn: ({ signal }) => fetchSubTasks(t.id, signal),
-    enabled: expanded && Boolean(t.id),
-    staleTime: 3 * 60 * 1000,
+    queryKey: ['task-subtasks', t?.id],
+    queryFn: ({ signal }) => fetchSubTasks(t!.id, signal),
+    enabled: open && Boolean(t?.id),
+    staleTime: 60 * 1000,
     retry: 1,
   });
 
   return (
-    <Card hover className="flex flex-col min-h-[280px] cursor-pointer overflow-hidden" onClick={() => setExpanded((v) => !v)}>
-      <div className="flex flex-col gap-3 flex-1">
-        <div className="flex items-start gap-4">
-          <div
-            className="p-3 rounded-xl shrink-0"
-            style={{ background: hexToRgba(t.statusColor, 0.1), color: t.statusColor }}
-          >
-            <ListChecks className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-foreground truncate" title={t.title}>
-                {t.title}
-              </h3>
-              {expanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
-            </div>
-            {t.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{t.description}</p>}
-          </div>
-        </div>
+    <Modal
+      open={open}
+      onCancel={onClose}
+      title={t ? `Subtasks — ${t.title}` : 'Subtasks'}
+      footer={null}
+      width={560}
+    >
+      <div className="space-y-3">
+        <Button size="small" type="primary" onClick={onAddSubtask} icon={<Plus className="w-3.5 h-3.5" />}>
+          Add Subtask
+        </Button>
 
-        <div className="flex items-center gap-3">
-          <Badge>{t.statusName}</Badge>
-          <span className="text-sm text-muted-foreground">{t.priorityName} priority</span>
-        </div>
-
-        <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-2.5 py-1.5">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Manager</p>
-            <p className="text-sm font-medium text-foreground truncate">{t.managerName || '—'}</p>
-          </div>
-          <div className="min-w-0 text-right">
-            <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Due Date</p>
-            <p className="text-sm font-medium text-foreground tabular-nums truncate">{t.dueDate || '—'}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border/60">
-        <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); onView(); }} icon={<Eye className="w-3.5 h-3.5" />}>View</Button>
-        <Button size="small" onClick={(e) => { e.stopPropagation(); onEdit(); }} icon={<Pencil className="w-3.5 h-3.5" />}>Edit</Button>
-        <Button size="small" danger onClick={(e) => { e.stopPropagation(); onDelete(); }} icon={<Trash2 className="w-3.5 h-3.5" />}>Delete</Button>
-        <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); onAddSubtask(); }} icon={<Plus className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">Subtask</Button>
-      </div>
-
-      {expanded && (
-        <div className="pt-3 mt-3 border-t border-border/60 space-y-2" onClick={(e) => e.stopPropagation()}>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Subtasks ({subtasks.length})
-          </div>
-          {isLoading ? (
-            <p className="text-xs text-muted-foreground text-center py-2">Loading...</p>
-          ) : subtasks.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-2">No subtasks</p>
-          ) : (
-            <div className="space-y-1.5">
-              {subtasks.map((st, i) => (
-                  <SubTaskRow
-                  key={pick(st, SUBTASK_KEYS.idKeys, i)}
-                  subtask={st}
-                  onEdit={() => onEditSubtask(st)}
-                  onDelete={() => Modal.confirm({
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground text-center py-6">Loading...</p>
+        ) : subtasks.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">No subtasks yet</p>
+        ) : (
+          <div className="space-y-1.5">
+            {subtasks.map((st, i) => (
+              <SubTaskRow
+                key={pick(st, SUBTASK_KEYS.idKeys, i)}
+                subtask={st}
+                onEdit={() => onEditSubtask(st)}
+                onDelete={() =>
+                  Modal.confirm({
                     title: 'Delete subtask?',
                     okType: 'danger',
                     onOk: async () => {
                       try {
                         await deleteSubTaskById(pick(st, SUBTASK_KEYS.idKeys));
                         message.success('Subtask deleted');
-                        queryClient.invalidateQueries({ queryKey: ['task-subtasks', t.id] });
+                        queryClient.invalidateQueries({ queryKey: ['task-subtasks', t?.id] });
                       } catch {
                         message.error('Failed to delete subtask');
                       }
                     },
-                  })}
-                />
-              ))}
-            </div>
-          )}
+                  })
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function TaskGridCard({
+  task,
+  onView,
+  onEdit,
+  onDelete,
+  onViewSubtasks,
+}: {
+  task: RawEntity;
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onViewSubtasks: () => void;
+}) {
+  const t = extractEntity(task, TASK_KEYS);
+
+  return (
+    <Card hover className="flex flex-col cursor-pointer overflow-hidden" onClick={onView}>
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-start gap-3">
+          <div
+            className="p-2.5 rounded-xl shrink-0"
+            style={{ background: hexToRgba(t.statusColor, 0.1), color: t.statusColor }}
+          >
+            <ListChecks className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-bold text-foreground truncate" title={t.title}>
+              {t.title}
+            </h3>
+            {t.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{t.description}</p>}
+          </div>
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <Badge>{t.statusName}</Badge>
+          <span className="text-xs text-muted-foreground">{t.priorityName} priority</span>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-2.5 py-1.5">
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Manager</p>
+            <p className="text-xs font-medium text-foreground truncate">{t.managerName || '—'}</p>
+          </div>
+          <div className="min-w-0 text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Due Date</p>
+            <p className="text-xs font-medium text-foreground tabular-nums truncate">{t.dueDate || '—'}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 pt-2.5 mt-2.5 border-t border-border/60">
+        <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); onView(); }} icon={<Eye className="w-3.5 h-3.5" />}>View</Button>
+        <Button size="small" onClick={(e) => { e.stopPropagation(); onEdit(); }} icon={<Pencil className="w-3.5 h-3.5" />}>Edit</Button>
+        <Button size="small" danger onClick={(e) => { e.stopPropagation(); onDelete(); }} icon={<Trash2 className="w-3.5 h-3.5" />}>Delete</Button>
+        <Button
+          size="small"
+          type="primary"
+          onClick={(e) => { e.stopPropagation(); onViewSubtasks(); }}
+          icon={<ListChecks className="w-3.5 h-3.5" />}
+          className="!bg-green-600 hover:!bg-green-700 !border-green-600"
+        >
+          Subtasks
+        </Button>
+      </div>
     </Card>
   );
 }
@@ -334,70 +363,35 @@ function TaskListRow({
   onView,
   onEdit,
   onDelete,
-  onAddSubtask,
+  onViewSubtasks,
 }: {
   task: RawEntity;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onAddSubtask: () => void;
+  onViewSubtasks: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const t = extractEntity(task, TASK_KEYS);
 
-  const { data: subtasks = [], isLoading } = useQuery({
-    queryKey: ['task-subtasks', t.id],
-    queryFn: ({ signal }) => fetchSubTasks(t.id, signal),
-    enabled: expanded && Boolean(t.id),
-    staleTime: 3 * 60 * 1000,
-    retry: 1,
-  });
-
   return (
-    <div>
-      <Card hover className="flex items-center gap-3 px-4 py-2.5 cursor-pointer" onClick={() => setExpanded((v) => !v)}>
-        <div className="p-2 rounded-xl shrink-0" style={{ background: hexToRgba(t.statusColor, 0.1), color: t.statusColor }}>
-          <ListChecks className="w-4 h-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-bold text-foreground truncate">{t.title}</h3>
-          </div>
-          {t.managerName && <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><Users className="w-3 h-3" />{t.managerName}</p>}
-        </div>
-        <Badge>{t.statusName}</Badge>
-        <span className="hidden md:inline-block text-sm text-muted-foreground w-20 truncate">{t.priorityName}</span>
-        <span className="hidden lg:inline-block text-sm text-muted-foreground tabular-nums w-24 truncate text-right">{t.dueDate || '—'}</span>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onView(); }} icon={<Eye className="w-3.5 h-3.5" />} />
-          <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onEdit(); }} icon={<Pencil className="w-3.5 h-3.5" />} />
-          <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); onDelete(); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
-          <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onAddSubtask(); }} icon={<Plus className="w-3.5 h-3.5" />} />
-        </div>
-        <div className="shrink-0">{expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}</div>
-      </Card>
-
-      {expanded && (
-        <div className="ml-4 mt-1.5 mb-2 space-y-1.5" onClick={(e) => e.stopPropagation()}>
-          {t.description && <p className="text-sm text-muted-foreground px-3">{t.description}</p>}
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-3">Subtasks ({subtasks.length})</div>
-          {isLoading ? (
-            <p className="text-xs text-muted-foreground text-center py-2">Loading...</p>
-          ) : subtasks.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-2">No subtasks</p>
-          ) : (
-            subtasks.map((st, i) => (
-              <SubTaskRow
-                key={pick(st, SUBTASK_KEYS.idKeys, i)}
-                subtask={st}
-                onEdit={() => message.info('Edit subtask')}
-                onDelete={() => Modal.confirm({ title: 'Delete subtask?', okType: 'danger', onOk: async () => { message.success('Deleted'); } })}
-              />
-            ))
-          )}
-        </div>
-      )}
-    </div>
+    <Card hover className="flex items-center gap-3 px-4 py-2.5 cursor-pointer" onClick={onView}>
+      <div className="p-2 rounded-xl shrink-0" style={{ background: hexToRgba(t.statusColor, 0.1), color: t.statusColor }}>
+        <ListChecks className="w-4 h-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="text-sm font-bold text-foreground truncate">{t.title}</h3>
+        {t.managerName && <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><Users className="w-3 h-3" />{t.managerName}</p>}
+      </div>
+      <Badge>{t.statusName}</Badge>
+      <span className="hidden md:inline-block text-sm text-muted-foreground w-20 truncate">{t.priorityName}</span>
+      <span className="hidden lg:inline-block text-sm text-muted-foreground tabular-nums w-24 truncate text-right">{t.dueDate || '—'}</span>
+      <div className="flex items-center gap-2 shrink-0">
+        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onView(); }} icon={<Eye className="w-3.5 h-3.5" />} />
+        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onEdit(); }} icon={<Pencil className="w-3.5 h-3.5" />} />
+        <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); onDelete(); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
+        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onViewSubtasks(); }} icon={<ListChecks className="w-3.5 h-3.5" />} />
+      </div>
+    </Card>
   );
 }
 
@@ -415,7 +409,11 @@ export default function ProjectTasksPage() {
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
-  // Subtask modal
+  // Subtasks popup (list view)
+  const [subtasksModalOpen, setSubtasksModalOpen] = useState(false);
+  const [subtasksModalTask, setSubtasksModalTask] = useState<RawEntity | null>(null);
+
+  // Add/Edit subtask drawer
   const [subtaskDrawerOpen, setSubtaskDrawerOpen] = useState(false);
   const [subtaskParentTask, setSubtaskParentTask] = useState<RawEntity | null>(null);
   const [editingSubTask, setEditingSubTask] = useState<RawEntity | null>(null);
@@ -482,7 +480,7 @@ export default function ProjectTasksPage() {
     });
   };
 
-    const openEditTask = (task: RawEntity) => {
+  const openEditTask = (task: RawEntity) => {
     setEditingTask(task);
     setTaskDrawerOpen(true);
   };
@@ -492,7 +490,12 @@ export default function ProjectTasksPage() {
     setTaskDrawerOpen(true);
   };
 
-    const openAddSubtask = (task: RawEntity) => {
+  const openSubtasksModal = (task: RawEntity) => {
+    setSubtasksModalTask(task);
+    setSubtasksModalOpen(true);
+  };
+
+  const openAddSubtask = (task: RawEntity) => {
     setSubtaskParentTask(task);
     setEditingSubTask(null);
     setSubtaskDrawerOpen(true);
@@ -572,8 +575,7 @@ export default function ProjectTasksPage() {
                 onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
                 onEdit={() => openEditTask(task)}
                 onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
-                onAddSubtask={() => openAddSubtask(task)}
-                onEditSubtask={(st) => openEditSubtask(task, st)}
+                onViewSubtasks={() => openSubtasksModal(task)}
               />
             ))}
           </div>
@@ -586,14 +588,14 @@ export default function ProjectTasksPage() {
                 onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
                 onEdit={() => openEditTask(task)}
                 onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
-                onAddSubtask={() => { setSubtaskParentId(pick(task, TASK_KEYS.idKeys)); setSubtaskModalOpen(true); }}
+                onViewSubtasks={() => openSubtasksModal(task)}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* Add Task Drawer — project is pre-filled since we're already inside this project */}
+      {/* Add/Edit Task Drawer — project is pre-filled since we're already inside this project */}
       <CreateTaskDrawer
         open={taskDrawerOpen}
         onClose={() => { setTaskDrawerOpen(false); setEditingTask(null); }}
@@ -607,6 +609,15 @@ export default function ProjectTasksPage() {
         open={viewDrawerOpen}
         onClose={() => setViewDrawerOpen(false)}
         taskId={selectedTaskId}
+      />
+
+      {/* Subtasks popup — shared by grid and list */}
+      <SubtasksModal
+        open={subtasksModalOpen}
+        task={subtasksModalTask}
+        onClose={() => { setSubtasksModalOpen(false); setSubtasksModalTask(null); }}
+        onAddSubtask={() => subtasksModalTask && openAddSubtask(subtasksModalTask)}
+        onEditSubtask={(st) => subtasksModalTask && openEditSubtask(subtasksModalTask, st)}
       />
 
       {/* Add/Edit Subtask Drawer */}
