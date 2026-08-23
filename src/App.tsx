@@ -7,6 +7,7 @@ import DashboardPage from './pages/dashboard/page';
 import ProjectDetailsPage from './pages/projects/projectdetails';
 import ProjectsPage from './pages/projects/page';
 import TaskAndSubtasks from './pages/projects/TaskAndSubtasks';
+import KanbanBoardPage from './pages/projects/KanbanBoard';
 import TasksPage from './pages/tasks/page';
 import TeamPage from './pages/team/page';
 import UsersPage from './pages/users/page';
@@ -136,7 +137,12 @@ function RootApp() {
             <ProtectedRoute>
               <AppLayout showTopbar={false}><TaskAndSubtasks /></AppLayout>
             </ProtectedRoute>
-          }/>
+          } />
+          <Route path="/projects/:projectId/kanban" element={
+            <ProtectedRoute>
+              <AppLayout showTopbar={false}> <KanbanBoardPage /> </AppLayout>
+            </ProtectedRoute>
+          } />
 
         <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />
       </Routes>
