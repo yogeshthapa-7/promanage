@@ -57,8 +57,8 @@
   --priority-low: #10B981;
   --priority-low-bg: #F0FDF4;
 
-  --sidebar-width: 240px;
-  --sidebar-collapsed-width: 72px;
+  --sidebar-width: 300px;
+  --sidebar-collapsed-width: 80px;
   --topbar-height: 88px;
 }
 
@@ -127,18 +127,29 @@
   .progress-bar-fill {
     transition: width 500ms ease-out;
   }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 3px;
-  }
-  /* GPU acceleration hint for animations */
+}
+
+/* ── Custom scrollbar (outside @layer for Tailwind v4 compatibility) ── */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@layer utilities {
   .gpu-layer {
     transform: translateZ(0);
     backface-visibility: hidden;
