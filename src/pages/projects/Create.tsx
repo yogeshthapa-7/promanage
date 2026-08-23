@@ -394,7 +394,7 @@ const DrawerContent = memo(
                   name="startDate"
                   rules={[{ required: true, message: 'कृपया शुरू मिति प्रविष्ट गर्नुहोस्' }]}
                 >
-                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" returnEnglishDate />
                 </Form.Item>
               </Col>
               <Col span={8}>
@@ -640,7 +640,7 @@ const DrawerContent = memo(
                   name="bankGuaranteeIssueDate"
                   rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
                 >
-                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" returnEnglishDate />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -654,7 +654,7 @@ const DrawerContent = memo(
                   name="bankGuaranteeExpiryDate"
                   rules={[{ required: true, message: 'कृपया मिति प्रविष्ट गर्नुहोस्' }]}
                 >
-                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" />
+                  <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="text-sm" returnEnglishDate />
                 </Form.Item>
               </Col>
             </Row>

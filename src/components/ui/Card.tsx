@@ -17,7 +17,7 @@ export default function Card({
   padding = 'p-6',
   ...rest
 }: CardProps) {
-  const bodyStyle: React.CSSProperties = padding === 'p-6' ? { padding: 16 } : {};
+  const bodyStyle: React.CSSProperties = padding === 'p-6' ? { padding: 16, overflow: 'visible' } : { overflow: 'visible' };
   
   return (
     <AntCard

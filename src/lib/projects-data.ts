@@ -1,6 +1,7 @@
 'use client';
 
 import { Server, Smartphone, Globe, Megaphone, ShieldCheck, FolderKanban } from 'lucide-react';
+import DateConverter from '@remotemerge/nepali-date-converter';
 
 export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue';
 export type ProjectPriority = 'Urgent' | 'High' | 'Medium' | 'Low';
@@ -40,6 +41,8 @@ export interface Project {
   progress: number;
   startDate: string;
   dueDate: string;
+  startDateBs: string;
+  dueDateBs: string;
   submissionDate: string;
   targetEndDate: string;
   team: TeamMember[];
@@ -164,6 +167,20 @@ function getProgress(status: string): number {
   return 0;
 }
 
+function convertToBs(dateStr: string): string {
+  if (!dateStr) return '';
+  try {
+    const parts = dateStr.replace(/-/g, '/').split('/');
+    if (parts.length === 3) {
+      const bs = new DateConverter(dateStr).toBs();
+      return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.date).padStart(2, '0')}`;
+    }
+  } catch {
+    // fallback: return original if conversion fails
+  }
+  return dateStr;
+}
+
 function computeDaysLeft(dueDate: string): string {
   if (!dueDate) return '';
   const due = new Date(dueDate);
@@ -176,15 +193,52 @@ function computeDaysLeft(dueDate: string): string {
   return `${Math.floor(diff / 30)} months`;
 }
 
+function getProgressColor(progress: number): string {
+  if (progress >= 75) return '#10B981';
+  if (progress >= 40) return '#3B82F6';
+  if (progress > 0) return '#F59E0B';
+  return '#D1D5DB';
+}
+
+function calculateProgressFromDates(startDateStr: string, endDateStr: string): number {
+  if (!startDateStr || !endDateStr) return 0;
+
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  const now = new Date();
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+
+  if (now <= start) return 0;
+  if (now >= end) return 100;
+
+  const totalDuration = end.getTime() - start.getTime();
+  const elapsed = now.getTime() - start.getTime();
+
+  const progress = Math.round((elapsed / totalDuration) * 100);
+  return Math.min(Math.max(progress, 0), 100);
+}
+
+function calculateDueDate(startDateStr: string, durationDays: number): string {
+  if (!startDateStr || !durationDays) return '';
+  const start = new Date(startDateStr);
+  if (isNaN(start.getTime())) return '';
+  const due = new Date(start);
+  due.setDate(due.getDate() + Number(durationDays));
+  return due.toISOString().split('T')[0];
+}
+
 export function mapApiProjectToProject(api: ApiProject): Project {
   const category = projectTypeMap[api.ProjectType] ?? api.ProjectTypeName ?? 'General';
   const status = (api.WorkStatusName === 'In Progress Final' ? 'In Progress' : api.WorkStatusName) as ProjectStatus;
   const priority = api.PriorityName as Project['priority'];
-  const dueDate = api.ProjectOpenDate || api.StartDate || '';
+  const dueDate = api.ProjectOpenDate || calculateDueDate(api.StartDate, api.ProjectDuration) || '';
   const submissionDate =
     api.LastDateOfSubmission && api.LastDateOfSubmission !== '0001-01-01T00:00:00'
       ? api.LastDateOfSubmission.split('T')[0]
       : '';
+  const progress = calculateProgressFromDates(api.StartDate, dueDate);
+  const progressColor = getProgressColor(progress);
 
   return {
     id: String(api.ProjectInfoID),
@@ -192,9 +246,11 @@ export function mapApiProjectToProject(api: ApiProject): Project {
     title: api.ProjectName,
     category,
     status,
-    progress: getProgress(status),
+    progress: progress > 0 || (api.StartDate && dueDate) ? progress : getProgress(status),
     startDate: api.StartDate,
     dueDate,
+    startDateBs: convertToBs(api.StartDate),
+    dueDateBs: convertToBs(dueDate),
     submissionDate,
     targetEndDate: dueDate,
     team: [],
@@ -207,7 +263,7 @@ export function mapApiProjectToProject(api: ApiProject): Project {
     client: api.ClientName || api.ClientInfoName || api.ProjectHeadEmpName,
     manager: api.ProjectHeadEmpName,
     managerAvatar: api.ProjectHeadEmpPhoto,
-    progressColor: statusProgressColor[status] || 'bg-gray-300',
+    progressColor: progress > 0 || (api.StartDate && dueDate) ? progressColor : statusProgressColor[status] || 'bg-gray-300',
     budget: `Rs. ${api.TotalBudget.toLocaleString()}`,
     daysLeft: computeDaysLeft(dueDate),
     tasksCompleted: 0,

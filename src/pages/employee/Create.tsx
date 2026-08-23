@@ -412,7 +412,7 @@ export default function EmployeeSetupModal({
                 name="DOB"
                 rules={[{ required: true, message: 'कृपया जन्म मिति चयन गर्नुहोस्' }]}
               >
-                <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="w-full" />
+                 <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="w-full" returnEnglishDate />
               </Form.Item>
 
               <Form.Item
