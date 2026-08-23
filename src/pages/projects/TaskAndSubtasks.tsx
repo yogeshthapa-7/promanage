@@ -29,6 +29,7 @@ import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
 import CreateTaskDrawer from '@/pages/tasks/createtasks';
 import ViewTaskDrawer from '@/pages/tasks/viewtaskdrawer';
+import SubTaskCreate from '@/pages/tasks/SubTasksTab/Create';
 
 const priorityLabelMap: Record<number, string> = {
   1: 'Urgent',
@@ -191,119 +192,14 @@ const fetchSubTasks = (taskId: number, signal?: AbortSignal) =>
     signal
   );
 
+async function deleteSubTaskById(id: number) {
+  const res = await apiCall(`${getBase()}/DeleteSubTaskInfo?id=${id}`, { method: 'GET' });
+  if (!res.ok) throw new Error('Failed to delete subtask');
+}
 const LoadingSkeleton = () => (
   <BlockSkeleton lines={3} className="max-w-screen-2xl mx-auto space-y-4" message="Loading tasks..." />
 );
 
-// Subtask add/edit modal only (tasks now use CreateTaskDrawer)
-interface SubtaskFormModalProps {
-  open: boolean;
-  taskId?: number;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function SubtaskFormModal({ open, taskId, onClose, onSuccess }: SubtaskFormModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    priority: 3,
-    dueDate: '',
-  });
-
-  useEffect(() => {
-    if (open) setFormData({ title: '', description: '', priority: 3, dueDate: '' });
-  }, [open]);
-
-  const handleSubmit = async () => {
-    if (!formData.title.trim()) {
-      message.error('Title is required');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await apiCall(`${getBase()}/SubTaskInfo/SaveSubTaskInfo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          SubTaskInfoID: 0,
-          SubTaskTitle: formData.title,
-          SubTaskName: formData.title,
-          Description: formData.description,
-          Priority: formData.priority,
-          DueDate: formData.dueDate,
-          TaskInfoID: taskId,
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to save');
-      message.success('Subtask added');
-      onClose();
-      onSuccess();
-    } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal
-      title="Add Subtask"
-      open={open}
-      onCancel={onClose}
-      onOk={handleSubmit}
-      confirmLoading={loading}
-    >
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Title</label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            placeholder="Enter title"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            rows={3}
-            placeholder="Enter description"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Priority</label>
-          <select
-            value={formData.priority}
-            onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value={1}>Urgent</option>
-            <option value={2}>High</option>
-            <option value={3}>Medium</option>
-            <option value={4}>Low</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Due Date</label>
-          <input
-            type="date"
-            value={formData.dueDate}
-            onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-      </div>
-    </Modal>
-  );
-}
 
 function SubTaskRow({ subtask, onEdit, onDelete }: { subtask: RawEntity; onEdit: () => void; onDelete: () => void }) {
   const t = extractEntity(subtask, SUBTASK_KEYS);
@@ -329,12 +225,14 @@ function TaskGridCard({
   onEdit,
   onDelete,
   onAddSubtask,
+  onEditSubtask, // NEW
 }: {
   task: RawEntity;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onAddSubtask: () => void;
+  onEditSubtask: (subtask: RawEntity) => void; // NEW
 }) {
   const [expanded, setExpanded] = useState(false);
   const t = extractEntity(task, TASK_KEYS);
@@ -404,11 +302,23 @@ function TaskGridCard({
           ) : (
             <div className="space-y-1.5">
               {subtasks.map((st, i) => (
-                <SubTaskRow
+                  <SubTaskRow
                   key={pick(st, SUBTASK_KEYS.idKeys, i)}
                   subtask={st}
-                  onEdit={() => message.info('Edit subtask')}
-                  onDelete={() => Modal.confirm({ title: 'Delete subtask?', okType: 'danger', onOk: async () => { message.success('Deleted'); } })}
+                  onEdit={() => onEditSubtask(st)}
+                  onDelete={() => Modal.confirm({
+                    title: 'Delete subtask?',
+                    okType: 'danger',
+                    onOk: async () => {
+                      try {
+                        await deleteSubTaskById(pick(st, SUBTASK_KEYS.idKeys));
+                        message.success('Subtask deleted');
+                        queryClient.invalidateQueries({ queryKey: ['task-subtasks', t.id] });
+                      } catch {
+                        message.error('Failed to delete subtask');
+                      }
+                    },
+                  })}
                 />
               ))}
             </div>
@@ -506,8 +416,9 @@ export default function ProjectTasksPage() {
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
   // Subtask modal
-  const [subtaskModalOpen, setSubtaskModalOpen] = useState(false);
-  const [subtaskParentId, setSubtaskParentId] = useState<number | undefined>();
+  const [subtaskDrawerOpen, setSubtaskDrawerOpen] = useState(false);
+  const [subtaskParentTask, setSubtaskParentTask] = useState<RawEntity | null>(null);
+  const [editingSubTask, setEditingSubTask] = useState<RawEntity | null>(null);
 
   const { data: project, isLoading, isError, error } = useQuery({
     queryKey: ['project-detail', id],
@@ -581,6 +492,18 @@ export default function ProjectTasksPage() {
     setTaskDrawerOpen(true);
   };
 
+    const openAddSubtask = (task: RawEntity) => {
+    setSubtaskParentTask(task);
+    setEditingSubTask(null);
+    setSubtaskDrawerOpen(true);
+  };
+
+  const openEditSubtask = (task: RawEntity, subtask: RawEntity) => {
+    setSubtaskParentTask(task);
+    setEditingSubTask(subtask);
+    setSubtaskDrawerOpen(true);
+  };
+
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -649,7 +572,8 @@ export default function ProjectTasksPage() {
                 onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
                 onEdit={() => openEditTask(task)}
                 onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
-                onAddSubtask={() => { setSubtaskParentId(pick(task, TASK_KEYS.idKeys)); setSubtaskModalOpen(true); }}
+                onAddSubtask={() => openAddSubtask(task)}
+                onEditSubtask={(st) => openEditSubtask(task, st)}
               />
             ))}
           </div>
@@ -685,13 +609,21 @@ export default function ProjectTasksPage() {
         taskId={selectedTaskId}
       />
 
-      {/* Add Subtask Modal (kept separate since CreateTaskDrawer is task-only) */}
-      <SubtaskFormModal
-        open={subtaskModalOpen}
-        taskId={subtaskParentId}
-        onClose={() => setSubtaskModalOpen(false)}
-        onSuccess={() => refetch()}
-      />
+      {/* Add/Edit Subtask Drawer */}
+      {subtaskParentTask && (
+        <SubTaskCreate
+          open={subtaskDrawerOpen}
+          onClose={() => { setSubtaskDrawerOpen(false); setEditingSubTask(null); }}
+          onSuccess={() => {
+            refetch();
+            queryClient.invalidateQueries({ queryKey: ['task-subtasks', pick(subtaskParentTask, TASK_KEYS.idKeys)] });
+            setEditingSubTask(null);
+          }}
+          project={{ ProjectInfoID: project.ProjectInfoID, ProjectName: project.ProjectName }}
+          selectedTask={subtaskParentTask as any}
+          editingSubTask={editingSubTask as any}
+        />
+      )}
     </div>
   );
 }
