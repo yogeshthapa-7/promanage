@@ -219,7 +219,7 @@ function calculateProgressFromDates(startDateStr: string, endDateStr: string): n
   return Math.min(Math.max(progress, 0), 100);
 }
 
-function calculateDueDate(startDateStr: string, durationDays: number): string {
+export function calculateDueDate(startDateStr: string, durationDays: number): string {
   if (!startDateStr || !durationDays) return '';
   const start = new Date(startDateStr);
   if (isNaN(start.getTime())) return '';

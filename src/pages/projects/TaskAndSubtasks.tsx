@@ -7,7 +7,6 @@ import { Modal, message } from 'antd';
 import {
   ArrowLeft,
   FolderOpen,
-  Users,
   CornerDownRight,
   LayoutGrid,
   List,
@@ -25,6 +24,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
+import { calculateDueDate } from '@/lib/projects-data';
 import CreateTaskDrawer from '@/pages/tasks/createtasks';
 import ViewTaskDrawer from '@/pages/tasks/viewtaskdrawer';
 import SubTaskCreate from '@/pages/tasks/SubTasksTab/Create';
@@ -358,42 +358,7 @@ function TaskGridCard({
   );
 }
 
-function TaskListRow({
-  task,
-  onView,
-  onEdit,
-  onDelete,
-  onViewSubtasks,
-}: {
-  task: RawEntity;
-  onView: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onViewSubtasks: () => void;
-}) {
-  const t = extractEntity(task, TASK_KEYS);
 
-  return (
-    <Card hover className="flex items-center gap-3 px-4 py-2.5 cursor-pointer" onClick={onView}>
-      <div className="p-2 rounded-xl shrink-0" style={{ background: hexToRgba(t.statusColor, 0.1), color: t.statusColor }}>
-        <ListChecks className="w-4 h-4" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-bold text-foreground truncate">{t.title}</h3>
-        {t.managerName && <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><Users className="w-3 h-3" />{t.managerName}</p>}
-      </div>
-      <Badge>{t.statusName}</Badge>
-      <span className="hidden md:inline-block text-sm text-muted-foreground w-20 truncate">{t.priorityName}</span>
-      <span className="hidden lg:inline-block text-sm text-muted-foreground tabular-nums w-24 truncate text-right">{t.dueDate || '—'}</span>
-      <div className="flex items-center gap-2 shrink-0">
-        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onView(); }} icon={<Eye className="w-3.5 h-3.5" />} />
-        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onEdit(); }} icon={<Pencil className="w-3.5 h-3.5" />} />
-        <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); onDelete(); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
-        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); onViewSubtasks(); }} icon={<ListChecks className="w-3.5 h-3.5" />} />
-      </div>
-    </Card>
-  );
-}
 
 export default function ProjectTasksPage() {
   const { id } = useParams<{ id: string }>();
@@ -460,6 +425,7 @@ export default function ProjectTasksPage() {
   const priorityName = project.PriorityName || priorityLabelMap[project.Priority ?? 3] || 'Medium';
   const projectTypeName = project.ProjectTypeName || projectTypeMap[project.ProjectType ?? 0] || 'General';
   const workStatusColor = project.WorkStatusColor || '#6B7280';
+  const calculatedDueDate = calculateDueDate(project.StartDate, project.ProjectDuration);
 
   const handleDeleteTask = (taskId: number) => {
     Modal.confirm({
@@ -580,18 +546,60 @@ export default function ProjectTasksPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-2">
-            {tasks.map((task, i) => (
-              <TaskListRow
-                key={pick(task, TASK_KEYS.idKeys, i)}
-                task={task}
-                onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
-                onEdit={() => openEditTask(task)}
-                onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
-                onViewSubtasks={() => openSubtasksModal(task)}
-              />
-            ))}
-          </div>
+          <Card className="mt-4 overflow-x-auto">
+            <table className="w-full border-separate border-spacing-y-1.5">
+              <thead>
+                <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
+                  <th className="bg-slate-50 px-4 py-3">Manager</th>
+                  <th className="bg-slate-50 px-4 py-3">Status</th>
+                  <th className="bg-slate-50 px-4 py-3">Priority</th>
+                  <th className="bg-slate-50 px-4 py-3">Due Date</th>
+                  <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((task, i) => {
+                  const t = extractEntity(task, TASK_KEYS);
+                  return (
+                    <tr
+                      key={pick(task, TASK_KEYS.idKeys, i)}
+                      className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
+                    >
+                      <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                        <div className="font-semibold text-slate-900">{t.title}</div>
+                        {t.description && <div className="text-xs text-muted-foreground truncate max-w-xs">{t.description}</div>}
+                      </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
+                        {t.managerName || '—'}
+                      </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100">
+                        <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
+                          {t.statusName}
+                        </Badge>
+                      </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
+                        {t.priorityName}
+                      </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100 tabular-nums">
+                        {calculatedDueDate || '—'}
+                      </td>
+                      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button size="small" type="text" onClick={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }} icon={<Eye className="w-3.5 h-3.5" />} />
+                          <Button size="small" type="text" onClick={() => openEditTask(task)} icon={<Pencil className="w-3.5 h-3.5" />} />
+                          <Button size="small" type="text" danger onClick={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))} icon={<Trash2 className="w-3.5 h-3.5" />} />
+                          <Button size="small" type="primary" onClick={() => openSubtasksModal(task)} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">
+                            Subtasks
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </Card>
         )}
       </div>
 
