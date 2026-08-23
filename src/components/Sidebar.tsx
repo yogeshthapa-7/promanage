@@ -73,7 +73,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const renderNavLink = (item: NavItem) => {
     const isActive = activeId === item.id;
     return (
-      <Link key={item.id} to={item.href} title={item.label}      className={`group relative flex items-center gap-3 rounded-xl transition-all duration-200 ease-out ${collapsed ? 'justify-center px-2 py-3' : 'px-3.5 py-3'} ${isActive ? 'text-white' : 'text-slate-200 hover:text-white'}`}>
+      <Link key={item.id} to={item.href} title={item.label}      className={`group relative flex items-center gap-3 rounded-xl transition-all duration-200 ease-out ${collapsed ? 'justify-center px-2 py-3' : 'px-3.5 py-3'} ${isActive ? '!text-white' : '!text-slate-200 hover:!text-white'}`}>
         {isActive && (
           <>
             <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600/25 via-blue-500/15 to-transparent border border-blue-400/10" />
@@ -81,8 +81,8 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </>
         )}
         {!isActive && <span className="absolute inset-0 rounded-xl bg-white/[0.035] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />}
-        <span className={`relative z-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isActive ? 'text-blue-300' : 'text-slate-400 group-hover:text-blue-300'} group-hover:scale-105`}>{item.icon}</span>
-        {!collapsed && <span className="relative z-10 flex-1 truncate text-[13px] font-semibold tracking-[-0.01em]">{item.label}</span>}
+        <span className={`relative z-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isActive ? '!text-blue-300' : '!text-slate-400 group-hover:!text-blue-300'} group-hover:scale-105`}>{item.icon}</span>
+        {!collapsed && <span className={`relative z-10 flex-1 truncate text-[13px] font-semibold tracking-[-0.01em] ${isActive ? '!text-white' : '!text-slate-200 group-hover:!text-white'}`}>{item.label}</span>}
       </Link>
     );
   };
