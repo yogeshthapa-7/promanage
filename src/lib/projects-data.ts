@@ -220,8 +220,25 @@ function calculateProgressFromDates(startDateStr: string, endDateStr: string): n
 }
 
 export function calculateDueDate(startDateStr: string, durationDays: number): string {
-  if (!startDateStr || !durationDays) return '';
-  const start = new Date(startDateStr);
+  if (!startDateStr || durationDays == null) return '';
+  const normalized = startDateStr.split('T')[0].replace(/-/g, '/');
+  const parts = normalized.split('/');
+  const isBs = parts.length === 3 && parseInt(parts[0], 10) > 2000;
+
+  if (isBs) {
+    try {
+      const ad = DateConverter(normalized).toAd();
+      const startAd = new Date(ad.year, ad.month - 1, ad.date);
+      const dueAd = new Date(startAd);
+      dueAd.setDate(dueAd.getDate() + Number(durationDays));
+      const dueBs = DateConverter(`${dueAd.getFullYear()}/${dueAd.getMonth() + 1}/${dueAd.getDate()}`).toBs();
+      return `${dueBs.year}/${String(dueBs.month).padStart(2, '0')}/${String(dueBs.date).padStart(2, '0')}`;
+    } catch {
+      return '';
+    }
+  }
+
+  const start = new Date(normalized);
   if (isNaN(start.getTime())) return '';
   const due = new Date(start);
   due.setDate(due.getDate() + Number(durationDays));

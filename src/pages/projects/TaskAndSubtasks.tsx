@@ -24,7 +24,6 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
-import { calculateDueDate } from '@/lib/projects-data';
 import CreateTaskDrawer from '@/pages/tasks/createtasks';
 import ViewTaskDrawer from '@/pages/tasks/viewtaskdrawer';
 import SubTaskCreate from '@/pages/tasks/SubTasksTab/Create';
@@ -292,12 +291,14 @@ function SubtasksModal({
 
 function TaskGridCard({
   task,
+  projectStartDate,
   onView,
   onEdit,
   onDelete,
   onViewSubtasks,
 }: {
   task: RawEntity;
+  projectStartDate?: string;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -334,8 +335,8 @@ function TaskGridCard({
             <p className="text-xs font-medium text-foreground truncate">{t.managerName || '—'}</p>
           </div>
           <div className="min-w-0 text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Due Date</p>
-            <p className="text-xs font-medium text-foreground tabular-nums truncate">{t.dueDate || '—'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Start Date</p>
+            <p className="text-xs font-medium text-foreground tabular-nums truncate">{projectStartDate || '—'}</p>
           </div>
         </div>
       </div>
@@ -425,7 +426,6 @@ export default function ProjectTasksPage() {
   const priorityName = project.PriorityName || priorityLabelMap[project.Priority ?? 3] || 'Medium';
   const projectTypeName = project.ProjectTypeName || projectTypeMap[project.ProjectType ?? 0] || 'General';
   const workStatusColor = project.WorkStatusColor || '#6B7280';
-  const calculatedDueDate = calculateDueDate(project.StartDate, project.ProjectDuration);
 
   const handleDeleteTask = (taskId: number) => {
     Modal.confirm({
@@ -538,6 +538,7 @@ export default function ProjectTasksPage() {
               <TaskGridCard
                 key={pick(task, TASK_KEYS.idKeys, i)}
                 task={task}
+                projectStartDate={project.StartDate}
                 onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
                 onEdit={() => openEditTask(task)}
                 onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
@@ -552,9 +553,8 @@ export default function ProjectTasksPage() {
                 <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
                   <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
                   <th className="bg-slate-50 px-4 py-3">Manager</th>
+                  <th className="bg-slate-50 px-4 py-3">Start Date</th>
                   <th className="bg-slate-50 px-4 py-3">Status</th>
-                  <th className="bg-slate-50 px-4 py-3">Priority</th>
-                  <th className="bg-slate-50 px-4 py-3">Due Date</th>
                   <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -573,16 +573,13 @@ export default function ProjectTasksPage() {
                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
                         {t.managerName || '—'}
                       </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100 tabular-nums">
+                        {project.StartDate || '—'}
+                      </td>
                       <td className="bg-white px-4 py-3 border-b border-slate-100">
                         <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
                           {t.statusName}
                         </Badge>
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
-                        {t.priorityName}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 tabular-nums">
-                        {calculatedDueDate || '—'}
                       </td>
                       <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                         <div className="flex items-center justify-end gap-1">
