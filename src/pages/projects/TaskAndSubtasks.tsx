@@ -7,7 +7,6 @@ import { Modal, message } from 'antd';
 import {
   ArrowLeft,
   FolderOpen,
-  CornerDownRight,
   LayoutGrid,
   List,
   Kanban,
@@ -24,9 +23,10 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
+import type { TaskItem } from '@/lib/tasks-data';
 import CreateTaskDrawer from '@/pages/tasks/createtasks';
 import ViewTaskDrawer from '@/pages/tasks/viewtaskdrawer';
-import SubTaskCreate from '@/pages/tasks/SubTasksTab/Create';
+import SubtaskDrawer from './SubtaskDrawer';
 
 const priorityLabelMap: Record<number, string> = {
   1: 'Urgent',
@@ -110,13 +110,6 @@ const TASK_KEYS: EntityKeyMap = {
   photoKeys: ['TaskManagerPhoto'],
 };
 
-const SUBTASK_KEYS: EntityKeyMap = {
-  idKeys: ['SubTaskInfoID', 'Id', 'id'],
-  titleKeys: ['SubTaskTitle', 'SubTaskName', 'Title', 'Name'],
-  managerKeys: ['SubTaskManagerName'],
-  photoKeys: ['SubTaskManagerPhoto'],
-};
-
 const getBase = () => (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 async function postServerSearch<T>(endpoint: string, param: Record<string, any>, signal?: AbortSignal): Promise<T[]> {
@@ -177,117 +170,9 @@ const fetchProjectTasks = (projectId: string, signal?: AbortSignal) =>
     signal
   );
 
-const fetchSubTasks = (taskId: number, signal?: AbortSignal) =>
-  postServerSearch<RawEntity>(
-    '/SubTaskInfo/ServerSearch',
-    {
-      SubTaskInfoID: 0,
-      TaskInfoID: taskId,
-      SubTaskTitle: '',
-      SubTaskName: '',
-    },
-    signal
-  );
-
-async function deleteSubTaskById(id: number) {
-  const res = await apiCall(`${getBase()}/DeleteSubTaskInfo?id=${id}`, { method: 'GET' });
-  if (!res.ok) throw new Error('Failed to delete subtask');
-}
-
 const LoadingSkeleton = () => (
   <BlockSkeleton lines={3} className="max-w-screen-2xl mx-auto space-y-4" message="Loading tasks..." />
 );
-
-function SubTaskRow({ subtask, onEdit, onDelete }: { subtask: RawEntity; onEdit: () => void; onDelete: () => void }) {
-  const t = extractEntity(subtask, SUBTASK_KEYS);
-  return (
-    <Card hover className="flex items-center gap-3 px-3 py-2 cursor-default">
-      <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate">{t.title}</p>
-      </div>
-      <Badge>{t.statusName}</Badge>
-      <span className="hidden md:inline-block text-xs text-muted-foreground w-16 truncate">{t.priorityName}</span>
-      <div className="flex items-center gap-1 shrink-0">
-        <Button size="small" type="text" onClick={onEdit} icon={<Pencil className="w-3.5 h-3.5" />} />
-        <Button size="small" type="text" danger onClick={onDelete} icon={<Trash2 className="w-3.5 h-3.5" />} />
-      </div>
-    </Card>
-  );
-}
-
-// Shared popup for viewing/editing/deleting a task's subtasks — used by both grid and list views
-function SubtasksModal({
-  open,
-  task,
-  onClose,
-  onAddSubtask,
-  onEditSubtask,
-}: {
-  open: boolean;
-  task: RawEntity | null;
-  onClose: () => void;
-  onAddSubtask: () => void;
-  onEditSubtask: (subtask: RawEntity) => void;
-}) {
-  const queryClient = useQueryClient();
-  const t = task ? extractEntity(task, TASK_KEYS) : null;
-
-  const { data: subtasks = [], isLoading } = useQuery({
-    queryKey: ['task-subtasks', t?.id],
-    queryFn: ({ signal }) => fetchSubTasks(t!.id, signal),
-    enabled: open && Boolean(t?.id),
-    staleTime: 60 * 1000,
-    retry: 1,
-  });
-
-  return (
-    <Modal
-      open={open}
-      onCancel={onClose}
-      title={t ? `Subtasks — ${t.title}` : 'Subtasks'}
-      footer={null}
-      width={560}
-    >
-      <div className="space-y-3">
-        <Button size="small" type="primary" onClick={onAddSubtask} icon={<Plus className="w-3.5 h-3.5" />}>
-          Add Subtask
-        </Button>
-
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground text-center py-6">Loading...</p>
-        ) : subtasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">No subtasks yet</p>
-        ) : (
-          <div className="space-y-1.5">
-            {subtasks.map((st, i) => (
-              <SubTaskRow
-                key={pick(st, SUBTASK_KEYS.idKeys, i)}
-                subtask={st}
-                onEdit={() => onEditSubtask(st)}
-                onDelete={() =>
-                  Modal.confirm({
-                    title: 'Delete subtask?',
-                    okType: 'danger',
-                    onOk: async () => {
-                      try {
-                        await deleteSubTaskById(pick(st, SUBTASK_KEYS.idKeys));
-                        message.success('Subtask deleted');
-                        queryClient.invalidateQueries({ queryKey: ['task-subtasks', t?.id] });
-                      } catch {
-                        message.error('Failed to delete subtask');
-                      }
-                    },
-                  })
-                }
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </Modal>
-  );
-}
 
 function TaskGridCard({
   task,
@@ -375,14 +260,9 @@ export default function ProjectTasksPage() {
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
-  // Subtasks popup (list view)
-  const [subtasksModalOpen, setSubtasksModalOpen] = useState(false);
-  const [subtasksModalTask, setSubtasksModalTask] = useState<RawEntity | null>(null);
-
-  // Add/Edit subtask drawer
+  // Subtasks drawer
   const [subtaskDrawerOpen, setSubtaskDrawerOpen] = useState(false);
-  const [subtaskParentTask, setSubtaskParentTask] = useState<RawEntity | null>(null);
-  const [editingSubTask, setEditingSubTask] = useState<RawEntity | null>(null);
+  const [subtaskDrawerTask, setSubtaskDrawerTask] = useState<TaskItem | null>(null);
 
   const { data: project, isLoading, isError, error } = useQuery({
     queryKey: ['project-detail', id],
@@ -457,19 +337,7 @@ export default function ProjectTasksPage() {
   };
 
   const openSubtasksModal = (task: RawEntity) => {
-    setSubtasksModalTask(task);
-    setSubtasksModalOpen(true);
-  };
-
-  const openAddSubtask = (task: RawEntity) => {
-    setSubtaskParentTask(task);
-    setEditingSubTask(null);
-    setSubtaskDrawerOpen(true);
-  };
-
-  const openEditSubtask = (task: RawEntity, subtask: RawEntity) => {
-    setSubtaskParentTask(task);
-    setEditingSubTask(subtask);
+    setSubtaskDrawerTask(task as TaskItem);
     setSubtaskDrawerOpen(true);
   };
 
@@ -616,30 +484,13 @@ export default function ProjectTasksPage() {
         taskId={selectedTaskId}
       />
 
-      {/* Subtasks popup — shared by grid and list */}
-      <SubtasksModal
-        open={subtasksModalOpen}
-        task={subtasksModalTask}
-        onClose={() => { setSubtasksModalOpen(false); setSubtasksModalTask(null); }}
-        onAddSubtask={() => subtasksModalTask && openAddSubtask(subtasksModalTask)}
-        onEditSubtask={(st) => subtasksModalTask && openEditSubtask(subtasksModalTask, st)}
+      {/* Subtasks Drawer */}
+      <SubtaskDrawer
+        open={subtaskDrawerOpen}
+        onClose={() => { setSubtaskDrawerOpen(false); setSubtaskDrawerTask(null); }}
+        project={project}
+        task={subtaskDrawerTask}
       />
-
-      {/* Add/Edit Subtask Drawer */}
-      {subtaskParentTask && (
-        <SubTaskCreate
-          open={subtaskDrawerOpen}
-          onClose={() => { setSubtaskDrawerOpen(false); setEditingSubTask(null); }}
-          onSuccess={() => {
-            refetch();
-            queryClient.invalidateQueries({ queryKey: ['task-subtasks', pick(subtaskParentTask, TASK_KEYS.idKeys)] });
-            setEditingSubTask(null);
-          }}
-          project={{ ProjectInfoID: project.ProjectInfoID, ProjectName: project.ProjectName }}
-          selectedTask={subtaskParentTask as any}
-          editingSubTask={editingSubTask as any}
-        />
-      )}
     </div>
   );
 }
