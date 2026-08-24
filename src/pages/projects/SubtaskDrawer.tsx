@@ -104,6 +104,26 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
           </Button>
         </div>
 
+        {createOpen && (
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-foreground">
+                {editingSubtask ? 'Edit Subtask' : 'Add Subtask'}
+              </h3>
+              <Button size="small" type="text" onClick={handleCloseCreate}>Cancel</Button>
+            </div>
+            <SubTaskCreate
+              open={createOpen}
+              onClose={handleCloseCreate}
+              onSuccess={handleSuccess}
+              project={{ ProjectInfoID: project.ProjectInfoID, ProjectName: project.ProjectName }}
+              selectedTask={task}
+              editingSubTask={editingSubtask}
+              modal={false}
+            />
+          </div>
+        )}
+
         {isLoading ? (
           <Card className="p-6 text-center">
             <p className="text-sm text-slate-400">Loading subtasks...</p>
@@ -136,16 +156,6 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
           </div>
         )}
       </div>
-
-      <SubTaskCreate
-        open={createOpen}
-        onClose={handleCloseCreate}
-        onSuccess={handleSuccess}
-        project={{ ProjectInfoID: project.ProjectInfoID, ProjectName: project.ProjectName }}
-        selectedTask={task}
-        editingSubTask={editingSubtask}
-        modal
-      />
     </Drawer>
   );
 }
