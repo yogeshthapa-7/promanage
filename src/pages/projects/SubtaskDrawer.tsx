@@ -29,70 +29,78 @@ function SubTaskListRow({ subtask, onEdit, onDelete }: { subtask: SubTaskItem; o
   const canEdit = (subtask as any).CanEdit !== false;
   const canDelete = (subtask as any).CanDelete !== false;
   return (
-    <Card hover className="flex items-center gap-4 px-4 py-3.5">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2.5">
-          <p className="text-sm font-semibold text-foreground truncate">{subtask.SubTaskTitle}</p>
-          {subtask.SubTaskCode && (
-            <span className="text-[11px] font-mono text-slate-400 shrink-0">{subtask.SubTaskCode}</span>
+    <Card hover className="flex flex-col gap-3 px-5 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <p className="text-sm font-semibold text-foreground truncate">{subtask.SubTaskTitle}</p>
+            {subtask.SubTaskCode && (
+              <span className="text-[11px] font-mono text-slate-400 shrink-0">{subtask.SubTaskCode}</span>
+            )}
+          </div>
+          {subtask.TaskInfoName && (
+            <p className="text-xs text-slate-500 mt-1 truncate">{subtask.TaskInfoName}</p>
           )}
         </div>
-        {subtask.TaskInfoName && (
-          <p className="text-xs text-slate-500 mt-1 truncate">{subtask.TaskInfoName}</p>
-        )}
-        <div className="flex items-center gap-2.5 mt-2 flex-wrap">
-          <Badge className={statusColor[subtask.WorkStatusName] ?? '!bg-gray-100 !text-gray-700'}>
-            {subtask.WorkStatusName}
-          </Badge>
-          <Badge className={priorityColor[subtask.PriorityName] ?? '!bg-gray-100 !text-gray-700'}>
-            {subtask.PriorityName}
-          </Badge>
-          {subtask.SubTaskManagerName && (
-            <div className="flex items-center gap-1.5">
-              <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName} size={22} />
-              <span className="text-xs text-slate-500 truncate">{subtask.SubTaskManagerName}</span>
-            </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {canEdit && (
+            <Button size="small" type="text" onClick={onEdit} icon={<Pencil className="w-3.5 h-3.5" />} />
+          )}
+          {canDelete && (
+            <Button size="small" type="text" danger onClick={onDelete} icon={<Trash2 className="w-3.5 h-3.5" />} />
           )}
         </div>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        {canEdit && (
-          <Button size="small" type="text" onClick={onEdit} icon={<Pencil className="w-3.5 h-3.5" />} />
-        )}
-        {canDelete && (
-          <Button size="small" type="text" danger onClick={onDelete} icon={<Trash2 className="w-3.5 h-3.5" />} />
+
+      <div className="flex items-center gap-2.5 flex-wrap">
+        <Badge className={statusColor[subtask.WorkStatusName] ?? '!bg-gray-100 !text-gray-700'}>
+          {subtask.WorkStatusName}
+        </Badge>
+        <Badge className={priorityColor[subtask.PriorityName] ?? '!bg-gray-100 !text-gray-700'}>
+          {subtask.PriorityName}
+        </Badge>
+        {subtask.Weightage ? (
+          <span className="text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md">Weight: {subtask.Weightage}%</span>
+        ) : null}
+        {subtask.SubTaskManagerName && (
+          <div className="flex items-center gap-1.5">
+            <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName} size={20} />
+            <span className="text-xs text-slate-500 truncate">{subtask.SubTaskManagerName}</span>
+          </div>
         )}
       </div>
+
+      {subtask.Description && (
+        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{subtask.Description}</p>
+      )}
     </Card>
   );
 }
 
 function SubTaskGridView({ subtasks, projectName, onEdit, onDelete }: { subtasks: SubTaskItem[]; projectName: string; onEdit: (id: number) => void; onDelete: (id: number) => void }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {subtasks.map((subtask) => (
-        <Card key={subtask.SubTaskInfoID} hover className="flex flex-col gap-3.5 p-5">
+        <Card key={subtask.SubTaskInfoID} hover className="flex flex-col gap-4 p-6">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-foreground truncate">{subtask.SubTaskTitle}</p>
-              {subtask.SubTaskCode && (
-                <p className="text-[11px] text-slate-400 font-mono mt-1">{subtask.SubTaskCode}</p>
-              )}
-              {subtask.TaskInfoName && (
-                <p className="text-xs text-slate-500 truncate mt-1.5">{subtask.TaskInfoName}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {(subtask as any).CanEdit !== false && (
-                <Button size="small" type="text" onClick={() => onEdit(subtask.SubTaskInfoID)} icon={<Pencil className="w-3.5 h-3.5" />} />
-              )}
-              {(subtask as any).CanDelete !== false && (
-                <Button size="small" type="text" danger onClick={() => onDelete(subtask.SubTaskInfoID)} icon={<Trash2 className="w-3.5 h-3.5" />} />
-              )}
+              <p className="text-base font-bold text-foreground leading-snug">{subtask.SubTaskTitle}</p>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                {subtask.SubTaskCode && (
+                  <span className="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded-md">{subtask.SubTaskCode}</span>
+                )}
+                {subtask.Weightage ? (
+                  <span className="text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md">Weight: {subtask.Weightage}%</span>
+                ) : null}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          {subtask.TaskInfoName && (
+            <p className="text-sm text-slate-600 bg-slate-50/80 rounded-lg px-3 py-2">{subtask.TaskInfoName}</p>
+          )}
+
+          <div className="flex items-center gap-2.5 flex-wrap">
             <Badge className={statusColor[subtask.WorkStatusName] ?? '!bg-gray-100 !text-gray-700'}>
               {subtask.WorkStatusName}
             </Badge>
@@ -101,16 +109,33 @@ function SubTaskGridView({ subtasks, projectName, onEdit, onDelete }: { subtasks
             </Badge>
           </div>
 
+          {subtask.Description && (
+            <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{subtask.Description}</p>
+          )}
+
           <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-            <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName || 'Manager'} size={32}>
+            <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName || 'Manager'} size={36}>
               {(subtask.SubTaskManagerName || '?').charAt(0).toUpperCase()}
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-slate-700 truncate">{subtask.SubTaskManagerName || '—'}</p>
-              <p className="text-[11px] text-slate-400">Manager</p>
+              <p className="text-sm font-semibold text-slate-700 truncate">{subtask.SubTaskManagerName || '—'}</p>
+              <p className="text-xs text-slate-400">Manager</p>
             </div>
-            {subtask.TaskInfoName && (
-              <span className="text-[11px] text-slate-400 truncate max-w-[120px] text-right">{projectName}</span>
+            {subtask.InvolvedEmployees && (
+              <span className="text-xs text-slate-400 truncate max-w-[140px] text-right">{subtask.InvolvedEmployees}</span>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            {(subtask as any).CanEdit !== false && (
+              <Button size="small" onClick={() => onEdit(subtask.SubTaskInfoID)} icon={<Pencil className="w-3.5 h-3.5" />}>
+                Edit
+              </Button>
+            )}
+            {(subtask as any).CanDelete !== false && (
+              <Button size="small" danger onClick={() => onDelete(subtask.SubTaskInfoID)} icon={<Trash2 className="w-3.5 h-3.5" />}>
+                Delete
+              </Button>
             )}
           </div>
         </Card>
