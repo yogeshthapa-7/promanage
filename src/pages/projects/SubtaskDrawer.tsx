@@ -3,11 +3,13 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Modal, message } from 'antd';
-import { Plus, Pencil, Trash2, LayoutGrid, List } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, List, Search } from 'lucide-react';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
+import SearchInput from '@/components/ui/SearchInput';
+import { Avatar } from '@/components/ui/Avatar';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
 import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
@@ -27,10 +29,18 @@ function SubTaskListRow({ subtask, onEdit, onDelete }: { subtask: SubTaskItem; o
   const canEdit = (subtask as any).CanEdit !== false;
   const canDelete = (subtask as any).CanDelete !== false;
   return (
-    <Card hover className="flex items-center gap-3 px-3 py-2.5">
+    <Card hover className="flex items-center gap-4 px-4 py-3.5">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate">{subtask.SubTaskTitle}</p>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <p className="text-sm font-semibold text-foreground truncate">{subtask.SubTaskTitle}</p>
+          {subtask.SubTaskCode && (
+            <span className="text-[11px] font-mono text-slate-400 shrink-0">{subtask.SubTaskCode}</span>
+          )}
+        </div>
+        {subtask.TaskInfoName && (
+          <p className="text-xs text-slate-500 mt-1 truncate">{subtask.TaskInfoName}</p>
+        )}
+        <div className="flex items-center gap-2.5 mt-2 flex-wrap">
           <Badge className={statusColor[subtask.WorkStatusName] ?? '!bg-gray-100 !text-gray-700'}>
             {subtask.WorkStatusName}
           </Badge>
@@ -38,11 +48,14 @@ function SubTaskListRow({ subtask, onEdit, onDelete }: { subtask: SubTaskItem; o
             {subtask.PriorityName}
           </Badge>
           {subtask.SubTaskManagerName && (
-            <span className="text-xs text-slate-500 truncate">{subtask.SubTaskManagerName}</span>
+            <div className="flex items-center gap-1.5">
+              <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName} size={22} />
+              <span className="text-xs text-slate-500 truncate">{subtask.SubTaskManagerName}</span>
+            </div>
           )}
         </div>
       </div>
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         {canEdit && (
           <Button size="small" type="text" onClick={onEdit} icon={<Pencil className="w-3.5 h-3.5" />} />
         )}
@@ -54,19 +67,22 @@ function SubTaskListRow({ subtask, onEdit, onDelete }: { subtask: SubTaskItem; o
   );
 }
 
-function SubTaskGridView({ subtasks, onEdit, onDelete }: { subtasks: SubTaskItem[]; onEdit: (id: number) => void; onDelete: (id: number) => void }) {
+function SubTaskGridView({ subtasks, projectName, onEdit, onDelete }: { subtasks: SubTaskItem[]; projectName: string; onEdit: (id: number) => void; onDelete: (id: number) => void }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {subtasks.map((subtask) => (
-        <Card key={subtask.SubTaskInfoID} hover className="flex flex-col gap-2 p-3">
-          <div className="flex items-start justify-between gap-2">
+        <Card key={subtask.SubTaskInfoID} hover className="flex flex-col gap-3.5 p-5">
+          <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-foreground truncate">{subtask.SubTaskTitle}</p>
               {subtask.SubTaskCode && (
-                <p className="text-xs text-slate-400 font-mono mt-0.5">{subtask.SubTaskCode}</p>
+                <p className="text-[11px] text-slate-400 font-mono mt-1">{subtask.SubTaskCode}</p>
+              )}
+              {subtask.TaskInfoName && (
+                <p className="text-xs text-slate-500 truncate mt-1.5">{subtask.TaskInfoName}</p>
               )}
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               {(subtask as any).CanEdit !== false && (
                 <Button size="small" type="text" onClick={() => onEdit(subtask.SubTaskInfoID)} icon={<Pencil className="w-3.5 h-3.5" />} />
               )}
@@ -75,6 +91,7 @@ function SubTaskGridView({ subtasks, onEdit, onDelete }: { subtasks: SubTaskItem
               )}
             </div>
           </div>
+
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className={statusColor[subtask.WorkStatusName] ?? '!bg-gray-100 !text-gray-700'}>
               {subtask.WorkStatusName}
@@ -83,9 +100,19 @@ function SubTaskGridView({ subtasks, onEdit, onDelete }: { subtasks: SubTaskItem
               {subtask.PriorityName}
             </Badge>
           </div>
-          {subtask.SubTaskManagerName && (
-            <p className="text-xs text-slate-500 truncate">{subtask.SubTaskManagerName}</p>
-          )}
+
+          <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+            <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName || 'Manager'} size={32}>
+              {(subtask.SubTaskManagerName || '?').charAt(0).toUpperCase()}
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-slate-700 truncate">{subtask.SubTaskManagerName || '—'}</p>
+              <p className="text-[11px] text-slate-400">Manager</p>
+            </div>
+            {subtask.TaskInfoName && (
+              <span className="text-[11px] text-slate-400 truncate max-w-[120px] text-right">{projectName}</span>
+            )}
+          </div>
         </Card>
       ))}
     </div>
@@ -97,6 +124,7 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
   const [createOpen, setCreateOpen] = useState(false);
   const [editingSubtask, setEditingSubtask] = useState<SubTaskItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const projectId = project?.ProjectInfoID ?? null;
   const taskId = task?.TaskInfoID ?? null;
@@ -115,6 +143,21 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
     staleTime: 60 * 1000,
     retry: 1,
   });
+
+  const filteredSubTasks = useMemo(() => {
+    if (!searchQuery.trim()) return subtasks;
+    const query = searchQuery.toLowerCase();
+    return subtasks.filter((subtask) => {
+      return (
+        subtask.SubTaskTitle?.toLowerCase().includes(query) ||
+        subtask.SubTaskCode?.toLowerCase().includes(query) ||
+        subtask.WorkStatusName?.toLowerCase().includes(query) ||
+        subtask.PriorityName?.toLowerCase().includes(query) ||
+        subtask.SubTaskManagerName?.toLowerCase().includes(query) ||
+        subtask.TaskInfoName?.toLowerCase().includes(query)
+      );
+    });
+  }, [subtasks, searchQuery]);
 
   const handleOpenCreate = () => {
     setEditingSubtask(null);
@@ -161,27 +204,44 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
 
   return (
     <Drawer open={open} onClose={onClose} title="Subtasks" subtitle={task.TaskTitle} width={720}>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-slate-500">{subtasks.length} subtask{subtasks.length !== 1 ? 's' : ''}</p>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center bg-white/70 border border-slate-200 rounded-lg p-0.5">
-              <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
-              <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-slate-600">{filteredSubTasks.length} subtask{filteredSubTasks.length !== 1 ? 's' : ''}</p>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-white/70 border border-border rounded-xl p-0.5 shadow-xs">
+                <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+                <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+              </div>
+              <Button type="primary" onClick={handleOpenCreate} icon={<Plus className="w-3.5 h-3.5" />}>
+                Add New
+              </Button>
             </div>
-            <Button type="primary" onClick={handleOpenCreate} icon={<Plus className="w-3.5 h-3.5" />}>
-              Add New
-            </Button>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search subtasks..."
+              icon={<Search className="w-4 h-4 text-slate-400" />}
+              containerClassName="flex-1"
+            />
           </div>
         </div>
 
-        <Card padding="p-4" className="bg-white/80">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-foreground">{task.TaskTitle}</h3>
-              <span className="text-xs text-slate-500 font-mono">{task.TaskCode}</span>
+        <Card className="bg-white/80">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Task</p>
+                <h3 className="text-base font-bold text-foreground mt-0.5">{task.TaskTitle}</h3>
+              </div>
+              {task.TaskCode && (
+                <span className="text-xs text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md shrink-0">{task.TaskCode}</span>
+              )}
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <Badge className={statusColor[task.WorkStatusName] ?? '!bg-gray-100 !text-gray-700'}>
                 {task.WorkStatusName}
               </Badge>
@@ -190,18 +250,25 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
               </Badge>
             </div>
             {task.TaskManagerName && (
-              <p className="text-xs text-slate-500">Manager: {task.TaskManagerName}</p>
+              <div className="flex items-center gap-2">
+                <Avatar src={task.TaskManagerPhoto || ''} alt={task.TaskManagerName || 'Manager'} size={24} />
+                <span className="text-sm text-slate-600">{task.TaskManagerName}</span>
+              </div>
             )}
             {task.Description && (
-              <p className="text-xs text-slate-500 line-clamp-2">{task.Description}</p>
+              <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">{task.Description}</p>
             )}
           </div>
         </Card>
 
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold mt-5 uppercase tracking-wide text-black">Subtask List</h3>
+        </div>
+
         {createOpen && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-white p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-foreground">
+              <h3 className="text-base font-bold text-foreground">
                 {editingSubtask ? 'Edit Subtask' : 'Add Subtask'}
               </h3>
               <Button size="small" type="text" onClick={handleCloseCreate}>Cancel</Button>
@@ -222,25 +289,26 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
           <Card className="p-6 text-center">
             <p className="text-sm text-slate-400">Loading subtasks...</p>
           </Card>
-        ) : subtasks.length === 0 ? (
+        ) : filteredSubTasks.length === 0 ? (
           <Card className="p-6 text-center">
             <p className="text-sm text-slate-400">No subtasks found</p>
           </Card>
         ) : viewMode === 'grid' ? (
           <SubTaskGridView
-            subtasks={subtasks}
+            subtasks={filteredSubTasks}
+            projectName={project.ProjectName}
             onEdit={(id) => {
-              const found = subtasks.find((s) => s.SubTaskInfoID === id);
+              const found = filteredSubTasks.find((s) => s.SubTaskInfoID === id);
               if (found) handleOpenEdit(found);
             }}
             onDelete={(id) => {
-              const found = subtasks.find((s) => s.SubTaskInfoID === id);
+              const found = filteredSubTasks.find((s) => s.SubTaskInfoID === id);
               if (found) handleDelete(found);
             }}
           />
         ) : (
-          <div className="space-y-2">
-            {subtasks.map((subtask) => (
+          <div className="space-y-3">
+            {filteredSubTasks.map((subtask) => (
               <SubTaskListRow
                 key={subtask.SubTaskInfoID}
                 subtask={subtask}

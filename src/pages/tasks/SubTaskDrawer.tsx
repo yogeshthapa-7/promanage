@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Tabs, Button, message, Modal, Select, Input } from 'antd';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { Tabs, Button, message, Modal } from 'antd';
 import Drawer from '@/components/drawer';
 import type { ApiProject } from '@/lib/projects-data';
 import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
@@ -13,10 +13,10 @@ import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
 import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
+import SearchInput from '@/components/ui/SearchInput';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { Plus, Trash2, Pencil, Search, RotateCcw } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
-import SubTaskSearch from './SubTasksTab/Search';
 import DiscussionCreate from './DiscussionTab/Create';
 import DiscussionSearch from './DiscussionTab/Search';
 import MilestoneCreate from './MilestoneTab/Create';
@@ -26,7 +26,6 @@ import TimelineTab from './TimelineTab/TimelineTab';
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
 const MILESTONE_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
-const TIMELINE_API = `${API_BASE}/ProjectTimelineInfo/ServerSearch`;
 const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
 
 interface SubTaskDrawerProps {
@@ -84,13 +83,14 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const [activeTab, setActiveTab] = useState('subtasks');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingSubTask, setEditingSubTask] = useState<SubTaskItem | null>(null);
+  const [subTaskSearchText, setSubTaskSearchText] = useState('');
+  const subTaskSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [discussions, setDiscussions] = useState<DiscussionItem[]>([]);
   const [allDiscussions, setAllDiscussions] = useState<DiscussionItem[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [isDiscussionCreateModalOpen, setIsDiscussionCreateModalOpen] = useState(false);
   const [editingDiscussion, setEditingDiscussion] = useState<DiscussionItem | null>(null);
   const [discussionRefreshTrigger, setDiscussionRefreshTrigger] = useState(0);
-  const [isSubTaskSearchModalOpen, setIsSubTaskSearchModalOpen] = useState(false);
   const [subTaskFilters, setSubTaskFilters] = useState({
     SubTaskTitle: '',
     Priority: undefined as number | undefined,
@@ -99,13 +99,17 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   });
 
   const handleClearSubTaskSearch = () => {
+    if (subTaskSearchTimerRef.current) {
+      clearTimeout(subTaskSearchTimerRef.current);
+    }
+    setSubTaskSearchText('');
     setSubTaskFilters({
       SubTaskTitle: '',
       Priority: undefined,
       WorkStatusID: undefined,
       SubTaskManagerID: undefined,
     });
-    setIsSubTaskSearchModalOpen(false);
+    setCurrentPage(1);
   };
 
   const handleClearDiscussionSearch = () => {
@@ -168,8 +172,12 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   }, [open, activeTab, setCurrentPage]);
 
   useEffect(() => {
-    setActiveTab('subtasks');
-  }, [task?.TaskInfoID]);
+    return () => {
+      if (subTaskSearchTimerRef.current) {
+        clearTimeout(subTaskSearchTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!open || activeTab !== 'discussion' || !projectId) return;
@@ -451,18 +459,34 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const tabItems = useMemo(() => {
     const subtaskPane = (
       <div className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Button icon={<Search size={16} />} onClick={() => setIsSubTaskSearchModalOpen(true)}>
-              Search
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-medium text-slate-600">
+              {subTasks.length} subtask{subTasks.length === 1 ? '' : 's'}
+            </div>
+            <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
+              Add New Subtask
             </Button>
+          </div>
+          <SearchInput
+            value={subTaskSearchText}
+            onChange={(value) => {
+              setSubTaskSearchText(value);
+              if (subTaskSearchTimerRef.current) {
+                clearTimeout(subTaskSearchTimerRef.current);
+              }
+              subTaskSearchTimerRef.current = setTimeout(() => {
+                setSubTaskFilters((prev) => ({ ...prev, SubTaskTitle: value }));
+              }, 300);
+            }}
+            placeholder="Search subtasks..."
+            containerClassName="max-w-xl"
+          />
+          <div className="flex items-center justify-end">
             <Button onClick={handleClearSubTaskSearch}>
               Clear
             </Button>
           </div>
-          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
-            Add New Subtask
-          </Button>
         </div>
         {isCreateModalOpen && (
           <SubTaskCreate
@@ -478,24 +502,6 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
             project={project}
             selectedTask={task}
             editingSubTask={editingSubTask}
-            modal={false}
-          />
-        )}
-        {isSubTaskSearchModalOpen && (
-          <SubTaskSearch
-            open={isSubTaskSearchModalOpen}
-            onClose={() => setIsSubTaskSearchModalOpen(false)}
-            onSearch={(values) => {
-              setSubTaskFilters({
-                SubTaskTitle: String(values.SubTaskTitle || ''),
-                Priority: values.Priority ? Number(values.Priority) : undefined,
-                WorkStatusID: values.WorkStatusID ? Number(values.WorkStatusID) : undefined,
-                SubTaskManagerID: values.SubTaskManagerID ? Number(values.SubTaskManagerID) : undefined,
-              });
-            }}
-            onClear={handleClearSubTaskSearch}
-            project={project}
-            selectedTask={task}
             modal={false}
           />
         )}
@@ -519,10 +525,6 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
                         <p className="text-sm font-medium text-slate-500 truncate" title={sub.ProjectName}>{sub.ProjectName}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditSubTask(sub)} />
-                      <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteSubTask(sub)} />
-                    </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
@@ -544,6 +546,15 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
                       <p className="text-sm font-semibold text-slate-800 truncate" title={sub.SubTaskManagerName}>{sub.SubTaskManagerName || '—'}</p>
                       <p className="text-sm text-slate-500">Manager</p>
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <Button size="small" onClick={() => handleEditSubTask(sub)}>
+                      Edit
+                    </Button>
+                    <Button size="small" danger onClick={() => handleDeleteSubTask(sub)}>
+                      Delete
+                    </Button>
                   </div>
                 </Card>
               );
@@ -780,7 +791,39 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
       { key: 'milestone', label: 'Milestone', children: milestonePane },
       { key: 'timeline', label: 'Timeline', children: <TimelineTab project={project} projectId={projectId} /> },
     ];
-  }, [activeTab, discussions, discussionsLoading, milestones, milestonesLoading, subTasks, subTasksLoading, currentPage, pageSize, project, task, total, isCreateModalOpen, editingSubTask, isDiscussionCreateModalOpen, editingDiscussion, isMilestoneCreateModalOpen, editingMilestone, isIssueCreateModalOpen, editingIssue, issues, issuesLoading, issueRefreshTrigger, discussionRefreshTrigger, milestoneRefreshTrigger, isSubTaskSearchModalOpen, isDiscussionSearchModalOpen, subTaskFilters]);
+  }, [
+    allDiscussions,
+    currentPage,
+    discussions,
+    discussionsLoading,
+    editingDiscussion,
+    editingIssue,
+    editingMilestone,
+    editingSubTask,
+    handleClearDiscussionSearch,
+    handleClearSubTaskSearch,
+    handleDeleteSubTask,
+    isCreateModalOpen,
+    isDiscussionCreateModalOpen,
+    isDiscussionSearchModalOpen,
+    isIssueCreateModalOpen,
+    isMilestoneCreateModalOpen,
+    issues,
+    issuesLoading,
+    milestones,
+    milestonesLoading,
+    pageSize,
+    project,
+    projectId,
+    refetch,
+    setCurrentPage,
+    setPageSize,
+    subTaskSearchText,
+    subTasks,
+    subTasksLoading,
+    task,
+    total,
+  ]);
 
   if (!task) return null;
 
@@ -788,7 +831,7 @@ export default function SubTaskDrawer({ open, onClose, project, task }: SubTaskD
   const drawerSubtitle = `Task #${task.TaskInfoID}`;
 
   return (
-    <Drawer open={open} onClose={onClose} title={drawerTitle} subtitle={drawerSubtitle} width={760}>
+    <Drawer key={task?.TaskInfoID ?? 'subtask-drawer'} open={open} onClose={onClose} title={drawerTitle} subtitle={drawerSubtitle} width={760}>
       <div className="space-y-5">
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex flex-col gap-3">
