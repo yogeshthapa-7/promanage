@@ -88,7 +88,7 @@ export default function Drawer({
       />
 
      <div
-  className={`relative h-full bg-gradient-to-b from-[#F8FAFC] via-[#F5F8FC] to-[#EEF3F8] shadow-2xl border-l border-slate-200 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+  className={`relative h-full bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#fef2f2] shadow-2xl border-l border-slate-200/80 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
     visible ? 'translate-x-0' : 'translate-x-full'
   }`}
   style={{
@@ -101,16 +101,16 @@ export default function Drawer({
   onTransitionEnd={handleTransitionEnd}
 >
   {(title || subtitle) && (
-    <div className="relative flex items-start justify-between px-7 pt-7 pb-5 shrink-0 border-b border-slate-200/80 bg-white/70">
+    <div className="relative flex items-start justify-between px-7 pt-7 pb-5 shrink-0 border-b border-slate-200/80 bg-white/40">
       <div>
         {title && (
-          <h2 className="text-xl font-bold tracking-tight text-[#172554]">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">
             {title}
           </h2>
         )}
 
         {subtitle && (
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-600 mt-1">
             {subtitle}
           </p>
         )}
@@ -119,7 +119,7 @@ export default function Drawer({
       <button
         type="button"
         onClick={close}
-        className="p-2 rounded-xl text-slate-400 hover:text-[#172554] hover:bg-slate-100 transition-all cursor-pointer"
+        className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer"
       >
         <X className="w-5 h-5" />
       </button>
