@@ -13,7 +13,6 @@ import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginated
 import { statusColor, priorityColor } from "@/lib/tasks-data";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from '../projects/viewtaskdrawer';
-import SubTaskDrawer from '../projects/SubtaskDrawer';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
@@ -105,8 +104,6 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
-  const [subTaskDrawerOpen, setSubTaskDrawerOpen] = useState(false);
-  const [viewingTaskForSubTasks, setViewingTaskForSubTasks] = useState<TaskItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const debouncedManagerName = useDebounce(managerNameSearch, 300);
@@ -178,13 +175,8 @@ export default function TasksPage() {
           message.error(err instanceof Error ? err.message : "Failed to delete task");
         }
       },
-    });
-  };
-
-  const handleViewSubTasks = (task: TaskItem) => {
-    setViewingTaskForSubTasks(task);
-    setSubTaskDrawerOpen(true);
-  };
+     });
+   };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -368,7 +360,6 @@ export default function TasksPage() {
                   <th className="bg-slate-50 px-4 py-3">Project</th>
                   <th className="bg-slate-50 px-4 py-3">Manager</th>
                   <th className="bg-slate-50 px-4 py-3">Status</th>
-                  <th className="bg-slate-50 px-4 py-3">Sub Task</th>
                   <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -403,11 +394,6 @@ export default function TasksPage() {
                         <Badge className={statusColor[task.WorkStatusName] ?? "!bg-gray-100 !text-gray-700"}>
                           {task.WorkStatusName}
                         </Badge>
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100">
-                        <Button type="link" size="small" onClick={() => handleViewSubTasks(task)} icon={<Eye className="w-4 h-4" />}>
-                          View
-                        </Button>
                       </td>
                       <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                         <div className="flex items-center justify-end gap-2">
@@ -473,11 +459,7 @@ export default function TasksPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                  <Button type="link" size="small" onClick={() => handleViewSubTasks(task)} icon={<Eye className="w-4 h-4" />}>
-                    Subtasks
-                  </Button>
-                  <div className="flex-1" />
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                   <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
                   {task.CanEdit && (
                     <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
@@ -517,12 +499,6 @@ export default function TasksPage() {
         open={viewDrawerOpen}
         onClose={() => setViewDrawerOpen(false)}
         taskId={viewingTaskId}
-      />
-      <SubTaskDrawer
-        open={subTaskDrawerOpen}
-        onClose={() => setSubTaskDrawerOpen(false)}
-        project={project as ApiProject}
-        task={viewingTaskForSubTasks}
       />
     </div>
   );
