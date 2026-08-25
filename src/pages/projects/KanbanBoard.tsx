@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Modal, message, Spin } from 'antd';
+import { Modal, message } from 'antd';
 import {
   ArrowLeft,
   Trash2,
@@ -11,12 +11,13 @@ import {
   Calendar,
   Tag,
   ClipboardList,
-  RefreshCw,
-  Clock,
-  CheckCircle2,
-  Flag,
+  FolderOpen,
 } from 'lucide-react';
 import { apiCall } from '@/lib/api';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
+import { BlockSkeleton } from '@/components/ui/Loaders';
 import CreateTaskDrawer from '../tasks/createtasks';
 import ViewTaskDrawer from '../tasks/viewtaskdrawer';
 
@@ -46,7 +47,17 @@ interface Task {
 interface Project {
   ProjectInfoID: number;
   ProjectName: string;
+  ProjectCode?: string;
   Description?: string;
+  WorkStatusName?: string;
+  WorkStatusColor?: string;
+  Priority?: number;
+  PriorityName?: string;
+  ProjectType?: number;
+  ProjectTypeName?: string;
+  TotalBudget?: number;
+  StartDate?: string;
+  EndDate?: string;
 }
 
 interface TasksByStatus {
@@ -60,6 +71,16 @@ const priorityLabelMap: Record<number, string> = {
   4: 'Low',
 };
 
+const projectTypeMap: Record<number, string> = {
+  0: 'General',
+  1: 'Development',
+  2: 'Infrastructure',
+  3: 'Design',
+};
+
+const formatCurrency = (amount?: number) =>
+  `Rs. ${(amount ?? 0).toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 // Column color palette — cycles by index; falls back to this if status.Color isn't provided
 const COLUMN_PALETTE = [
   { dot: '#EF4444', border: '#EF4444' }, // red
@@ -68,15 +89,6 @@ const COLUMN_PALETTE = [
   { dot: '#10B981', border: '#10B981' }, // green
   { dot: '#8B5CF6', border: '#8B5CF6' }, // violet
   { dot: '#EC4899', border: '#EC4899' }, // pink
-];
-
-const STAT_ICONS = [ClipboardList, RefreshCw, Clock, CheckCircle2, Flag];
-const STAT_COLORS = [
-  { bg: 'bg-blue-100', text: 'text-blue-600' },
-  { bg: 'bg-indigo-100', text: 'text-indigo-600' },
-  { bg: 'bg-amber-100', text: 'text-amber-600' },
-  { bg: 'bg-emerald-100', text: 'text-emerald-600' },
-  { bg: 'bg-violet-100', text: 'text-violet-600' },
 ];
 
 function getPriorityLabel(priority: string | number | undefined) {
@@ -96,6 +108,20 @@ function getInitials(name?: string) {
   const parts = name.trim().split(/\s+/);
   return parts.length === 1 ? parts[0].slice(0, 2).toUpperCase() : (parts[0][0] + parts[1][0]).toUpperCase();
 }
+
+function hexToRgba(hex: string | null | undefined, alpha: number): string {
+  if (!hex || typeof hex !== 'string') return `rgba(124, 58, 237, ${alpha})`;
+  let clean = hex.replace('#', '');
+  if (clean.length === 3) clean = clean.split('').map((c) => c + c).join('');
+  if (clean.length !== 6) return `rgba(124, 58, 237, ${alpha})`;
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const COLUMN_SHADOW =
+  'shadow-[0_1px_3px_rgba(124,58,237,0.04),0_8px_24px_rgba(124,58,237,0.06)]';
 
 export default function KanbanBoard() {
   const navigate = useNavigate();
@@ -126,7 +152,17 @@ export default function KanbanBoard() {
         setProject({
           ProjectInfoID: projectInfo.ProjectInfoID,
           ProjectName: projectInfo.ProjectName,
+          ProjectCode: projectInfo.ProjectCode,
           Description: projectInfo.Description,
+          WorkStatusName: projectInfo.WorkStatusName,
+          WorkStatusColor: projectInfo.WorkStatusColor,
+          Priority: projectInfo.Priority,
+          PriorityName: projectInfo.PriorityName,
+          ProjectType: projectInfo.ProjectType,
+          ProjectTypeName: projectInfo.ProjectTypeName,
+          TotalBudget: projectInfo.TotalBudget,
+          StartDate: projectInfo.StartDate,
+          EndDate: projectInfo.EndDate,
         });
       }
     } catch (err) {
@@ -243,7 +279,7 @@ export default function KanbanBoard() {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+    e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.04)';
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -320,8 +356,8 @@ export default function KanbanBoard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-white">
-        <Spin size="large" tip="Loading kanban board..." />
+      <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
+        <BlockSkeleton lines={3} message="Loading kanban board..." />
       </div>
     );
   }
@@ -329,27 +365,123 @@ export default function KanbanBoard() {
   const totalTasks = Object.values(tasks).flat().length;
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
+      {/* Back to Projects */}
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => navigate('/projects')}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 font-medium mb-2"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
         </button>
-        <h1 className="text-xl font-bold text-gray-900">
-          {project?.ProjectName || 'Kanban Board'}
-        </h1>
-        {project?.Description && (
-          <p className="text-sm text-gray-500 mt-0.5">{project.Description}</p>
-        )}
+        <Button
+          type="primary"
+          icon={<Plus className="w-4 h-4" />}
+          onClick={() => {
+            setAddDrawerStatusId(workStatuses[0]?.WorkStatusInfoID ?? null);
+            setAddDrawerOpen(true);
+          }}
+        >
+          Add Task
+        </Button>
       </div>
 
+      {/* Stats — separate cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+        <Card hover padding="p-4" className="transition-transform duration-200 ease-out">
+          <div className="flex items-start justify-between">
+            <div className="p-2.5 rounded-xl bg-secondary text-primary">
+              <ClipboardList className="w-5 h-5" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tasks</p>
+              <p className="text-xl font-bold text-foreground leading-tight">{totalTasks}</p>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-3">Total across all statuses</p>
+        </Card>
+
+        {workStatuses.map((status, idx) => {
+          const dotColor = status.Color || COLUMN_PALETTE[idx % COLUMN_PALETTE.length].dot;
+          const count = tasks[status.WorkStatusInfoID]?.length || 0;
+          return (
+            <Card key={status.WorkStatusInfoID} hover padding="p-4" className="transition-transform duration-200 ease-out">
+              <div className="flex items-start justify-between">
+                <div
+                  className="p-2.5 rounded-xl"
+                  style={{ background: hexToRgba(dotColor, 0.12), color: dotColor }}
+                >
+                  <span className="block w-4 h-4 rounded-full" style={{ backgroundColor: dotColor }} />
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{status.StatusName}</p>
+                  <p className="text-xl font-bold text-foreground leading-tight">{count}</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">
+                {count === 0 ? 'No tasks yet' : `${count} ${count === 1 ? 'task' : 'tasks'} in this stage`}
+              </p>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Header */}
+      <Card padding="p-5">
+        <div
+          className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-l-4 pl-4"
+          style={{ borderColor: project?.WorkStatusColor || 'var(--primary)' }}
+        >
+          <div className="flex items-start gap-3">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{
+                background: hexToRgba(project?.WorkStatusColor || '#7C3AED', 0.1),
+                color: project?.WorkStatusColor || 'var(--primary)',
+              }}
+            >
+              <FolderOpen className="w-6 h-6" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold text-foreground truncate">
+                {project?.ProjectName || 'Kanban Board'}
+              </h1>
+              {project?.ProjectCode && (
+                <p className="text-xs text-muted-foreground font-mono mt-0.5">{project.ProjectCode}</p>
+              )}
+              {project?.Description && (
+                <p className="text-sm text-muted-foreground/80 mt-1.5 line-clamp-2 max-w-3xl">{project.Description}</p>
+              )}
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
+                {project?.WorkStatusName && <Badge>{project.WorkStatusName}</Badge>}
+                {project?.PriorityName && (
+                  <span className="text-sm text-muted-foreground">{project.PriorityName} priority</span>
+                )}
+                {project?.ProjectTypeName && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border border-border bg-white/60 text-muted-foreground">
+                    {project.ProjectTypeName}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="shrink-0 lg:text-right lg:min-w-[200px]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Total Budget</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">{formatCurrency(project?.TotalBudget)}</p>
+            {(project?.StartDate || project?.EndDate) && (
+              <p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
+                {project?.StartDate ? new Date(project.StartDate).toLocaleDateString() : '—'}
+                {project?.EndDate ? ` – ${new Date(project.EndDate).toLocaleDateString()}` : ''}
+              </p>
+            )}
+          </div>
+        </div>
+      </Card>
+
       {/* Columns */}
-      <div className="max-w-full overflow-x-auto px-6 py-6">
-        <div className="flex gap-4" style={{ width: `max(100%, ${workStatuses.length * 300}px)` }}>
+      <div className="overflow-x-auto mt-4 pb-2 perf-scroll">
+        <div className="flex gap-4 min-w-max">
           {workStatuses.map((status, colIdx) => {
             const palette = COLUMN_PALETTE[colIdx % COLUMN_PALETTE.length];
             const dotColor = status.Color || palette.dot;
@@ -358,15 +490,15 @@ export default function KanbanBoard() {
             return (
               <div
                 key={status.WorkStatusInfoID}
-                className="flex-shrink-0 w-72 bg-white rounded-xl border border-gray-200 flex flex-col shadow-sm"
+                className={`flex-shrink-0 w-72 bg-card rounded-2xl border border-border flex flex-col ${COLUMN_SHADOW}`}
               >
                 {/* Column header */}
-                <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100">
+                <div className="flex items-center justify-between px-4 py-3.5 border-b border-border">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
-                    <h2 className="font-semibold text-sm text-gray-900">{status.StatusName}</h2>
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
+                    <h2 className="font-semibold text-sm text-foreground">{status.StatusName}</h2>
                   </div>
-                  <span className="text-xs font-semibold text-gray-400">{columnTasks.length}</span>
+                  <span className="text-xs font-semibold text-muted-foreground">{columnTasks.length}</span>
                 </div>
 
                 {/* Cards */}
@@ -381,7 +513,7 @@ export default function KanbanBoard() {
                       key={task.TaskInfoID}
                       draggable
                       onDragStart={() => handleDragStart(task.TaskInfoID, status.WorkStatusInfoID)}
-                      className="group relative bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md p-3.5 cursor-grab active:cursor-grabbing transition-all"
+                      className="group relative bg-card rounded-xl border border-border hover:border-primary/40 hover:shadow-md p-3.5 cursor-grab active:cursor-grabbing transition-all"
                       style={{ borderLeft: `3px solid ${dotColor}` }}
                     >
                       {/* Hover action icons */}
@@ -392,7 +524,7 @@ export default function KanbanBoard() {
                             setSelectedTaskId(task.TaskInfoID);
                             setViewDrawerOpen(true);
                           }}
-                          className="p-1 rounded hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-colors"
+                          className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
                           title="View task"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -402,25 +534,25 @@ export default function KanbanBoard() {
                             e.stopPropagation();
                             handleDeleteTask(task.TaskInfoID);
                           }}
-                          className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+                          className="p-1 rounded hover:bg-overdue/10 text-muted-foreground hover:text-overdue transition-colors"
                           title="Delete task"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      <h3 className="font-semibold text-sm text-gray-900 pr-10 mb-1 line-clamp-1">
+                      <h3 className="font-semibold text-sm text-foreground pr-10 mb-1 line-clamp-1">
                         {task.TaskName}
                       </h3>
 
                       {task.Description && (
-                        <p className="text-xs text-gray-500 line-clamp-2 mb-2.5 leading-relaxed">
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
                           {task.Description}
                         </p>
                       )}
 
                       {(task.ProjectName || project?.ProjectName) && (
-                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[11px] font-medium mb-2.5">
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground text-[11px] font-medium mb-2.5">
                           <Tag className="w-2.5 h-2.5" />
                           {task.ProjectName || project?.ProjectName}
                         </div>
@@ -428,16 +560,16 @@ export default function KanbanBoard() {
 
                       {task.AssignedTo && (
                         <div className="flex items-center gap-1.5 mb-2.5">
-                          <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+                          <div className="w-5 h-5 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold flex items-center justify-center shrink-0">
                             {getInitials(task.AssignedTo)}
                           </div>
-                          <span className="text-xs text-gray-500 truncate">{task.AssignedTo}</span>
+                          <span className="text-xs text-muted-foreground truncate">{task.AssignedTo}</span>
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between pt-2 border-t border-border">
                         {task.DueDate ? (
-                          <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                             <Calendar className="w-3 h-3" />
                             {new Date(task.DueDate).toLocaleDateString()}
                           </div>
@@ -450,7 +582,7 @@ export default function KanbanBoard() {
                   ))}
 
                   {columnTasks.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-32 text-gray-300">
+                    <div className="flex flex-col items-center justify-center h-32 text-muted-foreground/60">
                       <p className="text-xs">No tasks yet</p>
                     </div>
                   )}
@@ -460,7 +592,7 @@ export default function KanbanBoard() {
                       setAddDrawerStatusId(status.WorkStatusInfoID);
                       setAddDrawerOpen(true);
                     }}
-                    className="w-full px-2 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full px-2 py-2 text-primary hover:bg-secondary rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add Task
@@ -469,41 +601,6 @@ export default function KanbanBoard() {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Bottom stats strip */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
-        <div className="max-w-full overflow-x-auto">
-          <div className="flex items-center gap-8 min-w-max">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-                <ClipboardList className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-gray-900 leading-tight">{totalTasks}</p>
-                <p className="text-xs text-gray-500">Total Tasks</p>
-              </div>
-            </div>
-
-            {workStatuses.map((status, idx) => {
-              const Icon = STAT_ICONS[idx % STAT_ICONS.length];
-              const color = STAT_COLORS[idx % STAT_COLORS.length];
-              return (
-                <div key={status.WorkStatusInfoID} className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-lg ${color.bg} ${color.text} flex items-center justify-center`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-gray-900 leading-tight">
-                      {tasks[status.WorkStatusInfoID]?.length || 0}
-                    </p>
-                    <p className="text-xs text-gray-500">{status.StatusName}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
 
