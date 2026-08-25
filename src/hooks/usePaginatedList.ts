@@ -56,12 +56,12 @@ export function usePaginatedList<T>({
 
     setLoading(true);
 
-    fetcher({
+    Promise.resolve(fetcher({
       start: (currentPage - 1) * pageSize,
       length: pageSize,
       signal: controller.signal,
       ...extraParamsRef.current,
-    })
+    }))
       .then((result) => {
         if (fetchIdRef.current === fetchId) {
           setData(result.items);
@@ -86,12 +86,12 @@ export function usePaginatedList<T>({
     const controller = new AbortController();
     const fetchId = ++fetchIdRef.current;
 
-    fetcher({
+    Promise.resolve(fetcher({
       start: (currentPage - 1) * pageSize,
       length: pageSize,
       signal: controller.signal,
       ...extraParamsRef.current,
-    }).then((result) => {
+    })).then((result) => {
       if (fetchIdRef.current === fetchId && !isCancelled) {
         setData(result.items);
         setTotal(result.total);
