@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import {
@@ -132,6 +132,8 @@ export default function KanbanBoard() {
   const [tasks, setTasks] = useState<TasksByStatus>({});
   const [loading, setLoading] = useState(true);
   const [draggedTask, setDraggedTask] = useState<{ taskId: number; fromStatusId: number } | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollFrameRef = useRef<number | null>(null);
 
   // Add task drawer
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
@@ -252,6 +254,56 @@ export default function KanbanBoard() {
     }
   }, [fetchWorkStatuses, fetchTasks]);
 
+  const stopAutoScroll = useCallback(() => {
+    if (scrollFrameRef.current !== null) {
+      cancelAnimationFrame(scrollFrameRef.current);
+      scrollFrameRef.current = null;
+    }
+  }, []);
+
+  const handleDragOverScrollContainer = useCallback((e: React.DragEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX;
+    const edgeThreshold = 100;
+    const maxSpeed = 14;
+
+    let speed = 0;
+
+    if (mouseX > rect.right - edgeThreshold) {
+      const dist = rect.right - mouseX;
+      speed = Math.max(1, ((edgeThreshold - dist) / edgeThreshold) * maxSpeed);
+    } else if (mouseX < rect.left + edgeThreshold) {
+      const dist = mouseX - rect.left;
+      speed = -Math.max(1, ((edgeThreshold - dist) / edgeThreshold) * maxSpeed);
+    }
+
+    stopAutoScroll();
+
+    if (speed !== 0) {
+      const animate = () => {
+        container.scrollLeft += speed;
+        scrollFrameRef.current = requestAnimationFrame(animate);
+      };
+      scrollFrameRef.current = requestAnimationFrame(animate);
+    }
+  }, [stopAutoScroll]);
+
+  const handleDragLeaveScrollContainer = useCallback(() => {
+    stopAutoScroll();
+  }, [stopAutoScroll]);
+
+  const handleDropScrollContainer = useCallback(() => {
+    stopAutoScroll();
+  }, [stopAutoScroll]);
+
+  const handleDragEndCleanup = useCallback(() => {
+    stopAutoScroll();
+    setDraggedTask(null);
+  }, [stopAutoScroll]);
+
   useEffect(() => {
     setLoading(true);
     const loadData = async () => {
@@ -272,6 +324,10 @@ export default function KanbanBoard() {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  useEffect(() => {
+    return () => stopAutoScroll();
+  }, [stopAutoScroll]);
 
   const handleDragStart = (taskId: number, statusId: number) => {
     setDraggedTask({ taskId, fromStatusId: statusId });
@@ -480,7 +536,13 @@ export default function KanbanBoard() {
       </Card>
 
       {/* Columns */}
-      <div className="overflow-x-auto mt-4 pb-2 perf-scroll">
+      <div
+        ref={scrollContainerRef}
+        className="overflow-x-auto mt-4 pb-2 perf-scroll"
+        onDragOver={handleDragOverScrollContainer}
+        onDragLeave={handleDragLeaveScrollContainer}
+        onDrop={handleDropScrollContainer}
+      >
         <div className="flex gap-4 min-w-max">
           {workStatuses.map((status, colIdx) => {
             const palette = COLUMN_PALETTE[colIdx % COLUMN_PALETTE.length];
@@ -513,6 +575,7 @@ export default function KanbanBoard() {
                       key={task.TaskInfoID}
                       draggable
                       onDragStart={() => handleDragStart(task.TaskInfoID, status.WorkStatusInfoID)}
+                      onDragEnd={handleDragEndCleanup}
                       className="group relative bg-card rounded-xl border border-border hover:border-primary/40 hover:shadow-md p-3.5 cursor-grab active:cursor-grabbing transition-all"
                       style={{ borderLeft: `3px solid ${dotColor}` }}
                     >
