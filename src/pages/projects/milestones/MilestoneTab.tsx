@@ -5,7 +5,7 @@ import { apiCall } from "@/lib/api";
 import { calculateProgressFromDates } from "@/lib/nepali-date";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
-import { Plus } from "lucide-react";
+import { LayoutGrid, List, Plus } from "lucide-react";
 import MilestoneCreate from "./Create";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
@@ -33,6 +33,7 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   const [milestonesLoading, setMilestonesLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const loadMilestones = () => {
     const controller = new AbortController();
@@ -129,16 +130,28 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
 
   if (milestonesLoading) {
     return (
-      <Card>
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading milestones...</div>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+          </div>
+        </div>
+        <Card>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading milestones...</div>
+        </Card>
+      </div>
     );
   }
 
   if (milestones.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+          </div>
           <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
             Add Milestone
           </Button>
@@ -159,55 +172,126 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+          <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+          <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+        </div>
         <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
           Add Milestone
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {milestones.map((milestone) => {
-          const calculatedProgress = calculateProgressFromDates(milestone.StartDate, milestone.EndDate, milestone.Progress);
-          const progressColor =
-            calculatedProgress >= 75
-              ? "#10B981"
-              : calculatedProgress >= 40
-              ? "#3B82F6"
-              : calculatedProgress > 0
-              ? "#F59E0B"
-              : "#D1D5DB";
+      {viewMode === 'list' ? (
+        <Card className="mt-4 overflow-x-auto">
+          <table className="w-full border-separate border-spacing-y-1.5">
+            <thead>
+              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                <th className="rounded-l-xl bg-slate-50 px-5 py-3">Milestone</th>
+                <th className="bg-slate-50 px-4 py-3">Progress</th>
+                <th className="bg-slate-50 px-4 py-3">Start Date</th>
+                <th className="bg-slate-50 px-4 py-3">End Date</th>
+                <th className="bg-slate-50 px-4 py-3">Cost</th>
+                <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {milestones.map((milestone) => {
+                const calculatedProgress = calculateProgressFromDates(milestone.StartDate, milestone.EndDate, milestone.Progress);
+                const progressColor =
+                  calculatedProgress >= 75
+                    ? "#10B981"
+                    : calculatedProgress >= 40
+                    ? "#3B82F6"
+                    : calculatedProgress > 0
+                    ? "#F59E0B"
+                    : "#D1D5DB";
+                const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                  e.currentTarget.style.transform = 'scale(1.01)';
+                  e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+                };
+                const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                };
+                return (
+                <tr
+                  key={milestone.ProjectMilestoneID}
+                  className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
+                  onMouseEnter={handleRowMouseEnter}
+                  onMouseLeave={handleRowMouseLeave}
+                >
+                    <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                      <div className="font-semibold text-slate-900">{milestone.MilestoneTitle}</div>
+                      {milestone.Summary && (
+                        <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{milestone.Summary}</div>
+                      )}
+                    </td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-700">{calculatedProgress}%</span>
+                        <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
+                      </div>
+                    </td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.StartDate || "—"}</td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.EndDate || "—"}</td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.MilestoneCost.toLocaleString()}</td>
+                    <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button size="small" onClick={() => handleEdit(milestone)}>Edit</Button>
+                        <Button size="small" danger onClick={() => handleDelete(milestone)}>Delete</Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {milestones.map((milestone) => {
+            const calculatedProgress = calculateProgressFromDates(milestone.StartDate, milestone.EndDate, milestone.Progress);
+            const progressColor =
+              calculatedProgress >= 75
+                ? "#10B981"
+                : calculatedProgress >= 40
+                ? "#3B82F6"
+                : calculatedProgress > 0
+                ? "#F59E0B"
+                : "#D1D5DB";
 
-          return (
-            <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
-                <span className="text-sm font-bold text-slate-700">{calculatedProgress}%</span>
-              </div>
+            return (
+              <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
+                  <span className="text-sm font-bold text-slate-700">{calculatedProgress}%</span>
+                </div>
 
-              {milestone.Summary && (
-                <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>
-              )}
+                {milestone.Summary && (
+                  <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>
+                )}
 
-              <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
+                <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
 
-              <div className="flex items-center justify-between text-base text-muted-foreground">
-                <span>Start: {milestone.StartDate || "—"}</span>
-                <span>End: {milestone.EndDate || "—"}</span>
-              </div>
+                <div className="flex items-center justify-between text-base text-muted-foreground">
+                  <span>Start: {milestone.StartDate || "—"}</span>
+                  <span>End: {milestone.EndDate || "—"}</span>
+                </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <span className="text-base text-muted-foreground">Milestone Cost</span>
-                <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
-              </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <span className="text-base text-muted-foreground">Milestone Cost</span>
+                  <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
+                </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <Button size="small" onClick={() => handleEdit(milestone)}>Edit</Button>
-                <Button size="small" danger onClick={() => handleDelete(milestone)}>Delete</Button>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                  <Button size="small" onClick={() => handleEdit(milestone)}>Edit</Button>
+                  <Button size="small" danger onClick={() => handleDelete(milestone)}>Delete</Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <MilestoneCreate
         open={isCreateOpen}

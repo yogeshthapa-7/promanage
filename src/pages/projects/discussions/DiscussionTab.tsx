@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
-import { Search, Pencil, Trash2, RotateCcw } from "lucide-react";
+import { LayoutGrid, List, Search, Pencil, Trash2, RotateCcw } from "lucide-react";
 import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
 import DiscussionSearch from "./Search";
@@ -35,6 +35,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [editingDiscussion, setEditingDiscussion] = useState<ProjectDiscussionItem | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const discussionsRefetch = () => {
     const controller = new AbortController();
@@ -138,9 +139,15 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
           Clear
         </Button>
       </div>
-      <Button type="primary" onClick={() => { setEditingDiscussion(null); setIsCreateOpen(true); }}>
-        Add Discussion
-      </Button>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+          <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+          <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+        </div>
+        <Button type="primary" onClick={() => { setEditingDiscussion(null); setIsCreateOpen(true); }}>
+          Add Discussion
+        </Button>
+      </div>
     </div>
     {isSearchOpen && (
       <DiscussionSearch
@@ -174,30 +181,73 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
           {isSearchActive ? 'No discussions match your search.' : 'No discussions found.'}
         </div>
       </Card>
+    ) : viewMode === 'list' ? (
+      <Card className="mt-4 overflow-x-auto">
+        <table className="w-full border-separate border-spacing-y-1.5">
+          <thead>
+            <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <th className="rounded-l-xl bg-slate-50 px-5 py-3">Discussion</th>
+              <th className="bg-slate-50 px-4 py-3">Priority</th>
+              <th className="bg-slate-50 px-4 py-3">Date</th>
+              <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {discussions.map((d) => {
+              const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                e.currentTarget.style.transform = 'scale(1.01)';
+                e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+              };
+              const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              };
+              return (
+              <tr
+                key={d.ProjectDiscussionID}
+                className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
+                onMouseEnter={handleRowMouseEnter}
+                onMouseLeave={handleRowMouseLeave}
+              >
+                <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                  <div className="font-semibold text-slate-900">{d.DiscussionTitle}</div>
+                </td>
+                <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{d.PriorityName || "—"}</td>
+                <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{d.CreatedDate || "—"}</td>
+                <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                  <div className="flex items-center justify-end gap-1">
+                    {d.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />}
+                    {d.HasUserRightToDelete && (
+                      <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
+                    )}
+                  </div>
+                </td>
+              </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Card>
     ) : (
-      discussions.map((d) => (
-        <Card key={d.ProjectDiscussionID} hover>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {discussions.map((d) => (
+          <Card key={d.ProjectDiscussionID} hover className="flex flex-col">
+            <div className="flex-1 min-w-0">
               <h4 className="text-base font-bold text-slate-900 truncate">{d.DiscussionTitle}</h4>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
                 <span>Priority: {d.PriorityName}</span>
                 <span>•</span>
                 <span>{d.CreatedDate}</span>
-                {d.HasUserRightToEdit && <span className="text-blue-600">Editable</span>}
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {d.HasUserRightToEdit && (
-                <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />
-              )}
+            <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-slate-100">
+              {d.HasUserRightToEdit && <Button size="small" onClick={() => handleEditDiscussion(d)}>Edit</Button>}
               {d.HasUserRightToDelete && (
-                <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
+                <Button size="small" danger onClick={() => handleDeleteDiscussion(d)}>Delete</Button>
               )}
             </div>
-          </div>
-        </Card>
-      ))
+          </Card>
+        ))}
+      </div>
     )}
     <DiscussionCreate
       open={isCreateOpen}

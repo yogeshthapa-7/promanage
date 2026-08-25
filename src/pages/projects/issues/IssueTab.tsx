@@ -4,7 +4,7 @@ import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { LayoutGrid, List, Pencil, Trash2, Plus } from "lucide-react";
 import IssueCreate from "./Create";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
@@ -39,6 +39,7 @@ export default function IssueTab({ project }: IssueTabProps) {
   const [issuesLoading, setIssuesLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const handleDeleteIssue = (issue: IssueItem) => {
     Modal.confirm({
@@ -138,10 +139,14 @@ export default function IssueTab({ project }: IssueTabProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between gap-3">
         <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
           Add Issue
         </Button>
+        <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+          <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+          <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+        </div>
       </div>
 
       {issuesLoading ? (
@@ -152,11 +157,77 @@ export default function IssueTab({ project }: IssueTabProps) {
         <Card>
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
         </Card>
+      ) : viewMode === 'list' ? (
+        <Card className="mt-4 overflow-x-auto">
+          <table className="w-full border-separate border-spacing-y-1.5">
+            <thead>
+              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                <th className="rounded-l-xl bg-slate-50 px-5 py-3">Issue</th>
+                <th className="bg-slate-50 px-4 py-3">Label</th>
+                <th className="bg-slate-50 px-4 py-3">Status</th>
+                <th className="bg-slate-50 px-4 py-3">Raised By</th>
+                <th className="bg-slate-50 px-4 py-3">Date</th>
+                <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {issues.map((issue) => {
+                const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                  e.currentTarget.style.transform = 'scale(1.01)';
+                  e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+                };
+                const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                };
+                return (
+                <tr
+                  key={issue.IssuesID}
+                  className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
+                  onMouseEnter={handleRowMouseEnter}
+                  onMouseLeave={handleRowMouseLeave}
+                >
+                  <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                    <div className="font-semibold text-slate-900">{issue.IssuesTitle}</div>
+                    {issue.Comments && (
+                      <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{issue.Comments}</div>
+                    )}
+                  </td>
+                  <td className="bg-white px-4 py-3 border-b border-slate-100">
+                    {issue.LabelInfoName && (
+                      <Badge
+                        style={{
+                          background: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
+                          color: issue.LabelColor || undefined,
+                          borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
+                        }}
+                      >
+                        {issue.LabelInfoName}
+                      </Badge>
+                    )}
+                  </td>
+                  <td className="bg-white px-4 py-3 border-b border-slate-100">
+                    {issue.WorkStatusName && <Badge>{issue.WorkStatusName}</Badge>}
+                  </td>
+                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{issue.RaisedBy || "—"}</td>
+                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{issue.CreatedDate || "—"}</td>
+                  <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                    <div className="flex items-center justify-end gap-1">
+                      {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEdit(issue)} />}
+                      {issue.HasUserRightToDelete && (
+                        <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(issue)} />
+                      )}
+                    </div>
+                  </td>
+                </tr>
+                );
+              })}
+             </tbody>
+           </table>
+        </Card>
       ) : (
-        <div className="space-y-4">
-        {issues.map((issue) => (
-          <Card key={issue.IssuesID} hover>
-            <div className="flex items-start justify-between gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {issues.map((issue) => (
+            <Card key={issue.IssuesID} hover className="flex flex-col">
               <div className="flex-1 min-w-0">
                 <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
@@ -183,17 +254,14 @@ export default function IssueTab({ project }: IssueTabProps) {
                   <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>
                 )}
               </div>
-               <div className="flex items-center gap-1 shrink-0">
-                  {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEdit(issue)} />}
-                  {issue.HasUserRightToDelete && (
-                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(issue)}>
-                      Delete
-                    </Button>
-                  )}
-                </div>
-            </div>
-          </Card>
-        ))}
+              <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-slate-100">
+                {issue.HasUserRightToEdit && <Button size="small" onClick={() => handleEdit(issue)}>Edit</Button>}
+                {issue.HasUserRightToDelete && (
+                  <Button size="small" danger onClick={() => handleDeleteIssue(issue)}>Delete</Button>
+                )}
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 
