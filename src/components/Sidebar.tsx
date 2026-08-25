@@ -25,8 +25,22 @@ const navItems: NavItem[] = [
 ];
 
 function getActiveNavId(pathname: string): string {
-  const map: Record<string, string> = { '/dashboard': 'dashboard', '/projects': 'projects', '/tasks': 'tasks', '/analytics': 'analytics', '/team': 'team-members', '/users': 'users', '/employee': 'employee', '/departments': 'departments', '/Organizations': 'organizations', '/Policy': 'policy', '/Budget': 'budget', '/Expense': 'expense', '/Client': 'client', '/Label': 'label' };
-  return map[pathname] ?? 'dashboard';
+  if (pathname.startsWith('/projects/') && (pathname.endsWith('/tasks') || pathname.endsWith('/kanban'))) return 'tasks';
+  if (pathname.startsWith('/projects')) return 'projects';
+  if (pathname.startsWith('/tasks')) return 'tasks';
+  if (pathname.startsWith('/analytics')) return 'analytics';
+  if (pathname.startsWith('/team')) return 'team-members';
+  if (pathname.startsWith('/users')) return 'users';
+  if (pathname.startsWith('/employee')) return 'employee';
+  if (pathname.startsWith('/departments')) return 'departments';
+  if (pathname.startsWith('/Organizations')) return 'organizations';
+  if (pathname.startsWith('/Policy')) return 'policy';
+  if (pathname.startsWith('/Budget')) return 'budget';
+  if (pathname.startsWith('/Expense')) return 'expense';
+  if (pathname.startsWith('/Client')) return 'client';
+  if (pathname.startsWith('/Label')) return 'label';
+  if (pathname.startsWith('/dashboard')) return 'dashboard';
+  return 'dashboard';
 }
 
 export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
