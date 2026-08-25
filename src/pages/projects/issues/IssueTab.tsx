@@ -198,7 +198,6 @@ export default function IssueTab({ project }: IssueTabProps) {
       )}
 
       <IssueCreate
-        modal
         open={isCreateOpen}
         onClose={() => { setIsCreateOpen(false); setEditingIssue(null); }}
         onSuccess={() => { setIsCreateOpen(false); setEditingIssue(null); loadIssues(); }}

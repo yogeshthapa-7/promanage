@@ -147,7 +147,6 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No milestones found.</div>
         </Card>
         <MilestoneCreate
-          modal
           open={isCreateOpen}
           onClose={() => { setIsCreateOpen(false); setEditingMilestone(null); }}
           onSuccess={() => { setIsCreateOpen(false); setEditingMilestone(null); loadMilestones(); }}
@@ -211,7 +210,6 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
       </div>
 
       <MilestoneCreate
-        modal
         open={isCreateOpen}
         onClose={() => { setIsCreateOpen(false); setEditingMilestone(null); }}
         onSuccess={() => { setIsCreateOpen(false); setEditingMilestone(null); loadMilestones(); }}

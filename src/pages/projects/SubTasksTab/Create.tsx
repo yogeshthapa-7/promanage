@@ -5,6 +5,7 @@ import { Modal, Form, Input, Select, Button, message } from 'antd';
 import { apiCall } from '@/lib/api';
 import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
+import Drawer from '@/components/drawer';
 
 interface SubTaskCreateProps {
   open: boolean;
@@ -341,9 +342,15 @@ export default function SubTaskCreate({
     >
       {formContent}
     </Modal>
-  ) : open ? (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+  ) : (
+    <Drawer
+      open={open}
+      onClose={onClose}
+      title={editingSubTask ? 'Edit Subtask' : 'Create New Subtask'}
+      subtitle={editingSubTask ? 'Edit subtask details' : 'Create a new subtask'}
+      width={640}
+    >
       {formContent}
-    </div>
-  ) : null;
+    </Drawer>
+  );
 }

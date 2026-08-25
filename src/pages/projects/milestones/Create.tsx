@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Button, message } from 'antd';
 import { apiCall } from '@/lib/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import Drawer from '@/components/drawer';
 
 interface MilestoneCreateProps {
   open: boolean;
@@ -314,9 +315,15 @@ export default function MilestoneCreate({
     >
       {formContent}
     </Modal>
-  ) : open ? (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+  ) : (
+    <Drawer
+      open={open}
+      onClose={onClose}
+      title={isEditing ? 'Edit Milestone' : 'Create New Milestone'}
+      subtitle={isEditing ? 'Edit milestone details' : 'Create a new milestone'}
+      width={640}
+    >
       {formContent}
-    </div>
-  ) : null;
+    </Drawer>
+  );
 }

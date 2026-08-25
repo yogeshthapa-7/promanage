@@ -6,6 +6,7 @@ import { apiCall } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { fetchEmployees } from '@/lib/employees-data';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import Drawer from '@/components/drawer';
 
 interface IssueCreateProps {
   open: boolean;
@@ -397,9 +398,15 @@ export default function IssueCreate({
     >
       {formContent}
     </Modal>
-  ) : open ? (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+  ) : (
+    <Drawer
+      open={open}
+      onClose={onClose}
+      title={isEditing ? 'Edit Issue' : 'Create New Issue'}
+      subtitle={isEditing ? 'Edit issue details' : 'Create a new issue'}
+      width={640}
+    >
       {formContent}
-    </div>
-  ) : null;
+    </Drawer>
+  );
 }

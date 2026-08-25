@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
 import { apiCall } from '@/lib/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import Drawer from '@/components/drawer';
 
 interface DiscussionCreateProps {
   open: boolean;
@@ -178,9 +179,15 @@ export default function DiscussionCreate({
     >
       {formContent}
     </Modal>
-  ) : open ? (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+  ) : (
+    <Drawer
+      open={open}
+      onClose={onClose}
+      title={isEditing ? 'Edit Discussion' : 'Create New Discussion'}
+      subtitle={isEditing ? 'Edit discussion details' : 'Create a new discussion'}
+      width={480}
+    >
       {formContent}
-    </div>
-  ) : null;
+    </Drawer>
+  );
 }
