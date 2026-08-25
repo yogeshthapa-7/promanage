@@ -19,7 +19,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { BlockSkeleton } from '@/components/ui/Loaders';
 import CreateTaskDrawer from '../tasks/createtasks';
-import ViewTaskDrawer from '../tasks/viewtaskdrawer';
+import ViewTaskDrawer from './viewtaskdrawer';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 

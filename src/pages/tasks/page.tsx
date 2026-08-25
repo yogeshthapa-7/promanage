@@ -12,8 +12,8 @@ import Badge from "@/components/ui/Badge";
 import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 import { statusColor, priorityColor } from "@/lib/tasks-data";
 import CreateTaskDrawer from "./createtasks";
-import ViewTaskDrawer from "./viewtaskdrawer";
-import SubTaskDrawer from "./SubTaskDrawer";
+import ViewTaskDrawer from '../projects/viewtaskdrawer';
+import SubTaskDrawer from '../projects/SubtaskDrawer';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;

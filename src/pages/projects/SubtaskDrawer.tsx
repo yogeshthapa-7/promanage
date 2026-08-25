@@ -14,7 +14,7 @@ import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
 import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
 import { fetchSubTasks, statusColor, priorityColor } from '@/lib/tasks-data';
-import SubTaskCreate from '@/pages/tasks/SubTasksTab/Create';
+import SubTaskCreate from '@/pages/projects/SubTasksTab/Create';
 
 interface SubtaskDrawerProps {
   open: boolean;
