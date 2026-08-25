@@ -35,7 +35,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [editingDiscussion, setEditingDiscussion] = useState<ProjectDiscussionItem | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
   const discussionsRefetch = () => {
     const controller = new AbortController();
@@ -52,6 +52,15 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
           length: 20,
           columns: [
             { data: "ProjectDiscussionID", name: "ProjectDiscussionID", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "DiscussionTitle", name: "DiscussionTitle", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "Priority", name: "Priority", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "PriorityName", name: "PriorityName", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "CreatedDate", name: "CreatedDate", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "RaisedBy", name: "RaisedBy", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "Comments", name: "Comments", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "Attachments", name: "Attachments", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "HasUserRightToEdit", name: "HasUserRightToEdit", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "HasUserRightToDelete", name: "HasUserRightToDelete", searchable: true, orderable: true, search: { value: "", regex: "" } },
           ],
           search: { value: "", regex: "" },
           order: [{ column: 0, dir: "desc" }],

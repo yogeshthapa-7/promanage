@@ -39,7 +39,7 @@ export default function IssueTab({ project }: IssueTabProps) {
   const [issuesLoading, setIssuesLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
   const handleDeleteIssue = (issue: IssueItem) => {
     Modal.confirm({
@@ -75,6 +75,16 @@ export default function IssueTab({ project }: IssueTabProps) {
           length: 20,
           columns: [
             { data: "IssuesID", name: "IssuesID", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "IssuesTitle", name: "IssuesTitle", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "Comments", name: "Comments", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "RaisedBy", name: "RaisedBy", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "CreatedDate", name: "CreatedDate", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "WorkStatusName", name: "WorkStatusName", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "LabelInfoName", name: "LabelInfoName", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "LabelColor", name: "LabelColor", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "Priority", name: "Priority", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "PriorityName", name: "PriorityName", searchable: true, orderable: true, search: { value: "", regex: "" } },
+            { data: "WorkStatusColor", name: "WorkStatusColor", searchable: true, orderable: true, search: { value: "", regex: "" } },
           ],
           search: { value: "", regex: "" },
           order: [{ column: 0, dir: "desc" }],

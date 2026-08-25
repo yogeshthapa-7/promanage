@@ -126,8 +126,8 @@ export default function Drawer({
     </div>
   )}
 
-  <div
-    className="flex-1 overflow-y-auto px-7 py-6"
+   <div
+    className="flex-1 overflow-y-auto drawer-scrollbar px-7 py-6"
     style={{ maxHeight: 'calc(100vh - 100px)' }}
   >
     {children}

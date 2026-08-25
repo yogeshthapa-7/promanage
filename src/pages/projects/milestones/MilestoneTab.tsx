@@ -33,7 +33,7 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   const [milestonesLoading, setMilestonesLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
   const loadMilestones = () => {
     const controller = new AbortController();
