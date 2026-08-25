@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import {
@@ -43,21 +43,26 @@ const API_URL = `${API_BASE}/ProjectInfo/ServerSearch`;
 async function fetchProjectsPage(
   params: PaginatedListParams
 ): Promise<{ items: Project[]; total: number }> {
-  const { start, length, signal } = params;
+  const { length, signal } = params;
   const searchQuery = (params.search as string) || '';
+  const filterStatus = (params.status as ProjectStatus | 'All') || 'All';
+  const sortField = (params.sort as SortField) || 'name';
+  const sortDirection = (params.sortDirection as 'asc' | 'desc') || 'asc';
+
+  const needsAllData = filterStatus !== 'All' || sortField !== 'name' || sortDirection !== 'asc';
 
   const body = {
     model: {
       draw: 1,
-      start: Math.max(0, start as number),
-      length: Math.max(1, length as number),
+      start: 0,
+      length: needsAllData ? 1000 : Math.max(1, length as number),
       columns: [
         { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
         { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
         { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
       ],
       search: { value: searchQuery.trim(), regex: '' },
-      order: [{ column: 0, dir: 'desc' }],
+      order: [{ column: sortField === 'name' ? 1 : 0, dir: sortDirection }],
     },
     param: { ProjectInfoID: 0 },
   };
@@ -91,11 +96,12 @@ export default function ProjectsPage() {
   const [stats, setStats] = useState({ projects: 0, tasks: 0, organizations: 0, departments: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
   const pageSize = 9;
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     data: projects,
-    total: totalRecords,
     loading,
     currentPage,
     setCurrentPage,
@@ -103,8 +109,58 @@ export default function ProjectsPage() {
    } = usePaginatedList<Project>({
     fetcher: fetchProjectsPage,
     initialPageSize: pageSize,
-    extraDeps: [searchQuery],
+    extraDeps: [searchQuery, filterStatus, sortField, sortDirection],
+    extraParams: {
+      search: searchQuery,
+      status: filterStatus,
+      sort: sortField,
+      sortDirection: sortDirection,
+    },
   });
+
+  const displayProjects = useMemo(() => {
+    const priorityOrder: Record<string, number> = {
+      Urgent: 0,
+      High: 1,
+      Medium: 2,
+      Low: 3,
+    };
+
+    let result = [...projects];
+
+    if (filterStatus !== 'All') {
+      result = result.filter(p => p.status === filterStatus);
+    }
+
+    result.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case 'name':
+          cmp = (a.title || a.name).localeCompare(b.title || b.name);
+          break;
+        case 'status':
+          cmp = a.status.localeCompare(b.status);
+          break;
+        case 'priority':
+          cmp = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
+          break;
+        case 'progress':
+          cmp = a.progress - b.progress;
+          break;
+        case 'dueDate':
+          cmp = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+          break;
+      }
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
+
+    return result;
+  }, [projects, filterStatus, sortField, sortDirection]);
+
+  const paginatedProjects = displayProjects.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -208,8 +264,14 @@ export default function ProjectsPage() {
   navigate(`/projects/${project.id}/tasks`);
 };
 
-  const handleSort = () => {
+  const handleSort = (field: SortField) => {
     setSortOpen(false);
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
     setCurrentPage(1);
   };
 
@@ -262,8 +324,6 @@ export default function ProjectsPage() {
       },
     });
   };
-
-  const totalPages = Math.ceil(totalRecords / pageSize);
 
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
@@ -385,17 +445,17 @@ export default function ProjectsPage() {
         <CardGridSkeleton count={9} columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" />
       ) : (
         <>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-foreground">Projects</h2>
-              <span className="text-base text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                {projects.length} total
-              </span>
-            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-bold text-foreground">Projects</h2>
+                <span className="text-base text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+                  {displayProjects.length} total
+                </span>
+              </div>
 
-            {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                {projects.map((project) => {
+              {viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {paginatedProjects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
                   return (
@@ -446,7 +506,7 @@ export default function ProjectsPage() {
               </div>
             ) : (
               <Card hover className="space-y-2">
-                {projects.map((project) => {
+                {paginatedProjects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
                   return (
@@ -475,9 +535,9 @@ export default function ProjectsPage() {
               </Card>
             )}
 
-            {totalPages > 1 && (
+            {Math.ceil(displayProjects.length / pageSize) > 1 && (
               <Pagination
-                total={totalRecords}
+                total={displayProjects.length}
                 currentPage={currentPage}
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}

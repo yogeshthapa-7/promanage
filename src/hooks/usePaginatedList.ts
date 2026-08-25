@@ -18,6 +18,7 @@ export interface UsePaginatedListOptions<T> {
   fetcher: (params: PaginatedListParams) => Promise<PaginatedListResult<T>>;
   initialPageSize?: number;
   extraDeps?: unknown[];
+  extraParams?: Record<string, unknown>;
 }
 
 export interface UsePaginatedListReturn<T> {
@@ -35,6 +36,7 @@ export function usePaginatedList<T>({
   fetcher,
   initialPageSize = 20,
   extraDeps = [],
+  extraParams,
 }: UsePaginatedListOptions<T>): UsePaginatedListReturn<T> {
   const [data, setData] = useState<T[]>([]);
   const [total, setTotal] = useState(0);
@@ -42,6 +44,11 @@ export function usePaginatedList<T>({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSizeState] = useState(initialPageSize);
   const fetchIdRef = useRef(0);
+  const extraParamsRef = useRef(extraParams);
+
+  useEffect(() => {
+    extraParamsRef.current = extraParams;
+  }, [extraParams]);
 
   const refetch = useCallback(() => {
     const fetchId = ++fetchIdRef.current;
@@ -53,6 +60,7 @@ export function usePaginatedList<T>({
       start: (currentPage - 1) * pageSize,
       length: pageSize,
       signal: controller.signal,
+      ...extraParamsRef.current,
     })
       .then((result) => {
         if (fetchIdRef.current === fetchId) {
@@ -82,6 +90,7 @@ export function usePaginatedList<T>({
       start: (currentPage - 1) * pageSize,
       length: pageSize,
       signal: controller.signal,
+      ...extraParamsRef.current,
     }).then((result) => {
       if (fetchIdRef.current === fetchId && !isCancelled) {
         setData(result.items);
