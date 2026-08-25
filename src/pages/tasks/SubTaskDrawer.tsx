@@ -17,11 +17,11 @@ import SearchInput from '@/components/ui/SearchInput';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { Plus, Trash2, Pencil, Search, RotateCcw } from 'lucide-react';
 import SubTaskCreate from './SubTasksTab/Create';
-import DiscussionCreate from './DiscussionTab/Create';
-import DiscussionSearch from './DiscussionTab/Search';
-import MilestoneCreate from './MilestoneTab/Create';
-import IssueCreate from './IssueTab/Create';
-import TimelineTab from './TimelineTab/TimelineTab';
+import DiscussionCreate from '../projects/discussions/Create';
+import DiscussionSearch from '../projects/discussions/Search';
+import MilestoneCreate from '../projects/milestones/Create';
+import IssueCreate from '../projects/issues/Create';
+import TimelineTab from '../projects/timeline/TimelineTab';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;

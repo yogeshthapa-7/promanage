@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Modal, message } from 'antd';
@@ -15,6 +15,10 @@ import {
   Trash2,
   Eye,
   Pencil,
+  AlertCircle,
+  MessagesSquare,
+  CalendarClock,
+  Flag,
 } from 'lucide-react';
 
 import { BlockSkeleton } from '@/components/ui/Loaders';
@@ -27,6 +31,21 @@ import type { TaskItem } from '@/lib/tasks-data';
 import CreateTaskDrawer from '@/pages/tasks/createtasks';
 import ViewTaskDrawer from '@/pages/tasks/viewtaskdrawer';
 import SubtaskDrawer from './SubtaskDrawer';
+
+const IssuesPanel = lazy(() => import('./issues/IssueTab'));
+const DiscussionsPanel = lazy(() => import('./discussions/DiscussionTab'));
+const TimelinePanel = lazy(() => import('./timeline/TimelineTab'));
+const MilestonesPanel = lazy(() => import('./milestones/MilestoneTab'));
+
+const PROJECT_TABS = [
+  { id: 'tasks', label: 'Tasks', icon: ListChecks },
+  { id: 'issues', label: 'Issues', icon: AlertCircle },
+  { id: 'discussions', label: 'Discussions', icon: MessagesSquare },
+  { id: 'timeline', label: 'Timeline', icon: CalendarClock },
+  { id: 'milestones', label: 'Milestones', icon: Flag },
+] as const;
+
+type ProjectTabId = (typeof PROJECT_TABS)[number]['id'];
 
 const priorityLabelMap: Record<number, string> = {
   1: 'Urgent',
@@ -251,6 +270,7 @@ export default function ProjectTasksPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [activeTab, setActiveTab] = useState<ProjectTabId>('tasks');
 
   // Add/Edit task drawer
   const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
@@ -343,24 +363,10 @@ export default function ProjectTasksPage() {
 
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <button onClick={() => navigate('/projects')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Projects
-        </button>
-        <div className="flex items-center gap-2.5">
-          <Button type="primary" onClick={openAddTask} icon={<Plus className="w-4 h-4" />}>
-            Add Task
-          </Button>
-          <Button onClick={() => navigate(`/projects/${id}/kanban`)} icon={<Kanban className="w-4 h-4" />}>
-            Kanban
-          </Button>
-          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
-            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
-            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
-          </div>
-        </div>
-      </div>
+      <button onClick={() => navigate('/projects')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Back to Projects
+      </button>
 
       <Card padding="p-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-l-4 pl-4" style={{ borderColor: workStatusColor }}>
@@ -386,85 +392,130 @@ export default function ProjectTasksPage() {
         </div>
       </Card>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-foreground">Tasks</h2>
-          <span className="text-base text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-            {tasks.length} total
-          </span>
-        </div>
+      {/* Tabs */}
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-border">
+        {PROJECT_TABS.map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors whitespace-nowrap border-b-2 -mb-px ${
+                active ? 'text-primary border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-        {tasksLoading ? (
-          <div className="text-muted-foreground text-center py-8">Loading tasks...</div>
-        ) : tasks.length === 0 ? (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">No tasks found</p>
-          </Card>
-        ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {tasks.map((task, i) => (
-              <TaskGridCard
-                key={pick(task, TASK_KEYS.idKeys, i)}
-                task={task}
-                projectStartDate={project.StartDate}
-                onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
-                onEdit={() => openEditTask(task)}
-                onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
-                onViewSubtasks={() => openSubtasksModal(task)}
-              />
-            ))}
+      <div className="mt-4">
+        {activeTab === 'tasks' ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-bold text-foreground">Tasks</h2>
+                <span className="text-base text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+                  {tasks.length} total
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Button type="primary" onClick={openAddTask} icon={<Plus className="w-4 h-4" />}>
+                  Add Task
+                </Button>
+                <Button onClick={() => navigate(`/projects/${id}/kanban`)} icon={<Kanban className="w-4 h-4" />}>
+                  Kanban
+                </Button>
+                <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+                  <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+                  <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+                </div>
+              </div>
+            </div>
+
+            {tasksLoading ? (
+              <div className="text-muted-foreground text-center py-8">Loading tasks...</div>
+            ) : tasks.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No tasks found</p>
+              </Card>
+            ) : viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {tasks.map((task, i) => (
+                  <TaskGridCard
+                    key={pick(task, TASK_KEYS.idKeys, i)}
+                    task={task}
+                    projectStartDate={project.StartDate}
+                    onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
+                    onEdit={() => openEditTask(task)}
+                    onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
+                    onViewSubtasks={() => openSubtasksModal(task)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card className="mt-4 overflow-x-auto">
+                <table className="w-full border-separate border-spacing-y-1.5">
+                  <thead>
+                    <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
+                      <th className="bg-slate-50 px-4 py-3">Manager</th>
+                      <th className="bg-slate-50 px-4 py-3">Start Date</th>
+                      <th className="bg-slate-50 px-4 py-3">Status</th>
+                      <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tasks.map((task, i) => {
+                      const t = extractEntity(task, TASK_KEYS);
+                      return (
+                        <tr
+                          key={pick(task, TASK_KEYS.idKeys, i)}
+                          className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
+                        >
+                          <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                            <div className="font-semibold text-slate-900">{t.title}</div>
+                            {t.description && <div className="text-xs text-muted-foreground truncate max-w-xs">{t.description}</div>}
+                          </td>
+                          <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
+                            {t.managerName || '—'}
+                          </td>
+                          <td className="bg-white px-4 py-3 border-b border-slate-100 tabular-nums">
+                            {project.StartDate || '—'}
+                          </td>
+                          <td className="bg-white px-4 py-3 border-b border-slate-100">
+                            <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
+                              {t.statusName}
+                            </Badge>
+                          </td>
+                          <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button size="small" type="text" onClick={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }} icon={<Eye className="w-3.5 h-3.5" />} />
+                              <Button size="small" type="text" onClick={() => openEditTask(task)} icon={<Pencil className="w-3.5 h-3.5" />} />
+                              <Button size="small" type="text" danger onClick={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))} icon={<Trash2 className="w-3.5 h-3.5" />} />
+                              <Button size="small" type="primary" onClick={() => openSubtasksModal(task)} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">
+                                Subtasks
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </Card>
+            )}
           </div>
         ) : (
-          <Card className="mt-4 overflow-x-auto">
-            <table className="w-full border-separate border-spacing-y-1.5">
-              <thead>
-                <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
-                  <th className="bg-slate-50 px-4 py-3">Manager</th>
-                  <th className="bg-slate-50 px-4 py-3">Start Date</th>
-                  <th className="bg-slate-50 px-4 py-3">Status</th>
-                  <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tasks.map((task, i) => {
-                  const t = extractEntity(task, TASK_KEYS);
-                  return (
-                    <tr
-                      key={pick(task, TASK_KEYS.idKeys, i)}
-                      className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
-                    >
-                      <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                        <div className="font-semibold text-slate-900">{t.title}</div>
-                        {t.description && <div className="text-xs text-muted-foreground truncate max-w-xs">{t.description}</div>}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
-                        {t.managerName || '—'}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 tabular-nums">
-                        {project.StartDate || '—'}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100">
-                        <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
-                          {t.statusName}
-                        </Badge>
-                      </td>
-                      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button size="small" type="text" onClick={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }} icon={<Eye className="w-3.5 h-3.5" />} />
-                          <Button size="small" type="text" onClick={() => openEditTask(task)} icon={<Pencil className="w-3.5 h-3.5" />} />
-                          <Button size="small" type="text" danger onClick={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))} icon={<Trash2 className="w-3.5 h-3.5" />} />
-                          <Button size="small" type="primary" onClick={() => openSubtasksModal(task)} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">
-                            Subtasks
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
+          <Suspense fallback={<BlockSkeleton lines={3} message="Loading..." />}>
+            {activeTab === 'issues' && <IssuesPanel project={project} />}
+            {activeTab === 'discussions' && <DiscussionsPanel project={project} />}
+            {activeTab === 'timeline' && <TimelinePanel project={project} projectId={project?.ProjectInfoID} />}
+            {activeTab === 'milestones' && <MilestonesPanel project={project} />}
+          </Suspense>
         )}
       </div>
 

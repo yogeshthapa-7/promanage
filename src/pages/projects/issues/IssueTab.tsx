@@ -4,7 +4,8 @@ import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import IssueCreate from "./Create";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
@@ -36,6 +37,8 @@ interface IssueTabProps {
 export default function IssueTab({ project }: IssueTabProps) {
   const [issues, setIssues] = useState<IssueItem[]>([]);
   const [issuesLoading, setIssuesLoading] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
 
   const handleDeleteIssue = (issue: IssueItem) => {
     Modal.confirm({
@@ -56,7 +59,7 @@ export default function IssueTab({ project }: IssueTabProps) {
     });
   };
 
-  useEffect(() => {
+  const loadIssues = () => {
     const controller = new AbortController();
     let cancelled = false;
     setIssuesLoading(true);
@@ -115,12 +118,28 @@ export default function IssueTab({ project }: IssueTabProps) {
       cancelled = true;
       controller.abort();
     };
+  };
+
+  useEffect(() => {
+    const cleanup = loadIssues();
+    return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project]);
+
+  const handleAdd = () => {
+    setEditingIssue(null);
+    setIsCreateOpen(true);
+  };
+
+  const handleEdit = (issue: IssueItem) => {
+    setEditingIssue(issue);
+    setIsCreateOpen(true);
+  };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-end">
-        <Button type="primary" onClick={() => { /* open add-issue modal / navigate */ }}>
+        <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
           Add Issue
         </Button>
       </div>
@@ -165,18 +184,27 @@ export default function IssueTab({ project }: IssueTabProps) {
                 )}
               </div>
                <div className="flex items-center gap-1 shrink-0">
-                 {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => message.info('Edit issue coming soon')} />}
-                 {issue.HasUserRightToDelete && (
-                   <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(issue)}>
-                     Delete
-                   </Button>
-                 )}
-               </div>
+                  {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEdit(issue)} />}
+                  {issue.HasUserRightToDelete && (
+                    <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(issue)}>
+                      Delete
+                    </Button>
+                  )}
+                </div>
             </div>
           </Card>
-        ))
+        ))}
         </div>
       )}
+
+      <IssueCreate
+        modal
+        open={isCreateOpen}
+        onClose={() => { setIsCreateOpen(false); setEditingIssue(null); }}
+        onSuccess={() => { setIsCreateOpen(false); setEditingIssue(null); loadIssues(); }}
+        project={project}
+        editingIssue={editingIssue}
+      />
     </div>
   );
 }
