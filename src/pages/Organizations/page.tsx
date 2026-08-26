@@ -41,11 +41,13 @@ export default function OrganizationPage() {
     setPageSize,
     refetch,
   } = usePaginatedList<Organization>({
-    fetcher: fetchOrganizationsPage,
+    fetcher: (params) => fetchOrganizationsPage({ 
+      ...params, 
+      search: searchQuery  
+    }),
     initialPageSize: 20,
     extraDeps: [searchQuery],
   });
-
   const handleSearch = () => {
     setCurrentPage(1);
   };
@@ -135,7 +137,7 @@ export default function OrganizationPage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+          {/* <div className="flex items-center gap-3">
             <span className="text-base text-slate-500">Show</span>
             <Select
               value={pageSize}
@@ -151,7 +153,7 @@ export default function OrganizationPage() {
               ]}
             />
             <span className="text-base text-slate-500">entries</span>
-          </div>
+          </div> */}
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>

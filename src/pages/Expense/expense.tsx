@@ -45,7 +45,10 @@ export default function ExpensePage() {
     setPageSize,
     refetch,
   } = usePaginatedList<Expense>({
-    fetcher: fetchExpensesPage,
+    fetcher: (params) => fetchExpensesPage({ 
+      ...params, 
+      search: searchQuery  
+    }),
     initialPageSize: 20,
     extraDeps: [searchQuery],
   });
@@ -130,7 +133,7 @@ export default function ExpensePage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+          {/* <div className="flex items-center gap-3">
             <span className="text-base text-slate-500">Show</span>
             <select
               value={pageSize}
@@ -145,7 +148,7 @@ export default function ExpensePage() {
               <option value={100}>100</option>
             </select>
             <span className="text-base text-slate-500">entries</span>
-          </div>
+          </div> */}
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>

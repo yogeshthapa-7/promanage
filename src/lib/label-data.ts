@@ -43,7 +43,7 @@ function buildSearchBody(params: FetchLabelsParams) {
       draw: 1,
       start: params.start,
       length: params.length,
-      search: { value: '', regex: '' },
+      search: { value: params.search, regex: '' }, 
     },
     param: {
       LabelInfoID: 0,

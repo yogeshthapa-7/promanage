@@ -264,7 +264,7 @@ export default function EmployeePage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+          {/* <div className="flex items-center gap-3">
             <span className="text-base text-slate-500">Show</span>
             <Select
               value={pageSize}
@@ -280,7 +280,7 @@ export default function EmployeePage() {
               ]}
             />
             <span className="text-base text-slate-500">entries</span>
-          </div>
+          </div> */}
           <div className="flex items-center gap-2">
             <Button size="small" icon={<Copy className="h-3.5 w-3.5" />} onClick={handleCopy}>Copy</Button>
             <Button size="small" icon={<Download className="h-3.5 w-3.5" />} onClick={handleCSVExport}>CSV</Button>
