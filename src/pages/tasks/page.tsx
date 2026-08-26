@@ -342,137 +342,141 @@ export default function TasksPage() {
         Showing {start} to {end} of {filteredTotal} entries
       </div>
 
-      <Card className="mt-4">
-        {loading ? (
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div className="px-4 py-3 text-center text-sm text-slate-400">Loading tasks...</div>
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-base text-slate-400">
-            No tasks found.
-          </div>
-        ) : viewMode === 'list' ? (
-          <div className="overflow-x-auto">
-            <table className="w-full border-separate border-spacing-y-1.5">
-              <thead>
-                <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
-                  <th className="bg-slate-50 px-4 py-3">Project</th>
-                  <th className="bg-slate-50 px-4 py-3">Manager</th>
-                  <th className="bg-slate-50 px-4 py-3">Status</th>
-                  <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTasks.map((task) => {
-                  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1.01)';
-                    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                  };
-                  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  };
+       {loading ? (
+         <Card className="mt-4">
+           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+             <div className="px-4 py-3 text-center text-sm text-slate-400">Loading tasks...</div>
+           </div>
+         </Card>
+       ) : filteredTasks.length === 0 ? (
+         <Card className="mt-4">
+           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-base text-slate-400">
+             No tasks found.
+           </div>
+         </Card>
+       ) : viewMode === 'list' ? (
+         <Card className="mt-4">
+           <div className="overflow-x-auto">
+             <table className="w-full border-separate border-spacing-y-1.5">
+               <thead>
+                 <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                   <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
+                   <th className="bg-slate-50 px-4 py-3">Project</th>
+                   <th className="bg-slate-50 px-4 py-3">Manager</th>
+                   <th className="bg-slate-50 px-4 py-3">Status</th>
+                   <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 {filteredTasks.map((task) => {
+                   const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                     e.currentTarget.style.transform = 'scale(1.01)';
+                     e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+                   };
+                   const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
+                     e.currentTarget.style.transform = 'scale(1)';
+                   };
 
-                  return (
-                    <tr
-                      key={task.TaskInfoID}
-                      className="text-sm text-slate-700"
-                      onMouseEnter={handleRowMouseEnter}
-                      onMouseLeave={handleRowMouseLeave}
-                    >
-                      <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                        <div className="font-semibold text-slate-900">{task.TaskTitle}</div>
-                        {/* {task.TaskCode && <div className="text-xs text-muted-foreground font-mono">{task.TaskCode}</div>} */}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                        {task.ProjectInfoName || "—"}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                        {task.TaskManagerName || "—"}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100">
-                        <Badge className={statusColor[task.WorkStatusName] ?? "!bg-gray-100 !text-gray-700"}>
-                          {task.WorkStatusName}
-                        </Badge>
-                      </td>
-                      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
-                          {task.CanEdit && (
-                            <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
-                          )}
-                          {task.CanDelete && (
-                            <Button type="text" size="small" danger onClick={() => handleDeleteTask(task)} icon={<Trash2 className="w-4 h-4" />} />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredTasks.map((task) => (
-              <Card key={task.TaskInfoID} hover className="group overflow-hidden flex flex-col">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
-                      {task.TaskTitle}
-                    </h3>
-                    {task.TaskCode && (
-                      <div className="text-xs text-slate-400 font-mono mt-0.5">{task.TaskCode}</div>
-                    )}
-                  </div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
-                    #{task.TaskInfoID}
-                  </span>
-                </div>
+                   return (
+                     <tr
+                       key={task.TaskInfoID}
+                       className="text-sm text-slate-700"
+                       onMouseEnter={handleRowMouseEnter}
+                       onMouseLeave={handleRowMouseLeave}
+                     >
+                       <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                         <div className="font-semibold text-slate-900">{task.TaskTitle}</div>
+                         {/* {task.TaskCode && <div className="text-xs text-muted-foreground font-mono">{task.TaskCode}</div>} */}
+                       </td>
+                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                         {task.ProjectInfoName || "—"}
+                       </td>
+                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                         {task.TaskManagerName || "—"}
+                       </td>
+                       <td className="bg-white px-4 py-3 border-b border-slate-100">
+                         <Badge className={statusColor[task.WorkStatusName] ?? "!bg-gray-100 !text-gray-700"}>
+                           {task.WorkStatusName}
+                         </Badge>
+                       </td>
+                       <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                         <div className="flex items-center justify-end gap-2">
+                           <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
+                           {task.CanEdit && (
+                             <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
+                           )}
+                           {task.CanDelete && (
+                             <Button type="text" size="small" danger onClick={() => handleDeleteTask(task)} icon={<Trash2 className="w-4 h-4" />} />
+                           )}
+                         </div>
+                       </td>
+                     </tr>
+                   );
+                 })}
+               </tbody>
+             </table>
+           </div>
+         </Card>
+       ) : (
+         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+           {filteredTasks.map((task) => (
+             <Card key={task.TaskInfoID} hover className="group overflow-hidden flex flex-col">
+               <div className="flex items-start justify-between mb-3">
+                 <div className="min-w-0 flex-1">
+                   <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
+                     {task.TaskTitle}
+                   </h3>
+                   {task.TaskCode && (
+                     <div className="text-xs text-slate-400 font-mono mt-0.5">{task.TaskCode}</div>
+                   )}
+                 </div>
+                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                   #{task.TaskInfoID}
+                 </span>
+               </div>
 
-                <div className="space-y-2 mb-4 flex-1">
-                  <div className="flex items-center justify-between text-sm gap-2">
-                    <span className="text-slate-400 shrink-0">Project</span>
-                    <span className="font-semibold text-slate-700 truncate">{task.ProjectInfoName || "—"}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm gap-2">
-                    <span className="text-slate-400 shrink-0">Manager</span>
-                    <span className="font-semibold text-slate-700 truncate">{task.TaskManagerName || "—"}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm gap-2">
-                    <span className="text-slate-400 shrink-0">Due Date</span>
-                    <span className="font-semibold text-slate-700">{task.DueDate || "—"}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm gap-2">
-                    <span className="text-slate-400 shrink-0">Status</span>
-                    <Badge className={statusColor[task.WorkStatusName] ?? "!bg-gray-100 !text-gray-700"}>
-                      {task.WorkStatusName}
-                    </Badge>
-                  </div>
-                  {task.PriorityName && (
-                    <div className="flex items-center justify-between text-sm gap-2">
-                      <span className="text-slate-400 shrink-0">Priority</span>
-                      <Badge className={priorityColor[task.PriorityName] ?? "!bg-gray-100 !text-gray-700"}>
-                        {task.PriorityName}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
+               <div className="space-y-2 mb-4 flex-1">
+                 <div className="flex items-center justify-between text-sm gap-2">
+                   <span className="text-slate-400 shrink-0">Project</span>
+                   <span className="font-semibold text-slate-700 truncate">{task.ProjectInfoName || "—"}</span>
+                 </div>
+                 <div className="flex items-center justify-between text-sm gap-2">
+                   <span className="text-slate-400 shrink-0">Manager</span>
+                   <span className="font-semibold text-slate-700 truncate">{task.TaskManagerName || "—"}</span>
+                 </div>
+                 <div className="flex items-center justify-between text-sm gap-2">
+                   <span className="text-slate-400 shrink-0">Due Date</span>
+                   <span className="font-semibold text-slate-700">{task.DueDate || "—"}</span>
+                 </div>
+                 <div className="flex items-center justify-between text-sm gap-2">
+                   <span className="text-slate-400 shrink-0">Status</span>
+                   <Badge className={statusColor[task.WorkStatusName] ?? "!bg-gray-100 !text-gray-700"}>
+                     {task.WorkStatusName}
+                   </Badge>
+                 </div>
+                 {task.PriorityName && (
+                   <div className="flex items-center justify-between text-sm gap-2">
+                     <span className="text-slate-400 shrink-0">Priority</span>
+                     <Badge className={priorityColor[task.PriorityName] ?? "!bg-gray-100 !text-gray-700"}>
+                       {task.PriorityName}
+                     </Badge>
+                   </div>
+                 )}
+               </div>
 
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                  <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
-                  {task.CanEdit && (
-                    <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
-                  )}
-                  {task.CanDelete && (
-                    <Button type="text" size="small" danger onClick={() => handleDeleteTask(task)} icon={<Trash2 className="w-4 h-4" />} />
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </Card>
+               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                 <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
+                 {task.CanEdit && (
+                   <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
+                 )}
+                 {task.CanDelete && (
+                   <Button type="text" size="small" danger onClick={() => handleDeleteTask(task)} icon={<Trash2 className="w-4 h-4" />} />
+                 )}
+               </div>
+             </Card>
+           ))}
+         </div>
+       )}
 
       <div className="flex justify-end pt-2">
         <Pagination
