@@ -197,17 +197,20 @@ export interface SaveUserResult {
 
 export async function saveUser(payload: SaveUserPayload): Promise<SaveUserResult> {
   try {
+    const body = JSON.stringify(payload);
     const res = await apiCall(SAVE_USER_URL, {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body,
     });
     const json = await res.json();
-    if (json.Success === false) {
-      const msg = json.Message || '';
-      return { success: false, message: msg ? `Save failed: ${msg}` : 'Save failed. Check the payload or user group permissions.', data: json.Data };
+    const successFlag = json.Success ?? json.success;
+    const messageText = json.Message ?? json.message;
+    if (successFlag === false) {
+      const msg = messageText || '';
+      return { success: false, message: msg || 'Failed. Check the payload or user group permissions.', data: json.Data ?? json.data };
     }
     if (!res.ok) throw new Error(`Failed to save user: ${res.statusText}`);
-    return { success: true, message: 'User saved successfully', data: json.Data };
+    return { success: true, message: 'User saved successfully', data: json.Data ?? json.data };
   } catch (err) {
     if (err instanceof Error) {
       return { success: false, message: err.message };

@@ -12,6 +12,7 @@ import { fetchOrganizations, type Organization } from '@/lib/organizations-data'
 import CreateOrganizationModal from './Create';
 import { apiCall } from '@/lib/api';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import { useQueryClient } from '@tanstack/react-query';
 
 function fetchOrganizationsPage(params: PaginatedListParams): Promise<{ items: Organization[]; total: number }> {
   return fetchOrganizations({
@@ -52,6 +53,8 @@ export default function OrganizationPage() {
     setCurrentPage(1);
   };
 
+  const queryClient = useQueryClient();
+
   const handleAddNew = () => {
     setEditingOrg(null);
     setShowCreateModal(true);
@@ -79,6 +82,7 @@ export default function OrganizationPage() {
           if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
           message.success(`Organization "${org.title}" deleted successfully`);
+          queryClient.invalidateQueries({ queryKey: ['organizations', 'search'] });
           refetch();
         } catch (err) {
           if (err instanceof Error) {
@@ -93,6 +97,7 @@ export default function OrganizationPage() {
     setShowCreateModal(false);
     setEditingOrg(null);
     setCurrentPage(1);
+    queryClient.invalidateQueries({ queryKey: ['organizations', 'search'] });
     refetch();
     message.success('Organization saved successfully');
   };
