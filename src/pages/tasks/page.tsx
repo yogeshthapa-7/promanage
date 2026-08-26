@@ -322,7 +322,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
           <span>Show</span>
           <Select
@@ -336,7 +336,7 @@ export default function TasksPage() {
           />
           <span>entries</span>
         </div>
-      </div>
+      </div> */}
 
       <div className="text-base text-slate-500 font-medium mt-2">
         Showing {start} to {end} of {filteredTotal} entries

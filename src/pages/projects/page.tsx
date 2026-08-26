@@ -95,28 +95,29 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
   const [stats, setStats] = useState({ projects: 0, tasks: 0, organizations: 0, departments: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
-  const pageSize = 9;
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const {
-    data: projects,
-    loading,
-    currentPage,
-    setCurrentPage,
-    refetch,
-   } = usePaginatedList<Project>({
-    fetcher: fetchProjectsPage,
-    initialPageSize: pageSize,
-    extraDeps: [searchQuery, filterStatus, sortField, sortDirection],
-    extraParams: {
-      search: searchQuery,
-      status: filterStatus,
-      sort: sortField,
-      sortDirection: sortDirection,
-    },
-  });
+const {
+  data: projects,
+  loading,
+  currentPage,
+  pageSize,
+  setCurrentPage,
+  setPageSize,
+  refetch,
+} = usePaginatedList<Project>({
+  fetcher: fetchProjectsPage,
+  initialPageSize: 20,
+  extraDeps: [searchQuery, filterStatus, sortField, sortDirection],
+  extraParams: {
+    search: searchQuery,
+    status: filterStatus,
+    sort: sortField,
+    sortDirection: sortDirection,
+  },
+});
 
   const displayProjects = useMemo(() => {
     const priorityOrder: Record<string, number> = {
@@ -505,42 +506,74 @@ export default function ProjectsPage() {
                 })}
               </div>
             ) : (
-              <Card hover className="space-y-2">
-                {paginatedProjects.map((project) => {
-                  const Icon = project.icon;
-                  const projectTitle = project.title || project.name || 'Untitled Project';
-                  return (
-                    <Card key={project.id} hover className="flex items-center gap-3 px-4 py-2.5 cursor-pointer" onClick={() => handleViewProject(project)}>
-                      <div className={`p-2 rounded-xl ${project.iconBg} shrink-0`}><Icon className="w-4 h-4" /></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="text-sm font-bold text-foreground truncate">{projectTitle}</h3>
-                          {project.starred && <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />}
-                        </div>
-                      </div>
-                      <Badge>{project.status}</Badge>
-                      <span className="hidden md:inline-block text-sm text-muted-foreground w-24 truncate">{project.priority}</span>
-                      <div className="hidden lg:flex items-center gap-3 w-48">
-                         <ProgressBar value={project.progress} color={project.progressColor} />
-                        <span className="text-sm font-semibold text-foreground w-8 text-right">{project.progress}%</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />} />
-                        <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />} />
-                        <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
-                      </div>
-                    </Card>
-                  );
-                })}
+              <Card className="overflow-x-auto">
+                <table className="w-full border-separate border-spacing-y-1.5">
+                  <thead>
+                    <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="rounded-l-xl bg-slate-50 px-5 py-3">Project</th>
+                      <th className="bg-slate-50 px-4 py-3">Status</th>
+                      <th className="bg-slate-50 px-4 py-3">Priority</th>
+                      <th className="bg-slate-50 px-4 py-3">Progress</th>
+                      <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedProjects.map((project) => {
+                      const Icon = project.icon;
+                      const projectTitle = project.title || project.name || 'Untitled Project';
+                      return (
+                        <tr
+                          key={project.id}
+                          className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
+                        >
+                          <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${project.iconBg} shrink-0`}><Icon className="w-4 h-4" /></div>
+                              <div className="min-w-0">
+                                <div className="font-semibold text-slate-900 truncate">{projectTitle}</div>
+                                <div className="text-xs text-muted-foreground font-mono truncate">{project.category || '—'}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="bg-white px-4 py-3 border-b border-slate-100">
+                            <Badge>{project.status}</Badge>
+                          </td>
+                          <td className="bg-white px-4 py-3 border-b border-slate-100">
+                            <span className="text-sm text-muted-foreground">{project.priority}</span>
+                          </td>
+                          <td className="bg-white px-4 py-3 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                              <ProgressBar value={project.progress} color={project.progressColor} />
+                              <span className="text-sm font-semibold text-foreground w-8 text-right">{project.progress}%</span>
+                            </div>
+                          </td>
+                          <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); handleViewProjectTasks(project); }} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">Tasks</Button>
+                              <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />} />
+                              <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />} />
+                              <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </Card>
             )}
 
-            {Math.ceil(displayProjects.length / pageSize) > 1 && (
+            {!loading && projects.length > 0 && (
               <Pagination
                 total={displayProjects.length}
                 currentPage={currentPage}
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+                pageSizeOptions={[ 20, 50, 100]}
               />
             )}
           </div>
