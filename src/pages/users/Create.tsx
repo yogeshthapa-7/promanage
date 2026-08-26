@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import type { User, UserGroup, OrganizationSelect } from '@/lib/users-data';
-import { fetchUserGroups, fetchOrganizations, saveUser } from '@/lib/users-data';
+import { fetchUserGroups, fetchOrganizations, saveUser, checkUserExists } from '@/lib/users-data';
 import Drawer from '@/components/drawer';
 import ProgressBar from '@/components/ui/ProgressBar';
 
@@ -31,6 +31,7 @@ export default function UserFormModal({
   const [passwordStrength, setPasswordStrength] = useState(0);
   const isEdit = !!editingUser;
   const queryClient = useQueryClient();
+  const userNameCheckIdRef = useRef(0);
 
   const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
 
@@ -67,7 +68,6 @@ export default function UserFormModal({
         fullName: editingUser.name,
         userGroup: editingUser.role,
         organization: org ? org.Title : editingUser.department,
-        theme: editingUser.theme || 'Facebook',
       });
     } else if (!open) {
       form.resetFields();
@@ -89,7 +89,7 @@ export default function UserFormModal({
         Password: values.password || '',
         CPassword: values.password || '',
         OrganizationID: selectedOrg ? selectedOrg.OrganizationID : 0,
-        Theme: values.theme || 'Facebook',
+        Theme: 'Facebook',
         UserGroupCode: selectedGroup ? selectedGroup.UserGroupCode : '',
         UserGroupId: 0,
       };
@@ -138,13 +138,34 @@ export default function UserFormModal({
       >
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              label="प्रयोगकर्ता नाम"
-              name="userName"
-              rules={[{ required: true, message: 'कृपया प्रयोगकर्ता नाम प्रविष्ट गर्नुहोस्' }]}
-            >
-              <Input placeholder="e.g. alex.rivera" className="rounded-lg" />
-            </Form.Item>
+          <Form.Item
+            label="प्रयोगकर्ता नाम"
+            name="userName"
+            rules={[
+              { required: true, message: 'कृपया प्रयोगकर्ता नाम प्रविष्ट गर्नुहोस्' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || value.trim() === '') {
+                    return Promise.resolve();
+                  }
+                  const checkId = ++userNameCheckIdRef.current;
+                  return checkUserExists(value, isEdit ? Number(editingUser?.id) : undefined)
+                    .then(exists => {
+                      if (checkId !== userNameCheckIdRef.current) {
+                        return Promise.resolve();
+                      }
+                      if (exists) {
+                        return Promise.reject(new Error('यो प्रयोगकर्ता नाम पहिले नै अवस्थित छ'));
+                      }
+                      return Promise.resolve();
+                    })
+                    .catch(() => Promise.resolve());
+                },
+              }),
+            ]}
+          >
+            <Input placeholder="e.g. alex.rivera or alex@email.com" className="rounded-lg" />
+          </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
@@ -198,32 +219,9 @@ export default function UserFormModal({
                 />
              </Form.Item>
            </Col>
-         </Row>
+          </Row>
 
-         <Row gutter={16}>
-           <Col span={12}>
-             <Form.Item
-               label="Theme"
-               name="theme"
-               rules={[{ required: true, message: 'कृपया theme चयन गर्नुहोस्' }]}
-               initialValue="Facebook"
-             >
-                <Select
-                  placeholder="Select theme"
-                  className="rounded-lg"
-                  options={[
-                    { value: 'Facebook', label: 'Facebook' },
-                    { value: 'Apple', label: 'Apple' },
-                    { value: 'Google', label: 'Google' },
-                    { value: 'Transparent', label: 'Transparent' },
-                  ]}
-                  getPopupContainer={getPopupParent}
-                />
-             </Form.Item>
-           </Col>
-         </Row>
-
-           <Row gutter={16}>
+            <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="पासवर्ड"
