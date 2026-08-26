@@ -101,6 +101,11 @@ export default function MainBranchPage() {
     fetcher: fetchMainBranchesPage,
     initialPageSize: 20,
     extraDeps: [filterMainBranchId, filterDepartmentId, debouncedCode],
+    extraParams: {
+      mainBranchId: filterMainBranchId ? Number(filterMainBranchId) : undefined,
+      code: debouncedCode,
+      departmentId: filterDepartmentId ? Number(filterDepartmentId) : undefined,
+    },
   });
 
   const refreshMainBranches = () => refetch();

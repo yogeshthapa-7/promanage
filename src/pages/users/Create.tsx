@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
+import { useQueryClient } from '@tanstack/react-query';
 import type { User, UserGroup, OrganizationSelect } from '@/lib/users-data';
 import { fetchUserGroups, fetchOrganizations, saveUser } from '@/lib/users-data';
 import Drawer from '@/components/drawer';
@@ -12,7 +13,6 @@ interface UserFormModalProps {
   onClose: () => void;
   onSuccess: () => void;
   editingUser?: User | null;
-  existingUsers: User[];
 }
 
 export default function UserFormModal({
@@ -20,7 +20,6 @@ export default function UserFormModal({
   onClose,
   onSuccess,
   editingUser,
-  existingUsers,
 }: UserFormModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -31,6 +30,7 @@ export default function UserFormModal({
   const [organizationOpen, setOrganizationOpen] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const isEdit = !!editingUser;
+  const queryClient = useQueryClient();
 
   const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
 
@@ -79,24 +79,6 @@ export default function UserFormModal({
       const values = await form.validateFields();
       setLoading(true);
 
-      const duplicateUser = existingUsers.find(
-        (u) => u.email.toLowerCase() === values.userName.toLowerCase(),
-      );
-      if (duplicateUser && !isEdit) {
-        message.error('This username already exists');
-        setLoading(false);
-        return;
-      }
-
-      const duplicateName = existingUsers.find(
-        (u) => u.name.toLowerCase() === values.fullName.toLowerCase(),
-      );
-      if (duplicateName && !isEdit) {
-        message.error('This full name already exists');
-        setLoading(false);
-        return;
-      }
-
       const selectedGroup = userGroups.find(g => g.UserGroupName === values.userGroup);
       const selectedOrg = organizations.find(o => o.Title === values.organization);
 
@@ -119,6 +101,7 @@ export default function UserFormModal({
 
       message.success(isEdit ? 'प्रयोगकर्ता सफलतापूर्वक अपडेट गरियो' : 'प्रयोगकर्ता सफलतापूर्वक सिर्जना गरियो');
       form.resetFields();
+      queryClient.invalidateQueries({ queryKey: ['users', 'search'] });
       onClose();
       onSuccess();
     } catch (err) {

@@ -8,6 +8,7 @@ import { Button, Input, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
+import { useQueryClient } from '@tanstack/react-query';
 import { fetchUsers, ROLE_STYLE, fetchUserGroups, deleteUser } from '@/lib/users-data';
 import type { User } from '@/lib/users-data';
 import UserFormModal from './Create';
@@ -34,6 +35,8 @@ export default function UsersPage() {
   const [userGroups, setUserGroups] = useState<{ UserGroupId: number; UserGroupName: string }[]>([]);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const queryClient = useQueryClient();
 
   const {
     data: users,
@@ -82,10 +85,11 @@ export default function UsersPage() {
       okType: 'danger',
       onOk: async () => {
         const userId = Number(user.id);
-        const result = await deleteUser(userId);
-        if (result.success) {
-          refetch();
-        } else {
+         const result = await deleteUser(userId);
+         if (result.success) {
+           queryClient.invalidateQueries({ queryKey: ['users', 'search'] });
+           refetch();
+         } else {
           message.error(result.message || 'Failed to delete user');
         }
       },
@@ -240,7 +244,6 @@ export default function UsersPage() {
           setEditUser(null);
         }}
         editingUser={editUser}
-        existingUsers={users}
         onSuccess={refetch}
       />
     </div>

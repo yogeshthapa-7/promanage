@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
@@ -13,6 +13,17 @@ import { apiCall } from '@/lib/api';
 import { fetchBranches, type Branch } from '@/lib/branches-data';
 import CreateBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 const mockBranches: Branch[] = [
   { id: '1', sn: 1, name: 'शाखा - प्रशासन', branchCode: 'B-001', mainBranchId: 1, mainBranchName: 'मुख्य शाखा - प्रशासन', departmentId: 19, departmentName: 'प्रशासन विभाग', orderKey: 1 },
@@ -49,6 +60,11 @@ export default function BranchPage() {
   const [searchMainBranch, setSearchMainBranch] = useState('');
   const [searchDepartment, setSearchDepartment] = useState('');
 
+  const debouncedSearchName = useDebounce(searchName, 300);
+  const debouncedSearchCode = useDebounce(searchCode, 300);
+  const debouncedSearchMainBranch = useDebounce(searchMainBranch, 300);
+  const debouncedSearchDepartment = useDebounce(searchDepartment, 300);
+
   const {
     data: branches,
     total: totalFiltered,
@@ -61,7 +77,13 @@ export default function BranchPage() {
   } = usePaginatedList<Branch>({
     fetcher: fetchBranchesPage,
     initialPageSize: 20,
-    extraDeps: [searchName, searchCode, searchMainBranch, searchDepartment],
+    extraDeps: [debouncedSearchName, debouncedSearchCode, debouncedSearchMainBranch, debouncedSearchDepartment],
+    extraParams: {
+      name: debouncedSearchName,
+      code: debouncedSearchCode,
+      mainBranchName: debouncedSearchMainBranch,
+      departmentName: debouncedSearchDepartment,
+    },
   });
 
   const refreshBranches = () => refetch();

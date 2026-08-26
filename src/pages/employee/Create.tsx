@@ -296,23 +296,30 @@ export default function EmployeeSetupModal({
            body.ConfirmPassword = values.confirmPassword || '';
          }
 
-          const res = await apiCall(`${API_BASE}/SaveEmployeeInfo`, {
-           method: 'POST',
-           body: JSON.stringify(body),
-         });
+           const res = await apiCall(`${API_BASE}/SaveEmployeeInfo`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+          });
 
-       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-       let savedEmployee: Employee | undefined;
-       try {
-         savedEmployee = await res.json();
-       } catch {
-         // Fallback for non-JSON responses
-       }
+        const json = await res.json();
+        const successFlag = json.Success ?? json.success;
+        const messageText = json.Message ?? json.message;
+        if (successFlag === false) {
+          throw new Error(messageText || 'Failed. Check the payload or permissions.');
+        }
 
-       message.success(
-         isEdit ? 'कर्मचारी विवरण सफलतापूर्वक अपडेट गरियो' : 'कर्मचारी विवरण सफलतापूर्वक सुरक्षित गरियो'
-       );
+        let savedEmployee: Employee | undefined;
+        try {
+          savedEmployee = json.Data ?? json.data ?? json;
+        } catch {
+          // fallback
+        }
+
+        message.success(
+          isEdit ? 'कर्मचारी विवरण सफलतापूर्वक अपडेट गरियो' : 'कर्मचारी विवरण सफलतापूर्वक सुरक्षित गरियो'
+        );
        form.resetFields();
        setFileList([]);
        setSelectedDepartmentId(null);

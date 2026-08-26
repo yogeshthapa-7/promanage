@@ -13,6 +13,7 @@ import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
 import { apiCall } from '@/lib/api';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import { useQueryClient } from '@tanstack/react-query';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -63,6 +64,8 @@ export default function EmployeePage() {
     extraDeps: [debouncedSearch, fullnameFilter, addressFilter, phoneFilter],
   });
 
+  const queryClient = useQueryClient();
+
   const handleEditEmployee = (employee: Employee) => {
     setEditEmployee(employee);
     setShowEmployeeModal(true);
@@ -71,7 +74,11 @@ export default function EmployeePage() {
   const handleDeleteEmployee = async (employee: Employee) => {
     Modal.confirm({
       title: 'Remove Employee',
-      content: `Are you sure you want to remove <strong>${employee.Fullname}</strong> from the system?`,
+      content: (
+        <span>
+          Are you sure you want to remove <strong>{employee.Fullname}</strong> from the system?
+        </span>
+      ),
       okText: 'Remove',
       okType: 'danger',
       onOk: async () => {
@@ -81,12 +88,18 @@ export default function EmployeePage() {
           const res = await apiCall(deleteUrl, { method: 'GET' });
           if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
           message.success('Employee removed successfully');
+          queryClient.invalidateQueries({ queryKey: ['employees', 'search'] });
           refetch();
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Failed to delete employee');
         }
       },
     });
+  };
+
+  const handleEmployeeSaveSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['employees', 'search'] });
+    refetch();
   };
 
   const handleSearch = () => {
@@ -390,7 +403,7 @@ export default function EmployeePage() {
           setEditEmployee(null);
         }}
         editingEmployee={editEmployee}
-        onSuccess={refetch}
+        onSuccess={handleEmployeeSaveSuccess}
       />
     </div>
   );

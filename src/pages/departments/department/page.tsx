@@ -80,6 +80,11 @@ export default function DepartmentPage() {
     fetcher: fetchDepartmentsPage,
     initialPageSize: 20,
     extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab],
+    extraParams: {
+      departmentId: filterDeptId,
+      code: debouncedDeptCode,
+      mainDept: debouncedMainDept,
+    },
   });
 
   /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
