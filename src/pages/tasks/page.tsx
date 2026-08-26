@@ -104,7 +104,7 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
   const debouncedManagerName = useDebounce(managerNameSearch, 300);
 
@@ -464,15 +464,15 @@ export default function TasksPage() {
                  )}
                </div>
 
-               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                 <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
-                 {task.CanEdit && (
-                   <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
-                 )}
-                 {task.CanDelete && (
-                   <Button type="text" size="small" danger onClick={() => handleDeleteTask(task)} icon={<Trash2 className="w-4 h-4" />} />
-                 )}
-               </div>
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                  <Button size="small" type="primary" onClick={() => handleViewTask(task)}>View</Button>
+                  {task.CanEdit && (
+                    <Button size="small" onClick={() => handleEditTask(task)}>Edit</Button>
+                  )}
+                  {task.CanDelete && (
+                    <Button size="small" danger onClick={() => handleDeleteTask(task)}>Delete</Button>
+                  )}
+                </div>
              </Card>
            ))}
          </div>

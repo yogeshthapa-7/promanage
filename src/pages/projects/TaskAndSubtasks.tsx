@@ -246,14 +246,13 @@ function TaskGridCard({
       </div>
 
       <div className="flex items-center gap-1.5 pt-2.5 mt-2.5 border-t border-border/60">
-        <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); onView(); }} icon={<Eye className="w-3.5 h-3.5" />}>View</Button>
-        <Button size="small" onClick={(e) => { e.stopPropagation(); onEdit(); }} icon={<Pencil className="w-3.5 h-3.5" />}>Edit</Button>
-        <Button size="small" danger onClick={(e) => { e.stopPropagation(); onDelete(); }} icon={<Trash2 className="w-3.5 h-3.5" />}>Delete</Button>
+        <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); onView(); }}>View</Button>
+        <Button size="small" onClick={(e) => { e.stopPropagation(); onEdit(); }}>Edit</Button>
+        <Button size="small" danger onClick={(e) => { e.stopPropagation(); onDelete(); }}>Delete</Button>
         <Button
           size="small"
           type="primary"
           onClick={(e) => { e.stopPropagation(); onViewSubtasks(); }}
-          icon={<ListChecks className="w-3.5 h-3.5" />}
           className="!bg-green-600 hover:!bg-green-700 !border-green-600"
         >
           Subtasks
