@@ -129,6 +129,11 @@
   }
 }
 
+/* Keep AntD messages above drawers and other overlays. */
+.ant-message {
+  z-index: 12000;
+}
+
 /* ── Custom scrollbar (outside @layer for Tailwind v4 compatibility) ── */
 .scrollbar-thin {
   scrollbar-width: thin;
