@@ -3,7 +3,7 @@ import { fetchUsers } from '@/lib/users-data';
 import { fetchEmployees } from '@/lib/employees-data';
 import { fetchDepartments } from '@/lib/departments-data';
 import { fetchOrganizations } from '@/lib/organizations-data';
-import { fetchAllTasks } from '@/lib/tasks-data';
+import { fetchTaskCount } from '@/lib/stats-data';
 
 interface DashboardStats {
   projects: number;
@@ -33,12 +33,12 @@ export function useDashboardStats(projectCount = 0) {
     async function load() {
       setStats((s) => ({ ...s, loading: true }));
       try {
-        const [usersResult, employeesResult, departmentsResult, organizationsResult, tasksResult] = await Promise.all([
+        const [usersResult, employeesResult, departmentsResult, organizationsResult, taskCount] = await Promise.all([
           fetchUsers({ search: '', start: 0, length: 1, signal: controller.signal }),
           fetchEmployees({ search: '', start: 0, length: 1, signal: controller.signal }),
           fetchDepartments({ search: '', start: 0, length: 1, signal: controller.signal }),
           fetchOrganizations({ search: '', start: 0, length: 1, signal: controller.signal }),
-          fetchAllTasks({ page: 1, pageSize: 1, signal: controller.signal }),
+          fetchTaskCount(),
         ]);
 
         if (!cancelled) {
@@ -48,7 +48,7 @@ export function useDashboardStats(projectCount = 0) {
             employees: employeesResult.total,
             departments: departmentsResult.total,
             organizations: organizationsResult.total,
-            tasks: tasksResult.total,
+            tasks: taskCount,
             loading: false,
           });
         }
