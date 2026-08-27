@@ -204,6 +204,7 @@ export default function AntdNepaliDatePicker({
             options={NEPALI_MONTHS_NP.map((m, idx) => ({ label: m, value: idx + 1 }))}
             className="w-24 text-xs font-semibold"
             popupMatchSelectWidth={false}
+            getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
           />
           <Select
             size="small"
@@ -212,6 +213,7 @@ export default function AntdNepaliDatePicker({
             options={yearOptions}
             className="w-20 text-xs font-semibold"
             popupMatchSelectWidth={false}
+            getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
           />
         </div>
 
