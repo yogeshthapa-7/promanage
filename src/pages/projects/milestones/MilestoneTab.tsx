@@ -5,8 +5,9 @@ import { apiCall } from "@/lib/api";
 import { calculateProgressFromDates } from "@/lib/nepali-date";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
-import { LayoutGrid, List, Plus } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, RotateCcw } from "lucide-react";
 import MilestoneCreate from "./Create";
+import MilestoneSearch from "./Search";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const MILESTONE_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
@@ -34,6 +35,9 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [allMilestones, setAllMilestones] = useState<MilestoneItem[]>([]);
 
   const loadMilestones = () => {
     const controller = new AbortController();
@@ -72,7 +76,9 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
         const json = await res.json();
         if (!cancelled) {
-          setMilestones(Array.isArray(json?.data) ? json.data : []);
+          const data = Array.isArray(json?.data) ? json.data : [];
+          setMilestones(data);
+          setAllMilestones(data);
         }
       })
       .catch((err) => {
@@ -128,13 +134,29 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
     setIsCreateOpen(true);
   };
 
+  const handleClearMilestoneSearch = () => {
+    setIsSearchOpen(false);
+    setIsSearchActive(false);
+    setMilestones(allMilestones);
+  };
+
   if (milestonesLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-end gap-2">
-          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
-            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
-            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
+              Search
+            </Button>
+            <Button icon={<RotateCcw size={16} />} onClick={handleClearMilestoneSearch}>
+              Clear
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+              <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+              <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+            </div>
           </div>
         </div>
         <Card>
@@ -147,17 +169,29 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   if (milestones.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-end gap-2">
-          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
-            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
-            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
+              Search
+            </Button>
+            <Button icon={<RotateCcw size={16} />} onClick={handleClearMilestoneSearch}>
+              Clear
+            </Button>
           </div>
-          <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
-            Add Milestone
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+              <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+              <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+            </div>
+            <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
+              Add Milestone
+            </Button>
+          </div>
         </div>
         <Card>
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No milestones found.</div>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">
+            {isSearchActive ? 'No milestones match your search.' : 'No milestones found.'}
+          </div>
         </Card>
         <MilestoneCreate
           open={isCreateOpen}
@@ -172,15 +206,47 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end gap-2">
-        <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
-          <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
-          <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
+            Search
+          </Button>
+          <Button icon={<RotateCcw size={16} />} onClick={handleClearMilestoneSearch}>
+            Clear
+          </Button>
         </div>
-        <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
-          Add Milestone
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+          </div>
+          <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
+            Add Milestone
+          </Button>
+        </div>
       </div>
+      {isSearchOpen && (
+        <MilestoneSearch
+          open={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onSearch={(values) => {
+            const searchTitle = String(values.MilestoneTitle || '').toLowerCase();
+            const searchSummary = String(values.Summary || '').toLowerCase();
+            setIsSearchActive(true);
+            setMilestones(() => {
+              if (!searchTitle && !searchSummary) return allMilestones;
+              return allMilestones.filter((milestone) => {
+                const matchesTitle = !searchTitle || milestone.MilestoneTitle.toLowerCase().includes(searchTitle);
+                const matchesSummary = !searchSummary || milestone.Summary.toLowerCase().includes(searchSummary);
+                return matchesTitle && matchesSummary;
+              });
+            });
+          }}
+          onClear={handleClearMilestoneSearch}
+          project={project}
+          modal={false}
+        />
+      )}
 
       {viewMode === 'list' ? (
         <Card className="mt-4 overflow-x-auto">

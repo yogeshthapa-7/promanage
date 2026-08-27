@@ -4,8 +4,9 @@ import { apiCall } from "@/lib/api";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import { LayoutGrid, List, Pencil, Trash2, Plus } from "lucide-react";
+import { LayoutGrid, List, Pencil, Trash2, Plus, Search, RotateCcw } from "lucide-react";
 import IssueCreate from "./Create";
+import IssueSearch from "./Search";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
@@ -40,6 +41,9 @@ export default function IssueTab({ project }: IssueTabProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [allIssues, setAllIssues] = useState<IssueItem[]>([]);
 
   const handleDeleteIssue = (issue: IssueItem) => {
     Modal.confirm({
@@ -115,7 +119,9 @@ export default function IssueTab({ project }: IssueTabProps) {
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
         const json = await res.json();
         if (!cancelled) {
-          setIssues(Array.isArray(json?.data) ? json.data : []);
+          const data = Array.isArray(json?.data) ? json.data : [];
+          setIssues(data);
+          setAllIssues(data);
         }
       })
       .catch((err) => {
@@ -137,6 +143,12 @@ export default function IssueTab({ project }: IssueTabProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project]);
 
+  const handleClearIssueSearch = () => {
+    setIsSearchOpen(false);
+    setIsSearchActive(false);
+    setIssues(allIssues);
+  };
+
   const handleAdd = () => {
     setEditingIssue(null);
     setIsCreateOpen(true);
@@ -148,16 +160,48 @@ export default function IssueTab({ project }: IssueTabProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
-          Add Issue
-        </Button>
-        <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
-          <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
-          <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+        <div className="flex items-center gap-2">
+          <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
+            Search
+          </Button>
+          <Button icon={<RotateCcw size={16} />} onClick={handleClearIssueSearch}>
+            Clear
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+          </div>
+          <Button type="primary" icon={<Plus size={16} />} onClick={handleAdd}>
+            Add Issue
+          </Button>
         </div>
       </div>
+      {isSearchOpen && (
+        <IssueSearch
+          open={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onSearch={(values) => {
+            const searchTitle = String(values.IssuesTitle || '').toLowerCase();
+            const searchRaisedBy = String(values.RaisedBy || '').toLowerCase();
+            setIsSearchActive(true);
+            setIssues(() => {
+              if (!searchTitle && !searchRaisedBy) return allIssues;
+              return allIssues.filter((issue) => {
+                const matchesTitle = !searchTitle || issue.IssuesTitle.toLowerCase().includes(searchTitle);
+                const matchesRaisedBy = !searchRaisedBy || issue.RaisedBy.toLowerCase().includes(searchRaisedBy);
+                return matchesTitle && matchesRaisedBy;
+              });
+            });
+          }}
+          onClear={handleClearIssueSearch}
+          project={project}
+          modal={false}
+        />
+      )}
 
       {issuesLoading ? (
         <Card>
@@ -165,7 +209,9 @@ export default function IssueTab({ project }: IssueTabProps) {
         </Card>
       ) : issues.length === 0 ? (
         <Card>
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">No issues found.</div>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">
+            {isSearchActive ? 'No issues match your search.' : 'No issues found.'}
+          </div>
         </Card>
       ) : viewMode === 'list' ? (
         <Card className="mt-4 overflow-x-auto">
