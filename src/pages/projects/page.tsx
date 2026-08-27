@@ -335,7 +335,7 @@ const {
             Manage, organize and monitor all your projects in one place.
           </p>
         </div>
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-nowrap">
           <SearchInput
             value={searchQuery}
             onChange={(value) => {
@@ -348,6 +348,9 @@ const {
           />
           <Button type="primary" onClick={openCreateModal} icon={<Plus className="w-4 h-4" />}>
             New Project
+          </Button>
+          <Button onClick={handleExport} icon={<Download className="w-3.5 h-3.5 text-muted-foreground" />}>
+            Export
           </Button>
           <div className="relative">
             <DropdownMenu
@@ -384,9 +387,6 @@ const {
             <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
             <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
           </div>
-          <Button onClick={handleExport} icon={<Download className="w-3.5 h-3.5 text-muted-foreground" />}>
-            Export
-          </Button>
         </div>
       </div>
       <hr className="border-slate-200 my-4" />

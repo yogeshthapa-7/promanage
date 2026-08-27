@@ -38,6 +38,7 @@ const SELECT_LIST_ENDPOINTS = {
   projectType: `${API_BASE}/ProjectInfo/ProjectTypeList`,
   department: `${API_BASE}/Department/SelectList`,
   expenseInfo: `${API_BASE}/ExpenseInfo/SelectList`,
+  ward: `${API_BASE}/WardInfo/SelectList`,
 };
 
 const mapToSelectOptions = (items: SelectListItem[]): { value: string; label: string }[] => {
@@ -132,6 +133,7 @@ const DrawerContent = memo(
     const [projectTypeOptions, setProjectTypeOptions] = useState<{ value: string; label: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ value: string; label: string }[]>([]);
     const [expenseInfoOptions, setExpenseInfoOptions] = useState<{ value: string; label: string }[]>([]);
+    const [wardOptions, setWardOptions] = useState<{ value: string; label: string }[]>([]);
 
     const isEdit = !!editingProject;
 
@@ -154,6 +156,7 @@ const DrawerContent = memo(
           apiCall(SELECT_LIST_ENDPOINTS.projectType),
           apiCall(SELECT_LIST_ENDPOINTS.department),
           apiCall(SELECT_LIST_ENDPOINTS.expenseInfo),
+          apiCall(SELECT_LIST_ENDPOINTS.ward),
         ]);
 
         const parseJson = async (_label: string, result: PromiseSettledResult<Response>) => {
@@ -165,8 +168,8 @@ const DrawerContent = memo(
           return list.map(extractIdAndName).filter((item): item is SelectListItem => item !== null);
         };
 
-        const [projectHeadResult, statusResult, policyProgramResult, budgetResult, clientResult, projectTypeResult, departmentResult, expenseInfoResult] = results;
-        const [projectHeadData, statusData, policyProgramData, budgetData, clientData, projectTypeData, departmentData, expenseInfoData] =
+        const [projectHeadResult, statusResult, policyProgramResult, budgetResult, clientResult, projectTypeResult, departmentResult, expenseInfoResult, wardResult] = results;
+        const [projectHeadData, statusData, policyProgramData, budgetData, clientData, projectTypeData, departmentData, expenseInfoData, wardData] =
           await Promise.all([
             parseJson('projectHead', projectHeadResult),
             parseJson('status', statusResult),
@@ -176,6 +179,7 @@ const DrawerContent = memo(
             parseJson('projectType', projectTypeResult),
             parseJson('department', departmentResult),
             parseJson('expenseInfo', expenseInfoResult),
+            parseJson('ward', wardResult),
           ]);
 
         setProjectHeadOptions(mapToSelectOptions(projectHeadData));
@@ -186,6 +190,7 @@ const DrawerContent = memo(
         setProjectTypeOptions(mapToSelectOptions(projectTypeData));
         setDepartmentOptions(mapToSelectOptions(departmentData));
         setExpenseInfoOptions(mapToSelectOptions(expenseInfoData));
+        setWardOptions(mapToSelectOptions(wardData));
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to load options';
         setOptionsError(msg);
@@ -296,7 +301,8 @@ const DrawerContent = memo(
            BudgetInfoIDArray: values.budget ? [values.budget] : [],
            ClientInfoID: isNaN(Number(values.ClientName)) ? (editingProject?.ClientInfoID || 0) : Number(values.ClientName),
            DepartmentID: values.department ? Number(values.department) : 0,
-           ExpenseInfoID: Number(values.expenseInfo),
+            ExpenseInfoID: Number(values.expenseInfo),
+            WardID: values.ward ? Number(values.ward) : 0,
            ProjectType: isNaN(Number(values.projectType)) ? (editingProject?.ProjectType || 0) : Number(values.projectType),
            ProjectHeadEmpID: isNaN(Number(values.projectHeadName)) ? (editingProject?.ProjectHeadEmpID || 0) : Number(values.projectHeadName),
            BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
@@ -465,6 +471,26 @@ const DrawerContent = memo(
                   <Select
                     placeholder="कृपया स्थिति नाम चयन गर्नुहोस्"
                     options={statusOptions}
+                    className="rounded-md h-9 text-sm"
+                    loading={optionsLoading}
+                    getPopupContainer={getPopupParent}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={
+                    <span className="text-sm font-semibold text-slate-700">
+                      वडा
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                  }
+                  name="ward"
+                  rules={[{ required: true, message: 'कृपया वडा चयन गर्नुहोस्' }]}
+                >
+                  <Select
+                    placeholder="कृपया वडा चयन गर्नुहोस्"
+                    options={wardOptions}
                     className="rounded-md h-9 text-sm"
                     loading={optionsLoading}
                     getPopupContainer={getPopupParent}
