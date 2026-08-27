@@ -32,6 +32,63 @@ interface ApiBranchRow {
 
 const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/Branch/ServerSearch';
 
+const SELECT_LIST_URL =
+  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
+  '/Branch/SelectList';
+
+interface BranchSelectOption {
+  value: string;
+  label: string;
+}
+
+interface ApiSelectItem {
+  BranchID?: number | string;
+  BranchName?: string;
+  name?: string;
+  id?: number | string;
+  Value?: number | string;
+  Text?: string;
+}
+
+function mapSelectItem(item: ApiSelectItem): BranchSelectOption {
+  const value = String(
+    item.BranchID ?? item.id ?? item.Value ?? ''
+  );
+  const label = String(
+    item.BranchName ?? item.name ?? item.Text ?? value
+  );
+  return { value, label };
+}
+
+export async function fetchBranchSelectList(
+  signal?: AbortSignal
+): Promise<BranchSelectOption[]> {
+  try {
+    const res = await apiCall(
+      SELECT_LIST_URL,
+      { method: 'GET', signal },
+      30000
+    );
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch branch list: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+    const rows: ApiSelectItem[] = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.data)
+        ? json.data
+        : Array.isArray(json?.Data)
+          ? json.Data
+          : [];
+
+    return rows.map(mapSelectItem);
+  } catch {
+    return [];
+  }
+}
+
 interface FetchBranchesParams {
   search: string;
   start: number;
@@ -61,7 +118,7 @@ function buildSearchBody(params: FetchBranchesParams) {
       search: { value: params.search, regex: '' },
     },
     param: {
-      BranchID: params.mainBranchId || 0,
+      BranchID: 0,
       BranchName: params.name || '',
       BranchCode: params.code || '',
       MainBranchID: params.mainBranchId || 0,

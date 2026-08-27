@@ -3,14 +3,21 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
-import { Modal, message, Select } from 'antd';
+import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import SearchInput from '@/components/ui/SearchInput';
 import { apiCall } from '@/lib/api';
-import { fetchBranches, type Branch } from '@/lib/branches-data';
+import { fetchBranches, fetchBranchSelectList, type Branch } from '@/lib/branches-data';
+import {
+  fetchMainBranchSelectList,
+  type MainBranchSelectOption,
+} from '@/lib/main-branches-data';
+import {
+  fetchDepartmentSelectList,
+  type DepartmentSelectOption,
+} from '@/lib/departments-data';
 import CreateBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -36,14 +43,16 @@ function fetchBranchesPage(params: PaginatedListParams): Promise<{ items: Branch
     search: '',
     start: params.start as number,
     length: params.length as number,
-    name: params.name as string,
-    code: params.code as string,
-    mainBranchName: params.mainBranchName as string,
-    departmentName: params.departmentName as string,
+    name: params.name as string | undefined,
+    code: params.code as string | undefined,
+    mainBranchId: params.mainBranchId as number | undefined,
+    mainBranchName: params.mainBranchName as string | undefined,
+    departmentId: params.departmentId as number | undefined,
+    departmentName: params.departmentName as string | undefined,
     signal: params.signal,
   }).then((result) => ({
-    items: result.branches.length ? result.branches : mockBranches,
-    total: result.filtered || mockBranches.length,
+    items: result.branches,
+    total: result.filtered,
   })).catch(() => ({
     items: mockBranches,
     total: mockBranches.length,
@@ -55,15 +64,55 @@ export default function BranchPage() {
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
 
-  const [searchName, setSearchName] = useState('');
+  const [branchNameId, setBranchNameId] = useState<string | undefined>(undefined);
   const [searchCode, setSearchCode] = useState('');
-  const [searchMainBranch, setSearchMainBranch] = useState('');
-  const [searchDepartment, setSearchDepartment] = useState('');
+  const [mainBranchId, setMainBranchId] = useState<string | undefined>(undefined);
+  const [departmentId, setDepartmentId] = useState<string | undefined>(undefined);
 
-  const debouncedSearchName = useDebounce(searchName, 300);
+  const [branchOptions, setBranchOptions] = useState<BranchSelectOption[]>([]);
+  const [branchLoading, setBranchLoading] = useState(false);
+  const [mainBranchOptions, setMainBranchOptions] = useState<MainBranchSelectOption[]>([]);
+  const [mainBranchLoading, setMainBranchLoading] = useState(false);
+  const [departmentOptions, setDepartmentOptions] = useState<DepartmentSelectOption[]>([]);
+  const [departmentLoading, setDepartmentLoading] = useState(false);
+
   const debouncedSearchCode = useDebounce(searchCode, 300);
-  const debouncedSearchMainBranch = useDebounce(searchMainBranch, 300);
-  const debouncedSearchDepartment = useDebounce(searchDepartment, 300);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
+  useEffect(() => {
+    const controller = new AbortController();
+    setBranchLoading(true);
+    fetchBranchSelectList(controller.signal)
+      .then((options) => setBranchOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setBranchLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
+  useEffect(() => {
+    const controller = new AbortController();
+    setMainBranchLoading(true);
+    fetchMainBranchSelectList(controller.signal)
+      .then((options) => setMainBranchOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setMainBranchLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
+  useEffect(() => {
+    const controller = new AbortController();
+    setDepartmentLoading(true);
+    fetchDepartmentSelectList(controller.signal)
+      .then((options) => setDepartmentOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setDepartmentLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
 
   const {
     data: branches,
@@ -77,22 +126,24 @@ export default function BranchPage() {
   } = usePaginatedList<Branch>({
     fetcher: fetchBranchesPage,
     initialPageSize: 20,
-    extraDeps: [debouncedSearchName, debouncedSearchCode, debouncedSearchMainBranch, debouncedSearchDepartment],
+    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId, departmentId],
     extraParams: {
-      name: debouncedSearchName,
       code: debouncedSearchCode,
-      mainBranchName: debouncedSearchMainBranch,
-      departmentName: debouncedSearchDepartment,
+      name: branchNameId ? branchOptions.find(o => o.value === branchNameId)?.label : undefined,
+      mainBranchId: mainBranchId ? Number(mainBranchId) : undefined,
+      mainBranchName: mainBranchId ? mainBranchOptions.find(o => o.value === mainBranchId)?.label : undefined,
+      departmentId: departmentId ? Number(departmentId) : undefined,
+      departmentName: departmentId ? departmentOptions.find(o => o.value === departmentId)?.label : undefined,
     },
   });
 
   const refreshBranches = () => refetch();
 
   const handleClear = () => {
-    setSearchName('');
+    setBranchNameId(undefined);
     setSearchCode('');
-    setSearchMainBranch('');
-    setSearchDepartment('');
+    setMainBranchId(undefined);
+    setDepartmentId(undefined);
     setCurrentPage(1);
   };
 
@@ -159,28 +210,64 @@ export default function BranchPage() {
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Branch Name / शाखा नाम
             </label>
-            <SearchInput value={searchName} onChange={setSearchName} placeholder="Search by branch name..." />
+            <Select
+              placeholder="Select branch..."
+              value={branchNameId}
+              onChange={(value) => setBranchNameId(value)}
+              options={branchOptions}
+              className="w-full"
+              allowClear
+              loading={branchLoading}
+              showSearch
+              filterOption={(input, option) =>
+                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
+              }
+            />
           </div>
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Branch Code / शाखा कोड
             </label>
-            <SearchInput value={searchCode} onChange={setSearchCode} placeholder="Search by branch code..." />
+            <Input value={searchCode} onChange={(e) => setSearchCode(e.target.value)} placeholder="Search by branch code..." />
           </div>
 
           <div className="flex-1 min-w-[220px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Main Branch /महाशाखा
             </label>
-            <SearchInput value={searchMainBranch} onChange={setSearchMainBranch} placeholder="Search by main branch name..." />
+            <Select
+              placeholder="Select main branch..."
+              value={mainBranchId}
+              onChange={(value) => setMainBranchId(value)}
+              options={mainBranchOptions}
+              className="w-full"
+              allowClear
+              loading={mainBranchLoading}
+              showSearch
+              filterOption={(input, option) =>
+                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
+              }
+            />
           </div>
 
           <div className="flex-1 min-w-[220px]">
             <label className="block text-sm font-semibold text-slate-500 mb-1.5">
               Department / विभाग
             </label>
-            <SearchInput value={searchDepartment} onChange={setSearchDepartment} placeholder="Search by department name..." />
+            <Select
+              placeholder="Select department..."
+              value={departmentId}
+              onChange={(value) => setDepartmentId(value)}
+              options={departmentOptions}
+              className="w-full"
+              allowClear
+              loading={departmentLoading}
+              showSearch
+              filterOption={(input, option) =>
+                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
+              }
+            />
           </div>
 
           <div className="flex items-center gap-2">
