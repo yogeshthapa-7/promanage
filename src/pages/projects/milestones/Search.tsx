@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, message } from 'antd';
 import { apiCall } from '@/lib/api';
+import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 
 interface MilestoneSearchProps {
   open: boolean;
@@ -21,14 +22,34 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export default function MilestoneSearch({ open, onClose, onSearch, onClear, project, modal = true }: MilestoneSearchProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const projectId = project?.ProjectInfoID ?? null;
+
+  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
 
   useEffect(() => {
     if (open) {
       form.resetFields();
+      setStartDate('');
+      setEndDate('');
     }
   }, [open, form]);
+
+  const handleStartDateChange = (val: string) => {
+    setStartDate(val);
+    if (val && endDate && val > endDate) {
+      setEndDate('');
+    }
+  };
+
+  const handleEndDateChange = (val: string) => {
+    setEndDate(val);
+    if (val && startDate && val < startDate) {
+      setStartDate('');
+    }
+  };
 
   const handleSubmit = async () => {
     if (!projectId) {
@@ -38,7 +59,11 @@ export default function MilestoneSearch({ open, onClose, onSearch, onClear, proj
     try {
       const values = await form.validateFields();
       setLoading(true);
-      onSearch(values);
+      onSearch({
+        ...values,
+        StartDate: startDate,
+        EndDate: endDate,
+      });
       onClose();
     } catch (err) {
       if (err instanceof Error) {
@@ -55,7 +80,7 @@ export default function MilestoneSearch({ open, onClose, onSearch, onClear, proj
       layout="vertical"
       requiredMark={false}
     >
-      <div className="grid grid-cols-1 gap-4">
+      <div className="flex items-end gap-3">
         <Form.Item
           label={
             <span className="text-slate-600 font-medium text-sm">
@@ -63,20 +88,52 @@ export default function MilestoneSearch({ open, onClose, onSearch, onClear, proj
             </span>
           }
           name="MilestoneTitle"
+          className="flex-1 mb-0"
         >
           <Input placeholder="Search by title" className="rounded-md" />
         </Form.Item>
 
-        <Form.Item
-          label={
-            <span className="text-slate-600 font-medium text-sm">
-              Summary
-            </span>
-          }
-          name="Summary"
-        >
-          <Input placeholder="Search by summary" className="rounded-md" />
-        </Form.Item>
+        <div className="flex items-center gap-1">
+          <Form.Item
+            label={
+              <span className="text-slate-600 font-medium text-sm">
+                Start Date
+              </span>
+            }
+            className="mb-0"
+          >
+            <AntdNepaliDatePicker
+              value={startDate}
+              onChange={handleStartDateChange}
+              placeholder="YYYY/MM/DD"
+              className="rounded-md"
+              style={{ width: 145 }}
+              returnEnglishDate
+              getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
+            />
+          </Form.Item>
+
+          <span className="pb-6 text-slate-400 text-sm">to</span>
+
+          <Form.Item
+            label={
+              <span className="text-slate-600 font-medium text-sm">
+                End Date
+              </span>
+            }
+            className="mb-0"
+          >
+            <AntdNepaliDatePicker
+              value={endDate}
+              onChange={handleEndDateChange}
+              placeholder="YYYY/MM/DD"
+              className="rounded-md"
+              style={{ width: 145 }}
+              returnEnglishDate
+              getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
+            />
+          </Form.Item>
+        </div>
       </div>
 
       <div className="flex justify-end items-center pt-4 mt-2 border-t border-slate-100">
@@ -100,7 +157,7 @@ export default function MilestoneSearch({ open, onClose, onSearch, onClear, proj
       open={open}
       onCancel={onClose}
       title="Search Milestones"
-      width={480}
+      width={640}
       footer={null}
       destroyOnClose
       zIndex={10000}

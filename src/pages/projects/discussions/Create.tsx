@@ -133,6 +133,7 @@ export default function DiscussionCreate({
             placeholder="Select priority"
             options={PRIORITY_OPTIONS}
             className="rounded-md"
+            getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
           />
         </Form.Item>
 

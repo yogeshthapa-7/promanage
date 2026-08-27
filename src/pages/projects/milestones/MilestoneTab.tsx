@@ -231,14 +231,18 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
           onClose={() => setIsSearchOpen(false)}
           onSearch={(values) => {
             const searchTitle = String(values.MilestoneTitle || '').toLowerCase();
-            const searchSummary = String(values.Summary || '').toLowerCase();
+            const filterStartDate = String(values.StartDate || '').trim();
+            const filterEndDate = String(values.EndDate || '').trim();
             setIsSearchActive(true);
             setMilestones(() => {
-              if (!searchTitle && !searchSummary) return allMilestones;
+              if (!searchTitle && !filterStartDate && !filterEndDate) return allMilestones;
               return allMilestones.filter((milestone) => {
                 const matchesTitle = !searchTitle || milestone.MilestoneTitle.toLowerCase().includes(searchTitle);
-                const matchesSummary = !searchSummary || milestone.Summary.toLowerCase().includes(searchSummary);
-                return matchesTitle && matchesSummary;
+                const milestoneStart = milestone.StartDate || '';
+                const milestoneEnd = milestone.EndDate || '';
+                const matchesStartDate = !filterStartDate || milestoneEnd >= filterStartDate;
+                const matchesEndDate = !filterEndDate || milestoneStart <= filterEndDate;
+                return matchesTitle && matchesStartDate && matchesEndDate;
               });
             });
           }}
