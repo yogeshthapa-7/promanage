@@ -21,6 +21,7 @@ import BudgetPage from './pages/Budget/budget';
 import ExpensePage from './pages/Expense/expense';
 import ClientPage from './pages/Client/client';
 import LabelPage from './pages/Label/label';
+import WardPage from './pages/WardInfo/WardInfo';
 import UserProfilePage from './pages/profile/page';
 
 function RootApp() {
@@ -147,6 +148,11 @@ function RootApp() {
           <Route path="/projects/:projectId/kanban" element={
             <ProtectedRoute>
               <AppLayout showTopbar={false}> <KanbanBoardPage /> </AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/WardInfo" element={
+            <ProtectedRoute>
+              <AppLayout showTopbar={false}><WardPage /></AppLayout>
             </ProtectedRoute>
           } />
 
