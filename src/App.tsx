@@ -21,6 +21,7 @@ import BudgetPage from './pages/Budget/budget';
 import ExpensePage from './pages/Expense/expense';
 import ClientPage from './pages/Client/client';
 import LabelPage from './pages/Label/label';
+import UserProfilePage from './pages/profile/page';
 
 function RootApp() {
   return (
@@ -128,12 +129,17 @@ function RootApp() {
              <AppLayout showTopbar={false}><ClientPage /></AppLayout>
            </ProtectedRoute>
          } />
-         <Route path="/Label" element={
-           <ProtectedRoute>
-             <AppLayout showTopbar={false}><LabelPage /></AppLayout>
-           </ProtectedRoute>
-         } />
-         <Route path="/projects/:id/tasks"element={
+          <Route path="/Label" element={
+            <ProtectedRoute>
+              <AppLayout showTopbar={false}><LabelPage /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <AppLayout showTopbar={false}><UserProfilePage /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/projects/:id/tasks"element={
             <ProtectedRoute>
               <AppLayout showTopbar={false}><TaskAndSubtasks /></AppLayout>
             </ProtectedRoute>
