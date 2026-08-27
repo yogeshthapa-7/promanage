@@ -45,6 +45,11 @@ export function usePaginatedList<T>({
   const [pageSize, setPageSizeState] = useState(initialPageSize);
   const fetchIdRef = useRef(0);
   const extraParamsRef = useRef(extraParams);
+  const fetcherRef = useRef(fetcher);
+
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  }, [fetcher]);
 
   useEffect(() => {
     extraParamsRef.current = extraParams;
@@ -56,7 +61,7 @@ export function usePaginatedList<T>({
 
     setLoading(true);
 
-    Promise.resolve(fetcher({
+    Promise.resolve(fetcherRef.current({
       start: (currentPage - 1) * pageSize,
       length: pageSize,
       signal: controller.signal,
@@ -79,14 +84,14 @@ export function usePaginatedList<T>({
       });
 
     return () => controller.abort();
-  }, [currentPage, pageSize, fetcher]);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     let isCancelled = false;
     const controller = new AbortController();
     const fetchId = ++fetchIdRef.current;
 
-    Promise.resolve(fetcher({
+    Promise.resolve(fetcherRef.current({
       start: (currentPage - 1) * pageSize,
       length: pageSize,
       signal: controller.signal,
@@ -110,8 +115,7 @@ export function usePaginatedList<T>({
       isCancelled = true;
       controller.abort();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, ...extraDeps, fetcher]);
+  }, [currentPage, pageSize, ...extraDeps]);
 
   const setPageSize = useCallback((size: number) => {
     setPageSizeState(size);
