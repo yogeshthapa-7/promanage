@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
 import { apiCall } from '@/lib/api';
 
-interface DiscussionSearchProps {
+interface IssueSearchProps {
   open: boolean;
   onClose: () => void;
   onSearch: (values: Record<string, unknown>) => void;
@@ -18,14 +18,7 @@ interface DiscussionSearchProps {
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
-const PRIORITY_OPTIONS = [
-  { label: 'Urgent', value: 1 },
-  { label: 'High', value: 2 },
-  { label: 'Medium', value: 3 },
-  { label: 'Low', value: 4 },
-];
-
-export default function DiscussionSearch({ open, onClose, onSearch, onClear, project, modal = true }: DiscussionSearchProps) {
+export default function IssueSearch({ open, onClose, onSearch, onClear, project, modal = true }: IssueSearchProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +44,7 @@ export default function DiscussionSearch({ open, onClose, onSearch, onClear, pro
       onClose();
     } catch (err) {
       if (err instanceof Error) {
-        message.error(err.message || 'Failed to search discussions');
+        message.error(err.message || 'Failed to search issues');
       }
     } finally {
       setLoading(false);
@@ -65,10 +58,10 @@ export default function DiscussionSearch({ open, onClose, onSearch, onClear, pro
       requiredMark={false}
       onValuesChange={(changedValues) => {
         const changedKey = Object.keys(changedValues)[0];
-        if (changedKey === 'DiscussionTitle') {
-          form.setFieldsValue({ Priority: undefined });
-        } else if (changedKey === 'Priority') {
-          form.setFieldsValue({ DiscussionTitle: undefined });
+        if (changedKey === 'IssuesTitle') {
+          form.setFieldsValue({ RaisedBy: undefined });
+        } else if (changedKey === 'RaisedBy') {
+          form.setFieldsValue({ IssuesTitle: undefined });
         }
       }}
     >
@@ -76,10 +69,10 @@ export default function DiscussionSearch({ open, onClose, onSearch, onClear, pro
         <Form.Item
           label={
             <span className="text-slate-600 font-medium text-sm">
-              Discussion Title
+              Issue Title
             </span>
           }
-          name="DiscussionTitle"
+          name="IssuesTitle"
         >
           <Input placeholder="Search by title" className="rounded-md" />
         </Form.Item>
@@ -87,18 +80,12 @@ export default function DiscussionSearch({ open, onClose, onSearch, onClear, pro
         <Form.Item
           label={
             <span className="text-slate-600 font-medium text-sm">
-              Priority
+              Raised By
             </span>
           }
-          name="Priority"
+          name="RaisedBy"
         >
-          <Select
-            placeholder="Select priority"
-            options={PRIORITY_OPTIONS}
-            className="rounded-md"
-            allowClear
-            getPopupContainer={getPopupParent}
-          />
+          <Input placeholder="Search by raised by" className="rounded-md" />
         </Form.Item>
       </div>
 
@@ -122,7 +109,7 @@ export default function DiscussionSearch({ open, onClose, onSearch, onClear, pro
     <Modal
       open={open}
       onCancel={onClose}
-      title="Search Discussions"
+      title="Search Issues"
       width={480}
       footer={null}
       destroyOnClose
