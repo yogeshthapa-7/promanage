@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, } from 'lucide-react';
 import { Popover } from 'antd';
 import { useAuth } from '@/context/AuthContext';
 import UserProfileDrawer from '@/pages/profile/page';
@@ -23,6 +23,7 @@ const navItems: NavItem[] = [
   { id: 'policy', label: 'Policy Program', icon: <File size={18} />, href: '/Policy', section: 'POLICY' },
   { id: 'budget', label: 'Budget', icon: <Wallet2 size={18} />, href: '/Budget', section: 'POLICY' },
   { id: 'expense', label: 'Expense', icon: <CreditCard size={18} />, href: '/Expense', section: 'POLICY' },
+  { id: 'ward', label: 'Ward Info', icon: <MapPin size={18} />, href: '/WardInfo', section: 'POLICY' },
   { id: 'client', label: 'Client', icon: <Handshake size={18} />, href: '/Client', section: 'POLICY' },
   { id: 'label', label: 'Label Info', icon: <Tag size={18} />, href: '/Label', section: 'POLICY' },
 ];
@@ -42,6 +43,7 @@ function getActiveNavId(pathname: string): string {
   if (pathname.startsWith('/Expense')) return 'expense';
   if (pathname.startsWith('/Client')) return 'client';
   if (pathname.startsWith('/Label')) return 'label';
+  if (pathname.startsWith('/WardInfo')) return 'ward';
   if (pathname.startsWith('/dashboard')) return 'dashboard';
   return 'dashboard';
 }
