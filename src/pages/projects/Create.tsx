@@ -483,11 +483,11 @@ const DrawerContent = memo(
                   label={
                     <span className="text-sm font-semibold text-slate-700">
                       वडा
-                      <span className="text-red-500 ml-0.5">*</span>
+                      {/* <span className="text-red-500 ml-0.5">*</span> */}
                     </span>
                   }
                   name="ward"
-                  rules={[{ required: true, message: 'कृपया वडा चयन गर्नुहोस्' }]}
+                  // rules={[{ required: true, message: 'कृपया वडा चयन गर्नुहोस्' }]}
                 >
                   <Select
                     placeholder="कृपया वडा चयन गर्नुहोस्"
