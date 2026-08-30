@@ -49,12 +49,13 @@ const mapToSelectOptions = (items: SelectListItem[]): { value: string; label: st
 };
 
 const extractIdAndName = (obj: Record<string, unknown>): SelectListItem | null => {
+  // Handle standard Value/Name format
   if (obj.Value !== undefined && obj.Name !== undefined) {
     return { id: Number(obj.Value), name: String(obj.Name) };
   }
 
   const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
+  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label', 'Number', 'number'];
 
   let id: number | string | undefined;
   let name: string | undefined;

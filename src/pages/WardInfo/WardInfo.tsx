@@ -75,18 +75,26 @@ export default function WardInfoPage() {
       okText: 'Delete',
       okType: 'danger',
       onOk: async () => {
-        try {
-          const res = await apiCall(`${API_BASE}/DeleteWardInfo`, {
-            method: 'POST',
-            body: JSON.stringify({ id: ward.id }),
-          });
+      try {
+        const res = await apiCall(
+          `${API_BASE}/DeleteWardInfo?id=${ward.id}`,
+          {
+            method: 'GET',
+          }
+        );
 
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+        if (!res.ok) {
+          throw new Error(`Failed: ${res.statusText}`);
+        }
 
-          message.success('Ward deleted successfully');
-          queryClient.invalidateQueries({ queryKey: ['wards'] });
-          refetch();
-        } catch (err) {
+        message.success('Ward deleted successfully');
+
+        queryClient.invalidateQueries({
+          queryKey: ['wards'],
+        });
+
+        refetch();
+      } catch (err) {
           if (err instanceof Error) {
             message.error(err.message || 'Failed to delete ward');
           }

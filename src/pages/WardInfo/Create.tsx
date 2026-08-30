@@ -34,38 +34,65 @@ export default function CreateWardDrawer({ open, onClose, onSuccess, editingWard
     }
   }, [open, form, editingWard]);
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+const handleSubmit = async () => {
+  try {
+    const values = await form.validateFields();
+    setLoading(true);
 
-      const isEdit = !!editingWard;
-      const body = {
-        WardInfoID: isEdit ? editingWard?.id : 0,
-        WardNumber: values.wardNumber,
-        WardCode: values.wardCode,
-      };
+    const isEdit = !!editingWard;
 
-      const res = await apiCall(`${API_BASE}/SaveWardInfo`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
+    const body = {
+      WardInfoID: isEdit ? editingWard?.id : 0,
+      WardNumber: values.wardNumber,
+      WardCode: values.wardCode,
+    };
 
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+    const res = await apiCall(`${API_BASE}/SaveWardInfo`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
 
-      message.success(isEdit ? 'Ward updated successfully' : 'Ward created successfully');
-      form.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['wards'] });
-      onClose();
-      onSuccess();
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message || 'Failed to save ward');
-      }
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error(`Failed: ${res.statusText}`);
     }
-  };
+
+    const result = await res.json();
+
+    // Backend validation failed
+    if (!result.Success) {
+      message.error(result.Message || 'Failed to save ward');
+      return;
+    }
+
+    // Backend save succeeded
+    message.success(
+      result.Message ||
+      (isEdit
+        ? 'Ward updated successfully'
+        : 'Ward created successfully')
+    );
+
+    form.resetFields();
+
+    queryClient.invalidateQueries({
+      queryKey: ['wards'],
+    });
+
+    onClose();
+    onSuccess();
+
+  } catch (err) {
+    if (err instanceof Error) {
+      message.error(err.message || 'Failed to save ward');
+    } else {
+      message.error('Failed to save ward');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
       <Drawer
