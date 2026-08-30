@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, ArrowRight } from 'lucide-react';
-import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { AvatarStack } from '@/components/ui/Avatar';
@@ -13,8 +12,6 @@ import type { Project, ProjectStatus, ProjectPriority } from '@/lib/projects-dat
 
 interface ProjectsTableProps {
   projects?: Project[];
-  search?: string;
-  onSearchChange?: (value: string) => void;
   sortField?: string;
   sortDir?: 'asc' | 'desc';
   onSortChange?: (field: string) => void;
@@ -114,8 +111,6 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
 
 export default function ProjectsTable({
   projects: projectsData,
-  search = '',
-  onSearchChange,
   sortField: externalSortField,
   sortDir: externalSortDir,
   onSortChange,
@@ -148,10 +143,6 @@ export default function ProjectsTable({
     });
   }, [controlled, onSortChange]);
 
-  const handleSearchChange = useCallback((v: string) => {
-    onSearchChange?.(v);
-  }, [onSearchChange]);
-
   const handleFilterChange = useCallback((status: ProjectStatus | 'All') => {
     onFilterChange?.(status);
   }, [onFilterChange]);
@@ -162,15 +153,6 @@ export default function ProjectsTable({
 
   const filtered = useMemo(() => {
     let data = [...dataSource];
-    const q = search.trim().toLowerCase();
-    if (q) {
-      data = data.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.status.toLowerCase().includes(q)
-      );
-    }
     if (filterStatus !== 'All') {
       data = data.filter((p) => p.status === filterStatus);
     }
@@ -194,7 +176,7 @@ export default function ProjectsTable({
       });
     }
     return data;
-  }, [dataSource, search, filterStatus, sortKey, sortDir]);
+  }, [dataSource, filterStatus, sortKey, sortDir]);
 
   const visibleProjects = useMemo(() => filtered.slice(0, 5), [filtered]);
 
@@ -203,7 +185,6 @@ export default function ProjectsTable({
        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100/80">
          <h2 className="text-sm font-bold text-foreground">Projects</h2>
         <div className="flex items-center gap-2.5">
-          <SearchInput value={search} onChange={handleSearchChange} placeholder="Search projects..." />
           <Button variant="outline" size="sm" icon={<SlidersHorizontal size={14} />} onClick={() => handleFilterChange(filterStatus === 'All' ? 'In Progress' : 'All')}>
             Filter
           </Button>

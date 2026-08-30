@@ -15,7 +15,6 @@ import { apiCall } from '@/lib/api';
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 export default function DashboardPage() {
-  const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'All'>('All');
   const [sortField, setSortField] = useState<string>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -79,15 +78,6 @@ export default function DashboardPage() {
 
   const filtered = useMemo(() => {
     let data = [...projects];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      data = data.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.status.toLowerCase().includes(q)
-      );
-    }
     if (filterStatus !== 'All') {
       data = data.filter((p) => p.status === filterStatus);
     }
@@ -109,7 +99,7 @@ export default function DashboardPage() {
       return 0;
     });
     return data;
-  }, [search, filterStatus, sortField, sortDir, projects]);
+  }, [filterStatus, sortField, sortDir, projects]);
 
   const stats = useDashboardStats(filtered.length ? filtered.length : projects.length);
   const statsPayload = {
@@ -130,8 +120,7 @@ export default function DashboardPage() {
         pageTitle="Dashboard"
         pageSubtitle="Welcome back To Project Management Dashboard!"
         showFilters
-        searchValue={search}
-        onSearchChange={setSearch}
+        showSearch={false}
         filterStatus={filterStatus}
         onFilterChange={setFilterStatus}
         sortField={sortField}
@@ -210,8 +199,6 @@ export default function DashboardPage() {
       {/* Projects Table */}
       <ProjectsTable
         projects={dataProjects}
-        search={search}
-        onSearchChange={setSearch}
         sortField={sortField}
         sortDir={sortDir}
         onSortChange={(field) => {
