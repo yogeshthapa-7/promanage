@@ -68,6 +68,7 @@ export default function BranchPage() {
   const [searchCode, setSearchCode] = useState('');
   const [mainBranchId, setMainBranchId] = useState<string | undefined>(undefined);
   const [departmentId, setDepartmentId] = useState<string | undefined>(undefined);
+  const [departmentSearch, setDepartmentSearch] = useState('');
 
   const [branchOptions, setBranchOptions] = useState<BranchSelectOption[]>([]);
   const [branchLoading, setBranchLoading] = useState(false);
@@ -77,6 +78,7 @@ export default function BranchPage() {
   const [departmentLoading, setDepartmentLoading] = useState(false);
 
   const debouncedSearchCode = useDebounce(searchCode, 300);
+  const debouncedSearchDepartment = useDebounce(departmentSearch, 300);
 
   /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
   useEffect(() => {
@@ -113,6 +115,7 @@ export default function BranchPage() {
       });
     return () => controller.abort();
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const {
     data: branches,
@@ -126,14 +129,16 @@ export default function BranchPage() {
   } = usePaginatedList<Branch>({
     fetcher: fetchBranchesPage,
     initialPageSize: 20,
-    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId, departmentId],
+    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId, departmentId, debouncedSearchDepartment],
     extraParams: {
       code: debouncedSearchCode,
       name: branchNameId ? branchOptions.find(o => o.value === branchNameId)?.label : undefined,
       mainBranchId: mainBranchId ? Number(mainBranchId) : undefined,
       mainBranchName: mainBranchId ? mainBranchOptions.find(o => o.value === mainBranchId)?.label : undefined,
       departmentId: departmentId ? Number(departmentId) : undefined,
-      departmentName: departmentId ? departmentOptions.find(o => o.value === departmentId)?.label : undefined,
+      departmentName: departmentId
+        ? departmentOptions.find((o) => o.value === departmentId)?.label || debouncedSearchDepartment || undefined
+        : debouncedSearchDepartment || undefined,
     },
   });
 
@@ -144,6 +149,7 @@ export default function BranchPage() {
     setSearchCode('');
     setMainBranchId(undefined);
     setDepartmentId(undefined);
+    setDepartmentSearch('');
     setCurrentPage(1);
   };
 
@@ -258,7 +264,15 @@ export default function BranchPage() {
             <Select
               placeholder="Select department..."
               value={departmentId}
-              onChange={(value) => setDepartmentId(value)}
+              onChange={(value) => {
+                setDepartmentId(value);
+                const selected = departmentOptions.find((opt) => opt.value === value);
+                setDepartmentSearch(selected?.label || '');
+              }}
+              onSearch={(value) => {
+                setDepartmentSearch(value);
+                setDepartmentId(undefined);
+              }}
               options={departmentOptions}
               className="w-full"
               allowClear
