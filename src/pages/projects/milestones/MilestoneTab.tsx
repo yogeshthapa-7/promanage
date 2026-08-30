@@ -3,6 +3,7 @@ import { Modal, message, Button } from "antd";
 import type { ApiProject } from "@/lib/projects-data";
 import { apiCall } from "@/lib/api";
 import { calculateProgressFromDates } from "@/lib/nepali-date";
+import { convertToBs } from "@/lib/projects-data";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { LayoutGrid, List, Plus, Search, RotateCcw } from "lucide-react";
@@ -302,8 +303,8 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
                         <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
                       </div>
                     </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.StartDate || "—"}</td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.EndDate || "—"}</td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertToBs(milestone.StartDate) || "—"}</td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertToBs(milestone.EndDate) || "—"}</td>
                     <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.MilestoneCost.toLocaleString()}</td>
                     <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                       <div className="flex items-center justify-end gap-1">
@@ -344,8 +345,8 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
                 <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
 
                 <div className="flex items-center justify-between text-base text-muted-foreground">
-                  <span>Start: {milestone.StartDate || "—"}</span>
-                  <span>End: {milestone.EndDate || "—"}</span>
+                  <span>Start: {convertToBs(milestone.StartDate) || "—"}</span>
+                  <span>End: {convertToBs(milestone.EndDate) || "—"}</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
