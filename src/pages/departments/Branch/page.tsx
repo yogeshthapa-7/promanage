@@ -9,7 +9,7 @@ import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
-import { fetchBranches, fetchBranchSelectList, type Branch } from '@/lib/branches-data';
+import { fetchBranches, fetchBranchSelectList, type Branch, type BranchSelectOption } from '@/lib/branches-data';
 import {
   fetchMainBranchSelectList,
   type MainBranchSelectOption,

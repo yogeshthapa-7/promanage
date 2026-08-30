@@ -36,7 +36,7 @@ const SELECT_LIST_URL =
   (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
   '/Branch/SelectList';
 
-interface BranchSelectOption {
+export interface BranchSelectOption {
   value: string;
   label: string;
 }
