@@ -18,6 +18,7 @@ interface MilestoneItem {
   ProjectInfoID: number;
   MilestoneTitle: string;
   WorkStatusID: number;
+  WorkStatusName: string;
   MilestoneCost: number;
   StartDate: string;
   EndDate: string;
@@ -230,27 +231,22 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
         <MilestoneSearch
           open={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
-          onSearch={(values) => {
+           onSearch={(values) => {
             const searchTitle = String(values.MilestoneTitle || '').toLowerCase();
-            const filterStartDate = String(values.StartDate || '').trim();
-            const filterEndDate = String(values.EndDate || '').trim();
+            const searchStatusID = values.WorkStatusID ? Number(values.WorkStatusID) : null;
             setIsSearchActive(true);
             setMilestones(() => {
-              if (!searchTitle && !filterStartDate && !filterEndDate) return allMilestones;
+              if (!searchTitle && !searchStatusID) return allMilestones;
               return allMilestones.filter((milestone) => {
                 const matchesTitle = !searchTitle || milestone.MilestoneTitle.toLowerCase().includes(searchTitle);
-                const milestoneStart = milestone.StartDate || '';
-                const milestoneEnd = milestone.EndDate || '';
-                const matchesStartDate = !filterStartDate || milestoneEnd >= filterStartDate;
-                const matchesEndDate = !filterEndDate || milestoneStart <= filterEndDate;
-                return matchesTitle && matchesStartDate && matchesEndDate;
+                const matchesStatus = !searchStatusID || milestone.WorkStatusID === searchStatusID;
+                return matchesTitle && matchesStatus;
               });
             });
           }}
-          onClear={handleClearMilestoneSearch}
-          project={project}
-          modal={false}
-        />
+           project={project}
+           modal={false}
+          />
       )}
 
       {viewMode === 'list' ? (
