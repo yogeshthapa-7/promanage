@@ -170,9 +170,9 @@ export default function PolicyPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
-                      {policy.name || 'Untitled'}
-                    </h3>
+                      <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors break-words">
+                        {policy.name || 'Untitled'}
+                      </h3>
                   </div>
                   <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                     #{policy.SN}
