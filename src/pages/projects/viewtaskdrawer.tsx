@@ -118,10 +118,6 @@ export default function ViewTaskDrawer({ open, onClose, taskId }: ViewTaskDrawer
             <span className="text-sm font-medium text-slate-700">{task.PriorityName || '—'}</span>
           </Row>
 
-          <Row label="Due Date">
-            <span className="text-sm font-medium text-slate-700">{task.DueDate || '—'}</span>
-          </Row>
-
           <Row label="Task Manager">
             <div className="flex items-center gap-3">
               <Avatar src={task.TaskManagerPhoto || ''} alt={task.TaskManagerName || 'Manager'} size={36} />

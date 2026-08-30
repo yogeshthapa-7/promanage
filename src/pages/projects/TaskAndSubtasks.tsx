@@ -195,14 +195,12 @@ const LoadingSkeleton = () => (
 
 function TaskGridCard({
   task,
-  projectStartDate,
   onView,
   onEdit,
   onDelete,
   onViewSubtasks,
 }: {
   task: RawEntity;
-  projectStartDate?: string;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -238,10 +236,7 @@ function TaskGridCard({
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Manager</p>
             <p className="text-xs font-medium text-foreground truncate">{t.managerName || '—'}</p>
           </div>
-          <div className="min-w-0 text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Start Date</p>
-            <p className="text-xs font-medium text-foreground tabular-nums truncate">{projectStartDate || '—'}</p>
-          </div>
+          &nbsp;
         </div>
       </div>
 
@@ -444,15 +439,14 @@ export default function ProjectTasksPage() {
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 {tasks.map((task, i) => (
-                  <TaskGridCard
-                    key={pick(task, TASK_KEYS.idKeys, i)}
-                    task={task}
-                    projectStartDate={project.StartDate}
-                    onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
-                    onEdit={() => openEditTask(task)}
-                    onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
-                    onViewSubtasks={() => openSubtasksModal(task)}
-                  />
+                   <TaskGridCard
+                     key={pick(task, TASK_KEYS.idKeys, i)}
+                     task={task}
+                     onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
+                     onEdit={() => openEditTask(task)}
+                     onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
+                     onViewSubtasks={() => openSubtasksModal(task)}
+                   />
                 ))}
               </div>
             ) : (
@@ -462,7 +456,6 @@ export default function ProjectTasksPage() {
                     <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
                       <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
                       <th className="bg-slate-50 px-4 py-3">Manager</th>
-                      <th className="bg-slate-50 px-4 py-3">Start Date</th>
                       <th className="bg-slate-50 px-4 py-3">Status</th>
                       <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
                     </tr>
@@ -481,9 +474,6 @@ export default function ProjectTasksPage() {
                           </td>
                           <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
                             {t.managerName || '—'}
-                          </td>
-                          <td className="bg-white px-4 py-3 border-b border-slate-100 tabular-nums">
-                            {project.StartDate || '—'}
                           </td>
                           <td className="bg-white px-4 py-3 border-b border-slate-100">
                             <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
