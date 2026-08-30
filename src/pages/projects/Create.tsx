@@ -238,6 +238,7 @@ const DrawerContent = memo(
           bankGuaranteeIssueDate: editingProject.BankGuranteeIssueDate,
           bankGuaranteeExpiryDate: editingProject.BankGuranteeExpiryDate,
           projectHeadEmpPhoto: editingProject.ProjectHeadEmpPhoto,
+          ward: editingProject.WardInfoID ? String(editingProject.WardInfoID) : undefined,
         });
         setProjectHeadEmpPhoto(editingProject.ProjectHeadEmpPhoto || '');
         setSelectedFileName('');
@@ -303,7 +304,7 @@ const DrawerContent = memo(
            ClientInfoID: isNaN(Number(values.ClientName)) ? (editingProject?.ClientInfoID || 0) : Number(values.ClientName),
            DepartmentID: values.department ? Number(values.department) : 0,
             ExpenseInfoID: Number(values.expenseInfo),
-            WardID: values.ward ? Number(values.ward) : 0,
+            WardInfoID: values.ward ? Number(values.ward) : 0,
            ProjectType: isNaN(Number(values.projectType)) ? (editingProject?.ProjectType || 0) : Number(values.projectType),
            ProjectHeadEmpID: isNaN(Number(values.projectHeadName)) ? (editingProject?.ProjectHeadEmpID || 0) : Number(values.projectHeadName),
            BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
