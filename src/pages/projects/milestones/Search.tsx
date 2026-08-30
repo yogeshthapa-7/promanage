@@ -1,15 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Modal, Form, Input, Button, message } from 'antd';
+import { Modal, Form, Input, Button, message, Select } from 'antd';
 import { apiCall } from '@/lib/api';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 
 interface MilestoneSearchProps {
   open: boolean;
   onClose: () => void;
   onSearch: (values: Record<string, unknown>) => void;
-  onClear?: () => void;
   project: {
     ProjectInfoID: number;
     ProjectName?: string;
@@ -18,38 +16,79 @@ interface MilestoneSearchProps {
 }
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+const STATUS_API = `${API_BASE}/WorkStatus/SelectList`;
 
-export default function MilestoneSearch({ open, onClose, onSearch, onClear, project, modal = true }: MilestoneSearchProps) {
+interface SelectListItem {
+  id: number | string;
+  name: string;
+}
+
+function extractIdAndName(obj: Record<string, unknown>): SelectListItem | null {
+  if (obj.Value !== undefined && obj.Name !== undefined) {
+    return { id: Number(obj.Value), name: String(obj.Name) };
+  }
+
+  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
+  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
+
+  let id: number | string | undefined;
+  let name: string | undefined;
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
+      id = value as number | string;
+    }
+    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
+      name = String(value);
+    }
+    if (id !== undefined && name !== undefined) break;
+  }
+
+  if (id !== undefined && name !== undefined) {
+    return { id: id as number | string, name };
+  }
+
+  return null;
+}
+
+export default function MilestoneSearch({ open, onClose, onSearch, project, modal = true }: MilestoneSearchProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [statusOptions, setStatusOptions] = useState<{ value: string; label: string }[]>([]);
 
   const projectId = project?.ProjectInfoID ?? null;
-
-  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
 
   useEffect(() => {
     if (open) {
       form.resetFields();
-      setStartDate('');
-      setEndDate('');
     }
   }, [open, form]);
 
-  const handleStartDateChange = (val: string) => {
-    setStartDate(val);
-    if (val && endDate && val > endDate) {
-      setEndDate('');
-    }
-  };
+  useEffect(() => {
+    if (!open || !projectId) return;
 
-  const handleEndDateChange = (val: string) => {
-    setEndDate(val);
-    if (val && startDate && val < startDate) {
-      setStartDate('');
-    }
-  };
+    const controller = new AbortController();
+    const fetchStatusOptions = async () => {
+      try {
+        const res = await apiCall(STATUS_API, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+        const data = await res.json();
+        const list: Record<string, unknown>[] = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? (data.data as Record<string, unknown>[])
+            : [];
+        const parsed = list.map(extractIdAndName).filter((item): item is SelectListItem => item !== null);
+        setStatusOptions(parsed.map((item) => ({ value: String(item.id), label: item.name })));
+      } catch (err) {
+        if (err instanceof Error && err.name !== 'AbortError') console.error(err);
+      }
+    };
+
+    fetchStatusOptions();
+    return () => controller.abort();
+  }, [open, projectId]);
 
   const handleSubmit = async () => {
     if (!projectId) {
@@ -61,8 +100,7 @@ export default function MilestoneSearch({ open, onClose, onSearch, onClear, proj
       setLoading(true);
       onSearch({
         ...values,
-        StartDate: startDate,
-        EndDate: endDate,
+        WorkStatusID: values.WorkStatusID ? Number(values.WorkStatusID) : undefined,
       });
       onClose();
     } catch (err) {
@@ -93,47 +131,28 @@ export default function MilestoneSearch({ open, onClose, onSearch, onClear, proj
           <Input placeholder="Search by title" className="rounded-md" />
         </Form.Item>
 
-        <div className="flex items-center gap-1">
-          <Form.Item
-            label={
-              <span className="text-slate-600 font-medium text-sm">
-                Start Date
-              </span>
-            }
-            className="mb-0"
+        <Form.Item
+          label={
+            <span className="text-slate-600 font-medium text-sm">
+              Work Status
+            </span>
+          }
+          name="WorkStatusID"
+          className="flex-1 mb-0"
+        >
+          <Select
+            placeholder="Select status"
+            className="rounded-md"
+            style={{ width: '100%' }}
+            getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
           >
-            <AntdNepaliDatePicker
-              value={startDate}
-              onChange={handleStartDateChange}
-              placeholder="YYYY/MM/DD"
-              className="rounded-md"
-              style={{ width: 145 }}
-              returnEnglishDate
-              getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
-            />
-          </Form.Item>
-
-          <span className="pb-6 text-slate-400 text-sm">to</span>
-
-          <Form.Item
-            label={
-              <span className="text-slate-600 font-medium text-sm">
-                End Date
-              </span>
-            }
-            className="mb-0"
-          >
-            <AntdNepaliDatePicker
-              value={endDate}
-              onChange={handleEndDateChange}
-              placeholder="YYYY/MM/DD"
-              className="rounded-md"
-              style={{ width: 145 }}
-              returnEnglishDate
-              getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
-            />
-          </Form.Item>
-        </div>
+            {statusOptions.map((opt) => (
+              <Select.Option key={opt.value} value={opt.value}>
+                {opt.label}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
       </div>
 
       <div className="flex justify-end items-center pt-4 mt-2 border-t border-slate-100">

@@ -9,6 +9,7 @@ interface TopbarProps {
   pageSubtitle?: string;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  showSearch?: boolean;
   showFilters?: boolean;
   filterStatus?: ProjectStatus | 'All';
   onFilterChange?: (status: ProjectStatus | 'All') => void;
@@ -37,6 +38,7 @@ export default function Topbar({
   pageSubtitle = 'Welcome back To Project Management Dashboard! 👋',
   searchValue = '',
   onSearchChange,
+  showSearch = true,
   showFilters = false,
   filterStatus = 'All',
   onFilterChange,
@@ -98,21 +100,23 @@ export default function Topbar({
 
         {showFilters && (
           <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/70 border border-border focus-within:bg-white focus-within:border-primary/30 transition-all text-sm w-48 lg:w-56 shadow-xs">
-              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={searchValue}
-                onChange={(e) => onSearchChange?.(e.target.value)}
-                className="bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground text-sm"
-              />
-              {searchValue && (
-                <button onClick={handleSearchClear} className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            {showSearch && (
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/70 border border-border focus-within:bg-white focus-within:border-primary/30 transition-all text-sm w-48 lg:w-56 shadow-xs">
+                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchValue}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
+                  className="bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground text-sm"
+                />
+                {searchValue && (
+                  <button onClick={handleSearchClear} className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="relative" ref={filterRef}>
               <button

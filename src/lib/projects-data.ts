@@ -167,7 +167,7 @@ function getProgress(status: string): number {
   return 0;
 }
 
-function convertToBs(dateStr: string): string {
+export function convertToBs(dateStr: string): string {
   if (!dateStr) return '';
   try {
     const parts = dateStr.replace(/-/g, '/').split('/');
@@ -223,26 +223,36 @@ export function calculateDueDate(startDateStr: string, durationDays: number): st
   if (!startDateStr || durationDays == null) return '';
   const normalized = startDateStr.split('T')[0].replace(/-/g, '/');
   const parts = normalized.split('/');
-  const isBs = parts.length === 3 && parseInt(parts[0], 10) > 2000;
+  if (parts.length !== 3) return '';
 
-  if (isBs) {
-    try {
-      const ad = DateConverter(normalized).toAd();
-      const startAd = new Date(ad.year, ad.month - 1, ad.date);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  try {
+    const ad = DateConverter(normalized).toAd();
+    const startAd = new Date(ad.year, ad.month - 1, ad.date);
+    if (!isNaN(startAd.getTime()) && startAd.getFullYear() >= 2000 && startAd.getFullYear() <= currentYear + 10) {
       const dueAd = new Date(startAd);
       dueAd.setDate(dueAd.getDate() + Number(durationDays));
       const dueBs = DateConverter(`${dueAd.getFullYear()}/${dueAd.getMonth() + 1}/${dueAd.getDate()}`).toBs();
       return `${dueBs.year}/${String(dueBs.month).padStart(2, '0')}/${String(dueBs.date).padStart(2, '0')}`;
-    } catch {
-      return '';
     }
+  } catch {
+    // fall through to AD
   }
 
-  const start = new Date(normalized);
-  if (isNaN(start.getTime())) return '';
-  const due = new Date(start);
-  due.setDate(due.getDate() + Number(durationDays));
-  return due.toISOString().split('T')[0];
+  try {
+    const startAd = new Date(normalized);
+    if (!isNaN(startAd.getTime())) {
+      const dueAd = new Date(startAd);
+      dueAd.setDate(dueAd.getDate() + Number(durationDays));
+      return dueAd.toISOString().split('T')[0];
+    }
+  } catch {
+    // ignore
+  }
+
+  return '';
 }
 
 export function mapApiProjectToProject(api: ApiProject): Project {

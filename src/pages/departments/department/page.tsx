@@ -197,10 +197,27 @@ export default function DepartmentPage() {
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       
       {/* 2. Tabs */}
-      <div className="flex items-center gap-1 border-b border-slate-200 no-print">
-        <Button type="text" onClick={() => setActiveTab('department')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'department' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>विभाग</Button>
-        <Button type="text" onClick={() => setActiveTab('mainbranch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'mainbranch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>महाशाखा</Button>
-        <Button type="text" onClick={() => setActiveTab('branch')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'branch' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-slate-500'}`}>शाखा</Button>
+      <div className="flex items-center gap-0 border-b border-slate-200 no-print">
+        {([
+          { key: 'department' as const, label: 'विभाग' },
+          { key: 'mainbranch' as const, label: 'महाशाखा' },
+          { key: 'branch' as const, label: 'शाखा' },
+        ]).map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className="relative px-5 py-3 text-sm font-semibold transition-colors cursor-pointer bg-transparent border-none outline-none"
+            style={{
+              color: activeTab === tab.key ? '#7c3aed' : '#64748b',
+              borderBottom: activeTab === tab.key ? '2.5px solid #7c3aed' : '2.5px solid transparent',
+              marginBottom: '-1px',
+              background: activeTab === tab.key ? 'linear-gradient(to top, rgba(124, 58, 237, 0.06), transparent)' : 'transparent',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'department' && (

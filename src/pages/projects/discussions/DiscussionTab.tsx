@@ -6,6 +6,7 @@ import { LayoutGrid, List, Search, Pencil, Trash2, RotateCcw } from "lucide-reac
 import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
 import DiscussionSearch from "./Search";
+import { convertToBs } from "@/lib/projects-data";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
@@ -221,7 +222,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
                   <div className="font-semibold text-slate-900">{d.DiscussionTitle}</div>
                 </td>
                 <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{d.PriorityName || "—"}</td>
-                <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{d.CreatedDate || "—"}</td>
+                <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertToBs(d.CreatedDate) || "—"}</td>
                 <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                   <div className="flex items-center justify-end gap-1">
                     {d.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />}
@@ -245,7 +246,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
               <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
                 <span>Priority: {d.PriorityName}</span>
                 <span>•</span>
-                <span>{d.CreatedDate}</span>
+                 <span>{convertToBs(d.CreatedDate)}</span>
               </div>
             </div>
             <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-slate-100">
