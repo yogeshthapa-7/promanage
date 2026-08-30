@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
-import { LogOut, Mail, User, Hash, Building2, Shield } from 'lucide-react';
+import { apiCall } from '@/lib/api';
+import { LogOut, Mail, User, Building2, Shield } from 'lucide-react';
 
 interface UserProfileDrawerProps {
   open: boolean;
@@ -13,6 +14,77 @@ interface UserProfileDrawerProps {
 
 export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerProps) {
   const { user, logout } = useAuth();
+  const [employeeName, setEmployeeName] = useState('');
+  const [departmentName, setDepartmentName] = useState('');
+  const [employeeLoading, setEmployeeLoading] = useState(false);
+
+  const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!open || !user?.employeeId) {
+      if (!cancelled) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setEmployeeName('');
+        setDepartmentName('');
+      }
+      return;
+    }
+
+    const controller = new AbortController();
+    setEmployeeLoading(true);
+
+    apiCall(`${API_BASE}/EmployeeInfo/ServerSearch`, {
+      method: 'POST',
+      body: JSON.stringify({
+        model: {
+          draw: 1,
+          start: 0,
+          length: 1,
+          columns: [
+            { data: 'EmployeeInfoID', name: 'EmployeeInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          ],
+          search: { value: '', regex: '' },
+          order: [{ column: 0, dir: 'desc' }],
+        },
+        param: {
+          EmployeeInfoID: user.employeeId,
+          Fullname: '',
+          Address: '',
+          Phone: '',
+          DepartmentID: user.departmentCode || 0,
+          DepartmentName: '',
+          DOB: '',
+          Email: '',
+          Gender: 0,
+          Password: '',
+          Username: '',
+        },
+      }),
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+        const json = await res.json();
+        const data = Array.isArray(json?.data) ? json.data : [];
+        const emp = data[0];
+        if (emp) {
+          setEmployeeName(emp.Fullname || '');
+          setDepartmentName(emp.DepartmentName || '');
+        }
+      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') console.error(err);
+      })
+      .finally(() => {
+        if (!cancelled) setEmployeeLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [open, user?.employeeId, user?.departmentCode, API_BASE]);
 
   const handleLogout = () => {
     logout();
@@ -63,26 +135,26 @@ export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerPr
           </div>
         </div>
 
-        {user?.employeeId && (
+        {employeeName && (
           <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-              <Hash size={16} />
+              <User size={16} />
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Employee ID</p>
-              <p className="text-sm font-semibold text-slate-800">{user.employeeId}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Employee Name</p>
+              <p className="text-sm font-semibold text-slate-800 truncate">{employeeName}{employeeLoading && ' (loading…)'}</p>
             </div>
           </div>
         )}
 
-        {user?.departmentCode && (
+        {departmentName && (
           <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
               <Building2 size={16} />
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Department Code</p>
-              <p className="text-sm font-semibold text-slate-800">{user.departmentCode}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Department</p>
+              <p className="text-sm font-semibold text-slate-800 truncate">{departmentName}</p>
             </div>
           </div>
         )}
