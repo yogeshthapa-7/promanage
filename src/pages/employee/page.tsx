@@ -169,6 +169,32 @@ export default function EmployeePage() {
       'Branch Name': emp.BranchName,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+      { wch: 8 },   // S.N.
+      { wch: 24 },  // Full Name
+      { wch: 28 },  // Address
+      { wch: 16 },  // Phone
+      { wch: 28 },  // Email
+      { wch: 24 },  // Department Name
+      { wch: 24 },  // Branch Name
+    ];
+    const range = XLSX.utils.decode_range(ws['!ref'] as string);
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        const cell = ws[ref];
+        if (!cell) continue;
+        cell.s = {
+          alignment: { vertical: 'center', horizontal: 'left', indent: 1, wrapText: true },
+          border: {
+            top: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            bottom: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            left: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            right: { style: 'thin', color: { rgb: 'D0D5DD' } },
+          },
+        };
+      }
+    }
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Employees');
     XLSX.writeFile(wb, 'employees.xlsx');
