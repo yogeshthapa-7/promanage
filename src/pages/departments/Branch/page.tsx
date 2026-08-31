@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
+import { Plus, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
@@ -311,7 +311,6 @@ export default function BranchPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
             <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
             <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
