@@ -42,8 +42,8 @@ export default function UserFormModal({
   const userNameCheckIdRef = useRef(0);
   const usernameExistsMessage = 'Username Exists Already';
 
-  const isUsernameExistsError = (message?: string) =>
-    message?.trim().toLowerCase() === usernameExistsMessage.toLowerCase();
+  const isUsernameExistsError = (msg?: string) =>
+    msg?.trim().toLowerCase() === usernameExistsMessage.toLowerCase();
 
   const getPopupParent = (triggerNode: HTMLElement) =>
     triggerNode.parentNode as HTMLElement;
@@ -139,99 +139,93 @@ export default function UserFormModal({
   /**
    * Submit user.
    */
-const handleSubmit = async () => {
-  try {
-    const values = await form.validateFields();
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
 
-    setLoading(true);
+      setLoading(true);
 
-    const selectedGroup = userGroups.find(
-      (g) => g.UserGroupName === values.userGroup
-    );
+      const selectedGroup = userGroups.find(
+        (g) => g.UserGroupName === values.userGroup
+      );
 
-    const selectedOrg = organizations.find(
-      (o) => o.Title === values.organization
-    );
+      const selectedOrg = organizations.find(
+        (o) => o.Title === values.organization
+      );
 
-    const payload = {
-      UserId: isEdit ? Number(editingUser?.id) : 0,
-      UserName: values.userName?.trim(),
-      FullName: values.fullName?.trim(),
-      Password: values.password || '',
-      CPassword: values.password || '',
-      OrganizationID: selectedOrg
-        ? selectedOrg.OrganizationID
-        : 0,
-      Theme: 'Facebook',
-      UserGroupCode: selectedGroup
-        ? selectedGroup.UserGroupCode
-        : '',
-      UserGroupId: 0,
-    };
+      // Normalize username string (trimmed and lowercased)
+      const cleanUserName = values.userName?.trim().toLowerCase();
 
-    const result = await saveUser(payload);
+      const payload = {
+        UserId: isEdit ? Number(editingUser?.id) : 0,
+        UserName: cleanUserName,
+        FullName: values.fullName?.trim(),
+        Password: values.password || '',
+        CPassword: values.password || '',
+        OrganizationID: selectedOrg ? selectedOrg.OrganizationID : 0,
+        Theme: 'Facebook',
+        UserGroupCode: selectedGroup ? selectedGroup.UserGroupCode : '',
+        UserGroupId: 0,
+      };
 
-    // IMPORTANT:
-    // HTTP 200 does NOT necessarily mean the operation succeeded.
-    // Check the API's Success property.
-    if (!result.success) {
-      const apiMessage = result.message?.trim() || 'Failed to save user';
+      const result = await saveUser(payload);
 
-      if (isUsernameExistsError(apiMessage)) {
-        form.setFields([
-          {
-            name: 'userName',
-            errors: ['Username already exists'],
-          },
-        ]);
+      // Check the API's Success property.
+      if (!result.success) {
+        const apiMessage = result.message?.trim() || 'Failed to save user';
 
-        message.error('User was not saved. That username already exists.');
+        if (isUsernameExistsError(apiMessage)) {
+          form.setFields([
+            {
+              name: 'userName',
+              errors: ['Username already exists'],
+            },
+          ]);
 
+          message.error('User was not saved. That username already exists.');
+          return;
+        }
+
+        message.error(`User was not saved: ${apiMessage}`);
         return;
       }
 
-      message.error(`User was not saved: ${apiMessage}`);
-
-      return;
-    }
-
-    // ONLY show success when API explicitly says Success: true
-    message.success(
-      isEdit
-        ? 'प्रयोगकर्ता सफलतापूर्वक अपडेट गरियो'
-        : 'प्रयोगकर्ता सफलतापूर्वक सिर्जना गरियो'
-    );
-
-    form.resetFields();
-    setPasswordStrength(0);
-
-    queryClient.invalidateQueries({
-      queryKey: ['users', 'search'],
-    });
-
-    onClose();
-    onSuccess();
-  } catch (err) {
-    console.error('Save user error:', err);
-
-    if (err instanceof Error) {
-      message.error(
-        err.message ||
-          (isEdit
-            ? 'प्रयोगकर्ता अपडेट गर्न असफल भयो'
-            : 'प्रयोगकर्ता सिर्जना गर्न असफल भयो')
-      );
-    } else {
-      message.error(
+      message.success(
         isEdit
-          ? 'प्रयोगकर्ता अपडेट गर्न असफल भयो'
-          : 'प्रयोगकर्ता सिर्जना गर्न असफल भयो'
+          ? 'प्रयोगकर्ता सफलतापूर्वक अपडेट गरियो'
+          : 'प्रयोगकर्ता सफलतापूर्वक सिर्जना गरियो'
       );
+
+      form.resetFields();
+      setPasswordStrength(0);
+
+      queryClient.invalidateQueries({
+        queryKey: ['users', 'search'],
+      });
+
+      onClose();
+      onSuccess();
+    } catch (err) {
+      console.error('Save user error:', err);
+
+      if (err instanceof Error) {
+        message.error(
+          err.message ||
+            (isEdit
+              ? 'प्रयोगकर्ता अपडेट गर्न असफल भयो'
+              : 'प्रयोगकर्ता सिर्जना गर्न असफल भयो')
+        );
+      } else {
+        message.error(
+          isEdit
+            ? 'प्रयोगकर्ता अपडेट गर्न असफल भयो'
+            : 'प्रयोगकर्ता सिर्जना गर्न असफल भयो'
+        );
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const userGroupOptions = userGroups.map((g) => ({
     value: g.UserGroupName,
@@ -243,17 +237,10 @@ const handleSubmit = async () => {
     label: o.Title,
   }));
 
-  const drawerTitle = isEdit
-    ? 'प्रयोगकर्ता सम्पादन'
-    : 'प्रयोगकर्ता फारम';
+  const drawerTitle = isEdit ? 'प्रयोगकर्ता सम्पादन' : 'प्रयोगकर्ता फारम';
 
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      title={drawerTitle}
-      width={640}
-    >
+    <Drawer open={open} onClose={onClose} title={drawerTitle} width={640}>
       <Form
         form={form}
         layout="vertical"
@@ -280,10 +267,10 @@ const handleSubmit = async () => {
                   whitespace: true,
                   message: 'कृपया प्रयोगकर्ता नाम प्रविष्ट गर्नुहोस्',
                 },
-
-                ({ getFieldValue }) => ({
+                () => ({
                   validator(_, value) {
-                    const userName = value?.trim();
+                    // Trim and lowercase to prevent formatting mismatch
+                    const userName = value?.trim().toLowerCase();
 
                     if (!userName) {
                       return Promise.resolve();
@@ -296,35 +283,28 @@ const handleSubmit = async () => {
                       isEdit ? Number(editingUser?.id) : undefined
                     )
                       .then((exists) => {
-                        // Ignore the response if another check
-                        // has already been started.
+                        // Ignore the response if another check has already been started.
                         if (checkId !== userNameCheckIdRef.current) {
                           return Promise.resolve();
                         }
 
                         if (exists) {
                           return Promise.reject(
-                            new Error(
-                              'यो प्रयोगकर्ता नाम पहिले नै अवस्थित छ'
-                            )
+                            new Error('यो प्रयोगकर्ता नाम पहिले नै अवस्थित छ')
                           );
                         }
 
                         return Promise.resolve();
                       })
                       .catch((error) => {
-                        // Do not silently convert the actual
-                        // "username exists" validation error into success.
                         if (
                           error instanceof Error &&
-                          error.message ===
-                            'यो प्रयोगकर्ता नाम पहिले नै अवस्थित छ'
+                          error.message === 'यो प्रयोगकर्ता नाम पहिले नै अवस्थित छ'
                         ) {
                           return Promise.reject(error);
                         }
 
-                        // API/network errors should not falsely say
-                        // that the username is already taken.
+                        // Do not falsely reject on backend/network errors during blur check
                         return Promise.resolve();
                       });
                   },
@@ -351,10 +331,7 @@ const handleSubmit = async () => {
                 },
               ]}
             >
-              <Input
-                placeholder="e.g. Alex Rivera"
-                className="rounded-lg"
-              />
+              <Input placeholder="e.g. Alex Rivera" className="rounded-lg" />
             </Form.Item>
           </Col>
         </Row>
@@ -428,7 +405,7 @@ const handleSubmit = async () => {
                         min: 8,
                         message: 'पासवर्ड कम्तिमा ८ अंकको हुनुपर्छ',
                       },
-                      ({ getFieldValue }) => ({
+                      () => ({
                         validator(_, value) {
                           if (!value) {
                             return Promise.resolve();

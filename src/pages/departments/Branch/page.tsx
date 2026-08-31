@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Copy, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
+import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
@@ -14,12 +14,10 @@ import {
   fetchMainBranchSelectList,
   type MainBranchSelectOption,
 } from '@/lib/main-branches-data';
-import {
-  fetchDepartmentSelectList,
-  type DepartmentSelectOption,
-} from '@/lib/departments-data';
 import CreateBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import { exportCsv } from '@/lib/csv';
+import * as XLSX from 'xlsx';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -67,18 +65,13 @@ export default function BranchPage() {
   const [branchNameId, setBranchNameId] = useState<string | undefined>(undefined);
   const [searchCode, setSearchCode] = useState('');
   const [mainBranchId, setMainBranchId] = useState<string | undefined>(undefined);
-  const [departmentId, setDepartmentId] = useState<string | undefined>(undefined);
-  const [departmentSearch, setDepartmentSearch] = useState('');
 
   const [branchOptions, setBranchOptions] = useState<BranchSelectOption[]>([]);
   const [branchLoading, setBranchLoading] = useState(false);
   const [mainBranchOptions, setMainBranchOptions] = useState<MainBranchSelectOption[]>([]);
   const [mainBranchLoading, setMainBranchLoading] = useState(false);
-  const [departmentOptions, setDepartmentOptions] = useState<DepartmentSelectOption[]>([]);
-  const [departmentLoading, setDepartmentLoading] = useState(false);
 
   const debouncedSearchCode = useDebounce(searchCode, 300);
-  const debouncedSearchDepartment = useDebounce(departmentSearch, 300);
 
   /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
   useEffect(() => {
@@ -104,17 +97,6 @@ export default function BranchPage() {
     return () => controller.abort();
   }, []);
 
-  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
-  useEffect(() => {
-    const controller = new AbortController();
-    setDepartmentLoading(true);
-    fetchDepartmentSelectList(controller.signal)
-      .then((options) => setDepartmentOptions(options))
-      .finally(() => {
-        if (!controller.signal.aborted) setDepartmentLoading(false);
-      });
-    return () => controller.abort();
-  }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const {
@@ -129,16 +111,12 @@ export default function BranchPage() {
   } = usePaginatedList<Branch>({
     fetcher: fetchBranchesPage,
     initialPageSize: 20,
-    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId, departmentId, debouncedSearchDepartment],
+    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId],
     extraParams: {
       code: debouncedSearchCode,
       name: branchNameId ? branchOptions.find(o => o.value === branchNameId)?.label : undefined,
       mainBranchId: mainBranchId ? Number(mainBranchId) : undefined,
       mainBranchName: mainBranchId ? mainBranchOptions.find(o => o.value === mainBranchId)?.label : undefined,
-      departmentId: departmentId ? Number(departmentId) : undefined,
-      departmentName: departmentId
-        ? departmentOptions.find((o) => o.value === departmentId)?.label || debouncedSearchDepartment || undefined
-        : debouncedSearchDepartment || undefined,
     },
   });
 
@@ -148,8 +126,6 @@ export default function BranchPage() {
     setBranchNameId(undefined);
     setSearchCode('');
     setMainBranchId(undefined);
-    setDepartmentId(undefined);
-    setDepartmentSearch('');
     setCurrentPage(1);
   };
 
@@ -188,6 +164,60 @@ export default function BranchPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleCsvExport = () => {
+    exportCsv(
+      'branches.csv',
+      [
+        { header: 'S.N.', value: (b: Branch) => b.sn },
+        { header: 'Branch Name', value: (b: Branch) => b.name },
+        { header: 'Branch Code', value: (b: Branch) => b.branchCode },
+        { header: 'Main Branch', value: (b: Branch) => b.mainBranchName },
+        { header: 'Department', value: (b: Branch) => b.departmentName },
+      ],
+      branches
+    );
+    message.success('CSV exported successfully');
+  };
+
+  const handleExcelExport = () => {
+    const data = branches.map((b) => ({
+      'S.N.': b.sn,
+      'Branch Name': b.name,
+      'Branch Code': b.branchCode,
+      'Main Branch': b.mainBranchName,
+      'Department': b.departmentName,
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+      { wch: 8 },
+      { wch: 32 },
+      { wch: 16 },
+      { wch: 28 },
+      { wch: 28 },
+    ];
+    const range = XLSX.utils.decode_range(ws['!ref'] as string);
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        const cell = ws[ref];
+        if (!cell) continue;
+        cell.s = {
+          alignment: { vertical: 'center', horizontal: 'left', indent: 1, wrapText: true },
+          border: {
+            top: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            bottom: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            left: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            right: { style: 'thin', color: { rgb: 'D0D5DD' } },
+          },
+        };
+      }
+    }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Branches');
+    XLSX.writeFile(wb, 'branches.xlsx');
+    message.success('Excel exported successfully');
   };
 
   return (
@@ -257,33 +287,6 @@ export default function BranchPage() {
             />
           </div>
 
-          <div className="flex-1 min-w-[220px]">
-            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Department / विभाग
-            </label>
-            <Select
-              placeholder="Select department..."
-              value={departmentId}
-              onChange={(value) => {
-                setDepartmentId(value);
-                const selected = departmentOptions.find((opt) => opt.value === value);
-                setDepartmentSearch(selected?.label || '');
-              }}
-              onSearch={(value) => {
-                setDepartmentSearch(value);
-                setDepartmentId(undefined);
-              }}
-              options={departmentOptions}
-              className="w-full"
-              allowClear
-              loading={departmentLoading}
-              showSearch
-              filterOption={(input, option) =>
-                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
-              }
-            />
-          </div>
-
           <div className="flex items-center gap-2">
             <Button type="primary" onClick={refreshBranches}>Search</Button>
             <Button onClick={handleClear}>Clear</Button>
@@ -311,8 +314,8 @@ export default function BranchPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button size="sm" icon={<Copy className="w-3.5 h-3.5" />}>Copy</Button>
-            <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
+            <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />} onClick={handleCsvExport}>CSV</Button>
+            <Button size="sm" icon={<Download className="w-3.5 h-3.5" />} onClick={handleExcelExport}>Excel</Button>
             <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>

@@ -48,19 +48,22 @@ interface FetchDepartmentsResult {
 }
 
 function buildSearchBody(params: FetchDepartmentsParams) {
+  const parsedDeptId = params.departmentId ? Number(params.departmentId) : 0;
+  const parsedMainDeptId = params.mainDept ? Number(params.mainDept) : 0;
+
   return {
     model: {
       draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: params.search, regex: '' },
+      start: params.start || 0,
+      length: params.length || 20,
+      search: { value: params.search || '', regex: '' },
     },
     param: {
-      search: params.search,
+      search: params.search || '',
       DepartmentName: params.name || '',
       DepartmentCode: params.code || '',
-      DepartmentID: params.departmentId ? Number(params.departmentId) : 0,
-      MainDepartmentID: params.mainDept ? Number(params.mainDept) : 0,
+      DepartmentID: isNaN(parsedDeptId) ? 0 : parsedDeptId,
+      MainDepartmentID: isNaN(parsedMainDeptId) ? 0 : parsedMainDeptId,
     },
   };
 }
@@ -70,7 +73,17 @@ export async function fetchDepartments(
 ): Promise<FetchDepartmentsResult> {
   try {
     return await cachedQuery(
-      ['departments', 'search', params.search, params.start, params.length, params.name, params.code, params.mainDept, params.departmentId],
+      [
+        'departments',
+        'search',
+        params.search,
+        params.start,
+        params.length,
+        params.name,
+        params.code,
+        params.mainDept,
+        params.departmentId,
+      ],
       (signal) => doFetchDepartments(params, signal),
       params.signal
     );
@@ -83,11 +96,15 @@ async function doFetchDepartments(
   params: FetchDepartmentsParams,
   signal?: AbortSignal
 ): Promise<FetchDepartmentsResult> {
-  const res = await apiCall(API_URL, {
-    method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
-    signal,
-  }, 120000);
+  const res = await apiCall(
+    API_URL,
+    {
+      method: 'POST',
+      body: JSON.stringify(buildSearchBody(params)),
+      signal,
+    },
+    120000
+  );
 
   if (!res.ok) throw new Error(`Failed to fetch departments: ${res.statusText}`);
 
@@ -127,8 +144,10 @@ interface ApiSelectItem {
   DepartmentName?: string;
   name?: string;
   id?: number | string;
+  ID?: number | string;
   Value?: number | string;
   Text?: string;
+  text?: string;
 }
 
 const SELECT_LIST_URL =
@@ -136,13 +155,13 @@ const SELECT_LIST_URL =
   '/Department/SelectList';
 
 function mapSelectItem(item: ApiSelectItem): DepartmentSelectOption {
-  const value = String(
-    item.DepartmentID ?? item.DepartmentInfoID ?? item.id ?? item.Value ?? ''
-  );
-  const label = String(
-    item.DepartmentName ?? item.name ?? item.Text ?? value
-  );
-  return { value, label };
+  const rawValue = item.DepartmentID ?? item.DepartmentInfoID ?? item.id ?? item.ID ?? item.Value ?? '';
+  const rawLabel = item.DepartmentName ?? item.name ?? item.Text ?? item.text ?? rawValue;
+
+  return {
+    value: String(rawValue),
+    label: String(rawLabel),
+  };
 }
 
 export async function fetchDepartmentSelectList(

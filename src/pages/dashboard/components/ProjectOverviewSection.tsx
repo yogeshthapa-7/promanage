@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import DropdownMenu from '@/components/ui/DropdownMenu';
 import type { Project } from '@/lib/projects-data';
 
 interface ProjectOverviewSectionProps {
@@ -18,54 +16,15 @@ const STATUS_COLORS: Record<string, string> = {
   'Not Started': '#9CA3AF',
 };
 
-function parseDate(dateStr: string): Date | null {
-  if (!dateStr) return null;
-  const date = new Date(dateStr);
-  return isNaN(date.getTime()) ? null : date;
-}
-
-function getPeriodRange(period: string): { start: Date; end: Date } | null {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  switch (period) {
-    case 'This Month':
-      return { start: new Date(year, month, 1), end: new Date(year, month + 1, 0, 23, 59, 59, 999) };
-    case 'Last Month':
-      return { start: new Date(year, month - 1, 1), end: new Date(year, month, 0, 23, 59, 59, 999) };
-    case 'This Quarter': {
-      const qStart = Math.floor(month / 3) * 3;
-      return { start: new Date(year, qStart, 1), end: new Date(year, qStart + 3, 0, 23, 59, 59, 999) };
-    }
-    case 'This Year':
-      return { start: new Date(year, 0, 1), end: new Date(year, 11, 31, 23, 59, 59, 999) };
-    default:
-      return null;
-  }
-}
-
-function filterByPeriod(projects: Project[], period: string): Project[] {
-  const range = getPeriodRange(period);
-  if (!range) return projects;
-  return projects.filter((p) => {
-    const start = parseDate(p.startDate);
-    const end = parseDate(p.dueDate);
-    if (!start || !end) return true;
-    return start <= range.end && end >= range.start;
-  });
-}
-
 export default function ProjectOverviewSection({ projects, loading = false }: ProjectOverviewSectionProps) {
   const chartRef = useRef<HTMLDivElement>(null);
-  const [period, setPeriod] = useState('This Month');
 
-  const filteredProjects = useMemo(() => filterByPeriod(projects, period), [projects, period]);
   const statusBreakdown = useMemo(() => {
     const counts: Record<string, number> = {};
-    filteredProjects.forEach((p) => {
+    projects.forEach((p) => {
       counts[p.status] = (counts[p.status] || 0) + 1;
     });
-    const total = filteredProjects.length || 1;
+    const total = projects.length || 1;
     return Object.entries(counts).map(([label, count]) => ({
       id: `overview-${label.toLowerCase().replace(/\s+/g, '-')}`,
       label,
@@ -73,7 +32,7 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
       percentage: Number(((count / total) * 100).toFixed(1)),
       color: STATUS_COLORS[label] || '#9CA3AF',
     }));
-  }, [filteredProjects]);
+  }, [projects]);
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -87,61 +46,47 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
     });
   }, [statusBreakdown]);
 
-  const periods = ['This Month', 'Last Month', 'This Quarter', 'This Year'];
-
   return (
      <Card className="h-full relative">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold text-foreground">Project Overview</h2>
-        <DropdownMenu
-          trigger={
-            <Button size="small" className="text-xs flex items-center gap-1.5">
-              {period}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </Button>
-          }
-          items={periods.map((p) => ({
-            label: p,
-            onClick: () => setPeriod(p),
-          }))}
-        />
-      </div>
+       <div className="flex items-center justify-between mb-3">
+         <h2 className="text-sm font-bold text-foreground">Project Overview</h2>
+       </div>
 
-      <div className="flex items-center gap-4">
-        <div ref={chartRef} style={{ width: 160, height: 160, flexShrink: 0 }} />
-        <div className="flex flex-col gap-2 flex-1 min-w-0">
-          {statusBreakdown.map((item) => (
-            <div key={item.id} className="flex items-center justify-between gap-2">
-              <div className="flex items-center justify-between gap-2 min-w-0">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
-                <span className="text-sm text-foreground truncate">{item.label}</span>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-               <span className="text-xs font-semibold tabular-nums text-foreground">{item.count}</span>
-               <span className="text-xs tabular-nums w-10 text-right" style={{ color: 'var(--muted-foreground)' }}>{item.percentage}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+       <div className="flex items-center gap-4">
+         <div ref={chartRef} style={{ width: 160, height: 160, flexShrink: 0 }} />
+         <div className="flex flex-col gap-2 flex-1 min-w-0">
+           {statusBreakdown.map((item) => (
+             <div key={item.id} className="flex items-center justify-between gap-2">
+               <div className="flex items-center justify-between gap-2 min-w-0">
+                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
+                 <span className="text-sm text-foreground truncate">{item.label}</span>
+               </div>
+               <div className="flex items-center gap-3 flex-shrink-0">
+                <span className="text-xs font-semibold tabular-nums text-foreground">{item.count}</span>
+                <span className="text-xs tabular-nums w-10 text-right" style={{ color: 'var(--muted-foreground)' }}>{item.percentage}%</span>
+               </div>
+             </div>
+           ))}
+         </div>
+       </div>
 
-      <div className="mt-5 pt-4 border-t border-border/50">
-        <p className="text-sm italic leading-relaxed text-center" style={{ color: 'var(--muted-foreground)', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.01em', lineHeight: '1.6', maxWidth: '90%', margin: '0 auto' }}>
-          <span style={{ color: 'var(--primary)', fontWeight: 500, fontStyle: 'normal' }}>Project distribution</span>
-          {' '}— {filteredProjects.length} projects tracked across {statusBreakdown.length} status categories for this period.
-          <span className="block mt-1" style={{ fontSize: '0.85em', opacity: 0.75 }}>
-            {statusBreakdown.length > 0
-              ? `${statusBreakdown[0]?.label || 'None'} projects lead at ${statusBreakdown[0]?.percentage || 0}%.`
-              : 'No project data available.'}
-          </span>
-        </p>
-      </div>
+       <div className="mt-5 pt-4 border-t border-border/50">
+         <p className="text-sm italic leading-relaxed text-center" style={{ color: 'var(--muted-foreground)', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.01em', lineHeight: '1.6', maxWidth: '90%', margin: '0 auto' }}>
+           <span style={{ color: 'var(--primary)', fontWeight: 500, fontStyle: 'normal' }}>Project distribution</span>
+           {' '}— {projects.length} projects tracked across {statusBreakdown.length} status categories.
+           <span className="block mt-1" style={{ fontSize: '0.85em', opacity: 0.75 }}>
+             {statusBreakdown.length > 0
+               ? `${statusBreakdown[0]?.label || 'None'} projects lead at ${statusBreakdown[0]?.percentage || 0}%.`
+               : 'No project data available.'}
+           </span>
+         </p>
+       </div>
 
-      {loading && (
-        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-2xl">
-          <p className="text-xs text-muted-foreground">Loading overview...</p>
-        </div>
-      )}
+       {loading && (
+         <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-2xl">
+           <p className="text-xs text-muted-foreground">Loading overview...</p>
+         </div>
+       )}
     </Card>
   );
 }

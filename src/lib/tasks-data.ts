@@ -328,6 +328,78 @@ export async function fetchTaskStats(projectId: number, signal?: AbortSignal): P
   return stats;
 }
 
+export interface ProjectTaskCounts {
+  total: number;
+  completed: number;
+  byStatus: Record<string, number>;
+}
+
+/**
+ * Fetches ALL tasks in a single request (ProjectInfoID: 0) and aggregates
+ * total / completed / per-status counts per project. This avoids firing one
+ * API call per project from the dashboard.
+ */
+export async function fetchAllProjectTaskCounts(
+  signal?: AbortSignal
+): Promise<Record<number, ProjectTaskCounts>> {
+  const result: Record<number, ProjectTaskCounts> = {};
+  try {
+    const res = await apiCall(TASKS_API, {
+      method: 'POST',
+      body: JSON.stringify({
+        model: {
+          draw: 1,
+          start: 0,
+          length: 1000,
+          columns: [
+            { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
+            { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          ],
+          search: { value: '', regex: '' },
+          order: [{ column: 1, dir: 'desc' }],
+        },
+        param: {
+          TaskInfoID: 0,
+          TaskTitle: '',
+          TaskCode: '',
+          TaskManagerID: 0,
+          InvolvedEmployees: '',
+          Weightage: 0,
+          OrderKey: 0,
+          Priority: 0,
+          WorkStatusID: 0,
+          Description: '',
+          Attachments: '',
+          ProjectInfoID: 0,
+        },
+      }),
+      signal,
+    }, 60000);
+
+    if (!res.ok) throw new Error(`Failed to fetch task counts: ${res.statusText}`);
+    const json = (await res.json()) as ServerSearchResponse;
+    const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
+
+    for (const t of rows) {
+      const pid = Number(t.ProjectInfoID);
+      if (!pid) continue;
+      if (!result[pid]) result[pid] = { total: 0, completed: 0, byStatus: {} };
+      const status = t.WorkStatusName || 'Unknown';
+      result[pid].total += 1;
+      result[pid].byStatus[status] = (result[pid].byStatus[status] || 0) + 1;
+      if (status.toLowerCase() === 'completed') {
+        result[pid].completed += 1;
+      }
+    }
+    return result;
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw err;
+    }
+    return result;
+  }
+}
+
 export async function fetchSubTasks(params: {
   projectId: number;
   taskInfoId: number;

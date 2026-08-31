@@ -95,9 +95,9 @@ interface FetchBranchesParams {
   length: number;
   name?: string;
   code?: string;
-  mainBranchId?: number;
+  mainBranchId?: number | string;
   mainBranchName?: string;
-  departmentId?: number;
+  departmentId?: number | string;
   departmentName?: string;
   orderKey?: number;
   signal?: AbortSignal;
@@ -110,20 +110,24 @@ interface FetchBranchesResult {
 }
 
 function buildSearchBody(params: FetchBranchesParams) {
+  // Ensure IDs are strictly numbers or 0, avoiding NaN
+  const parsedMainBranchId = params.mainBranchId ? Number(params.mainBranchId) : 0;
+  const parsedDepartmentId = params.departmentId ? Number(params.departmentId) : 0;
+
   return {
     model: {
       draw: 0,
-      start: params.start,
-      length: params.length,
-      search: { value: params.search, regex: '' },
+      start: params.start || 0,
+      length: params.length || 20,
+      search: { value: params.search || '', regex: '' },
     },
     param: {
       BranchID: 0,
       BranchName: params.name || '',
       BranchCode: params.code || '',
-      MainBranchID: params.mainBranchId || 0,
+      MainBranchID: isNaN(parsedMainBranchId) ? 0 : parsedMainBranchId,
       MainBranchName: params.mainBranchName || '',
-      DepartmentID: params.departmentId || 0,
+      DepartmentID: isNaN(parsedDepartmentId) ? 0 : parsedDepartmentId,
       DepartmentName: params.departmentName || '',
       OrderKey: params.orderKey || 0,
     },
@@ -133,9 +137,27 @@ function buildSearchBody(params: FetchBranchesParams) {
 export async function fetchBranches(
   params: FetchBranchesParams
 ): Promise<FetchBranchesResult> {
+  const depId = params.departmentId ? String(params.departmentId) : '';
+  const depName = params.departmentName || '';
+  const mainId = params.mainBranchId ? String(params.mainBranchId) : '';
+  const mainName = params.mainBranchName || '';
+
   try {
     return await cachedQuery(
-      ['branches', 'search', params.search, params.start, params.length, params.name, params.code, params.mainBranchId, params.mainBranchName, params.departmentId, params.departmentName, params.orderKey],
+      [
+        'branches', 
+        'search', 
+        params.search, 
+        params.start, 
+        params.length, 
+        params.name, 
+        params.code, 
+        mainId, 
+        mainName, 
+        depId, 
+        depName, 
+        params.orderKey
+      ],
       (signal) => doFetchBranches(params, signal),
       params.signal
     );

@@ -102,13 +102,13 @@ export default function PolicyPage() {
             Guiding principles and structured initiatives for sustainable growth.
           </p>
         </div>
-        <Button type="primary" onClick={handleAddNew} icon={<Plus className="h-4 w-4" />}>
+        <Button type="primary" onClick={handleAddNew} icon={<Plus className="h-4 w-4" />} className="no-print">
           Add Policy
         </Button>
       </div>
       <hr className="border-slate-200 my-6" />
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end no-print">
         <div className="md:col-span-2">
           <div className="mb-1 text-sm font-medium text-slate-500">Policy Name</div>
           <div className="flex gap-2">
@@ -170,9 +170,9 @@ export default function PolicyPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
-                      {policy.name || 'Untitled'}
-                    </h3>
+                      <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors break-words">
+                        {policy.name || 'Untitled'}
+                      </h3>
                   </div>
                   <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                     #{policy.SN}
