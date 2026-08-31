@@ -64,13 +64,19 @@ export default function UsersPage() {
     extraDeps: [debouncedSearch, titleFilter, roleFilter],
   });
 
+  const themeOptions = Array.from(
+    new Set(users.map((u) => u.theme).filter((t): t is string => !!t))
+  ).sort((a, b) => a.localeCompare(b));
+
   useEffect(() => {
     fetchUserGroups().then((groups) => {
       setUserGroups(groups);
     });
   }, []);
 
-  const paginatedUsers = users;
+  const paginatedUsers = titleFilter
+    ? users.filter((u) => u.theme === titleFilter)
+    : users;
 
   const handleEditUser = (user: User) => {
     setEditUser(user);
@@ -124,11 +130,21 @@ export default function UsersPage() {
         </div>
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Theme</div>
-          <Input
-            placeholder="Search by theme..."
-            value={titleFilter}
-            onChange={(e) => setTitleFilter(e.target.value)}
+          <Select
+            value={titleFilter || undefined}
+            onChange={(value) => setTitleFilter(value || '')}
+            placeholder="All Themes"
             allowClear
+            showSearch
+            optionFilterProp="label"
+            className="w-full"
+            options={[
+              { value: '', label: 'All Themes' },
+              ...themeOptions.map((theme) => ({
+                value: theme,
+                label: theme,
+              })),
+            ]}
           />
         </div>
         <div>
@@ -183,7 +199,7 @@ export default function UsersPage() {
             <span className="text-base text-slate-500">entries</span>
           </div>
           <span className="text-base text-slate-500">
-            {totalFiltered} total records
+            {titleFilter ? paginatedUsers.length : totalFiltered} total records
           </span>
         </div>
         {loading ? (
