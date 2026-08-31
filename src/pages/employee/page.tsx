@@ -12,6 +12,7 @@ import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
 import { apiCall } from '@/lib/api';
+import { exportCsv } from '@/lib/csv';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
@@ -174,25 +175,19 @@ export default function EmployeePage() {
   };
 
   const handleCSVExport = () => {
-    const headers = ['S.N.', 'Full Name', 'Address', 'Phone', 'Email', 'Department Name', 'Branch Name'];
-    const rows = employees.map((emp) => [
-      emp.SN,
-      emp.Fullname,
-      emp.Address,
-      emp.Phone,
-      emp.Email,
-      // emp.DOB,
-      emp.DepartmentName,
-      emp.BranchName,
-    ]);
-    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'employees.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    exportCsv(
+      'employees.csv',
+      [
+        { header: 'S.N.', value: (e: Employee) => e.SN },
+        { header: 'Full Name', value: (e: Employee) => e.Fullname },
+        { header: 'Address', value: (e: Employee) => e.Address },
+        { header: 'Phone', value: (e: Employee) => e.Phone },
+        { header: 'Email', value: (e: Employee) => e.Email },
+        { header: 'Department Name', value: (e: Employee) => e.DepartmentName },
+        { header: 'Branch Name', value: (e: Employee) => e.BranchName },
+      ],
+      employees
+    );
     message.success('CSV exported successfully');
   };
 

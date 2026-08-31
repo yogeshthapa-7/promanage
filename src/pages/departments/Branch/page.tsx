@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, FileSpreadsheet, Printer, Pencil, Trash2 } from 'lucide-react';
+import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
@@ -16,6 +16,8 @@ import {
 } from '@/lib/main-branches-data';
 import CreateBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import { exportCsv } from '@/lib/csv';
+import * as XLSX from 'xlsx';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -164,6 +166,60 @@ export default function BranchPage() {
     window.print();
   };
 
+  const handleCsvExport = () => {
+    exportCsv(
+      'branches.csv',
+      [
+        { header: 'S.N.', value: (b: Branch) => b.sn },
+        { header: 'Branch Name', value: (b: Branch) => b.name },
+        { header: 'Branch Code', value: (b: Branch) => b.branchCode },
+        { header: 'Main Branch', value: (b: Branch) => b.mainBranchName },
+        { header: 'Department', value: (b: Branch) => b.departmentName },
+      ],
+      branches
+    );
+    message.success('CSV exported successfully');
+  };
+
+  const handleExcelExport = () => {
+    const data = branches.map((b) => ({
+      'S.N.': b.sn,
+      'Branch Name': b.name,
+      'Branch Code': b.branchCode,
+      'Main Branch': b.mainBranchName,
+      'Department': b.departmentName,
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+      { wch: 8 },
+      { wch: 32 },
+      { wch: 16 },
+      { wch: 28 },
+      { wch: 28 },
+    ];
+    const range = XLSX.utils.decode_range(ws['!ref'] as string);
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        const cell = ws[ref];
+        if (!cell) continue;
+        cell.s = {
+          alignment: { vertical: 'center', horizontal: 'left', indent: 1, wrapText: true },
+          border: {
+            top: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            bottom: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            left: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            right: { style: 'thin', color: { rgb: 'D0D5DD' } },
+          },
+        };
+      }
+    }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Branches');
+    XLSX.writeFile(wb, 'branches.xlsx');
+    message.success('Excel exported successfully');
+  };
+
   return (
     <div className="print-area fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       <div className="flex items-start justify-between">
@@ -258,7 +314,8 @@ export default function BranchPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
+            <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />} onClick={handleCsvExport}>CSV</Button>
+            <Button size="sm" icon={<Download className="w-3.5 h-3.5" />} onClick={handleExcelExport}>Excel</Button>
             <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>

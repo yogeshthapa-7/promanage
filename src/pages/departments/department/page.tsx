@@ -7,7 +7,8 @@ import {
   FileSpreadsheet, 
   Printer,
   Pencil,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
@@ -21,6 +22,8 @@ import { fetchDepartments, fetchDepartmentSelectList, type Department, type Depa
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import { exportCsv } from '@/lib/csv';
+import * as XLSX from 'xlsx';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -191,6 +194,57 @@ export default function DepartmentPage() {
     window.print();
   };
 
+  const handleCsvExport = () => {
+    exportCsv(
+      'departments.csv',
+      [
+        { header: 'S.N.', value: (d: Department) => d.sn },
+        { header: 'Department Name', value: (d: Department) => d.name },
+        { header: 'Department Code', value: (d: Department) => d.departmentCode },
+        { header: 'Parent Department', value: (d: Department) => d.parentDepartmentName },
+      ],
+      departments
+    );
+    message.success('CSV exported successfully');
+  };
+
+  const handleExcelExport = () => {
+    const data = departments.map((d) => ({
+      'S.N.': d.sn,
+      'Department Name': d.name,
+      'Department Code': d.departmentCode,
+      'Parent Department': d.parentDepartmentName,
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+      { wch: 8 },
+      { wch: 32 },
+      { wch: 18 },
+      { wch: 32 },
+    ];
+    const range = XLSX.utils.decode_range(ws['!ref'] as string);
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        const cell = ws[ref];
+        if (!cell) continue;
+        cell.s = {
+          alignment: { vertical: 'center', horizontal: 'left', indent: 1, wrapText: true },
+          border: {
+            top: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            bottom: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            left: { style: 'thin', color: { rgb: 'D0D5DD' } },
+            right: { style: 'thin', color: { rgb: 'D0D5DD' } },
+          },
+        };
+      }
+    }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Departments');
+    XLSX.writeFile(wb, 'departments.xlsx');
+    message.success('Excel exported successfully');
+  };
+
   return (
     /* Direct Page Canvas - Background wave/gradient style */
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
@@ -325,7 +379,8 @@ export default function DepartmentPage() {
            </div>
 
            <div className="flex items-center gap-2">
-             <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />}>CSV</Button>
+              <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />} onClick={handleCsvExport}>CSV</Button>
+              <Button size="sm" icon={<Download className="w-3.5 h-3.5" />} onClick={handleExcelExport}>Excel</Button>
               <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
            </div>
          </div>
