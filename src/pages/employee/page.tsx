@@ -238,13 +238,13 @@ export default function EmployeePage() {
           </p>
         </div>
 
-        <Button type="primary" onClick={() => { setEditEmployee(null); setShowEmployeeModal(true); }} icon={<UserPlus className="h-4 w-4" strokeWidth={2.5} />}>
+        <Button type="primary" onClick={() => { setEditEmployee(null); setShowEmployeeModal(true); }} icon={<UserPlus className="h-4 w-4" strokeWidth={2.5} />} className="no-print">
           Add Employee
         </Button>
       </div>
-      <hr className="border-slate-200 my-6" />
+      <hr className="border-slate-200 my-6 no-print" />
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end no-print">
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Full Name</div>
           <SearchInput value={fullnameFilter} onChange={setFullnameFilter} placeholder="Search by full name..." />
@@ -263,7 +263,7 @@ export default function EmployeePage() {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex items-center gap-2 no-print">
         <Button icon={<Upload className="h-4 w-4" />} onClick={triggerExcelUpload}>Upload Excel</Button>
         <Button icon={<Download className="h-4 w-4" />} onClick={handleExcelExport}>Download Excel</Button>
         <input
@@ -276,7 +276,7 @@ export default function EmployeePage() {
       </div>
 
       <div className="mt-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 no-print">
           {/* <div className="flex items-center gap-3">
             <span className="text-base text-slate-500">Show</span>
             <Select
@@ -300,7 +300,7 @@ export default function EmployeePage() {
             <Button size="small" icon={<Printer className="h-3.5 w-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>
-        <div className="mb-2 text-base text-slate-500">
+        <div className="mb-2 text-base text-slate-500 no-print">
           Showing {employees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + employees.length} of {totalFiltered} entries
         </div>
         <Card>
@@ -316,7 +316,7 @@ export default function EmployeePage() {
                 {/* <th className="bg-slate-50 px-4 py-3">DOB</th> */}
                 <th className="bg-slate-50 px-4 py-3">Department Name</th>
                 <th className="bg-slate-50 px-4 py-3">Branch Name</th>
-                <th className="rounded-r-xl bg-slate-50 px-4 py-3 text-right">Actions</th>
+                <th className="rounded-r-xl bg-slate-50 px-4 py-3 text-right no-print">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -369,7 +369,7 @@ export default function EmployeePage() {
                     <td className="bg-white px-4 py-3 border-b border-slate-100">
                       {emp.BranchName}
                     </td>
-                    <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                    <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100 no-print">
                       <div className="flex items-center justify-end gap-2">
                         <Button size="small" onClick={() => handleEditEmployee(emp)} icon={<Edit2 className="h-3.5 w-3.5" />}>Edit</Button>
                         <Button size="small" danger onClick={() => handleDeleteEmployee(emp)} icon={<Trash2 className="h-3.5 w-3.5" />}>Delete</Button>
@@ -385,6 +385,7 @@ export default function EmployeePage() {
 
         <Pagination
           total={totalFiltered}
+          className="no-print"
           currentPage={currentPage}
           pageSize={pageSize}
           onPageChange={setCurrentPage}
