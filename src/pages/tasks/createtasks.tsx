@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
+import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import { apiCall } from '@/lib/api';
 import type { TaskItem } from '@/lib/tasks-data';
 import type { ApiProject } from '@/lib/projects-data';
@@ -52,6 +53,19 @@ const priorityOptions = [
   { label: 'Medium', value: 3 },
   { label: 'Low', value: 4 },
 ];
+
+// Backend stores DueDate in BS format (e.g. "2082/6/28"). The picker returns BS
+// (YYYY/MM/DD) in non-English mode; normalize to the unpadded YYYY/M/D the API uses.
+const normalizeBs = (bs?: string): string => {
+  if (!bs) return '';
+  const parts = bs.replace(/-/g, '/').split('/');
+  if (parts.length !== 3) return '';
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  const d = parseInt(parts[2], 10);
+  if ([y, m, d].some((n) => isNaN(n))) return '';
+  return `${y}/${m}/${d}`;
+};
 
 interface CreateTaskDrawerProps {
   open: boolean;
@@ -137,6 +151,7 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
           priority: editingTask.Priority,
           workStatusId: statusId || editingTask.WorkStatusID,
           description: editingTask.Description,
+          dueDate: normalizeBs(editingTask.DueDate),
         });
       } else {
         form.resetFields();
@@ -164,6 +179,7 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
         Priority: values.priority ? Number(values.priority) : 2,
         WorkStatusID: values.workStatusId ? Number(values.workStatusId) : 2,
         Description: values.description || '',
+        DueDate: values.dueDate || '',
         Attachments: '',
         ProjectInfoID: values.projectId ? Number(values.projectId) : 0,
         TaskManagerName: selectedManager?.name || '',
@@ -308,6 +324,17 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
               placeholder="Enter task description"
               className="rounded-lg border-slate-300 hover:border-violet-400 focus:border-violet-500"
             />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="text-sm font-semibold text-slate-600">
+                Due Date
+              </span>
+            }
+            name="dueDate"
+          >
+            <AntdNepaliDatePicker placeholder="YYYY/MM/DD" className="w-full" />
           </Form.Item>
         </div>
       </Form>

@@ -18,6 +18,17 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
+const NEPALI_NUMERALS: Record<string, string> = {
+  "0": "०", "1": "१", "2": "२", "3": "३", "4": "४",
+  "5": "५", "6": "६", "7": "७", "8": "८", "9": "९",
+};
+
+// Render a BS date string (e.g. "2083/5/15") using Devanagari numerals.
+const toDevanagariDate = (bs?: string): string => {
+  if (!bs) return "—";
+  return bs.replace(/\d/g, (d) => NEPALI_NUMERALS[d] || d);
+};
+
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   useEffect(() => {
@@ -446,7 +457,7 @@ export default function TasksPage() {
                  </div>
                  <div className="flex items-center justify-between text-sm gap-2">
                    <span className="text-slate-400 shrink-0">Due Date</span>
-                   <span className="font-semibold text-slate-700">{task.DueDate || "—"}</span>
+                    <span className="font-semibold text-slate-700">{toDevanagariDate(task.DueDate)}</span>
                  </div>
                  <div className="flex items-center justify-between text-sm gap-2">
                    <span className="text-slate-400 shrink-0">Status</span>
