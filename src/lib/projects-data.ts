@@ -60,6 +60,7 @@ export interface Project {
   daysLeft: string;
   tasksCompleted: number;
   totalTasks: number;
+  taskStatusCounts?: Record<string, number>;
 }
 
 const statusProgressColor: Record<ProjectStatus, string> = {

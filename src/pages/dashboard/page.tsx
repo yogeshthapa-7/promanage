@@ -8,6 +8,7 @@ import RecentProjectsCard from './components/RecentProjectsCard';
 import EntitySummaryCard from './components/EntitySummaryCard';
 import ProjectsTable from './components/ProjectsTable';
 import { type Project, type ProjectStatus, type ApiProject, mapApiProjectToProject } from '@/lib/projects-data';
+import { fetchAllProjectTaskCounts } from '@/lib/tasks-data';
 import Topbar from '@/components/Topbar';
 import { useDashboardStats } from './components/useDashboardStats';
 import { apiCall } from '@/lib/api';
@@ -55,7 +56,25 @@ export default function DashboardPage() {
         if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
         const json = await res.json();
         const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
-        const mapped = rows.map(mapApiProjectToProject);
+        let mapped = rows.map(mapApiProjectToProject);
+
+        if (mapped.length > 0) {
+          try {
+            const countsById = await fetchAllProjectTaskCounts(controller.signal);
+            mapped = mapped.map((p) => {
+              const c = countsById[Number(p.id)];
+              if (!c) return p;
+              return {
+                ...p,
+                totalTasks: c.total || 0,
+                tasksCompleted: c.completed || 0,
+                taskStatusCounts: c.byStatus || {},
+              };
+            });
+          } catch {
+            // keep mapped projects without task counts
+          }
+        }
 
         if (!cancelled) {
           setProjects(mapped.length > 0 ? mapped : []);
