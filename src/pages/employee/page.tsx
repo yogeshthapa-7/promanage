@@ -38,6 +38,9 @@ export default function EmployeePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const debouncedFullname = useDebounce(fullnameFilter, 300);
+  const debouncedAddress = useDebounce(addressFilter, 300);
+  const debouncedPhone = useDebounce(phoneFilter, 300);
 
   const {
     data: employees,
@@ -49,22 +52,56 @@ export default function EmployeePage() {
     setPageSize,
     refetch,
   } = usePaginatedList<Employee>({
-    fetcher: (params: PaginatedListParams) =>
-      fetchEmployees({
+    fetcher: async (params: PaginatedListParams) => {
+      const isLocalFilterActive = debouncedFullname !== '' || debouncedAddress !== '' || debouncedPhone !== '';
+      const fetchStart = isLocalFilterActive ? 0 : (params.start as number);
+      const fetchLength = isLocalFilterActive ? 10000 : (params.length as number);
+      
+      const result = await fetchEmployees({
         search: debouncedSearch,
-        start: params.start as number,
-        length: params.length as number,
-        fullname: fullnameFilter,
-        address: addressFilter,
-        phone: phoneFilter,
+        start: fetchStart,
+        length: fetchLength,
+        fullname: '', // Disable server-side filtering for these as backend doesn't support it
+        address: '',
+        phone: '',
         signal: params.signal,
-      }).then((result) => ({
-        items: result.employees,
-        total: result.filtered,
-      })),
+      });
+
+      let items = result.employees;
+      let total = result.filtered;
+
+      if (isLocalFilterActive) {
+        items = items.filter((emp) => {
+          const matchFullname =
+            debouncedFullname === '' ||
+            (emp.Fullname || '').toLowerCase().includes(debouncedFullname.trim().toLowerCase());
+          const matchAddress =
+            debouncedAddress === '' ||
+            (emp.Address || '').toLowerCase().includes(debouncedAddress.trim().toLowerCase());
+          const matchPhone =
+            debouncedPhone === '' ||
+            (emp.Phone || '').toLowerCase().includes(debouncedPhone.trim().toLowerCase());
+          return matchFullname && matchAddress && matchPhone;
+        });
+        total = items.length;
+        
+        const pageStart = params.start as number;
+        const pageLength = params.length as number;
+        items = items.slice(pageStart, pageStart + pageLength);
+      }
+
+      return {
+        items,
+        total,
+      };
+    },
     initialPageSize: 20,
-    extraDeps: [debouncedSearch, fullnameFilter, addressFilter, phoneFilter],
+    extraDeps: [debouncedSearch, debouncedFullname, debouncedAddress, debouncedPhone],
   });
+
+  const isFilterActive = debouncedFullname !== '' || debouncedAddress !== '' || debouncedPhone !== '' || debouncedSearch !== '';
+
+  const filteredEmployees = employees;
 
   const queryClient = useQueryClient();
 
@@ -358,7 +395,7 @@ export default function EmployeePage() {
           </div>
         </div>
         <div className="mb-2 text-base text-slate-500 no-print">
-          Showing {employees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + employees.length} of {totalFiltered} entries
+          Showing {filteredEmployees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + filteredEmployees.length} of {totalFiltered} entries
         </div>
         <Card>
         <div className="overflow-x-auto">
@@ -379,14 +416,14 @@ export default function EmployeePage() {
             <tbody>
               {loading ? (
                 <TableSkeleton columns={9} rows={6} message="Loading employees..." />
-              ) : employees.length === 0 ? (
+              ) : filteredEmployees.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-base text-slate-400">
                     No employees found
                   </td>
                 </tr>
               ) : (
-                employees.map((emp) => {
+                filteredEmployees.map((emp) => {
                   const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
                     e.currentTarget.style.transform = 'scale(1.02)';
                     e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
