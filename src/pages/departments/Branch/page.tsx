@@ -14,10 +14,6 @@ import {
   fetchMainBranchSelectList,
   type MainBranchSelectOption,
 } from '@/lib/main-branches-data';
-import {
-  fetchDepartmentSelectList,
-  type DepartmentSelectOption,
-} from '@/lib/departments-data';
 import CreateBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -67,18 +63,13 @@ export default function BranchPage() {
   const [branchNameId, setBranchNameId] = useState<string | undefined>(undefined);
   const [searchCode, setSearchCode] = useState('');
   const [mainBranchId, setMainBranchId] = useState<string | undefined>(undefined);
-  const [departmentId, setDepartmentId] = useState<string | undefined>(undefined);
-  const [departmentSearch, setDepartmentSearch] = useState('');
 
   const [branchOptions, setBranchOptions] = useState<BranchSelectOption[]>([]);
   const [branchLoading, setBranchLoading] = useState(false);
   const [mainBranchOptions, setMainBranchOptions] = useState<MainBranchSelectOption[]>([]);
   const [mainBranchLoading, setMainBranchLoading] = useState(false);
-  const [departmentOptions, setDepartmentOptions] = useState<DepartmentSelectOption[]>([]);
-  const [departmentLoading, setDepartmentLoading] = useState(false);
 
   const debouncedSearchCode = useDebounce(searchCode, 300);
-  const debouncedSearchDepartment = useDebounce(departmentSearch, 300);
 
   /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
   useEffect(() => {
@@ -104,17 +95,6 @@ export default function BranchPage() {
     return () => controller.abort();
   }, []);
 
-  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
-  useEffect(() => {
-    const controller = new AbortController();
-    setDepartmentLoading(true);
-    fetchDepartmentSelectList(controller.signal)
-      .then((options) => setDepartmentOptions(options))
-      .finally(() => {
-        if (!controller.signal.aborted) setDepartmentLoading(false);
-      });
-    return () => controller.abort();
-  }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const {
@@ -129,16 +109,12 @@ export default function BranchPage() {
   } = usePaginatedList<Branch>({
     fetcher: fetchBranchesPage,
     initialPageSize: 20,
-    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId, departmentId, debouncedSearchDepartment],
+    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId],
     extraParams: {
       code: debouncedSearchCode,
       name: branchNameId ? branchOptions.find(o => o.value === branchNameId)?.label : undefined,
       mainBranchId: mainBranchId ? Number(mainBranchId) : undefined,
       mainBranchName: mainBranchId ? mainBranchOptions.find(o => o.value === mainBranchId)?.label : undefined,
-      departmentId: departmentId ? Number(departmentId) : undefined,
-      departmentName: departmentId
-        ? departmentOptions.find((o) => o.value === departmentId)?.label || debouncedSearchDepartment || undefined
-        : debouncedSearchDepartment || undefined,
     },
   });
 
@@ -148,8 +124,6 @@ export default function BranchPage() {
     setBranchNameId(undefined);
     setSearchCode('');
     setMainBranchId(undefined);
-    setDepartmentId(undefined);
-    setDepartmentSearch('');
     setCurrentPage(1);
   };
 
@@ -250,33 +224,6 @@ export default function BranchPage() {
               className="w-full"
               allowClear
               loading={mainBranchLoading}
-              showSearch
-              filterOption={(input, option) =>
-                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
-              }
-            />
-          </div>
-
-          <div className="flex-1 min-w-[220px]">
-            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
-              Department / विभाग
-            </label>
-            <Select
-              placeholder="Select department..."
-              value={departmentId}
-              onChange={(value) => {
-                setDepartmentId(value);
-                const selected = departmentOptions.find((opt) => opt.value === value);
-                setDepartmentSearch(selected?.label || '');
-              }}
-              onSearch={(value) => {
-                setDepartmentSearch(value);
-                setDepartmentId(undefined);
-              }}
-              options={departmentOptions}
-              className="w-full"
-              allowClear
-              loading={departmentLoading}
               showSearch
               filterOption={(input, option) =>
                 ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
