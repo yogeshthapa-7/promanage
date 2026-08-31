@@ -12,6 +12,8 @@ import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import * as XLSX from 'xlsx';
 import { apiCall } from '@/lib/api';
+
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -205,48 +207,77 @@ export default function EmployeePage() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = event.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet);
+    try {
+      const fileExtension = (file.name.split('.').pop() || 'xlsx').toLowerCase();
+      const documentDetails = {
+        DocumentType: 1,
+        FileName: file.name,
+        FileExtension: `.${fileExtension}`,
+      };
 
-        const newEmployees: Employee[] = jsonData.map((row, index) => ({
-          EmployeeInfoID: Date.now() + index,
-          SN: (row['S.N.'] as number) || index + 1,
-          Fullname: (row['Full Name'] as string) || (row.Fullname as string) || '',
-          Address: (row.Address as string) || '',
-          Phone: (row.Phone as string) || '',
-          Email: (row.Email as string) || '',
-          // DOB: (row.DOB as string) || '',
-          DepartmentID: (row.DepartmentID as number) || 0,
-          DepartmentName: (row['Department Name'] as string) || (row.DepartmentName as string) || '',
-          BranchID: (row.BranchID as number) || 0,
-          BranchName: (row['Branch Name'] as string) || (row.BranchName as string) || '',
-          MainBranchID: (row.MainBranchID as number) || 0,
-          MainBranchName: (row.MainBranchName as string) || '',
-          Gender: (row.Gender as number) || 1,
-          EmpStatus: (row.EmpStatus as number) || 1,
-          Status: (row.Status as number) || 1,
-          OrganizationOfficeID: (row.OrganizationOfficeID as number) || 1,
-          Photo: (row.Photo as string) || '',
-        }));
+      const uploadFormData = new FormData();
+      uploadFormData.append('data', JSON.stringify(documentDetails));
+      uploadFormData.append('file', file);
+      uploadFormData.append('UserId', '0');
 
-        setEmployees((prev) => [...newEmployees, ...prev]);
-        message.success(`${newEmployees.length} employees imported successfully`);
-      } catch {
-        message.error('Failed to import file. Please check the format.');
+      const uploadRes = await apiCall(`${API_BASE}/FileUpload/UploadFile?UserId=0`, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
+
+      const uploadJson = await uploadRes.json();
+      if (!uploadJson?.Success) {
+        throw new Error(uploadJson?.Message || 'File upload failed');
       }
-    };
-    reader.readAsBinaryString(file);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = event.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet);
+
+          const newEmployees: Employee[] = jsonData.map((row, index) => ({
+            EmployeeInfoID: Date.now() + index,
+            SN: (row['S.N.'] as number) || index + 1,
+            Fullname: (row['Full Name'] as string) || (row.Fullname as string) || '',
+            Address: (row.Address as string) || '',
+            Phone: (row.Phone as string) || '',
+            Email: (row.Email as string) || '',
+            // DOB: (row.DOB as string) || '',
+            DepartmentID: (row.DepartmentID as number) || 0,
+            DepartmentName: (row['Department Name'] as string) || (row.DepartmentName as string) || '',
+            BranchID: (row.BranchID as number) || 0,
+            BranchName: (row['Branch Name'] as string) || (row.BranchName as string) || '',
+            MainBranchID: (row.MainBranchID as number) || 0,
+            MainBranchName: (row.MainBranchName as string) || '',
+            Gender: (row.Gender as number) || 1,
+            EmpStatus: (row.EmpStatus as number) || 1,
+            Status: (row.Status as number) || 1,
+            OrganizationOfficeID: (row.OrganizationOfficeID as number) || 1,
+            Photo: (row.Photo as string) || '',
+          }));
+
+          setEmployees((prev) => [...newEmployees, ...prev]);
+          message.success(`${newEmployees.length} employees imported successfully`);
+        } catch {
+          message.error('Failed to import file. Please check the format.');
+        }
+      };
+      reader.readAsBinaryString(file);
+    } catch {
+      message.error('Failed to upload file. Please try again.');
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
