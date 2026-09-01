@@ -7,7 +7,6 @@ import {
   Filter,
   LayoutGrid,
   List,
-  Download,
   Plus,
   Star,
   ArrowUpDown,
@@ -19,6 +18,7 @@ import {
   ListChecks,
   Building2,
   Briefcase,
+  Upload,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Pagination from '@/components/ui/Pagination';
@@ -97,6 +97,8 @@ export default function ProjectsPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 const {
@@ -282,27 +284,48 @@ const {
     setCurrentPage(1);
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['Name', 'Category', 'Status', 'Priority', 'Progress'],
-      ...projects.map((p) => [
-        p.title || p.name,
-        p.category,
-        p.status,
-        p.priority,
-        `${p.progress}%`,
-      ]),
-    ]
-      .map((row) => row.join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'projects.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-    message.success('Export completed');
+  const handleExcelUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileExtension = (file.name.split('.').pop() || 'xlsx').toLowerCase();
+      const documentDetails = {
+        DocumentType: 1,
+        FileName: file.name,
+        FileExtension: `.${fileExtension}`,
+      };
+
+      const uploadFormData = new FormData();
+      uploadFormData.append('data', JSON.stringify(documentDetails));
+      uploadFormData.append('file', file);
+      uploadFormData.append('UserId', '0');
+
+      const uploadRes = await apiCall(`${API_BASE}/FileUpload/UploadFile?UserId=0`, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
+
+      const uploadJson = await uploadRes.json();
+      if (!uploadJson?.Success) {
+        throw new Error(uploadJson?.Message || 'File upload failed');
+      }
+
+      setSelectedFileName(file.name);
+      message.success('Excel file uploaded successfully');
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : 'Failed to upload file');
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleDeleteClick = (project: Project) => {
@@ -349,9 +372,16 @@ const {
           <Button type="primary" onClick={openCreateModal} icon={<Plus className="w-4 h-4" />}>
             New Project
           </Button>
-          <Button onClick={handleExport} icon={<Download className="w-3.5 h-3.5 text-muted-foreground" />}>
-            Export
+          <Button onClick={handleExcelUploadClick} icon={<Upload className="w-3.5 h-3.5 text-muted-foreground" />}>
+            Upload Excel
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
           <div className="relative">
             <DropdownMenu
               trigger={

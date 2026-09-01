@@ -547,7 +547,7 @@ const DrawerContent = memo(
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
-                      बजेट
+                      बजेटको स्रोत
                       <span className="text-red-500 ml-0.5">*</span>
                     </span>
                   }
