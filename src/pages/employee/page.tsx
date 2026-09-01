@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { UserPlus, Edit2, Trash2, Copy, Download, Printer, Upload } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { UserPlus, Edit2, Trash2, Copy, Printer } from 'lucide-react';
 import { Modal, message } from 'antd';
 import { Button, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
@@ -10,7 +10,6 @@ import Card from '@/components/ui/Card';
 import SearchInput from '@/components/ui/SearchInput';
 import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
-import * as XLSX from 'xlsx';
 import { apiCall } from '@/lib/api';
 import { exportCsv } from '@/lib/csv';
 
@@ -36,7 +35,6 @@ export default function EmployeePage() {
   const [phoneFilter, setPhoneFilter] = useState('');
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
   const debouncedFullname = useDebounce(fullnameFilter, 300);
@@ -191,128 +189,6 @@ export default function EmployeePage() {
     message.success('CSV exported successfully');
   };
 
-  const handleExcelExport = () => {
-    const data = employees.map((emp) => ({
-      'S.N.': emp.SN,
-      'Full Name': emp.Fullname,
-      Address: emp.Address,
-      Phone: emp.Phone,
-      Email: emp.Email,
-      // DOB: emp.DOB,
-      'Department Name': emp.DepartmentName,
-      'Branch Name': emp.BranchName,
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = [
-      { wch: 8 },   // S.N.
-      { wch: 24 },  // Full Name
-      { wch: 28 },  // Address
-      { wch: 16 },  // Phone
-      { wch: 28 },  // Email
-      { wch: 24 },  // Department Name
-      { wch: 24 },  // Branch Name
-    ];
-    const range = XLSX.utils.decode_range(ws['!ref'] as string);
-    for (let r = range.s.r; r <= range.e.r; r++) {
-      for (let c = range.s.c; c <= range.e.c; c++) {
-        const ref = XLSX.utils.encode_cell({ r, c });
-        const cell = ws[ref];
-        if (!cell) continue;
-        cell.s = {
-          alignment: { vertical: 'center', horizontal: 'left', indent: 1, wrapText: true },
-          border: {
-            top: { style: 'thin', color: { rgb: 'D0D5DD' } },
-            bottom: { style: 'thin', color: { rgb: 'D0D5DD' } },
-            left: { style: 'thin', color: { rgb: 'D0D5DD' } },
-            right: { style: 'thin', color: { rgb: 'D0D5DD' } },
-          },
-        };
-      }
-    }
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Employees');
-    XLSX.writeFile(wb, 'employees.xlsx');
-    message.success('Excel exported successfully');
-  };
-
-  const triggerExcelUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const fileExtension = (file.name.split('.').pop() || 'xlsx').toLowerCase();
-      const documentDetails = {
-        DocumentType: 1,
-        FileName: file.name,
-        FileExtension: `.${fileExtension}`,
-      };
-
-      const uploadFormData = new FormData();
-      uploadFormData.append('data', JSON.stringify(documentDetails));
-      uploadFormData.append('file', file);
-      uploadFormData.append('UserId', '0');
-
-      const uploadRes = await apiCall(`${API_BASE}/FileUpload/UploadFile?UserId=0`, {
-        method: 'POST',
-        body: uploadFormData,
-      });
-
-      if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
-
-      const uploadJson = await uploadRes.json();
-      if (!uploadJson?.Success) {
-        throw new Error(uploadJson?.Message || 'File upload failed');
-      }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const data = event.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet);
-
-          const newEmployees: Employee[] = jsonData.map((row, index) => ({
-            EmployeeInfoID: Date.now() + index,
-            SN: (row['S.N.'] as number) || index + 1,
-            Fullname: (row['Full Name'] as string) || (row.Fullname as string) || '',
-            Address: (row.Address as string) || '',
-            Phone: (row.Phone as string) || '',
-            Email: (row.Email as string) || '',
-            // DOB: (row.DOB as string) || '',
-            DepartmentID: (row.DepartmentID as number) || 0,
-            DepartmentName: (row['Department Name'] as string) || (row.DepartmentName as string) || '',
-            BranchID: (row.BranchID as number) || 0,
-            BranchName: (row['Branch Name'] as string) || (row.BranchName as string) || '',
-            MainBranchID: (row.MainBranchID as number) || 0,
-            MainBranchName: (row.MainBranchName as string) || '',
-            Gender: (row.Gender as number) || 1,
-            EmpStatus: (row.EmpStatus as number) || 1,
-            Status: (row.Status as number) || 1,
-            OrganizationOfficeID: (row.OrganizationOfficeID as number) || 1,
-            Photo: (row.Photo as string) || '',
-          }));
-
-          setEmployees((prev) => [...newEmployees, ...prev]);
-          message.success(`${newEmployees.length} employees imported successfully`);
-        } catch {
-          message.error('Failed to import file. Please check the format.');
-        }
-      };
-      reader.readAsBinaryString(file);
-    } catch {
-      message.error('Failed to upload file. Please try again.');
-    } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
   const handlePrint = () => {
     window.print();
   };
@@ -352,18 +228,6 @@ export default function EmployeePage() {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2 no-print">
-        <Button icon={<Upload className="h-4 w-4" />} onClick={triggerExcelUpload}>Upload Excel</Button>
-        <Button icon={<Download className="h-4 w-4" />} onClick={handleExcelExport}>Download Excel</Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls,.csv"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-      </div>
-
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4 no-print">
           {/* <div className="flex items-center gap-3">
@@ -385,7 +249,7 @@ export default function EmployeePage() {
           </div> */}
           <div className="flex items-center gap-2">
             <Button size="small" icon={<Copy className="h-3.5 w-3.5" />} onClick={handleCopy}>Copy</Button>
-            <Button size="small" icon={<Download className="h-3.5 w-3.5" />} onClick={handleCSVExport}>CSV</Button>
+            <Button size="small" onClick={handleCSVExport}>CSV</Button>
             <Button size="small" icon={<Printer className="h-3.5 w-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>
