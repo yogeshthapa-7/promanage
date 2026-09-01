@@ -505,7 +505,7 @@ const DrawerContent = memo(
           <fieldset className="border border-slate-200 rounded-lg p-4">
             <legend className="text-sm font-semibold text-slate-700 px-2">Financial Information</legend>
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={24}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -520,7 +520,10 @@ const DrawerContent = memo(
                   <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+            </Row>
+
+            <Row gutter={12}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -540,7 +543,7 @@ const DrawerContent = memo(
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -563,7 +566,7 @@ const DrawerContent = memo(
             </Row>
 
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={24}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -589,7 +592,7 @@ const DrawerContent = memo(
           <fieldset className="border border-slate-200 rounded-lg p-4">
             <legend className="text-sm font-semibold text-slate-700 px-2">Project Details</legend>
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -609,7 +612,7 @@ const DrawerContent = memo(
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -631,7 +634,9 @@ const DrawerContent = memo(
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+            </Row>
+            <Row gutter={12}>
+              <Col span={24}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
