@@ -152,11 +152,11 @@ export default function CreateMainBranchDrawer({
           <Form.Item
             label={
               <span className="text-sm font-semibold text-slate-600">
-                Department / विभाग <span className="text-rose-500">*</span>
+                Department / विभाग 
               </span>
             }
             name="departmentId"
-            rules={[{ required: true, message: 'Please select a department' }]}
+            rules={[{ required: false, message: 'Please select a department' }]}
           >
             <Select
               placeholder={departmentLoading ? 'Loading...' : 'Select department'}
