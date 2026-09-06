@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const { login } = useAuth();
 
@@ -40,11 +42,14 @@ export default function LoginPage() {
       const result = await login(identifier, password);
 
       if (result.success) {
+        setToast({ type: 'success', message: 'Signed in successfully' });
         setTimeout(() => {
+          setToast(null);
           navigate('/dashboard', { replace: true });
-        }, 600);
+        }, 1200);
       } else {
-        alert(result.error || 'Login failed');
+        setToast({ type: 'error', message: result.error || 'Login failed' });
+        setTimeout(() => setToast(null), 4000);
       }
     } finally {
       setLoading(false);
@@ -272,7 +277,7 @@ export default function LoginPage() {
             ================================================ */}
 
             <div className="relative z-10 max-w-[500px]">
-              <div
+              {/* <div
                 className="
                   inline-flex
                   items-center
@@ -291,9 +296,9 @@ export default function LoginPage() {
                   text-blue-100
                 "
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-300" />
-                Your workspace
-              </div>
+                {/* <span className="w-1.5 h-1.5 rounded-full bg-cyan-300" />
+                Your workspace */}
+              {/* </div> */}
 
               <h1
                 className="
@@ -819,6 +824,52 @@ export default function LoginPage() {
           </section>
         </div>
       </main>
+
+      {toast && (
+        <div
+          className="
+            fixed
+            top-4
+            right-4
+            z-50
+            flex
+            items-center
+            gap-3
+            px-4
+            py-3
+            rounded-xl
+            border
+            shadow-lg
+            animate-[fadeIn_250ms_ease-out]
+            max-w-sm
+            "
+          style={{
+            background: 'rgba(255,255,255,0.92)',
+            backdropFilter: 'blur(12px)',
+            borderColor: toast.type === 'success' ? '#A7F3D0' : '#FECACA',
+            boxShadow: '0 12px 32px rgba(15,23,42,0.10)',
+          }}
+        >
+          {toast.type === 'success' ? (
+            <CheckCircle2 size={18} className="text-emerald-600 flex-shrink-0" />
+          ) : (
+            <XCircle size={18} className="text-red-500 flex-shrink-0" />
+          )}
+
+          <p
+            className="
+              text-[13px]
+              font-semibold
+              leading-snug
+              "
+            style={{
+              color: '#0F172A',
+            }}
+          >
+            {toast.message}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
