@@ -174,17 +174,17 @@ export default function BudgetPage() {
                       {budget.name || 'Untitled'}
                     </h3>
                   </div>
-                  <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                  {/* <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                     #{budget.SN}
-                  </span>
+                  </span> */}
                 </div>
 
-                <div className="space-y-2.5 mb-5">
+                {/* <div className="space-y-2.5 mb-5">
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Budget ID</span>
                     <span className="font-semibold text-slate-700 truncate">{budget.id}</span>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
                   <Button
