@@ -413,12 +413,10 @@ export default function BudgetPage() {
                 hover
                 className="group overflow-hidden"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
-                      {budget.name || 'Untitled'}
-                    </h3>
-                  </div>
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors break-words">
+                    {budget.name || 'Untitled'}
+                  </h3>
                 </div>
                 <div className="space-y-2.5 mb-5">
                   <div className="flex items-center justify-between text-sm gap-2">
