@@ -100,7 +100,6 @@ const DrawerContent = memo(
     const [policyProgramOptions, setPolicyProgramOptions] = useState<{ value: string; label: string }[]>([]);
     const [budgetOptions, setBudgetOptions] = useState<{ value: string; label: string }[]>([]);
     const [clientOptions, setClientOptions] = useState<{ value: string; label: string }[]>([]);
-    const [editingClientName, setEditingClientName] = useState<string>('');
 
     useEffect(() => {
       if (open && editingProject?.ClientInfoID && clientOptions.length > 0) {
@@ -238,7 +237,7 @@ const DrawerContent = memo(
           bankGuaranteeIssueDate: editingProject.BankGuranteeIssueDate,
           bankGuaranteeExpiryDate: editingProject.BankGuranteeExpiryDate,
           projectHeadEmpPhoto: editingProject.ProjectHeadEmpPhoto,
-          ward: editingProject.WardInfoID ? String(editingProject.WardInfoID) : undefined,
+          ward: (editingProject as any).WardInfoID ? String((editingProject as any).WardInfoID) : undefined,
         });
         setProjectHeadEmpPhoto(editingProject.ProjectHeadEmpPhoto || '');
         setSelectedFileName('');

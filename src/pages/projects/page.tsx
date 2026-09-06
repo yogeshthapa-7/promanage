@@ -762,7 +762,7 @@ const {
       </div>
 
       {loading ? (
-        <CardGridSkeleton count={9} columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" />
+        <CardGridSkeleton count={9} />
       ) : (
         <>
             <div className="space-y-4">

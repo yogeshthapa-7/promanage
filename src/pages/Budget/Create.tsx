@@ -8,6 +8,11 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
+interface Budget {
+  id: number;
+  name: string;
+}
+
 interface CreateBudgetDrawerProps {
   open: boolean;
   onClose: () => void;

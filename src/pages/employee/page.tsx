@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Printer } from 'lucide-react';
-import { Modal, message } from 'antd';
-import { Button, Select } from 'antd';
+import { Modal, message, Button } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
@@ -12,8 +11,6 @@ import { fetchEmployees, type Employee } from '@/lib/employees-data';
 import EmployeeSetupModal from './Create';
 import { apiCall } from '@/lib/api';
 import { exportCsv } from '@/lib/csv';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -40,6 +37,8 @@ export default function EmployeePage() {
   const debouncedFullname = useDebounce(fullnameFilter, 300);
   const debouncedAddress = useDebounce(addressFilter, 300);
   const debouncedPhone = useDebounce(phoneFilter, 300);
+
+  const queryClient = useQueryClient();
 
   const {
     data: employees,
@@ -97,12 +96,6 @@ export default function EmployeePage() {
     initialPageSize: 20,
     extraDeps: [debouncedSearch, debouncedFullname, debouncedAddress, debouncedPhone],
   });
-
-  const isFilterActive = debouncedFullname !== '' || debouncedAddress !== '' || debouncedPhone !== '' || debouncedSearch !== '';
-
-  const filteredEmployees = employees;
-
-  const queryClient = useQueryClient();
 
   const handleEditEmployee = (employee: Employee) => {
     setEditEmployee(employee);
@@ -254,7 +247,7 @@ export default function EmployeePage() {
           </div>
         </div>
         <div className="mb-2 text-base text-slate-500 no-print">
-          Showing {filteredEmployees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + filteredEmployees.length} of {totalFiltered} entries
+           Showing {employees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + employees.length} of {totalFiltered} entries
         </div>
         <Card>
         <div className="overflow-x-auto">
@@ -275,14 +268,14 @@ export default function EmployeePage() {
             <tbody>
               {loading ? (
                 <TableSkeleton columns={9} rows={6} message="Loading employees..." />
-              ) : filteredEmployees.length === 0 ? (
+               ) : employees.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-base text-slate-400">
                     No employees found
                   </td>
                 </tr>
               ) : (
-                filteredEmployees.map((emp) => {
+                employees.map((emp) => {
                   const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
                     e.currentTarget.style.transform = 'scale(1.02)';
                     e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
@@ -336,18 +329,17 @@ export default function EmployeePage() {
         </div>
         </Card>
 
-        <Pagination
-          total={totalFiltered}
-          className="no-print"
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setCurrentPage(1);
-          }}
-          pageSizeOptions={[20, 50, 100]}
-        />
+         <Pagination
+           total={totalFiltered}
+           currentPage={currentPage}
+           pageSize={pageSize}
+           onPageChange={setCurrentPage}
+           onPageSizeChange={(size) => {
+             setPageSize(size);
+             setCurrentPage(1);
+           }}
+           pageSizeOptions={[20, 50, 100]}
+         />
       </div>
 
       <EmployeeSetupModal

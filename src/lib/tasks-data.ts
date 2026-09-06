@@ -224,7 +224,7 @@ export async function fetchAllTasks(params: {
   priorityName?: string;
   projectId?: number;
   sortBy?: 'name' | 'status' | 'priority' | 'dueDate';
-  sortDir?: 'asc' | 'desc';
+  orderDir?: 'asc' | 'desc';
   signal?: AbortSignal;
 }): Promise<FetchResult<TaskItem>> {
   const {
@@ -235,7 +235,7 @@ export async function fetchAllTasks(params: {
     priorityName,
     projectId,
     sortBy = 'name',
-    sortDir = 'asc',
+    orderDir = 'desc',
     signal,
   } = params;
   const start = (page - 1) * pageSize;

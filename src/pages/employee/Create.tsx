@@ -531,8 +531,8 @@ export default function EmployeeSetupModal({
                     : [
                         { required: true, message: 'कृपया पासवर्ड प्रविष्ट गर्नुहोस्' },
                         { min: 8, message: 'पासवर्ड कम्तिमा ८ अंकको हुनुपर्छ' },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
+                         () => ({
+                           validator(_, value) {
                             if (!value) return Promise.resolve();
                             const hasUpper = /[A-Z]/.test(value);
                             const hasLower = /[a-z]/.test(value);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
@@ -8,11 +8,11 @@ import { apiCall } from '@/lib/api';
 import { LogOut, Mail, User, Building2, Shield } from 'lucide-react';
 
 interface UserProfileDrawerProps {
-  open: boolean;
-  onClose: () => void;
+  open?: boolean;
+  onClose?: () => void;
 }
 
-export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerProps) {
+export default function UserProfileDrawer({ open = true, onClose = () => {} }: UserProfileDrawerProps) {
   const { user, logout } = useAuth();
   const [employeeName, setEmployeeName] = useState('');
   const [departmentName, setDepartmentName] = useState('');
@@ -161,7 +161,7 @@ export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerPr
       </div>
 
       <div className="mt-8">
-        <Button danger block onClick={handleLogout} icon={<LogOut size={16} />}>
+         <Button danger style={{ width: '100%' }} onClick={handleLogout} icon={<LogOut size={16} />}>
           Sign Out
         </Button>
       </div>

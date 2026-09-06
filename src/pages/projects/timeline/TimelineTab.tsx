@@ -41,7 +41,7 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
   const [timelinesLoading, setTimelinesLoading] = useState(false);
 
   // Determine the ID to use
-  const activeProjectId = projectId ?? project?.ProjectInfoID ?? (project?.id ? Number(project.id) : null);
+  const activeProjectId = projectId ?? project?.ProjectInfoID ?? (project?.ProjectInfoID ? Number(project.ProjectInfoID) : null);
 
   useEffect(() => {
     if (!activeProjectId) return;
@@ -120,7 +120,6 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
           const nextPalette = getStepColor(idx + 1);
           const isLeft = idx % 2 === 0;
           const hasNext = idx < timelines.length - 1;
-          const itemNumber = timelines.length - idx;
 
           // Colors for SVG gradient
           const hexColors: Record<string, string> = {
@@ -142,12 +141,12 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
               {/* Left Column (Card or Empty) */}
               <div className="w-[calc(50%-40px)] sm:w-[calc(50%-60px)] pb-12 flex justify-end pr-4 sm:pr-8">
                 {isLeft && (
-                  <TimelineCard
-                    palette={palette}
-                    item={item}
-                    itemNumber={itemNumber}
-                    isLeft={true}
-                  />
+           <TimelineCard
+                     palette={palette}
+                     item={item}
+                     itemNumber={timelines.length - idx}
+                     isLeft={true}
+                   />
                 )}
               </div>
 
@@ -185,7 +184,7 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
                   } ${isLeft ? "left-0 sm:left-1" : "right-0 sm:right-1"}`}
                 >
                   <span className="text-white font-bold text-sm sm:text-base">
-                    {itemNumber}
+                    {timelines.length - idx}
                   </span>
                 </div>
               </div>
@@ -193,12 +192,12 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
               {/* Right Column (Card or Empty) */}
               <div className="w-[calc(50%-40px)] sm:w-[calc(50%-60px)] pb-12 flex justify-start pl-4 sm:pl-8">
                 {!isLeft && (
-                  <TimelineCard
-                    palette={palette}
-                    item={item}
-                    itemNumber={itemNumber}
-                    isLeft={false}
-                  />
+                   <TimelineCard
+                     palette={palette}
+                     item={item}
+                     itemNumber={timelines.length - idx}
+                     isLeft={false}
+                   />
                 )}
               </div>
             </div>
@@ -212,8 +211,8 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
 function TimelineCard({
   palette,
   item,
-  itemNumber,
-  isLeft,
+  itemNumber: _itemNumber,
+  isLeft: _isLeft,
 }: {
   palette: { text: string; bg: string; dot: string; accent: string };
   item: TimelineItem;

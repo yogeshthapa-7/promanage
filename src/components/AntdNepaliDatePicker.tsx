@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Popover, Input, Select, Button } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import DateConverter from '@remotemerge/nepali-date-converter';
@@ -32,6 +32,7 @@ interface AntdNepaliDatePickerProps {
   placeholder?: string;
   className?: string;
   returnEnglishDate?: boolean;
+  style?: React.CSSProperties;
 }
 
 export default function AntdNepaliDatePicker({

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/lib/api';
 
 interface DiscussionSearchProps {
   open: boolean;
@@ -16,8 +15,6 @@ interface DiscussionSearchProps {
   modal?: boolean;
 }
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
 const PRIORITY_OPTIONS = [
   { label: 'Urgent', value: 1 },
   { label: 'High', value: 2 },
@@ -25,7 +22,7 @@ const PRIORITY_OPTIONS = [
   { label: 'Low', value: 4 },
 ];
 
-export default function DiscussionSearch({ open, onClose, onSearch, onClear, project, modal = true }: DiscussionSearchProps) {
+export default function DiscussionSearch({ open, onClose, onSearch, project, modal = true }: DiscussionSearchProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 

@@ -13,6 +13,7 @@ interface ButtonProps {
   type?: 'primary' | 'default' | 'dashed' | 'text' | 'link';
   danger?: boolean;
   loading?: boolean;
+  style?: React.CSSProperties;
 }
 
 const variantStyles: Record<string, { type?: 'primary' | 'default' | 'dashed' | 'text' | 'link' | undefined; shape?: 'circle' | 'round' | undefined }> = {

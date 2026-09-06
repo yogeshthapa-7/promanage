@@ -8,6 +8,11 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
+interface Policy {
+  id: number;
+  name: string;
+}
+
 interface CreatePolicyDrawerProps {
   open: boolean;
   onClose: () => void;

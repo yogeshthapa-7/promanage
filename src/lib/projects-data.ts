@@ -230,12 +230,12 @@ export function calculateDueDate(startDateStr: string, durationDays: number): st
   const currentYear = now.getFullYear();
 
   try {
-    const ad = DateConverter(normalized).toAd();
+    const ad = new DateConverter(normalized).toAd();
     const startAd = new Date(ad.year, ad.month - 1, ad.date);
     if (!isNaN(startAd.getTime()) && startAd.getFullYear() >= 2000 && startAd.getFullYear() <= currentYear + 10) {
       const dueAd = new Date(startAd);
       dueAd.setDate(dueAd.getDate() + Number(durationDays));
-      const dueBs = DateConverter(`${dueAd.getFullYear()}/${dueAd.getMonth() + 1}/${dueAd.getDate()}`).toBs();
+      const dueBs = new DateConverter(`${dueAd.getFullYear()}/${dueAd.getMonth() + 1}/${dueAd.getDate()}`).toBs();
       return `${dueBs.year}/${String(dueBs.month).padStart(2, '0')}/${String(dueBs.date).padStart(2, '0')}`;
     }
   } catch {
@@ -341,6 +341,8 @@ export const projects: Project[] = [
     progress: 65,
     startDate: 'May 10, 2025',
     dueDate: 'Jun 20, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'Jun 15, 2025',
     targetEndDate: 'Jun 20, 2025',
     team: [
@@ -372,6 +374,8 @@ export const projects: Project[] = [
     progress: 40,
     startDate: 'May 5, 2025',
     dueDate: 'Jul 15, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'May 10, 2025',
     targetEndDate: 'Aug 15, 2025',
     team: [
@@ -403,6 +407,8 @@ export const projects: Project[] = [
     progress: 100,
     startDate: 'Apr 15, 2025',
     dueDate: 'May 15, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'May 10, 2025',
     targetEndDate: 'May 15, 2025',
     team: [
@@ -433,6 +439,8 @@ export const projects: Project[] = [
     progress: 20,
     startDate: 'May 20, 2025',
     dueDate: 'Jun 30, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'Jun 15, 2025',
     targetEndDate: 'Jun 30, 2025',
     team: [
@@ -463,6 +471,8 @@ export const projects: Project[] = [
     progress: 0,
     startDate: 'Jun 1, 2025',
     dueDate: 'Jun 25, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'Jun 20, 2025',
     targetEndDate: 'Jun 25, 2025',
     team: [
@@ -493,6 +503,8 @@ export const projects: Project[] = [
     progress: 55,
     startDate: 'Apr 1, 2025',
     dueDate: 'Jul 30, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'Jul 20, 2025',
     targetEndDate: 'Jul 30, 2025',
     team: [
@@ -523,6 +535,8 @@ export const projects: Project[] = [
     progress: 30,
     startDate: 'Mar 15, 2025',
     dueDate: 'Jun 1, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'May 25, 2025',
     targetEndDate: 'Jun 1, 2025',
     team: [
@@ -552,6 +566,8 @@ export const projects: Project[] = [
     progress: 72,
     startDate: 'May 1, 2025',
     dueDate: 'Aug 15, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'Aug 1, 2025',
     targetEndDate: 'Aug 15, 2025',
     team: [
@@ -583,6 +599,8 @@ export const projects: Project[] = [
     progress: 100,
     startDate: 'Apr 20, 2025',
     dueDate: 'Jun 10, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'Jun 5, 2025',
     targetEndDate: 'Jun 10, 2025',
     team: [
@@ -612,6 +630,8 @@ export const projects: Project[] = [
     progress: 0,
     startDate: 'Jul 1, 2025',
     dueDate: 'Sep 30, 2025',
+    startDateBs: '',
+    dueDateBs: '',
     submissionDate: 'Sep 20, 2025',
     targetEndDate: 'Sep 30, 2025',
     team: [

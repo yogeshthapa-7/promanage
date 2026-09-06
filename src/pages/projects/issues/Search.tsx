@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/lib/api';
+import { useState } from 'react';
+import { Modal, Form, Input, Button, message } from 'antd';
 
 interface IssueSearchProps {
   open: boolean;
@@ -16,21 +15,11 @@ interface IssueSearchProps {
   modal?: boolean;
 }
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
-export default function IssueSearch({ open, onClose, onSearch, onClear, project, modal = true }: IssueSearchProps) {
+export default function IssueSearch({ open, onClose, onSearch, project, modal = true }: IssueSearchProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
   const projectId = project?.ProjectInfoID ?? null;
-
-  const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
-
-  useEffect(() => {
-    if (open) {
-      form.resetFields();
-    }
-  }, [open, form]);
 
   const handleSubmit = async () => {
     if (!projectId) {

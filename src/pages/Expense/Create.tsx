@@ -8,6 +8,12 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
+interface Expense {
+  id: number;
+  title: string;
+  code: string;
+}
+
 interface CreateExpenseDrawerProps {
   open: boolean;
   onClose: () => void;
