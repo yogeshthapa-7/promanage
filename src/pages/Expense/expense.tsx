@@ -181,10 +181,6 @@ export default function ExpensePage() {
 
                 <div className="space-y-2.5 mb-5">
                   <div className="flex items-center justify-between text-sm gap-2">
-                    <span className="text-slate-400 shrink-0">Expense ID</span>
-                    <span className="font-semibold text-slate-700 truncate">{expense.id}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Expense Code</span>
                     <span className="font-semibold text-slate-700 truncate">{expense.code}</span>
                   </div>
