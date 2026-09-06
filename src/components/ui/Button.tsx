@@ -12,6 +12,7 @@ interface ButtonProps {
   onClick?: (e?: any) => void;
   type?: 'primary' | 'default' | 'dashed' | 'text' | 'link';
   danger?: boolean;
+  loading?: boolean;
 }
 
 const variantStyles: Record<string, { type?: 'primary' | 'default' | 'dashed' | 'text' | 'link' | undefined; shape?: 'circle' | 'round' | undefined }> = {

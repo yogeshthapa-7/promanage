@@ -277,28 +277,6 @@ export default function LoginPage() {
             ================================================ */}
 
             <div className="relative z-10 max-w-[500px]">
-              {/* <div
-                className="
-                  inline-flex
-                  items-center
-                  gap-2
-                  mb-5
-                  px-3
-                  py-1.5
-                  rounded-full
-                  bg-white/[0.08]
-                  border
-                  border-white/[0.10]
-                  text-[10px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.15em]
-                  text-blue-100
-                "
-              >
-                {/* <span className="w-1.5 h-1.5 rounded-full bg-cyan-300" />
-                Your workspace */}
-              {/* </div> */}
 
               <h1
                 className="
