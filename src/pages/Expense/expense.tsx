@@ -170,7 +170,7 @@ export default function ExpensePage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
+                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors break-words">
                       {expense.title || 'Untitled'}
                     </h3>
                   </div>
