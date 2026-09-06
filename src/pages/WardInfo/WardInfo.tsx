@@ -169,9 +169,9 @@ export default function WardInfoPage() {
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">{ward.wardCode}</p>
                   </div>
-                  <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                  {/* <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                     #{ward.SN}
-                  </span>
+                  </span> */}
                 </div>
 
                 <div className="space-y-2.5 mb-5">

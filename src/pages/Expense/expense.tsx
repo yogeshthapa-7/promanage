@@ -174,9 +174,9 @@ export default function ExpensePage() {
                       {expense.title || 'Untitled'}
                     </h3>
                   </div>
-                  <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                  {/* <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                     #{expense.SN}
-                  </span>
+                  </span> */}
                 </div>
 
                 <div className="space-y-2.5 mb-5">

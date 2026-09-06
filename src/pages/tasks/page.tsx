@@ -440,9 +440,9 @@ export default function TasksPage() {
                      <div className="text-xs text-slate-400 font-mono mt-0.5">{task.TaskCode}</div>
                    )}
                  </div>
-                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                 {/* <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                    #{task.TaskInfoID}
-                 </span>
+                 </span> */}
                </div>
 
                <div className="space-y-2 mb-4 flex-1">
