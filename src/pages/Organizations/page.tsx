@@ -184,7 +184,7 @@ export default function OrganizationPage() {
                       <Building2 className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-bold text-slate-800 group-hover:text-violet-700 transition-colors truncate">
+                      <h3 className="text-sm font-bold text-slate-800 group-hover:text-violet-700 transition-colors break-words">
                         {org.title || 'Untitled'}
                       </h3>
                     </div>
@@ -201,7 +201,7 @@ export default function OrganizationPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Parent Org</span>
-                    <span className="font-semibold text-slate-700 truncate">
+                    <span className="font-semibold text-slate-700 break-words text-right">
                       {org.parentOrganizationName || '—'}
                     </span>
                   </div>
