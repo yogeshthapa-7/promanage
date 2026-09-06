@@ -4,6 +4,8 @@ export interface Policy {
   SN: number;
   id: number;
   name: string;
+  fiscal_year?: string;
+  document_url?: string;
 }
 
 interface ApiPolicyResponse {
@@ -17,10 +19,13 @@ interface ApiPolicyRow {
   SN: number;
   PolicyProgramID: number;
   PolicyProgramName: string;
+  FiscalYear?: string;
+  DocumentUrl?: string;
 }
 
 interface FetchPoliciesParams {
   search: string;
+  fiscalYear: string;
   start: number;
   length: number;
   signal?: AbortSignal;
@@ -46,6 +51,7 @@ function buildSearchBody(params: FetchPoliciesParams) {
     param: {
       PolicyProgramID: 0,
       PolicyProgramName: params.search,
+      FiscalYear: params.fiscalYear,
     },
   };
 }
@@ -55,7 +61,7 @@ export async function fetchPolicies(
 ): Promise<FetchPoliciesResult> {
   try {
     return await cachedQuery(
-      ['policies', 'search', params.search, params.start, params.length],
+      ['policies', 'search', params.search, params.fiscalYear, params.start, params.length],
       (signal) => doFetchPolicies(params, signal),
       params.signal
     );
@@ -93,5 +99,7 @@ function mapApiRowToPolicy(row: ApiPolicyRow): Policy {
     SN: row.SN,
     id: row.PolicyProgramID,
     name: row.PolicyProgramName,
+    fiscal_year: row.FiscalYear,
+    document_url: row.DocumentUrl,
   };
 }

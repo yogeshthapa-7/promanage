@@ -11,6 +11,8 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 interface Policy {
   id: number;
   name: string;
+  fiscal_year?: string;
+  document_url?: string;
 }
 
 interface CreatePolicyDrawerProps {
@@ -28,7 +30,11 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
   useEffect(() => {
     if (open) {
       if (editingPolicy) {
-        form.setFieldsValue({ name: editingPolicy.name });
+        form.setFieldsValue({ 
+          name: editingPolicy.name,
+          fiscal_year: editingPolicy.fiscal_year,
+          document_url: editingPolicy.document_url,
+        });
       } else {
         form.resetFields();
       }
@@ -44,6 +50,8 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
       const body = {
         PolicyProgramID: isEdit ? editingPolicy?.id : 0,
         PolicyProgramName: values.name,
+        FiscalYear: values.fiscal_year || '',
+        DocumentUrl: values.document_url || '',
       };
 
       const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
@@ -92,6 +100,32 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
           >
             <Input
               placeholder="Enter policy name"
+              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-sm font-semibold text-foreground">
+                Fiscal Year
+              </span>
+            }
+            name="fiscal_year"
+          >
+            <Input
+              placeholder="e.g. 2082/083"
+              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-sm font-semibold text-foreground">
+                Document URL
+              </span>
+            }
+            name="document_url"
+          >
+            <Input
+              placeholder="https://example.com/policy-document.pdf"
               className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
             />
           </Form.Item>
