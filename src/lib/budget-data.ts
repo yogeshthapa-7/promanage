@@ -4,6 +4,8 @@ export interface Budget {
   SN: number;
   id: number;
   name: string;
+  fiscal_year?: string;
+  document_url?: string;
 }
 
 interface ApiBudgetResponse {
@@ -17,10 +19,13 @@ interface ApiBudgetRow {
   SN: number;
   BudgetInfoID: number;
   BudgetInfoName: string;
+  FiscalYear?: string;
+  DocumentUrl?: string;
 }
 
 interface FetchBudgetsParams {
   search: string;
+  fiscalYear: string;
   start: number;
   length: number;
   signal?: AbortSignal;
@@ -46,6 +51,7 @@ function buildSearchBody(params: FetchBudgetsParams) {
     param: {
       BudgetInfoID: 0,
       BudgetInfoName: params.search,
+      FiscalYear: params.fiscalYear,
     },
   };
 }
@@ -55,7 +61,7 @@ export async function fetchBudgets(
 ): Promise<FetchBudgetsResult> {
   try {
     return await cachedQuery(
-      ['budgets', 'search', params.search, params.start, params.length],
+      ['budgets', 'search', params.search, params.fiscalYear, params.start, params.length],
       (signal) => doFetchBudgets(params, signal),
       params.signal
     );
@@ -93,5 +99,7 @@ function mapApiRowToBudget(row: ApiBudgetRow): Budget {
     SN: row.SN,
     id: row.BudgetInfoID,
     name: row.BudgetInfoName,
+    fiscal_year: row.FiscalYear,
+    document_url: row.DocumentUrl,
   };
 }

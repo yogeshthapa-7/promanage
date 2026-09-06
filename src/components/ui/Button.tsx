@@ -14,6 +14,7 @@ interface ButtonProps {
   danger?: boolean;
   loading?: boolean;
   style?: React.CSSProperties;
+  disabled?: boolean;
 }
 
 const variantStyles: Record<string, { type?: 'primary' | 'default' | 'dashed' | 'text' | 'link' | undefined; shape?: 'circle' | 'round' | undefined }> = {
@@ -40,6 +41,8 @@ const Button = memo(forwardRef<HTMLElement, ButtonProps>(function Button({
   onClick,
   type,
   danger,
+  disabled,
+  loading,
   ...rest
 }, ref) {
   const antProps: Record<string, unknown> = {
@@ -48,6 +51,8 @@ const Button = memo(forwardRef<HTMLElement, ButtonProps>(function Button({
     ...(type ? { type } : {}),
     ...(danger ? { danger } : {}),
     ...(onClick ? { onClick } : {}),
+    ...(disabled ? { disabled } : {}),
+    ...(loading ? { loading } : {}),
     ...rest,
   };
 
