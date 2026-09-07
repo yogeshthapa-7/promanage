@@ -28,6 +28,7 @@ interface ApiExpenseRow {
 interface FetchExpensesParams {
   search: string;
   fiscalYear: string;
+  expenseCode: string;
   start: number;
   length: number;
   signal?: AbortSignal;
@@ -54,6 +55,7 @@ function buildSearchBody(params: FetchExpensesParams) {
       ExpenseInfoID: 0,
       ExpenseTitle: params.search,
       FiscalYear: params.fiscalYear,
+      ExpenseCode: params.expenseCode,
     },
   };
 }
@@ -63,7 +65,7 @@ export async function fetchExpenses(
 ): Promise<FetchExpensesResult> {
   try {
     return await cachedQuery(
-      ['expenses', 'search', params.search, params.fiscalYear, params.start, params.length],
+      ['expenses', 'search', params.search, params.fiscalYear, params.expenseCode, params.start, params.length],
       (signal) => doFetchExpenses(params, signal),
       params.signal
     );

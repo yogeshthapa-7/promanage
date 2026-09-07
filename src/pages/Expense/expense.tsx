@@ -20,6 +20,7 @@ function fetchExpensesPage(params: PaginatedListParams): Promise<{ items: Expens
   return fetchExpenses({
     search: (params.search as string) || '',
     fiscalYear: (params.fiscalYear as string) || '',
+    expenseCode: (params.expenseCode as string) || '',
     start: params.start as number,
     length: params.length as number,
     signal: params.signal,
@@ -31,13 +32,18 @@ function fetchExpensesPage(params: PaginatedListParams): Promise<{ items: Expens
 
 export default function ExpensePage() {
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [fiscalYearInput, setFiscalYearInput] = useState('');
   const [fiscalYearQuery, setFiscalYearQuery] = useState('');
+  const [expenseCodeInput, setExpenseCodeInput] = useState('');
+  const [expenseCodeQuery, setExpenseCodeQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fiscalYearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const expenseCodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     data: expenses,
@@ -53,9 +59,10 @@ export default function ExpensePage() {
       ...params, 
       search: searchQuery,
       fiscalYear: fiscalYearQuery,
+      expenseCode: expenseCodeQuery,
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery, fiscalYearQuery],
+    extraDeps: [searchQuery, fiscalYearQuery, expenseCodeQuery],
   });
 
   const handleSearch = () => {
@@ -155,17 +162,18 @@ export default function ExpensePage() {
       </div>
       <hr className="border-slate-200 my-6" />
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3 md:items-end">
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Fiscal Year</div>
           <SearchInput
-            value={fiscalYearQuery}
+            value={fiscalYearInput}
             onChange={(value) => {
-              setFiscalYearQuery(value);
+              setFiscalYearInput(value);
               if (fiscalYearTimerRef.current) {
                 clearTimeout(fiscalYearTimerRef.current);
               }
               fiscalYearTimerRef.current = setTimeout(() => {
+                setFiscalYearQuery(value);
                 setCurrentPage(1);
               }, 400);
             }}
@@ -173,17 +181,36 @@ export default function ExpensePage() {
             containerClassName="w-full"
           />
         </div>
-        <div className="md:col-span-2">
+        <div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Expense Code</div>
+          <SearchInput
+            value={expenseCodeInput}
+            onChange={(value) => {
+              setExpenseCodeInput(value);
+              if (expenseCodeTimerRef.current) {
+                clearTimeout(expenseCodeTimerRef.current);
+              }
+              expenseCodeTimerRef.current = setTimeout(() => {
+                setExpenseCodeQuery(value);
+                setCurrentPage(1);
+              }, 400);
+            }}
+            placeholder="e.g. EXP-001"
+            containerClassName="w-full"
+          />
+        </div>
+        <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Expense Title</div>
           <div className="flex gap-2">
             <SearchInput
-              value={searchQuery}
+              value={searchInput}
               onChange={(value) => {
-                setSearchQuery(value);
+                setSearchInput(value);
                 if (debounceTimerRef.current) {
                   clearTimeout(debounceTimerRef.current);
                 }
                  debounceTimerRef.current = setTimeout(() => {
+                    setSearchQuery(value);
                     setCurrentPage(1);
                   }, 400);
               }}
