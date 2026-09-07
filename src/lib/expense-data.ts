@@ -5,6 +5,8 @@ export interface Expense {
   id: number;
   title: string;
   code: string;
+  fiscal_year?: string;
+  document_url?: string;
 }
 
 interface ApiExpenseResponse {
@@ -19,10 +21,13 @@ interface ApiExpenseRow {
   ExpenseInfoID: number;
   ExpenseTitle: string;
   ExpenseCode: string;
+  FiscalYear?: string;
+  DocumentUrl?: string;
 }
 
 interface FetchExpensesParams {
   search: string;
+  fiscalYear: string;
   start: number;
   length: number;
   signal?: AbortSignal;
@@ -48,6 +53,7 @@ function buildSearchBody(params: FetchExpensesParams) {
     param: {
       ExpenseInfoID: 0,
       ExpenseTitle: params.search,
+      FiscalYear: params.fiscalYear,
     },
   };
 }
@@ -57,7 +63,7 @@ export async function fetchExpenses(
 ): Promise<FetchExpensesResult> {
   try {
     return await cachedQuery(
-      ['expenses', 'search', params.search, params.start, params.length],
+      ['expenses', 'search', params.search, params.fiscalYear, params.start, params.length],
       (signal) => doFetchExpenses(params, signal),
       params.signal
     );
@@ -96,5 +102,7 @@ function mapApiRowToExpense(row: ApiExpenseRow): Expense {
     id: row.ExpenseInfoID,
     title: row.ExpenseTitle,
     code: row.ExpenseCode,
+    fiscal_year: row.FiscalYear,
+    document_url: row.DocumentUrl,
   };
 }

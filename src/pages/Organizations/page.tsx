@@ -189,9 +189,9 @@ export default function OrganizationPage() {
                       </h3>
                     </div>
                   </div>
-                  <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                  {/* <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                     #{org.SN}
-                  </span>
+                  </span> */}
                 </div>
 
                 <div className="space-y-2.5 mb-5">
@@ -199,9 +199,9 @@ export default function OrganizationPage() {
                     <span className="text-slate-400 shrink-0">Organization ID</span>
                     <span className="font-semibold text-slate-700 truncate">{org.id}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm gap-2">
+                  <div className="flex items-center justify-between text-sm gap-2 text-right">
                     <span className="text-slate-400 shrink-0">Parent Org</span>
-                    <span className="font-semibold text-slate-700 break-words text-right">
+                    <span className="font-semibold text-slate-700 break-words">
                       {org.parentOrganizationName || '—'}
                     </span>
                   </div>

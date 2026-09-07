@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
 import { Modal, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
@@ -19,6 +19,7 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 function fetchExpensesPage(params: PaginatedListParams): Promise<{ items: Expense[]; total: number }> {
   return fetchExpenses({
     search: (params.search as string) || '',
+    fiscalYear: (params.fiscalYear as string) || '',
     start: params.start as number,
     length: params.length as number,
     signal: params.signal,
@@ -31,9 +32,12 @@ function fetchExpensesPage(params: PaginatedListParams): Promise<{ items: Expens
 export default function ExpensePage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
+  const [fiscalYearQuery, setFiscalYearQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fiscalYearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     data: expenses,
@@ -47,10 +51,11 @@ export default function ExpensePage() {
   } = usePaginatedList<Expense>({
     fetcher: (params) => fetchExpensesPage({ 
       ...params, 
-      search: searchQuery  
+      search: searchQuery,
+      fiscalYear: fiscalYearQuery,
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery],
+    extraDeps: [searchQuery, fiscalYearQuery],
   });
 
   const handleSearch = () => {
@@ -60,6 +65,28 @@ export default function ExpensePage() {
   const handleAddNew = () => {
     setEditingExpense(null);
     setShowFormModal(true);
+  };
+
+  const handleViewExpense = (expense: Expense) => {
+    if (expense.document_url) {
+      window.open(expense.document_url, '_blank');
+    } else {
+      message.info('No document attached to this expense');
+    }
+  };
+
+  const handleDownloadExpense = (expense: Expense) => {
+    if (expense.document_url) {
+      const link = document.createElement('a');
+      link.href = expense.document_url;
+      link.target = '_blank';
+      link.download = `${expense.title || 'expense'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      message.info('No document attached to this expense');
+    }
   };
 
   const handleEdit = (expense: Expense) => {
@@ -102,13 +129,50 @@ export default function ExpensePage() {
             Transparent tracking of costs and financial accountability.
           </p>
         </div>
-        <Button type="primary" onClick={handleAddNew} icon={<Plus className="h-4 w-4" />}>
-          Add Expense
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button type="primary" onClick={handleAddNew} icon={<Plus className="h-4 w-4" />}>
+            Add Expense
+          </Button>
+          <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+              title="List view"
+            >
+              <LayoutList className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+              title="Grid view"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
       <hr className="border-slate-200 my-6" />
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+        <div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Fiscal Year</div>
+          <SearchInput
+            value={fiscalYearQuery}
+            onChange={(value) => {
+              setFiscalYearQuery(value);
+              if (fiscalYearTimerRef.current) {
+                clearTimeout(fiscalYearTimerRef.current);
+              }
+              fiscalYearTimerRef.current = setTimeout(() => {
+                setCurrentPage(1);
+              }, 400);
+            }}
+            placeholder="e.g. 2082/083"
+            containerClassName="w-full"
+          />
+        </div>
         <div className="md:col-span-2">
           <div className="mb-1 text-sm font-medium text-slate-500">Expense Title</div>
           <div className="flex gap-2">
@@ -120,8 +184,8 @@ export default function ExpensePage() {
                   clearTimeout(debounceTimerRef.current);
                 }
                  debounceTimerRef.current = setTimeout(() => {
-                   setCurrentPage(1);
-                 }, 400);
+                    setCurrentPage(1);
+                  }, 400);
               }}
               placeholder="Search by expense title..."
               containerClassName="flex-1"
@@ -129,37 +193,210 @@ export default function ExpensePage() {
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>
         </div>
+        
       </div>
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          {/* <div className="flex items-center gap-3">
-            <span className="text-base text-slate-500">Show</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="w-20 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm"
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span className="text-base text-slate-500">entries</span>
-          </div> */}
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
         </div>
 
         {loading ? (
-          <CardGridSkeleton count={8} />
+          viewMode === 'list' ? (
+            <Card className="mt-4">
+              <div className="overflow-x-auto">
+                <table className="w-full border-separate border-spacing-y-1.5">
+                  <thead>
+                    <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="rounded-l-xl bg-slate-50 px-5 py-3">Title</th>
+                      <th className="bg-slate-50 px-4 py-3">Expense Code</th>
+                      <th className="bg-slate-50 px-4 py-3">Fiscal Year</th>
+                      <th className="bg-slate-50 px-4 py-3">Attachment</th>
+                      <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenses.map((expense) => (
+                      <tr
+                        key={expense.id}
+                        className="text-sm text-slate-700"
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.01)';
+                          e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                          <div className="font-semibold text-slate-900">{expense.title || 'Untitled'}</div>
+                        </td>
+                        <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                          {expense.code || '—'}
+                        </td>
+                        <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                          {expense.fiscal_year || '—'}
+                        </td>
+                        <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                          {expense.document_url ? (
+                            <a href={expense.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                              Document
+                            </a>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              type="text"
+                              size="small"
+                              onClick={() => handleViewExpense(expense)}
+                              icon={<Eye className="w-3.5 h-3.5" />}
+                              disabled={!expense.document_url}
+                            />
+                            <Button
+                              size="small"
+                              onClick={() => handleDownloadExpense(expense)}
+                              icon={<Download className="w-3.5 h-3.5" />}
+                              disabled={!expense.document_url}
+                            />
+                            <Button
+                              type="primary"
+                              size="small"
+                              onClick={() => handleEdit(expense)}
+                              icon={
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              }
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="small"
+                              danger
+                              onClick={() => handleDelete(expense)}
+                              icon={
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6" />
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ) : (
+            <CardGridSkeleton count={8} />
+          )
         ) : expenses.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
             <p className="text-base text-slate-400">No expenses found</p>
           </div>
+        ) : viewMode === 'list' ? (
+          <Card className="mt-4">
+            <div className="overflow-x-auto">
+              <table className="w-full border-separate border-spacing-y-1.5">
+                <thead>
+                  <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="rounded-l-xl bg-slate-50 px-5 py-3">Title</th>
+                    <th className="bg-slate-50 px-4 py-3">Expense Code</th>
+                    <th className="bg-slate-50 px-4 py-3">Fiscal Year</th>
+                    <th className="bg-slate-50 px-4 py-3">Attachment</th>
+                    <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses.map((expense) => (
+                    <tr
+                      key={expense.id}
+                      className="text-sm text-slate-700"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.01)';
+                        e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
+                        <div className="font-semibold text-slate-900">{expense.title || 'Untitled'}</div>
+                      </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                        {expense.code || '—'}
+                      </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                        {expense.fiscal_year || '—'}
+                      </td>
+                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
+                        {expense.document_url ? (
+                          <a href={expense.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            Document
+                          </a>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            type="text"
+                            size="small"
+                            onClick={() => handleViewExpense(expense)}
+                            icon={<Eye className="w-3.5 h-3.5" />}
+                            disabled={!expense.document_url}
+                          />
+                          <Button
+                            size="small"
+                            onClick={() => handleDownloadExpense(expense)}
+                            icon={<Download className="w-3.5 h-3.5" />}
+                            disabled={!expense.document_url}
+                          />
+                          <Button
+                            type="primary"
+                            size="small"
+                            onClick={() => handleEdit(expense)}
+                            icon={
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            }
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            danger
+                            onClick={() => handleDelete(expense)}
+                            icon={
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            }
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {expenses.map((expense) => (
@@ -168,25 +405,40 @@ export default function ExpensePage() {
                 hover
                 className="group overflow-hidden"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors break-words">
-                      {expense.title || 'Untitled'}
-                    </h3>
-                  </div>
-                  {/* <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
-                    #{expense.SN}
-                  </span> */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors break-words">
+                    {expense.title || 'Untitled'}
+                  </h3>
                 </div>
-
                 <div className="space-y-2.5 mb-5">
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Expense Code</span>
-                    <span className="font-semibold text-slate-700 truncate">{expense.code}</span>
+                    <span className="font-semibold text-slate-700 truncate">{expense.code || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-slate-400 shrink-0">Fiscal Year</span>
+                    <span className="font-semibold text-slate-700 truncate">{expense.fiscal_year || '—'}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                  <Button
+                    type="primary"
+                    size="sm"
+                    onClick={() => handleViewExpense(expense)}
+                    icon={<Eye className="h-4 w-4" />}
+                    disabled={!expense.document_url}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleDownloadExpense(expense)}
+                    icon={<Download className="h-4 w-4" />}
+                    disabled={!expense.document_url}
+                  >
+                    Download
+                  </Button>
                   <Button
                     type="primary"
                     size="sm"

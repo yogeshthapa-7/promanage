@@ -12,6 +12,8 @@ interface Expense {
   id: number;
   title: string;
   code: string;
+  fiscal_year?: string;
+  document_url?: string;
 }
 
 interface CreateExpenseDrawerProps {
@@ -29,7 +31,12 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
   useEffect(() => {
     if (open) {
       if (editingExpense) {
-        form.setFieldsValue({ title: editingExpense.title, code: editingExpense.code });
+        form.setFieldsValue({ 
+          title: editingExpense.title,
+          code: editingExpense.code,
+          fiscal_year: editingExpense.fiscal_year,
+          document_url: editingExpense.document_url,
+        });
       } else {
         form.resetFields();
       }
@@ -46,6 +53,8 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
         ExpenseInfoID: isEdit ? editingExpense?.id : 0,
         ExpenseTitle: values.title,
         ExpenseCode: values.code,
+        FiscalYear: values.fiscal_year || '',
+        DocumentUrl: values.document_url || '',
       };
 
       const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
@@ -109,6 +118,34 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           >
             <Input
               placeholder="Enter expense code"
+              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="text-sm font-semibold text-foreground">
+                Fiscal Year
+              </span>
+            }
+            name="fiscal_year"
+          >
+            <Input
+              placeholder="e.g. 2082/083"
+              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="text-sm font-semibold text-foreground">
+                Document URL
+              </span>
+            }
+            name="document_url"
+          >
+            <Input
+              placeholder="https://example.com/expense-document.pdf"
               className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
             />
           </Form.Item>
