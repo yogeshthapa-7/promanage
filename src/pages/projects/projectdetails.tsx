@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -9,6 +9,7 @@ import {
   ExternalLink,
   FolderOpen,
   FileText,
+  Download,
 } from 'lucide-react';
 import { BlockSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
@@ -16,6 +17,8 @@ import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
 import DateConverter from '@remotemerge/nepali-date-converter';
+import * as XLSX from 'xlsx';
+import { message } from 'antd';
 
 // --- Lookup Maps & Helpers ---
 const priorityLabelMap: Record<number, string> = { 1: 'Urgent', 2: 'High', 3: 'Medium', 4: 'Low' };
@@ -75,6 +78,9 @@ const fetchProjectInfo = async (projectId: string, signal?: AbortSignal): Promis
   const data = json?.Data ?? json?.data;
   const project = data?.ProjectInfo ?? data?.projectInfo;
   if (!project || !project.ProjectInfoID) throw new Error('Project details not found');
+  if (import.meta.env.DEV) {
+    console.log('Project detail raw response:', json);
+  }
   return project;
 };
 
@@ -146,6 +152,45 @@ export default function ProjectDetailsPage() {
   const hasDocuments = Boolean(project.Attachments || project.TOR);
   const hasRemarks = Boolean(project.Tippani || project.Samghauta || project.Kalyades);
 
+  const handleExportExcel = async () => {
+    try {
+      const rows: [string, string | number | null | undefined][] = [
+        ['Project Name', project.ProjectName],
+        ['Project Code', project.ProjectCode],
+        ['Project Type', project.ProjectTypeName],
+        ['Status', project.WorkStatusName],
+        ['Priority', priorityName],
+        ['Start Date', project.StartDate],
+        ['Project Open Date', project.ProjectOpenDate],
+        ['Duration (Days)', project.ProjectDuration],
+        ['Total Budget', project.TotalBudget],
+        ['Last Date of Submission', project.LastDateOfSubmission],
+        ['Bank Guarantee Issue Date', project.BankGuranteeIssueDate],
+        ['Bank Guarantee Expiry Date', project.BankGuranteeExpiryDate],
+        ['Project Head', project.ProjectHeadEmpName],
+        ['Department', project.DepartmentName],
+        ['Expense Code', project.ExpenseCode],
+        ['Budget Info', project.BudgetInfoName],
+        ['Description', project.Description],
+        ['Tippani', project.Tippani],
+        ['Samghauta', project.Samghauta],
+        ['Kalyades', project.Kalyades],
+        ['Attachments', project.Attachments],
+        ['TOR', project.TOR],
+      ];
+
+      const data = rows.map(([label, value]) => ({ Field: label, Value: value ?? '—' }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      ws['!cols'] = [{ wch: 28 }, { wch: 50 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Project Details');
+      XLSX.writeFile(wb, `${project.ProjectName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'project'}_details.xlsx`);
+      message.success('Project details exported');
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : 'Failed to export project details');
+    }
+  };
+
   return (
     <div className="fade-in space-y-3 max-w-screen-2xl mx-auto w-full pb-8">
       {/* Top Bar */}
@@ -157,16 +202,21 @@ export default function ProjectDetailsPage() {
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Projects
         </button>
-        {project.CanEdit && (
-          <Button
-            variant="primary"
-            size="md"
-            icon={<Pencil className="w-4 h-4" />}
-            onClick={() => navigate('/projects/create', { state: { projectId: project.ProjectInfoID } })}
-          >
-            Edit Project
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={handleExportExcel} icon={<Download className="w-4 h-4" />}>
+            Export Excel
           </Button>
-        )}
+          {project.CanEdit && (
+            <Button
+              variant="primary"
+              size="md"
+              icon={<Pencil className="w-4 h-4" />}
+              onClick={() => navigate('/projects/create', { state: { projectId: project.ProjectInfoID } })}
+            >
+              Edit Project
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Hero Card */}

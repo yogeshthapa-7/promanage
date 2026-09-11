@@ -100,7 +100,6 @@ const DrawerContent = memo(
     const [policyProgramOptions, setPolicyProgramOptions] = useState<{ value: string; label: string }[]>([]);
     const [budgetOptions, setBudgetOptions] = useState<{ value: string; label: string }[]>([]);
     const [clientOptions, setClientOptions] = useState<{ value: string; label: string }[]>([]);
-    const [editingClientName, setEditingClientName] = useState<string>('');
 
     useEffect(() => {
       if (open && editingProject?.ClientInfoID && clientOptions.length > 0) {
@@ -238,7 +237,7 @@ const DrawerContent = memo(
           bankGuaranteeIssueDate: editingProject.BankGuranteeIssueDate,
           bankGuaranteeExpiryDate: editingProject.BankGuranteeExpiryDate,
           projectHeadEmpPhoto: editingProject.ProjectHeadEmpPhoto,
-          ward: editingProject.WardInfoID ? String(editingProject.WardInfoID) : undefined,
+          ward: (editingProject as any).WardInfoID ? String((editingProject as any).WardInfoID) : undefined,
         });
         setProjectHeadEmpPhoto(editingProject.ProjectHeadEmpPhoto || '');
         setSelectedFileName('');
@@ -505,7 +504,7 @@ const DrawerContent = memo(
           <fieldset className="border border-slate-200 rounded-lg p-4">
             <legend className="text-sm font-semibold text-slate-700 px-2">Financial Information</legend>
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={24}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -520,7 +519,10 @@ const DrawerContent = memo(
                   <InputNumber className="w-full rounded-md border-slate-300 h-9 text-sm" min={0} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+            </Row>
+
+            <Row gutter={12}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -540,11 +542,11 @@ const DrawerContent = memo(
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
-                      बजेट
+                      बजेटको स्रोत
                       <span className="text-red-500 ml-0.5">*</span>
                     </span>
                   }
@@ -563,7 +565,7 @@ const DrawerContent = memo(
             </Row>
 
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={24}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -589,7 +591,7 @@ const DrawerContent = memo(
           <fieldset className="border border-slate-200 rounded-lg p-4">
             <legend className="text-sm font-semibold text-slate-700 px-2">Project Details</legend>
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -609,7 +611,7 @@ const DrawerContent = memo(
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">
@@ -631,7 +633,9 @@ const DrawerContent = memo(
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+            </Row>
+            <Row gutter={12}>
+              <Col span={24}>
                 <Form.Item
                   label={
                     <span className="text-sm font-semibold text-slate-700">

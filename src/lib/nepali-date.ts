@@ -1,5 +1,4 @@
 
-import NepaliDate from 'nepali-date-converter';
 import DateConverter from '@remotemerge/nepali-date-converter';
 
 export interface BSDate {
@@ -35,7 +34,7 @@ function parseDateString(dateStr: string): Date | null {
 
 function convertBsToAd(bsDateStr: string): Date | null {
   try {
-    const ad = DateConverter(bsDateStr).toAd();
+    const ad = new DateConverter(bsDateStr).toAd();
     return new Date(ad.year, ad.month - 1, ad.date);
   } catch {
     return null;

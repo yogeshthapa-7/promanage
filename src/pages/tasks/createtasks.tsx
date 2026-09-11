@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
@@ -142,7 +142,7 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
     if (open) {
       if (editingTask) {
         const statusId = statusOptions.find((o) => o.label === editingTask.WorkStatusName)?.value;
-        const managerId = managers.find((m) => m.name === editingTask.TaskManagerName)?.value;
+        const managerId = managers.find((m) => m.name === editingTask.TaskManagerName)?.id;
         form.setFieldsValue({
           taskTitle: editingTask.TaskTitle,
           taskCode: editingTask.TaskCode,

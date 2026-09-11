@@ -62,7 +62,7 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
         },
         param: {
           ProjectMilestoneID: 0,
-          ProjectInfoID: project.ProjectInfoID ?? Number(project.id),
+           ProjectInfoID: project.ProjectInfoID ?? Number(project.ProjectInfoID),
           MilestoneTitle: "",
           WorkStatusID: 0,
           MilestoneCost: 0,

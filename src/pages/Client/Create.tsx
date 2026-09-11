@@ -8,6 +8,18 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
+interface Client {
+  id: number;
+  clientName: string;
+  clientCode: string;
+  contactPerson: string;
+  contactNo: string;
+  email: string;
+  address: string;
+  logo: string;
+  clientStatus: number;
+}
+
 interface CreateClientDrawerProps {
   open: boolean;
   onClose: () => void;

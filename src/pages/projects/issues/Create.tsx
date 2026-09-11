@@ -233,20 +233,11 @@ export default function IssueCreate({
 
       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-      let savedIssue: Record<string, unknown> | null = null;
-      try {
-        const text = await res.text();
-        const json = JSON.parse(text);
-        savedIssue = (json?.data ?? json) as Record<string, unknown> | null;
-      } catch {
-        savedIssue = null;
-      }
-
       message.success(isEditing ? 'Issue updated successfully' : 'Issue created successfully');
       form.resetFields();
       setCreatedDate('');
       onClose();
-      onSuccess(savedIssue);
+      onSuccess();
     } catch (err) {
       if (err instanceof Error) {
         message.error(err.message || 'Failed to save issue');

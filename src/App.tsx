@@ -9,10 +9,8 @@ import ProjectsPage from './pages/projects/page';
 import TaskAndSubtasks from './pages/projects/TaskAndSubtasks';
 import KanbanBoardPage from './pages/projects/KanbanBoard';
 import TasksPage from './pages/tasks/page';
-import TeamPage from './pages/team/page';
-import UsersPage from './pages/users/page';
-import ActivityPage from './pages/analytics/page';
 import EmployeePage from './pages/employee/page'
+import UsersPage from './pages/users/page';
 import NotFound from './pages/not-found';
 import DepartmentPage from './pages/departments/department/page';
 import OrganizationPage from './pages/Organizations/page';
@@ -78,16 +76,6 @@ function RootApp() {
         <Route path="/tasks" element={
           <ProtectedRoute>
             <AppLayout showTopbar={false}><TasksPage /></AppLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/team" element={
-          <ProtectedRoute>
-            <AppLayout showTopbar={false}><TeamPage /></AppLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/analytics" element={
-          <ProtectedRoute>
-            <AppLayout showTopbar={false}><ActivityPage /></AppLayout>
           </ProtectedRoute>
         } />
         <Route path="/users" element={

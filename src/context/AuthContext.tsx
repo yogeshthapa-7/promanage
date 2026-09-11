@@ -125,17 +125,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const validationErrors = (errJson?.errors && typeof errJson.errors === 'object')
-        ? Object.values(errJson.errors).flat().join(', ') 
+        ? Object.values(errJson.errors).flat().join(', ')
         : null;
+
+      const serverMessage =
+        validationErrors ||
+        (typeof errJson?.message === 'string' ? errJson.message : undefined) ||
+        (typeof errJson?.Message === 'string' ? errJson.Message : undefined) ||
+        (typeof rawErrorText === 'string' && rawErrorText.trim() ? rawErrorText.trim() : undefined);
+
+      const mappedMessage =
+        loginRes.status === 401
+          ? 'Invalid username or password'
+          : loginRes.status === 403
+            ? 'Access denied'
+            : loginRes.status === 400
+              ? serverMessage || 'Invalid request'
+              : loginRes.status >= 500
+                ? 'Server error. Please try again later.'
+                : serverMessage || `Login failed with status ${loginRes.status}`;
 
       return {
         success: false,
-        error:
-          validationErrors ||
-          (errJson?.message as string) ||
-          (errJson?.Message as string) ||
-          rawErrorText ||
-          `Login failed with status ${loginRes.status}`,
+        error: mappedMessage,
       };
     }
 

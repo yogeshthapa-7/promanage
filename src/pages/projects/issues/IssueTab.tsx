@@ -100,7 +100,7 @@ export default function IssueTab({ project }: IssueTabProps) {
           LabelInfoID: 0,
           Comments: "",
           Attachments: "",
-          ProjectInfoID: project.ProjectInfoID ?? Number(project.id),
+           ProjectInfoID: project.ProjectInfoID ?? Number(project.ProjectInfoID),
           WorkStatusID: 0,
           ProjectInfoName: "",
           WorkStatusName: "",

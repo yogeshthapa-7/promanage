@@ -7,7 +7,6 @@ import {
   Filter,
   LayoutGrid,
   List,
-  Download,
   Plus,
   Star,
   ArrowUpDown,
@@ -19,7 +18,9 @@ import {
   ListChecks,
   Building2,
   Briefcase,
+  Upload,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import Card from '@/components/ui/Card';
 import Pagination from '@/components/ui/Pagination';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
@@ -84,6 +85,262 @@ async function fetchProjectsPage(
   return { items: mapped, total };
 }
 
+const PRIORITY_MAP: Record<string, number> = {
+  urgent: 1,
+  high: 2,
+  medium: 3,
+  low: 4,
+};
+
+async function fetchSelectList(url: string): Promise<{ id: number | string; name: string }[]> {
+  const res = await apiCall(url, { method: 'GET' });
+  if (!res.ok) return [];
+  const data = await res.json();
+  const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
+  return list.map((item) => extractIdAndName(item)).filter((item): item is { id: number | string; name: string } => item !== null);
+}
+
+function extractIdAndName(obj: Record<string, unknown>): { id: number | string; name: string } | null {
+  if (obj.Value !== undefined && obj.Name !== undefined) {
+    return { id: Number(obj.Value), name: String(obj.Name) };
+  }
+
+  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
+  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label', 'Number', 'number'];
+
+  let id: number | string | undefined;
+  let name: string | undefined;
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
+      id = value as number | string;
+    }
+    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
+      name = String(value);
+    }
+    if (id !== undefined && name !== undefined) break;
+  }
+
+  if (id !== undefined && name !== undefined) {
+    return { id: id as number | string, name };
+  }
+
+  return null;
+}
+
+function resolveIdByName(options: { id: number | string; name: string }[], name: string): number | string | undefined {
+  if (!name) return undefined;
+  const target = String(name).trim().toLowerCase();
+  const exact = options.find(o => o.name.toLowerCase() === target);
+  if (exact) return exact.id;
+  const partial = options.find(o => o.name.toLowerCase().includes(target) || target.includes(o.name.toLowerCase()));
+  if (partial) return partial.id;
+  return undefined;
+}
+
+function normalizeDate(value: unknown): string {
+  if (!value) return '';
+  const str = String(value).trim();
+  if (!str) return '';
+  const num = Number(str);
+  if (Number.isFinite(num) && num > 0 && num < 2958465) {
+    const ad = new Date((num - 25569) * 86400 * 1000);
+    const yyyy = ad.getFullYear();
+    const mm = String(ad.getMonth() + 1).padStart(2, '0');
+    const dd = String(ad.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const ad = new Date(str);
+  if (!isNaN(ad.getTime())) {
+    const yyyy = ad.getFullYear();
+    const mm = String(ad.getMonth() + 1).padStart(2, '0');
+    const dd = String(ad.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const bsSlash = str.replace(/\//g, '-');
+  const parts = bsSlash.split('-');
+  if (parts.length === 3) {
+    return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+  }
+  return str;
+}
+
+async function mapRowToProjectBody(
+  row: Record<string, unknown>,
+  caches: {
+    status: { id: number | string; name: string }[];
+    client: { id: number | string; name: string }[];
+    projectType: { id: number | string; name: string }[];
+    department: { id: number | string; name: string }[];
+    expenseInfo: { id: number | string; name: string }[];
+    ward: { id: number | string; name: string }[];
+    policyProgram: { id: number | string; name: string }[];
+    budget: { id: number | string; name: string }[];
+    employee: { id: number | string; name: string }[];
+  }
+): Promise<Record<string, unknown>> {
+  const rowLower = Object.fromEntries(
+    Object.entries(row).map(([k, v]) => [k.trim().toLowerCase().replace(/\s+/g, ''), v])
+  );
+
+  const pick = (...candidates: unknown[]): unknown => {
+    for (const c of candidates) {
+      if (c !== undefined && c !== null && String(c).trim() !== '') return c;
+    }
+    return undefined;
+  };
+
+  // Returns null when no candidate has a valid numeric value (vs 0 which is a real ID)
+  const pickNumberOrNull = (...candidates: unknown[]): number | null => {
+    const v = pick(...candidates);
+    if (v === undefined) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const pickNumber = (...candidates: unknown[]): number => {
+    return pickNumberOrNull(...candidates) ?? 0;
+  };
+
+  const getString = (...candidates: unknown[]): string => {
+    const v = pick(...candidates);
+    return v !== undefined ? String(v) : '';
+  };
+
+  // Resolve an ID field: use numeric ID from Excel if present and > 0, otherwise look up by name
+  const resolveField = (
+    numericId: number | null,
+    options: { id: number | string; name: string }[],
+    ...nameCandidates: unknown[]
+  ): number => {
+    // If user provided a valid numeric ID (> 0), use it directly
+    if (numericId !== null && numericId > 0) return numericId;
+    // Otherwise try to resolve by name
+    const nameStr = getString(...nameCandidates);
+    if (nameStr) {
+      const resolved = resolveIdByName(options, nameStr);
+      if (resolved !== undefined) return Number(resolved);
+    }
+    return 0;
+  };
+
+  const priorityRaw = String(pick(row.Priority, row.priority, rowLower['priority']) ?? 'Medium').trim().toLowerCase();
+  const priority = PRIORITY_MAP[priorityRaw] ?? 3;
+
+  // Try to pick numeric IDs from Excel columns (returns null if not present)
+  const statusIdRaw = pickNumberOrNull(
+    row.WorkStatusID, row.WorkStatusId, row.workStatusId, row.statusId, row.StatusID,
+    rowLower['workstatusid'], rowLower['statusid']
+  );
+  const clientIdRaw = pickNumberOrNull(
+    row.ClientInfoID, row.ClientInfoId, row.clientInfoId, row.ClientID,
+    rowLower['clientinfoid'], rowLower['clientid']
+  );
+  const projectTypeRaw = pickNumberOrNull(
+    row.ProjectTypeID, row.ProjectTypeId, row.projectTypeId,
+    rowLower['projecttypeid']
+  );
+  const departmentIdRaw = pickNumberOrNull(
+    row.DepartmentID, row.DepartmentId, row.departmentId,
+    rowLower['departmentid']
+  );
+  const expenseInfoIdRaw = pickNumberOrNull(
+    row.ExpenseInfoID, row.ExpenseInfoId, row.expenseInfoId,
+    rowLower['expenseinfoid']
+  );
+  const wardIdRaw = pickNumberOrNull(
+    row.WardInfoID, row.WardInfoId, row.wardInfoId, row.WardID,
+    rowLower['wardinfoid'], rowLower['wardid']
+  );
+  const policyProgramIdRaw = pickNumberOrNull(
+    row.PolicyProgramID, row.PolicyProgramId, row.policyProgramId,
+    rowLower['policyprogramid']
+  );
+  const budgetIdRaw = pickNumberOrNull(
+    row.BudgetInfoID, row.BudgetInfoId, row.budgetInfoId,
+    rowLower['budgetinfoid']
+  );
+  const projectHeadEmpIdRaw = pickNumberOrNull(
+    row.ProjectHeadEmpID, row.ProjectHeadEmpId, row.projectHeadEmpId,
+    rowLower['projectheadempid']
+  );
+
+  const projectName = getString(
+    row.ProjectName, row.projectName, row.Name, row.name,
+    rowLower['projectname'], rowLower['name'], rowLower['field']
+  );
+  const projectDuration = pickNumber(row.ProjectDuration, row.projectDuration, row.Duration, row.duration, rowLower['projectduration'], rowLower['duration'], rowLower['duration(days)']);
+  const startDate = getString(row.StartDate, row.startDate, row.ProjectOpenDate, row.projectOpenDate, rowLower['startdate'], rowLower['projectopendate']);
+  const description = getString(row.Description, row.description, row.Details, row.details, rowLower['description'], rowLower['details']);
+  const totalBudget = pickNumber(row.TotalBudget, row.totalBudget, row.Budget, row.budget, rowLower['totalbudget'], rowLower['budget']);
+  const bankIssueDate = getString(row.BankGuranteeIssueDate, row.bankGuaranteeIssueDate, row.BankGuaranteeIssueDate, rowLower['bankguaranteeissuedate'], rowLower['bankguranteeissuedate']);
+  const bankExpiryDate = getString(row.BankGuranteeExpiryDate, row.bankGuaranteeExpiryDate, row.BankGuaranteeExpiryDate, rowLower['bankguaranteeexpirydate'], rowLower['bankguranteeexpirydate']);
+  const projectHeadEmpPhoto = getString(row.ProjectHeadEmpPhoto, row.projectHeadEmpPhoto, row.Photo, row.photo, rowLower['projectheadempphoto'], rowLower['photo']);
+
+  // Resolve all ID fields: numeric ID if provided, otherwise look up by name string
+  const resolvedStatusId = resolveField(statusIdRaw, caches.status,
+    row.WorkStatusName, rowLower['workstatusname'], row.Status, rowLower['status']);
+  const resolvedClientId = resolveField(clientIdRaw, caches.client,
+    row.ClientName, rowLower['clientname'], row.Client, rowLower['client']);
+  const resolvedProjectType = resolveField(projectTypeRaw, caches.projectType,
+    row.ProjectTypeName, rowLower['projecttypename'], row.ProjectType, rowLower['projecttype']);
+  const resolvedDepartmentId = resolveField(departmentIdRaw, caches.department,
+    row.DepartmentName, rowLower['departmentname'], row.Department, rowLower['department']);
+  const resolvedExpenseInfoId = resolveField(expenseInfoIdRaw, caches.expenseInfo,
+    row.ExpenseInfoName, rowLower['expenseinfoname'], row.ExpenseInfo, rowLower['expenseinfo'],
+    row.ExpenseCode, rowLower['expensecode'], row.Expense, rowLower['expense']);
+  const resolvedWardId = resolveField(wardIdRaw, caches.ward,
+    row.WardName, rowLower['wardname'], row.Ward, rowLower['ward']);
+  const resolvedPolicyProgramId = resolveField(policyProgramIdRaw, caches.policyProgram,
+    row.PolicyProgramName, rowLower['policyprogramname'], row.PolicyProgram, rowLower['policyprogram'],
+    row.Policy, rowLower['policy']);
+  const resolvedBudgetId = resolveField(budgetIdRaw, caches.budget,
+    row.BudgetInfoName, rowLower['budgetinfoname'], row.BudgetInfo, rowLower['budgetinfo'],
+    row.BudgetSource, rowLower['budgetsource']);
+  const resolvedProjectHeadEmpId = resolveField(projectHeadEmpIdRaw, caches.employee,
+    row.ProjectHeadEmpName, rowLower['projectheadempname'], row.ProjectHead, rowLower['projecthead'],
+    row.ProjectHeadName, rowLower['projectheadname']);
+
+  // Log warnings for fields that couldn't be resolved
+  const unresolvedFields: string[] = [];
+  if (!resolvedProjectHeadEmpId) unresolvedFields.push('ProjectHead/ProjectHeadEmpName');
+  if (!resolvedStatusId) unresolvedFields.push('Status/WorkStatusName');
+  if (!resolvedClientId) unresolvedFields.push('Client/ClientName');
+  if (!resolvedDepartmentId) unresolvedFields.push('Department/DepartmentName');
+  if (!resolvedExpenseInfoId) unresolvedFields.push('ExpenseInfo/ExpenseCode');
+  if (!resolvedBudgetId) unresolvedFields.push('BudgetSource/BudgetInfoName');
+  if (!resolvedPolicyProgramId) unresolvedFields.push('PolicyProgram/PolicyProgramName');
+  if (unresolvedFields.length > 0) {
+    console.warn(`Excel row "${projectName}": Could not resolve these fields (check spelling or add to system):`, unresolvedFields.join(', '));
+  }
+
+  return {
+    ProjectInfoID: 0,
+    ProjectName: projectName || 'Untitled Project',
+    ProjectDuration: projectDuration,
+    StartDate: normalizeDate(startDate),
+    Description: description,
+    TotalBudget: totalBudget,
+    Priority: priority,
+    WorkStatusID: resolvedStatusId,
+    PolicyProgramIDs: resolvedPolicyProgramId ? String(resolvedPolicyProgramId) : '',
+    PolicyProgramIDArray: resolvedPolicyProgramId ? [String(resolvedPolicyProgramId)] : [],
+    BudgetInfoIDs: resolvedBudgetId ? String(resolvedBudgetId) : '',
+    BudgetInfoIDArray: resolvedBudgetId ? [String(resolvedBudgetId)] : [],
+    ClientInfoID: resolvedClientId,
+    DepartmentID: resolvedDepartmentId,
+    ExpenseInfoID: resolvedExpenseInfoId,
+    WardInfoID: resolvedWardId,
+    ProjectType: resolvedProjectType,
+    ProjectHeadEmpID: resolvedProjectHeadEmpId,
+    BankGuranteeIssueDate: normalizeDate(bankIssueDate),
+    BankGuranteeExpiryDate: normalizeDate(bankExpiryDate),
+    IsPolicyRelated: 0,
+    ProjectHeadEmpPhoto: projectHeadEmpPhoto,
+  };
+}
+
 export default function ProjectsPage() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -97,7 +354,11 @@ export default function ProjectsPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
 const {
   data: projects,
@@ -282,27 +543,179 @@ const {
     setCurrentPage(1);
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['Name', 'Category', 'Status', 'Priority', 'Progress'],
-      ...projects.map((p) => [
-        p.title || p.name,
-        p.category,
-        p.status,
-        p.priority,
-        `${p.progress}%`,
-      ]),
-    ]
-      .map((row) => row.join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'projects.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-    message.success('Export completed');
+  const handleExcelUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExtension = (file.name.split('.').pop() || 'xlsx').toLowerCase();
+    if (!['xlsx', 'xls', 'csv'].includes(fileExtension)) {
+      message.error('Please upload an Excel file (.xlsx, .xls, or .csv)');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress({ current: 0, total: 0 });
+
+    try {
+      const text = await file.arrayBuffer();
+      const workbook = XLSX.read(text, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
+      let rows = jsonData.filter(row => Object.values(row).some(v => v !== undefined && v !== null && String(v).trim() !== ''));
+
+      if (rows.length > 0) {
+        const firstKeys = Object.keys(rows[0]).map(k => k.trim().toLowerCase());
+        const isKeyValue = firstKeys.includes('field') && firstKeys.includes('value');
+        if (isKeyValue) {
+          const wide: Record<string, unknown> = {};
+          for (const row of rows) {
+            const field = String(row.Field ?? row.field ?? '').trim();
+            const value = row.Value ?? row.value;
+            if (field) {
+              wide[field] = value;
+            }
+          }
+          rows = [wide];
+        }
+      }
+
+      if (rows.length === 0) {
+        throw new Error('Excel file is empty');
+      }
+
+      setUploadProgress({ current: 0, total: rows.length });
+
+      const settledLists = await Promise.allSettled([
+        fetchSelectList(`${API_BASE}/WorkStatus/SelectList`),
+        fetchSelectList(`${API_BASE}/ClientInfo/SelectList`),
+        fetchSelectList(`${API_BASE}/ProjectInfo/ProjectTypeList`),
+        fetchSelectList(`${API_BASE}/Department/SelectList`),
+        fetchSelectList(`${API_BASE}/ExpenseInfo/SelectList`),
+        fetchSelectList(`${API_BASE}/WardInfo/SelectList`),
+        fetchSelectList(`${API_BASE}/PolicyProgram/SelectList`),
+        fetchSelectList(`${API_BASE}/BudgetInfo/SelectList`),
+        fetchSelectList(`${API_BASE}/EmployeeInfo/SelectList`),
+      ]);
+
+      const pick = (result: PromiseSettledResult<{ id: number | string; name: string }[]>) =>
+        result.status === 'fulfilled' ? result.value : [];
+
+      const [
+        statusOptions,
+        clientOptions,
+        projectTypeOptions,
+        departmentOptions,
+        expenseInfoOptions,
+        wardOptions,
+        policyProgramOptions,
+        budgetOptions,
+        employeeOptions,
+      ] = settledLists.map(pick);
+
+      settledLists.forEach((result, idx) => {
+        if (result.status === 'rejected') {
+          console.warn(`Select list ${idx} failed to load:`, result.reason);
+        }
+      });
+
+      const caches = {
+        status: statusOptions,
+        client: clientOptions,
+        projectType: projectTypeOptions,
+        department: departmentOptions,
+        expenseInfo: expenseInfoOptions,
+        ward: wardOptions,
+        policyProgram: policyProgramOptions,
+        budget: budgetOptions,
+        employee: employeeOptions,
+      };
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        try {
+          const body = await mapRowToProjectBody(row, caches);
+
+          if (!body.ProjectName || String(body.ProjectName).trim() === '') {
+            console.warn(`Row ${i + 1} skipped: missing ProjectName`, row);
+            failCount++;
+            continue;
+          }
+
+          // Validate required FK fields before sending to API
+          const missingFields: string[] = [];
+          if (!body.ProjectHeadEmpID || body.ProjectHeadEmpID === 0) missingFields.push('ProjectHead (employee name)');
+          if (!body.WorkStatusID || body.WorkStatusID === 0) missingFields.push('Status (work status name)');
+          if (!body.ClientInfoID || body.ClientInfoID === 0) missingFields.push('Client (client name)');
+          if (!body.DepartmentID || body.DepartmentID === 0) missingFields.push('Department (department name)');
+          if (!body.ExpenseInfoID || body.ExpenseInfoID === 0) missingFields.push('Expense (expense info name)');
+          if (!body.BudgetInfoIDs || body.BudgetInfoIDs === '') missingFields.push('BudgetSource (budget info name)');
+          if (!body.PolicyProgramIDs || body.PolicyProgramIDs === '') missingFields.push('PolicyProgram (policy program name)');
+
+          if (missingFields.length > 0) {
+            const rowKeys = Object.keys(row).join(', ');
+            console.error(
+              `Row ${i + 1} ("${body.ProjectName}") is missing required fields: ${missingFields.join(', ')}.\n` +
+              `Excel columns found: [${rowKeys}]\n` +
+              `Available employees (${caches.employee.length}): ${caches.employee.slice(0, 10).map(e => `"${e.name}" (ID:${e.id})`).join(', ')}${caches.employee.length > 10 ? '...' : ''}\n`
+            );
+            message.error(`Row ${i + 1} ("${body.ProjectName}"): Missing ${missingFields.join(', ')}. Check column names and values.`);
+            failCount++;
+            continue;
+          }
+
+          if (i === 0) {
+            console.log('First project payload:', body);
+          }
+
+          const res = await apiCall(`${API_BASE}/SaveProjectInfo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            console.error(`Row ${i + 1} failed (${res.status}):`, body, text.slice(0, 500));
+            failCount++;
+            continue;
+          }
+
+          successCount++;
+        } catch (err) {
+          console.error(`Row ${i + 1} error:`, err, row);
+          failCount++;
+        } finally {
+          setUploadProgress({ current: i + 1, total: rows.length });
+        }
+      }
+
+      if (successCount > 0 && failCount === 0) {
+        message.success(`Successfully imported ${successCount} project(s)`);
+        refetch();
+      } else if (successCount > 0 && failCount > 0) {
+        message.warning(`Imported ${successCount} project(s). ${failCount} row(s) failed. Check console for details.`);
+        refetch();
+      } else {
+        message.error(`All ${failCount} row(s) failed to import. Verify Excel headers match the template and required fields are filled.`);
+      }
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : 'Failed to process Excel file');
+    } finally {
+      setUploading(false);
+      setUploadProgress({ current: 0, total: 0 });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleDeleteClick = (project: Project) => {
@@ -349,9 +762,16 @@ const {
           <Button type="primary" onClick={openCreateModal} icon={<Plus className="w-4 h-4" />}>
             New Project
           </Button>
-          <Button onClick={handleExport} icon={<Download className="w-3.5 h-3.5 text-muted-foreground" />}>
-            Export
+          <Button onClick={handleExcelUploadClick} loading={uploading} icon={<Upload className="w-3.5 h-3.5 text-muted-foreground" />}>
+            {uploading ? `Importing ${uploadProgress.current}/${uploadProgress.total}` : 'Upload Excel'}
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
           <div className="relative">
             <DropdownMenu
               trigger={
@@ -443,7 +863,7 @@ const {
       </div>
 
       {loading ? (
-        <CardGridSkeleton count={9} columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" />
+        <CardGridSkeleton count={9} />
       ) : (
         <>
             <div className="space-y-4">

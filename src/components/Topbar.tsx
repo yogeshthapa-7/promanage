@@ -55,7 +55,7 @@ export default function Topbar({
   const filterMenuRef = useRef<HTMLDivElement>(null);
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
-  const updatePlacement = (menuRef: HTMLDivElement | null, placementState: 'below' | 'above', setPlacement: (v: 'below' | 'above') => void) => {
+  const updatePlacement = (menuRef: HTMLDivElement | null, _placementState: 'below' | 'above', setPlacement: (v: 'below' | 'above') => void) => {
     if (!menuRef) return;
     const rect = menuRef.getBoundingClientRect();
     const viewportHeight = window.innerHeight;

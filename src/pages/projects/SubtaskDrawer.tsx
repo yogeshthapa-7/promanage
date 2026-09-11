@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Modal, message } from 'antd';
 import { Plus, Pencil, Trash2, LayoutGrid, List, Search } from 'lucide-react';
 import Drawer from '@/components/drawer';
@@ -70,14 +70,14 @@ function SubTaskListRow({ subtask, onEdit, onDelete }: { subtask: SubTaskItem; o
         )}
       </div>
 
-      {subtask.Description && (
-        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{subtask.Description}</p>
+      {(subtask as any).Description && (
+        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{(subtask as any).Description}</p>
       )}
     </Card>
   );
 }
 
-function SubTaskGridView({ subtasks, projectName, onEdit, onDelete }: { subtasks: SubTaskItem[]; projectName: string; onEdit: (id: number) => void; onDelete: (id: number) => void }) {
+function SubTaskGridView({ subtasks, onEdit, onDelete }: { subtasks: SubTaskItem[]; onEdit: (id: number) => void; onDelete: (id: number) => void }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {subtasks.map((subtask) => (
@@ -109,14 +109,12 @@ function SubTaskGridView({ subtasks, projectName, onEdit, onDelete }: { subtasks
             </Badge>
           </div>
 
-          {subtask.Description && (
-            <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{subtask.Description}</p>
+          {(subtask as any).Description && (
+            <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{(subtask as any).Description}</p>
           )}
 
           <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-            <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName || 'Manager'} size={36}>
-              {(subtask.SubTaskManagerName || '?').charAt(0).toUpperCase()}
-            </Avatar>
+            <Avatar src={subtask.SubTaskManagerPhoto || ''} alt={subtask.SubTaskManagerName || 'Manager'} size={36} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-slate-700 truncate">{subtask.SubTaskManagerName || '—'}</p>
               <p className="text-xs text-slate-400">Manager</p>
@@ -145,7 +143,6 @@ function SubTaskGridView({ subtasks, projectName, onEdit, onDelete }: { subtasks
 }
 
 export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskDrawerProps) {
-  const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingSubtask, setEditingSubtask] = useState<SubTaskItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -313,7 +310,6 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
         ) : viewMode === 'grid' ? (
           <SubTaskGridView
             subtasks={filteredSubTasks}
-            projectName={project.ProjectName}
             onEdit={(id) => {
               const found = filteredSubTasks.find((s) => s.SubTaskInfoID === id);
               if (found) handleOpenEdit(found);

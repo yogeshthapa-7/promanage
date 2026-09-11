@@ -62,7 +62,7 @@ const extractIdAndName = (obj: Record<string, unknown>): { id: number | string; 
   return null;
 };
 
-const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, taskId?: number, projectIdSearch?: number, managerName?: string) => ({
+const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, managerName?: string) => ({
   model: {
     draw: 1,
     start,
@@ -91,7 +91,7 @@ const buildTaskSearchBody = (start: number, length: number, search?: string, pro
 function fetchTasksPage(params: PaginatedListParams & { projectId?: number; taskId?: number; projectIdSearch?: number; managerName?: string }): Promise<{ items: TaskItem[]; total: number }> {
   return apiCall(TASKS_API, {
     method: "POST",
-    body: JSON.stringify(buildTaskSearchBody(params.start as number, params.length as number, params.search as string, params.projectId, params.taskId, params.projectIdSearch, params.managerName)),
+    body: JSON.stringify(buildTaskSearchBody(params.start as number, params.length as number, params.search as string, params.projectId, params.managerName)),
     signal: params.signal,
   }).then(async (res) => {
     if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
@@ -127,7 +127,6 @@ export default function TasksPage() {
 
   const {
     data: tasks,
-    total,
     loading,
     currentPage,
     pageSize,
@@ -441,9 +440,9 @@ export default function TasksPage() {
                      <div className="text-xs text-slate-400 font-mono mt-0.5">{task.TaskCode}</div>
                    )}
                  </div>
-                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
+                 {/* <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
                    #{task.TaskInfoID}
-                 </span>
+                 </span> */}
                </div>
 
                <div className="space-y-2 mb-4 flex-1">

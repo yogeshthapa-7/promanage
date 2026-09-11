@@ -72,13 +72,6 @@ const priorityLabelMap: Record<number, string> = {
   4: 'Low',
 };
 
-const projectTypeMap: Record<number, string> = {
-  0: 'General',
-  1: 'Development',
-  2: 'Infrastructure',
-  3: 'Design',
-};
-
 const formatCurrency = (amount?: number) =>
   `Rs. ${(amount ?? 0).toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -138,7 +131,7 @@ export default function KanbanBoard() {
 
   // Add task drawer
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
-  const [addDrawerStatusId, setAddDrawerStatusId] = useState<number | null>(null);
+  const [_addDrawerStatusId, setAddDrawerStatusId] = useState<number | null>(null);
 
   // View task drawer
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
@@ -334,18 +327,18 @@ export default function KanbanBoard() {
     setDraggedTask({ taskId, fromStatusId: statusId });
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.04)';
+    (e.currentTarget as HTMLDivElement).style.backgroundColor = 'rgba(124, 58, 237, 0.04)';
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.currentTarget.style.backgroundColor = '';
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLDivElement).style.backgroundColor = '';
   };
 
-  const handleDrop = async (e: React.DragEvent, targetStatusId: number) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, targetStatusId: number) => {
     e.preventDefault();
-    e.currentTarget.style.backgroundColor = '';
+    (e.currentTarget as HTMLDivElement).style.backgroundColor = '';
 
     if (!draggedTask) return;
 
@@ -675,7 +668,6 @@ export default function KanbanBoard() {
         onSuccess={refreshBoard}
         editingTask={null}
         project={project as any}
-        defaultStatusId={addDrawerStatusId}
       />
 
       {/* View Task Drawer */}

@@ -169,11 +169,11 @@ export default function CreateBranchDrawer({
           <Form.Item
             label={
               <span className="text-sm font-semibold text-slate-600">
-                Main Branch /महाशाखा <span className="text-rose-500">*</span>
+                Main Branch /महाशाखा 
               </span>
             }
             name="mainBranchId"
-            rules={[{ required: true, message: 'Please select a main branch' }]}
+            rules={[{ required: false, message: 'Please select a main branch' }]}
           >
             <Select
               placeholder={mainBranchLoading ? 'Loading...' : 'Select main branch'}
@@ -188,11 +188,11 @@ export default function CreateBranchDrawer({
           <Form.Item
             label={
               <span className="text-sm font-semibold text-slate-600">
-                Department / विभाग <span className="text-rose-500">*</span>
+                Department / विभाग 
               </span>
             }
             name="departmentId"
-            rules={[{ required: true, message: 'Please select a department' }]}
+            rules={[{ required: false, message: 'Please select a department' }]}
           >
             <Select
               placeholder={departmentLoading ? 'Loading...' : 'Select department'}

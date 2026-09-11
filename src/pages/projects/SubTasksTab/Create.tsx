@@ -81,7 +81,7 @@ export default function SubTaskCreate({
   const [statusLoading, setStatusLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const projectId = project?.ProjectInfoID ?? (project?.id ? Number(project.id) : null) ?? selectedTask?.ProjectInfoID;
+  const projectId = project?.ProjectInfoID ?? (project?.ProjectInfoID ? Number(project.ProjectInfoID) : null) ?? selectedTask?.ProjectInfoID;
   const taskInfoId = selectedTask?.TaskInfoID;
 
   const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, ChevronLeft, ChevronRight, LogOut, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, } from 'lucide-react';
 import { Popover } from 'antd';
 import { useAuth } from '@/context/AuthContext';
 import UserProfileDrawer from '@/pages/profile/page';
@@ -14,15 +14,13 @@ const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/dashboard' },
   { id: 'projects', label: 'Projects', icon: <FolderKanban size={18} />, href: '/projects' },
   { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={18} />, href: '/tasks' },
-  { id: 'analytics', label: 'Analytics', icon: <ChartLine size={18} />, href: '/analytics' },
-  { id: 'team-members', label: 'Team Members', icon: <Users size={18} />, href: '/team', section: 'TEAM' },
   { id: 'users', label: 'Users', icon: <UserCircle size={18} />, href: '/users', section: 'TEAM' },
   { id: 'employee', label: 'Employee', icon: <User size={18} />, href: '/employee', section: 'TEAM' },
   { id: 'departments', label: 'Departments', icon: <Building size={18} />, href: '/departments', section: 'TEAM' },
   { id: 'organizations', label: 'Organization', icon: <Building2 size={18} />, href: '/Organizations', section: 'TEAM' },
   { id: 'policy', label: 'Policy Program', icon: <File size={18} />, href: '/Policy', section: 'POLICY' },
   { id: 'budget', label: 'Budget', icon: <Wallet2 size={18} />, href: '/Budget', section: 'POLICY' },
-  { id: 'expense', label: 'Expense', icon: <CreditCard size={18} />, href: '/Expense', section: 'POLICY' },
+  { id: 'expense', label: 'Expense / Financial Statement', icon: <CreditCard size={18} />, href: '/Expense', section: 'POLICY' },
   { id: 'ward', label: 'Ward Info', icon: <MapPin size={18} />, href: '/WardInfo', section: 'POLICY' },
   { id: 'client', label: 'Client', icon: <Handshake size={18} />, href: '/Client', section: 'POLICY' },
   { id: 'label', label: 'Label Info', icon: <Tag size={18} />, href: '/Label', section: 'POLICY' },
@@ -32,8 +30,6 @@ function getActiveNavId(pathname: string): string {
   if (pathname.startsWith('/projects/') && (pathname.endsWith('/tasks') || pathname.endsWith('/kanban'))) return 'tasks';
   if (pathname.startsWith('/projects')) return 'projects';
   if (pathname.startsWith('/tasks')) return 'tasks';
-  if (pathname.startsWith('/analytics')) return 'analytics';
-  if (pathname.startsWith('/team')) return 'team-members';
   if (pathname.startsWith('/users')) return 'users';
   if (pathname.startsWith('/employee')) return 'employee';
   if (pathname.startsWith('/departments')) return 'departments';
