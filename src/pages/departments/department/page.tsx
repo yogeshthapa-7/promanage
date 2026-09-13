@@ -540,6 +540,7 @@ export default function DepartmentPage() {
             </Button>
             <Button
               type="primary"
+              htmlType="submit"
               className="bg-[#7C3AED] hover:!bg-[#6366F1] border-none px-5 py-1.5 h-auto text-sm rounded-md font-medium text-white shadow-sm"
             >
               Update
