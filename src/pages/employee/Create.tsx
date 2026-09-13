@@ -466,9 +466,9 @@ export default function EmployeeSetupModal({
               </Form.Item>
 
               <Form.Item
-                label={<span className="text-slate-700 font-semibold text-[13px]">विभागको नाम<span className="text-red-500 ml-0.5">*</span></span>}
+                label={<span className="text-slate-700 font-semibold text-[13px]">विभागको नाम</span>}
                 name="DepartmentID"
-                rules={[{ required: true, message: 'कृपया विभाग चयन गर्नुहोस्' }]}
+                // rules={[{ required: true, message: 'कृपया विभाग चयन गर्नुहोस्' }]}
               >
                 <Select
                   placeholder="विभाग चयन गर्नुहोस्"
@@ -482,9 +482,9 @@ export default function EmployeeSetupModal({
               </Form.Item>
 
               <Form.Item
-                label={<span className="text-slate-700 font-semibold text-[13px]">मुख्य शाखा<span className="text-red-500 ml-0.5">*</span></span>}
+                label={<span className="text-slate-700 font-semibold text-[13px]">मुख्य शाखा</span>}
                 name="MainBranchID"
-                rules={[{ required: true, message: 'कृपयामहाशाखा चयन गर्नुहोस्' }]}
+                // rules={[{ required: true, message: 'कृपयामहाशाखा चयन गर्नुहोस्' }]}
               >
                 <Select
                   placeholder="मुख्य शाखा चयन गर्नुहोस्"
@@ -498,9 +498,9 @@ export default function EmployeeSetupModal({
               </Form.Item>
 
               <Form.Item
-                label={<span className="text-slate-700 font-semibold text-[13px]">शाखा<span className="text-red-500 ml-0.5">*</span></span>}
+                label={<span className="text-slate-700 font-semibold text-[13px]">शाखा</span>}
                 name="BranchID"
-                rules={[{ required: true, message: 'कृपया शाखा चयन गर्नुहोस्' }]}
+                // rules={[{ required: true, message: 'कृपया शाखा चयन गर्नुहोस्' }]}
               >
                 <Select
                   placeholder="शाखा चयन गर्नुहोस्"
