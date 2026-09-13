@@ -12,6 +12,7 @@ import Pagination from '@/components/ui/Pagination';
 import { fetchPolicies, type Policy } from '@/lib/policy-data';
 import { apiCall } from '@/lib/api';
 import CreatePolicyDrawer from './Create';
+import ViewPolicyDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -35,6 +36,8 @@ export default function PolicyPage() {
   const [fiscalYearQuery, setFiscalYearQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<Policy | null>(null);
+  const [viewingPolicy, setViewingPolicy] = useState<Policy | null>(null);
+  const [showViewDrawer, setShowViewDrawer] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fiscalYearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,11 +71,8 @@ export default function PolicyPage() {
   };
 
   const handleViewPolicy = (policy: Policy) => {
-    if (policy.document_url) {
-      window.open(policy.document_url, '_blank');
-    } else {
-      message.info('No document attached to this policy');
-    }
+    setViewingPolicy(policy);
+    setShowViewDrawer(true);
   };
 
   const handleDownloadPolicy = (policy: Policy) => {
@@ -419,14 +419,6 @@ export default function PolicyPage() {
                     View
                   </Button>
                   <Button
-                    size="sm"
-                    onClick={() => handleDownloadPolicy(policy)}
-                    icon={<Download className="h-4 w-4" />}
-                    disabled={!policy.document_url}
-                  >
-                    Download
-                  </Button>
-                  <Button
                     type="primary"
                     size="sm"
                     onClick={() => handleEdit(policy)}
@@ -446,7 +438,7 @@ export default function PolicyPage() {
                     icon={
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 2v2" />
                       </svg>
                     }
                   >
@@ -472,6 +464,12 @@ export default function PolicyPage() {
           />
         )}
       </div>
+
+      <ViewPolicyDrawer
+        open={showViewDrawer}
+        onClose={() => { setShowViewDrawer(false); setViewingPolicy(null); }}
+        policy={viewingPolicy}
+      />
 
       <CreatePolicyDrawer
         open={showFormModal}

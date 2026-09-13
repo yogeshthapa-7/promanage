@@ -12,6 +12,7 @@ import Pagination from '@/components/ui/Pagination';
 import { fetchBudgets, type Budget } from '@/lib/budget-data';
 import { apiCall } from '@/lib/api';
 import CreateBudgetDrawer from './Create';
+import ViewBudgetDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -35,6 +36,8 @@ export default function BudgetPage() {
   const [fiscalYearQuery, setFiscalYearQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [viewingBudget, setViewingBudget] = useState<Budget | null>(null);
+  const [showViewDrawer, setShowViewDrawer] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fiscalYearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,11 +71,8 @@ export default function BudgetPage() {
   };
 
   const handleViewBudget = (budget: Budget) => {
-    if (budget.document_url) {
-      window.open(budget.document_url, '_blank');
-    } else {
-      message.info('No document attached to this budget');
-    }
+    setViewingBudget(budget);
+    setShowViewDrawer(true);
   };
 
   const handleDownloadBudget = (budget: Budget) => {
@@ -436,14 +436,6 @@ export default function BudgetPage() {
                     View
                   </Button>
                   <Button
-                    size="sm"
-                    onClick={() => handleDownloadBudget(budget)}
-                    icon={<Download className="h-4 w-4" />}
-                    disabled={!budget.document_url}
-                  >
-                    Download
-                  </Button>
-                  <Button
                     type="primary"
                     size="sm"
                     onClick={() => handleEdit(budget)}
@@ -463,7 +455,7 @@ export default function BudgetPage() {
                     icon={
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 2v2" />
                       </svg>
                     }
                   >
@@ -489,6 +481,12 @@ export default function BudgetPage() {
           />
         )}
       </div>
+
+      <ViewBudgetDrawer
+        open={showViewDrawer}
+        onClose={() => { setShowViewDrawer(false); setViewingBudget(null); }}
+        budget={viewingBudget}
+      />
 
       <CreateBudgetDrawer
         open={showFormModal}
