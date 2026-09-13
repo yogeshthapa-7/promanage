@@ -466,7 +466,7 @@ export default function EmployeeSetupModal({
               </Form.Item>
 
               <Form.Item
-                label={<span className="text-slate-700 font-semibold text-[13px]">विभागको नाम</span>}
+                label={<span className="text-slate-700 font-semibold text-[13px]">विभागको नाम<span className="text-red-500 ml-0.5">*</span></span>}
                 name="DepartmentID"
                 // rules={[{ required: true, message: 'कृपया विभाग चयन गर्नुहोस्' }]}
               >
