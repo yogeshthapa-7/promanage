@@ -47,8 +47,8 @@ function buildSearchBody(params: FetchWardsParams) {
     },
     param: {
       WardInfoID: 0,
-      WardNumber: params.search.trim() || '',
-      WardCode: '',
+      WardNumber: '',
+      WardCode: params.search.trim() || '',
     },
   };
 }

@@ -133,7 +133,7 @@ export default function WardInfoPage() {
                     setCurrentPage(1);
                   }, 400);
               }}
-              placeholder="Search by ward number..."
+               placeholder="Search by ward code..."
               containerClassName="flex-1"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
