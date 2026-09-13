@@ -133,7 +133,7 @@ export default function WardInfoPage() {
                     setCurrentPage(1);
                   }, 400);
               }}
-              placeholder="Search by ward number..."
+               placeholder="Search by ward code..."
               containerClassName="flex-1"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
@@ -175,10 +175,6 @@ export default function WardInfoPage() {
                 </div>
 
                 <div className="space-y-2.5 mb-5">
-                  <div className="flex items-center justify-between text-sm gap-2">
-                    <span className="text-slate-400 shrink-0">Ward Number</span>
-                    <span className="font-semibold text-slate-700 truncate">{ward.wardNumber}</span>
-                  </div>
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Ward Code</span>
                     <span className="font-semibold text-slate-700 truncate">{ward.wardCode}</span>
