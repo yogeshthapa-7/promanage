@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, message, Radio, Checkbox } from 'antd';
+import { Form, Input, Button, message, Checkbox } from 'antd';
 import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
@@ -37,7 +37,6 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
           code: editingYear.code,
           startDate: editingYear.startDate,
           endDate: editingYear.endDate,
-          status: editingYear.status,
           isCurrent: editingYear.isCurrent ?? false,
         });
       } else {
@@ -58,7 +57,6 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
         FiscalYearCode: values.code || '',
         StartDate: values.startDate || '',
         EndDate: values.endDate || '',
-        Status: values.status === 'Active' ? 1 : 0,
         IsCurrent: values.isCurrent ? 1 : 0,
       };
 
@@ -177,29 +175,14 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Status
-              </span>
-            }
-            name="status"
-            initialValue="Active"
-          >
-            <Radio.Group>
-              <Radio value="Active">Active</Radio>
-              <Radio value="Inactive">Inactive</Radio>
-            </Radio.Group>
-          </Form.Item>
-
-          <Form.Item
-            label={
-              <span className="text-sm font-semibold text-foreground">
-                Set as Current Fiscal Year
+                Set as Current Running Year
               </span>
             }
             name="isCurrent"
             valuePropName="checked"
             initialValue={false}
           >
-            <Checkbox>Set as Current Fiscal Year</Checkbox>
+            <Checkbox>Set as Current Running Year</Checkbox>
           </Form.Item>
         </div>
       </Form>
