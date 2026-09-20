@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
+import DateConverter from '@remotemerge/nepali-date-converter';
 import nepallogo from '@/assets/images/nepal_logo.png';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -14,6 +15,32 @@ const projectTypeMap: Record<number, string> = {
   1: 'Development',
   2: 'Infrastructure',
   3: 'Design',
+};
+
+const NEPALI_MONTHS = [
+  'बैशाख',
+  'जेठ',
+  'असार',
+  'श्रावण',
+  'भदौ',
+  'आश्विन',
+  'कार्तिक',
+  'मंसिर',
+  'पौष',
+  'माघ',
+  'फागुन',
+  'चैत',
+];
+
+const toNepaliDate = (dateStr?: string) => {
+  if (!dateStr || dateStr.startsWith('0001')) return '—';
+  try {
+    const bs = new DateConverter(dateStr).toBs();
+    const monthName = NEPALI_MONTHS[bs.month - 1] || String(bs.month);
+    return `${bs.year} ${monthName} ${bs.date}`;
+  } catch {
+    return dateStr;
+  }
 };
 
 const DigitalBoardPage = () => {
@@ -69,7 +96,7 @@ const DigitalBoardPage = () => {
   const projectTitle = project.ProjectName || 'Untitled Project';
   const projectHead = project.ProjectHeadEmpName || '—';
   const projectType = project.ProjectTypeName || projectTypeMap[project.ProjectType ?? 0] || 'General';
-  const startDate = project.StartDate || '—';
+  const startDate = toNepaliDate(project.StartDate);
   const duration = project.ProjectDuration ? `${project.ProjectDuration} days` : '—';
   const status = project.WorkStatusName || '—';
 
@@ -79,16 +106,16 @@ const DigitalBoardPage = () => {
     >
       <button
         onClick={() => navigate('/projects')}
-        className="absolute top-6 left-6 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+        className="absolute top-6 left-6 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         Back to Projects
       </button>
 
-      <div className="w-full max-w-3xl">
+      <div className="w-full max-w-[32rem]">
         {/* 3D Bumpy Board */}
         <div
-          className="relative w-full bg-white rounded-3xl border border-slate-200/80 flex flex-col"
+          className="relative w-full bg-white rounded-3xl border border-slate-200 flex flex-col"
           style={{
             transform: 'perspective(1200px) rotateX(2deg) rotateY(-1deg)',
             boxShadow: `
@@ -103,59 +130,56 @@ const DigitalBoardPage = () => {
             `,
           }}
         >
-        {/* Top texture overlay for bumpy feel
-        <div
-          className="absolute inset-0 rounded-3xl pointer-events-none opacity-[0.03]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        /> */}
+          {/* Logos Row */}
+          <div className="relative flex items-center justify-between px-6 pt-6 pb-2">
+            {/* Left Logo */}
+            <div className="shrink-0 w-20 h-20 flex items-center justify-center">
+              <img
+                src={nepallogo}
+                alt="Left Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
 
-        {/* Logos Row */}
-        <div className="relative flex items-center justify-between px-8 pt-8 pb-4">
-          {/* Left Logo */}
-          <div className="shrink-0 w-28 h-28 flex items-center justify-center">
-            <img
-              src={nepallogo} alt = "Left Logo"
-              className="w-full h-full object-contain drop-shadow-md"
-            />
-          </div>
-
-          {/* Center Header */}
-          <div className="flex-1 text-center px-4">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.08)' }}>
+            {/* Center Header */}
+            <div className="flex-1 text-center px-2">
+            <h1 className="text-2xl font-extrabold text-red-700 tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.08)' }}>
               नेपाल सरकार
             </h1>
-            <p className="mt-2 text-sm font-semibold text-slate-600 uppercase tracking-widest">
+            <p className="mt-1.5 text-xs font-bold text-blue-800 uppercase tracking-[0.2em]">
               {projectHead}
             </p>
+            </div>
+
+            {/* Right Logo */}
+            <div className="shrink-0 w-20 h-20 flex items-center justify-center">
+              <img
+                src={nepallogo}
+                alt="Right Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
 
-          {/* Right Logo */}
-          <div className="shrink-0 w-28 h-28 flex items-center justify-center">
-            <img
-              src={nepallogo} alt= "right_logo"
-              className="w-full h-full object-contain drop-shadow-md"
-            />
+          {/* Divider */}
+          <div className="mx-6 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+
+          {/* Project Title */}
+          <div className="px-6 pt-5 pb-2">
+            <h2 className="text-xl font-bold text-blue-900 text-center break-words" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.06)' }}>
+              {projectTitle}
+            </h2>
           </div>
-        </div>
 
-        {/* Divider with 3D effect */}
-        <div className="mx-8 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+          {/* Ornamental divider */}
+          <div className="flex items-center justify-center gap-2 py-2 text-slate-400">
+            <div className="h-px w-8 bg-slate-300" />
+            <span className="text-[10px] tracking-[0.25em] uppercase font-semibold">Project Details</span>
+            <div className="h-px w-8 bg-slate-300" />
+          </div>
 
-        {/* Project Title */}
-        <div className="px-8 pt-6 pb-2">
-          <h2 className="text-xl md:text-2xl font-bold text-slate-800 text-center break-words" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>
-            {projectTitle}
-          </h2>
-        </div>
-
-        {/* Project Details Grid */}
-        <div className="px-8 py-6">
-          <h3 className="text-base font-bold text-slate-700 uppercase tracking-wider mb-4 text-center">
-            Project Details
-          </h3>
-          <div className="flex flex-col gap-3">
+          {/* Project Details */}
+          <div className="px-6 py-4 space-y-2.5">
             {[
               { label: 'Project Type', value: projectType },
               { label: 'Start Date', value: startDate },
@@ -164,35 +188,34 @@ const DigitalBoardPage = () => {
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex items-center justify-between bg-slate-50 rounded-xl p-4 border border-slate-200/80 transition-transform duration-200 hover:scale-[1.02]"
+                className="flex items-center justify-between bg-slate-50/80 rounded-xl px-5 py-3 border border-slate-200/80 transition-transform duration-200 hover:scale-[1.01]"
                 style={{
                   boxShadow: `
-                    0 1px 2px rgba(0,0,0,0.04),
-                    inset 0 1px 0 rgba(255,255,255,0.8),
-                    inset 0 -1px 0 rgba(0,0,0,0.04)
+                    0 1px 2px rgba(0,0,0,0.03),
+                    inset 0 1px 0 rgba(255,255,255,0.9),
+                    inset 0 -1px 0 rgba(0,0,0,0.03)
                   `,
                 }}
               >
-                <div className="text-sm font-semibold text-slate-500">
-                  {item.label}:
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  {item.label}
                 </div>
-                <div className="text-sm font-bold text-slate-800 break-words">
+                <div className={`text-sm font-bold break-words ${item.label === 'Status' ? 'px-3 py-1 rounded-full bg-orange-100 text-orange-700' : 'text-slate-800'}`}>
                   {item.value}
                 </div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Bottom 3D edge highlight */}
-        <div
-          className="h-2 rounded-b-3xl"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.04), rgba(0,0,0,0.01))',
-          }}
-        />
+          {/* Bottom 3D edge highlight */}
+          <div
+            className="h-2 rounded-b-3xl"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.04), rgba(0,0,0,0.01))',
+            }}
+          />
+        </div>
       </div>
-    </div>
     </div>
   );
 };
