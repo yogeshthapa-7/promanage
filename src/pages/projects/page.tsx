@@ -19,6 +19,7 @@ import {
   Building2,
   Briefcase,
   Upload,
+  Monitor,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import Card from '@/components/ui/Card';
@@ -524,7 +525,11 @@ const {
 
   const handleViewProjectTasks = (project: Project) => {
   navigate(`/projects/${project.id}/tasks`);
-};
+  };
+
+  const handleViewDigitalBoard = (project: Project) => {
+    navigate(`/projects/${project.id}/board`);
+  };
 
   const handleSort = (field: SortField) => {
     setSortOpen(false);
@@ -880,18 +885,27 @@ const {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
                   return (
-                    <Card key={project.id} hover className="flex flex-col min-h-[280px] cursor-pointer overflow-hidden" onClick={() => handleViewProject(project)}>
+                    <Card key={project.id} hover className="flex flex-col min-h-[280px] cursor-pointer overflow-hidden relative" onClick={() => handleViewProject(project)}>
                       <div className="flex flex-col gap-3 flex-1">
                         <div className="flex items-start gap-4">
                           <div className={`p-3 rounded-xl ${project.iconBg} shrink-0`}>
                             <Icon className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-sm font-bold text-foreground truncate" title={projectTitle}>{projectTitle}</h3>
-                              {project.starred && <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0" />}
+                            <div className="flex items-start gap-2">
+                              <h3 className="text-sm font-bold text-foreground break-words" title={projectTitle}>{projectTitle}</h3>
+                              {project.starred && <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0 mt-0.5" />}
                             </div>
                           </div>
+                          <Button 
+                            size="small" 
+                            type="primary" 
+                            onClick={(e) => { e.stopPropagation(); handleViewDigitalBoard(project); }} 
+                            icon={<Monitor className="w-3.5 h-3.5" />}
+                            className="!bg-violet-600 hover:!bg-violet-700 !border-violet-600 shrink-0"
+                          >
+                            Digital Board
+                          </Button>
                         </div>
                         <div className="flex items-center gap-3">
                           <Badge>{project.status}</Badge>
