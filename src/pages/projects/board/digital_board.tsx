@@ -75,20 +75,20 @@ const DigitalBoardPage = () => {
 
   return (
     <div
-      className="fade-in min-h-screen flex items-start justify-center p-6"
+      className="fade-in min-h-screen flex items-center justify-center relative"
     >
-      <div className="w-full max-w-3xl">
-        <button
-          onClick={() => navigate('/projects')}
-          className="mb-6 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Projects
-        </button>
+      <button
+        onClick={() => navigate('/projects')}
+        className="absolute top-6 left-6 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Back to Projects
+      </button>
 
+      <div className="w-full max-w-3xl">
         {/* 3D Bumpy Board */}
         <div
-          className="relative w-full mt-16 bg-white rounded-3xl border border-slate-200/80 flex flex-col"
+          className="relative w-full bg-white rounded-3xl border border-slate-200/80 flex flex-col"
           style={{
             transform: 'perspective(1200px) rotateX(2deg) rotateY(-1deg)',
             boxShadow: `
