@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
-import { Modal, message } from 'antd';
+import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
@@ -11,6 +11,7 @@ import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
 import { fetchBudgets, type Budget } from '@/lib/budget-data';
 import { apiCall } from '@/lib/api';
+import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
 import CreateBudgetDrawer from './Create';
 import ViewBudgetDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
@@ -33,14 +34,26 @@ function fetchBudgetsPage(params: PaginatedListParams): Promise<{ items: Budget[
 export default function BudgetPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [fiscalYearQuery, setFiscalYearQuery] = useState('');
+  const [fiscalYearId, setFiscalYearId] = useState<string | undefined>(undefined);
+  const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
+  const [fiscalYearLoading, setFiscalYearLoading] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [viewingBudget, setViewingBudget] = useState<Budget | null>(null);
   const [showViewDrawer, setShowViewDrawer] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fiscalYearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setFiscalYearLoading(true);
+    fetchFiscalYearSelectList(controller.signal)
+      .then((options) => setFiscalYearOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setFiscalYearLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
 
   const {
     data: budgets,
@@ -55,10 +68,10 @@ export default function BudgetPage() {
     fetcher: (params) => fetchBudgetsPage({ 
       ...params, 
       search: searchQuery,
-      fiscalYear: fiscalYearQuery,
+      fiscalYear: fiscalYearId || '',
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery, fiscalYearQuery],
+    extraDeps: [searchQuery, fiscalYearId],
   });
 
   const handleSearch = () => {
@@ -158,19 +171,17 @@ export default function BudgetPage() {
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Fiscal Year</div>
-          <SearchInput
-            value={fiscalYearQuery}
+          <Select
+            value={fiscalYearId}
             onChange={(value) => {
-              setFiscalYearQuery(value);
-              if (fiscalYearTimerRef.current) {
-                clearTimeout(fiscalYearTimerRef.current);
-              }
-              fiscalYearTimerRef.current = setTimeout(() => {
-                setCurrentPage(1);
-              }, 400);
+              setFiscalYearId(value);
+              setCurrentPage(1);
             }}
-            placeholder="e.g. 2082/083"
-            containerClassName="w-full"
+            options={fiscalYearOptions}
+            loading={fiscalYearLoading}
+            placeholder="Select fiscal year"
+            allowClear
+            className="w-full"
           />
         </div>
         <div className="md:col-span-2">
