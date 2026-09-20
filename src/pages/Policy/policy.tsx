@@ -31,6 +31,17 @@ function fetchPoliciesPage(params: PaginatedListParams): Promise<{ items: Policy
   }));
 }
 
+const fiscalYearNameCache = new Map<string | number, string>();
+function getFiscalYearName(policy: Policy, options: FiscalYearSelectOption[]): string {
+  const raw = policy.fiscal_year_id ?? policy.fiscal_year;
+  if (raw === undefined || raw === null) return '—';
+  if (fiscalYearNameCache.has(raw)) return fiscalYearNameCache.get(raw)!;
+  const match = options.find((opt) => opt.value === String(raw));
+  const name = match?.label || String(raw);
+  fiscalYearNameCache.set(raw, name);
+  return name;
+}
+
 export default function PolicyPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,7 +254,7 @@ export default function PolicyPage() {
                           <div className="font-semibold text-slate-900">{policy.name || 'Untitled'}</div>
                         </td>
                         <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                          {policy.fiscal_year || '—'}
+                          {getFiscalYearName(policy, fiscalYearOptions)}
                         </td>
                         <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
                           {policy.document_url ? (
@@ -339,7 +350,7 @@ export default function PolicyPage() {
                         <div className="font-semibold text-slate-900">{policy.name || 'Untitled'}</div>
                       </td>
                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                        {policy.fiscal_year || '—'}
+                        {getFiscalYearName(policy, fiscalYearOptions)}
                       </td>
                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
                         {policy.document_url ? (
@@ -415,7 +426,7 @@ export default function PolicyPage() {
                 <div className="space-y-2.5 mb-5">
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Fiscal Year</span>
-                    <span className="font-semibold text-slate-700 truncate">{policy.fiscal_year || '—'}</span>
+                    <span className="font-semibold text-slate-700 truncate">{getFiscalYearName(policy, fiscalYearOptions)}</span>
                   </div>
                 </div>
 
@@ -480,6 +491,7 @@ export default function PolicyPage() {
         open={showViewDrawer}
         onClose={() => { setShowViewDrawer(false); setViewingPolicy(null); }}
         policy={viewingPolicy}
+        fiscalYearOptions={fiscalYearOptions}
       />
 
       <CreatePolicyDrawer

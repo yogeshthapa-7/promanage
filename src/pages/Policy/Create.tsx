@@ -14,6 +14,7 @@ interface Policy {
   id: number;
   name: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -33,31 +34,23 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (open && !editingPolicy) {
-      fetchFiscalYearSelectList().then((options) => {
-        setFiscalYearOptions(options);
-        if (options.length > 0) {
-          form.setFieldsValue({ fiscal_year: options[0].value });
-        }
-      });
-    }
-  }, [open, editingPolicy, form]);
-
-  useEffect(() => {
-    if (open) {
+    if (!open) return;
+    fetchFiscalYearSelectList().then((options) => {
+      setFiscalYearOptions(options);
       if (editingPolicy) {
-        form.setFieldsValue({ 
+        form.setFieldsValue({
           name: editingPolicy.name,
-          fiscal_year: editingPolicy.fiscal_year,
+          fiscal_year: editingPolicy.fiscal_year_id !== undefined ? String(editingPolicy.fiscal_year_id) : editingPolicy.fiscal_year,
           document_url: editingPolicy.document_url,
         });
         setDocumentUrl(editingPolicy.document_url || '');
       } else {
         form.resetFields();
+        form.setFieldsValue({ fiscal_year: options[0]?.value });
         setDocumentUrl('');
       }
-    }
-  }, [open, form, editingPolicy]);
+    });
+  }, [open, editingPolicy, form]);
 
    const handleSubmit = async () => {
       try {

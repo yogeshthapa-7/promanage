@@ -5,6 +5,7 @@ export interface Policy {
   id: number;
   name: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -20,6 +21,9 @@ interface ApiPolicyRow {
   PolicyProgramID: number;
   PolicyProgramName: string;
   FiscalYear?: string;
+  FiscalYearID?: number;
+  FiscalYearName?: string;
+  FileUpload?: string;
   DocumentUrl?: string;
 }
 
@@ -95,13 +99,14 @@ async function doFetchPolicies(
 }
 
 function mapApiRowToPolicy(row: ApiPolicyRow): Policy {
-  const basePath = row.DocumentUrl;
-  const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
+  const documentPath = row.FileUpload || row.DocumentUrl || '';
+  const documentUrl = documentPath ? `${API_BASE}/${documentPath.replace(/^\/+/, '')}` : '';
   return {
     SN: row.SN,
     id: row.PolicyProgramID,
     name: row.PolicyProgramName,
-    fiscal_year: row.FiscalYear,
+    fiscal_year: row.FiscalYearName || row.FiscalYear,
+    fiscal_year_id: row.FiscalYearID,
     document_url: documentUrl,
   };
 }
