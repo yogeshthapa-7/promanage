@@ -14,6 +14,7 @@ interface Budget {
   id: number;
   name: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -33,31 +34,23 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBu
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (open && !editingBudget) {
-      fetchFiscalYearSelectList().then((options) => {
-        setFiscalYearOptions(options);
-        if (options.length > 0) {
-          form.setFieldsValue({ fiscal_year: options[0].value });
-        }
-      });
-    }
-  }, [open, editingBudget, form]);
-
-  useEffect(() => {
-    if (open) {
+    if (!open) return;
+    fetchFiscalYearSelectList().then((options) => {
+      setFiscalYearOptions(options);
       if (editingBudget) {
-        form.setFieldsValue({ 
+        form.setFieldsValue({
           name: editingBudget.name,
-          fiscal_year: editingBudget.fiscal_year,
+          fiscal_year: editingBudget.fiscal_year_id !== undefined ? String(editingBudget.fiscal_year_id) : editingBudget.fiscal_year,
           document_url: editingBudget.document_url,
         });
         setDocumentUrl(editingBudget.document_url || '');
       } else {
         form.resetFields();
+        form.setFieldsValue({ fiscal_year: options[0]?.value });
         setDocumentUrl('');
       }
-    }
-  }, [open, form, editingBudget]);
+    });
+  }, [open, editingBudget, form]);
 
    const handleSubmit = async () => {
       try {

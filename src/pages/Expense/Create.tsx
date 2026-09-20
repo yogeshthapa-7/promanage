@@ -15,6 +15,7 @@ interface Expense {
   title: string;
   code: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -34,32 +35,24 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (open && !editingExpense) {
-      fetchFiscalYearSelectList().then((options) => {
-        setFiscalYearOptions(options);
-        if (options.length > 0) {
-          form.setFieldsValue({ fiscal_year: options[0].value });
-        }
-      });
-    }
-  }, [open, editingExpense, form]);
-
-  useEffect(() => {
-    if (open) {
+    if (!open) return;
+    fetchFiscalYearSelectList().then((options) => {
+      setFiscalYearOptions(options);
       if (editingExpense) {
-        form.setFieldsValue({ 
+        form.setFieldsValue({
           title: editingExpense.title,
           code: editingExpense.code,
-          fiscal_year: editingExpense.fiscal_year,
+          fiscal_year: editingExpense.fiscal_year_id !== undefined ? String(editingExpense.fiscal_year_id) : editingExpense.fiscal_year,
           document_url: editingExpense.document_url,
         });
         setDocumentUrl(editingExpense.document_url || '');
       } else {
         form.resetFields();
+        form.setFieldsValue({ fiscal_year: options[0]?.value });
         setDocumentUrl('');
       }
-    }
-  }, [open, form, editingExpense]);
+    });
+  }, [open, editingExpense, form]);
 
    const handleSubmit = async () => {
       try {

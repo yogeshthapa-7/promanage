@@ -6,6 +6,7 @@ export interface Expense {
   title: string;
   code: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -22,6 +23,8 @@ interface ApiExpenseRow {
   ExpenseTitle: string;
   ExpenseCode: string;
   FiscalYear?: string;
+  FiscalYearID?: number;
+  FiscalYearName?: string;
   DocumentUrl?: string;
 }
 
@@ -106,7 +109,8 @@ function mapApiRowToExpense(row: ApiExpenseRow): Expense {
     id: row.ExpenseInfoID,
     title: row.ExpenseTitle,
     code: row.ExpenseCode,
-    fiscal_year: row.FiscalYear,
+    fiscal_year: row.FiscalYearName || row.FiscalYear,
+    fiscal_year_id: row.FiscalYearID,
     document_url: documentUrl,
   };
 }

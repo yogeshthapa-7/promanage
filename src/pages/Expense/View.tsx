@@ -2,12 +2,14 @@
 
 import { useEffect } from 'react';
 import Drawer from '@/components/drawer';
+import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
 
 interface Expense {
   id: number;
   title: string;
   code: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -15,9 +17,17 @@ interface ViewExpenseDrawerProps {
   open: boolean;
   onClose: () => void;
   expense: Expense | null;
+  fiscalYearOptions?: FiscalYearSelectOption[];
 }
 
-export default function ViewExpenseDrawer({ open, onClose, expense }: ViewExpenseDrawerProps) {
+function getFiscalYearName(expense: Expense, options: FiscalYearSelectOption[]): string {
+  const raw = expense.fiscal_year_id ?? expense.fiscal_year;
+  if (raw === undefined || raw === null) return '—';
+  const match = options.find((opt) => opt.value === String(raw));
+  return match?.label || String(raw);
+}
+
+export default function ViewExpenseDrawer({ open, onClose, expense, fiscalYearOptions = [] }: ViewExpenseDrawerProps) {
   useEffect(() => {
     if (open && expense?.document_url) {
       const link = document.createElement('a');
@@ -45,7 +55,7 @@ export default function ViewExpenseDrawer({ open, onClose, expense }: ViewExpens
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="text-sm font-medium text-slate-500 mb-1">Fiscal Year</div>
-          <div className="text-base font-semibold text-slate-900">{expense.fiscal_year || '—'}</div>
+          <div className="text-base font-semibold text-slate-900">{getFiscalYearName(expense, fiscalYearOptions)}</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="text-sm font-medium text-slate-500 mb-1">Attachment</div>
