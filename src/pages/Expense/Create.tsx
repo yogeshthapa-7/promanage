@@ -6,6 +6,7 @@ import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
+import DocumentUploadField from '@/components/DocumentUploadField';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -29,7 +30,7 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
   const [loading, setLoading] = useState(false);
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [selectedFileName, setSelectedFileName] = useState('');
+  const [documentUrl, setDocumentUrl] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -52,57 +53,32 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           fiscal_year: editingExpense.fiscal_year,
           document_url: editingExpense.document_url,
         });
+        setDocumentUrl(editingExpense.document_url || '');
       } else {
         form.resetFields();
+        setDocumentUrl('');
       }
     }
   }, [open, form, editingExpense]);
 
-   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-     const file = e.target.files?.[0];
-     if (file) {
-       setSelectedFileName(file.name);
-       const uploadFormData = new FormData();
-       uploadFormData.append('Image', file);
-       uploadFormData.append('UserId', '0');
-
-       try {
-         setUploading(true);
-         const uploadRes = await apiCall(`${API_BASE}/UploadFile`, {
-           method: 'POST',
-           body: uploadFormData,
-         });
-
-         if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
-
-         const uploadJson = await uploadRes.json();
-         const basePath = uploadJson?.Data?.BasePath || '';
-         const fileUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
-         form.setFieldsValue({ document_url: fileUrl });
-       } catch (err) {
-         if (err instanceof Error) {
-           message.error(err.message || 'Failed to upload document');
-         }
-         setSelectedFileName('');
-       } finally {
-         setUploading(false);
-       }
-     }
-   };
-
    const handleSubmit = async () => {
-     try {
-       const values = await form.validateFields();
-       setLoading(true);
+      try {
+        const values = await form.validateFields();
+        setLoading(true);
 
-       const isEdit = !!editingExpense;
-       const body = {
-         ExpenseInfoID: isEdit ? editingExpense?.id : 0,
-         ExpenseTitle: values.title,
-         ExpenseCode: values.code,
-         FiscalYear: values.fiscal_year || '',
-         DocumentUrl: values.document_url || '',
-       };
+        const isEdit = !!editingExpense;
+        let documentPath = documentUrl || '';
+        if (documentPath.startsWith(API_BASE + '/')) {
+          documentPath = documentPath.replace(API_BASE + '/', '');
+        }
+
+        const body = {
+          ExpenseInfoID: isEdit ? editingExpense?.id : 0,
+          ExpenseTitle: values.title,
+          ExpenseCode: values.code,
+          FiscalYear: values.fiscal_year || '',
+          DocumentUrl: documentPath,
+        };
 
        const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
          method: 'POST',
@@ -111,10 +87,10 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
 
        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-       message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
-       form.resetFields();
-       setSelectedFileName('');
-       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
+        form.resetFields();
+        setDocumentUrl('');
+        queryClient.invalidateQueries({ queryKey: ['expenses'], exact: false });
        onClose();
        onSuccess();
      } catch (err) {
@@ -192,20 +168,14 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
                 Document
               </span>
             }
-            name="document_url"
           >
-            <div className="flex flex-col gap-2">
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                disabled={uploading}
-                className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-purple-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-purple-700 hover:file:bg-purple-100"
-              />
-              {selectedFileName && (
-                <span className="text-xs text-slate-500">Selected: {selectedFileName}</span>
-              )}
-            </div>
+            <DocumentUploadField
+              value={documentUrl}
+              onChange={setDocumentUrl}
+              uploading={uploading}
+              onUploadingChange={setUploading}
+              accept="application/pdf"
+            />
           </Form.Item>
         </div>
       </Form>

@@ -95,11 +95,13 @@ async function doFetchPolicies(
 }
 
 function mapApiRowToPolicy(row: ApiPolicyRow): Policy {
+  const basePath = row.DocumentUrl;
+  const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   return {
     SN: row.SN,
     id: row.PolicyProgramID,
     name: row.PolicyProgramName,
     fiscal_year: row.FiscalYear,
-    document_url: row.DocumentUrl,
+    document_url: documentUrl,
   };
 }

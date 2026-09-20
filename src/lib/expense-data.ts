@@ -99,12 +99,14 @@ async function doFetchExpenses(
 }
 
 function mapApiRowToExpense(row: ApiExpenseRow): Expense {
+  const basePath = row.DocumentUrl;
+  const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   return {
     SN: row.SN,
     id: row.ExpenseInfoID,
     title: row.ExpenseTitle,
     code: row.ExpenseCode,
     fiscal_year: row.FiscalYear,
-    document_url: row.DocumentUrl,
+    document_url: documentUrl,
   };
 }

@@ -95,11 +95,13 @@ async function doFetchBudgets(
 }
 
 function mapApiRowToBudget(row: ApiBudgetRow): Budget {
+  const basePath = row.DocumentUrl;
+  const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   return {
     SN: row.SN,
     id: row.BudgetInfoID,
     name: row.BudgetInfoName,
     fiscal_year: row.FiscalYear,
-    document_url: row.DocumentUrl,
+    document_url: documentUrl,
   };
 }
