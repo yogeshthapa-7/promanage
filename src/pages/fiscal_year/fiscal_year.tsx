@@ -105,6 +105,7 @@ export default function FiscalYearPage() {
   };
 
   const handleDrawerSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['fiscalYears'], exact: false });
     setCurrentPage(1);
   };
 
