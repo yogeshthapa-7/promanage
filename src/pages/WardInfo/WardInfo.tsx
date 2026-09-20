@@ -119,7 +119,7 @@ export default function WardInfoPage() {
       <hr className="border-slate-200 my-6" />
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
-        <div className="md:col-span-2">
+        <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Ward Number</div>
           <div className="flex gap-2">
             <SearchInput
@@ -134,7 +134,7 @@ export default function WardInfoPage() {
                   }, 400);
               }}
                placeholder="Search by ward code..."
-              containerClassName="flex-1"
+              containerClassName="w-48"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>

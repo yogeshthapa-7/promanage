@@ -184,7 +184,7 @@ export default function PolicyPage() {
             className="w-full"
           />
         </div>
-        <div className="md:col-span-2">
+        <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Policy Name</div>
           <div className="flex gap-2">
             <SearchInput
@@ -199,7 +199,7 @@ export default function PolicyPage() {
                   }, 400);
               }}
               placeholder="Search by policy name..."
-              containerClassName="flex-1"
+              containerClassName="w-48"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>
