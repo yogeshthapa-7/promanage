@@ -73,7 +73,7 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBu
         const body = {
           BudgetInfoID: isEdit ? editingBudget?.id : 0,
           BudgetInfoName: values.name,
-          FiscalYear: values.fiscal_year || '',
+          FiscalYearID: values.fiscal_year ? Number(values.fiscal_year) : 0,
           DocumentUrl: documentPath,
         };
 

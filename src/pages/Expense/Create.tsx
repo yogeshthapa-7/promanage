@@ -76,7 +76,7 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           ExpenseInfoID: isEdit ? editingExpense?.id : 0,
           ExpenseTitle: values.title,
           ExpenseCode: values.code,
-          FiscalYear: values.fiscal_year || '',
+          FiscalYearID: values.fiscal_year ? Number(values.fiscal_year) : 0,
           DocumentUrl: documentPath,
         };
 

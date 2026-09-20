@@ -73,7 +73,7 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
         const body = {
           PolicyProgramID: isEdit ? editingPolicy?.id : 0,
           PolicyProgramName: values.name,
-          FiscalYear: values.fiscal_year || '',
+          FiscalYearID: values.fiscal_year ? Number(values.fiscal_year) : 0,
           DocumentUrl: documentPath,
         };
 
