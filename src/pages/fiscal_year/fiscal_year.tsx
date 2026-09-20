@@ -212,10 +212,10 @@ export default function FiscalYearPage() {
                     {year.code}
                   </td>
                   <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                    {year.startDate}
+                    {year.startDateBs}
                   </td>
                   <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                    {year.endDate}
+                    {year.endDateBs}
                   </td>
                   <td className="bg-white px-4 py-3 border-b border-slate-100">
                     <Badge
@@ -272,11 +272,11 @@ export default function FiscalYearPage() {
                 </div>
                 <div className="flex items-center justify-between text-sm gap-2">
                   <span className="text-slate-400 shrink-0">Start Date</span>
-                  <span className="font-semibold text-slate-700 truncate">{year.startDate}</span>
+                  <span className="font-semibold text-slate-700 truncate">{year.startDateBs}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm gap-2">
                   <span className="text-slate-400 shrink-0">End Date</span>
-                  <span className="font-semibold text-slate-700 truncate">{year.endDate}</span>
+                  <span className="font-semibold text-slate-700 truncate">{year.endDateBs}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm gap-2">
                   <span className="text-slate-400 shrink-0">Status</span>

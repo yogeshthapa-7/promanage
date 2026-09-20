@@ -1,4 +1,5 @@
 import { apiCall, cachedQuery } from '@/lib/api';
+import DateConverter from '@remotemerge/nepali-date-converter';
 
 export interface FiscalYearSelectOption {
   value: string;
@@ -28,6 +29,8 @@ export interface FiscalYearItem {
   code: string;
   startDate: string;
   endDate: string;
+  startDateBs: string;
+  endDateBs: string;
   status: 'Active' | 'Inactive';
 }
 
@@ -160,13 +163,26 @@ async function doFetchFiscalYears(
   };
 }
 
+function toBsString(adStr: string): string {
+  const bs = new DateConverter(adStr).toBs();
+  if (typeof bs === 'string') return bs;
+  const y = bs.year ?? bs.y ?? 0;
+  const m = String(bs.month ?? bs.m ?? 1).padStart(2, '0');
+  const d = String(bs.date ?? bs.d ?? 1).padStart(2, '0');
+  return `${y}/${m}/${d}`;
+}
+
 function mapApiRowToFiscalYear(row: ApiFiscalYearRow): FiscalYearItem {
+  const startDateBs = row.StartDate ? toBsString(row.StartDate) : '';
+  const endDateBs = row.EndDate ? toBsString(row.EndDate) : '';
   return {
     id: row.FiscalYearID,
     name: row.FiscalYearName,
     code: row.FiscalYearCode,
     startDate: row.StartDate,
     endDate: row.EndDate,
+    startDateBs,
+    endDateBs,
     status: row.Status === 1 ? 'Active' : 'Inactive',
   };
 }
