@@ -89,15 +89,16 @@ const DigitalBoardPage = () => {
     setLoading(true);
     setError(null);
 
-    apiCall(`${API_BASE}/GetProjectDetailData?id=${encodeURIComponent(id)}`, { method: 'GET' }, 10000)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        const json = await res.json();
-        const data = json?.Data ?? json?.data;
-        const p = data?.ProjectInfo ?? data?.projectInfo;
-        if (!p || !p.ProjectInfoID) throw new Error('Project details not found');
-        if (!cancelled) setProject(p);
-      })
+     apiCall(`${API_BASE}/GetProjectDetailData?id=${encodeURIComponent(id)}`, { method: 'GET' }, 10000)
+       .then(async (res) => {
+         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+         const json = await res.json();
+         const data = json?.Data ?? json?.data;
+         const p = data?.ProjectInfo ?? data?.projectInfo;
+         if (!p || !p.ProjectInfoID) throw new Error('Project details not found');
+         const clientInfo = p?.ClientInfo ?? data?.ClientInfo ?? data?.clientInfo;
+         if (!cancelled) setProject({ ...p, ClientInfo: clientInfo as ApiProject['ClientInfo'] });
+       })
       .catch((err) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load project');
       })
@@ -132,6 +133,7 @@ const DigitalBoardPage = () => {
   const startDate = toNepaliDate(project.StartDate);
   const duration = project.ProjectDuration ? `${project.ProjectDuration} days` : '—';
   const status = getDerivedStatus(project);
+  const clientInfo = project.ClientInfo;
 
   return (
     <div
@@ -145,7 +147,7 @@ const DigitalBoardPage = () => {
         Back to Projects
       </button>
 
-      <div className="w-full max-w-[32rem]">
+      <div className="w-full max-w-[56rem]">
         {/* 3D Bumpy Board */}
         <div
           className="relative w-full bg-white rounded-3xl border border-slate-200 flex flex-col"
@@ -204,48 +206,75 @@ const DigitalBoardPage = () => {
             </h2>
           </div>
 
-          {/* Ornamental divider */}
-          <div className="flex items-center justify-center gap-2 py-2 text-slate-400">
-            <div className="h-px w-8 bg-slate-300" />
-            <span className="text-[10px] tracking-[0.25em] uppercase font-semibold">Project Details</span>
-            <div className="h-px w-8 bg-slate-300" />
-          </div>
-
-          {/* Project Details */}
-          <div className="px-6 py-4 space-y-2.5">
-            {[
-              { label: 'Project Type', value: projectType },
-              { label: 'Start Date', value: startDate },
-              { label: 'Duration', value: duration },
-              { label: 'Status', value: status },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between px-5 py-2.5"
-              >
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  {item.label}
-                </div>
-                <div className={`text-sm font-bold break-words ${item.label === 'Status' ? 'px-3 py-1 rounded-full bg-orange-100 text-orange-700' : 'text-slate-800'}`}>
-                  {item.value}
-                </div>
+          {/* Project Details and Client Details */}
+          <div className="px-6 py-4">
+            <div className="flex items-stretch gap-0">
+              {/* Project Details */}
+              <div className="flex-1 space-y-2.5 pr-4">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">परियोजना विवरण</h3>
+                {[
+                  { label: 'प्रोजेक्टको प्रकार', value: projectType },
+                  { label: 'सुरु मिति', value: startDate },
+                  { label: 'अवधि', value: duration },
+                  { label: 'स्थिति', value: status },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between px-5 py-2.5"
+                  >
+                    <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                      {item.label}
+                    </div>
+                    <div className={`text-sm font-bold break-words ${item.label === 'स्थिति' ? 'px-3 py-1 rounded-full bg-orange-100 text-orange-700' : 'text-slate-800'}`}>
+                      {item.value}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+
+              {/* Vertical Divider */}
+              <div className="w-px bg-slate-300 mx-2" />
+
+              {/* Client Details */}
+              <div className="flex-1 space-y-2.5 pl-4">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">ग्राहक विवरण</h3>
+                {[
+                  { label: 'ग्राहकको नाम', value: clientInfo?.ClientName || project.ClientName || project.ClientInfoName || '—' },
+                  { label: 'सम्पर्क व्यक्ति', value: clientInfo?.ContactPerson || '—' },
+                  { label: 'सम्पर्क नम्बर', value: clientInfo?.ContactNo || '—' },
+                  { label: 'इमेल', value: clientInfo?.Email || '—' },
+                  { label: 'ठेगाना', value: clientInfo?.Address || '—' },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between px-5 py-2.5"
+                  >
+                    <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                      {item.label}
+                    </div>
+                    <div className="text-sm font-bold break-words text-slate-800">
+                      {item.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Description Title */}
+          {/* Description */}
           <div className="px-6 pt-5 pb-2">
-            <h2 className="text-xl font-bold text-blue-900 text-center break-words" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.06)' }}>
-              Description
+            <h2 className="text-sm font-bold text-slate-800 text-center uppercase tracking-wider break-words">
+              विवरण
             </h2>
           </div>
 
-          {/* Description Content */}
-          <div className="px-6 py-4 space-y-2.5">
-            <div className="bg-slate-50/80 rounded-xl px-5 py-3 border border-slate-200/80">
-              <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">
-                {project.Description || 'No description provided.'}
-              </p>
+          <div className="px-6 py-4">
+            <div className="flex justify-center">
+              <div className="max-w-xl w-full">
+                <p className="text-sm text-slate-700 whitespace-pre-wrap break-words text-center">
+                  {project.Description || 'No description provided.'}
+                </p>
+              </div>
             </div>
           </div>
 
