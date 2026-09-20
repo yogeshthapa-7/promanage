@@ -5,7 +5,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
-import { mapApiProjectToProject } from '@/lib/projects-data';
 import DateConverter from '@remotemerge/nepali-date-converter';
 import nepallogo from '@/assets/images/nepal_logo.png';
 

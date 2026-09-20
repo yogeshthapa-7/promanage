@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState } from 'react';
 import { Plus, LayoutList, LayoutGrid, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -38,7 +38,6 @@ export default function FiscalYearPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<FiscalYearItem | null>(null);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     data: fiscalYears,
@@ -110,9 +109,6 @@ export default function FiscalYearPage() {
   };
 
   const statusOptions: (FiscalYearStatus | 'All')[] = ['All', 'Active', 'Inactive'];
-
-  const start = totalFiltered === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const end = Math.min(currentPage * pageSize, totalFiltered);
 
   return (
     <div className="fade-in text-slate-800">

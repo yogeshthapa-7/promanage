@@ -6,8 +6,6 @@ import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
-import { UploadOutlined } from '@ant-design/icons';
-import type { UploadFile } from 'antd/es/upload/interface';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
