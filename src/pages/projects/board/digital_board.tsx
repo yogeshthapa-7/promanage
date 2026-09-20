@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
+import { mapApiProjectToProject } from '@/lib/projects-data';
 import DateConverter from '@remotemerge/nepali-date-converter';
 import nepallogo from '@/assets/images/nepal_logo.png';
 
@@ -42,6 +43,38 @@ const toNepaliDate = (dateStr?: string) => {
     return dateStr;
   }
 };
+
+function getDerivedStatus(api: ApiProject): string {
+  const dueDate = api.ProjectOpenDate || '';
+  const progress = getProgressFromDates(api.StartDate, dueDate);
+  const finalProgress = progress > 0 || (api.StartDate && dueDate) ? progress : getProgress(api.WorkStatusName || '');
+  if (finalProgress === 100) return 'Completed';
+  if (finalProgress >= 81) return 'In Progress Final';
+  if (finalProgress >= 11) return 'In Progress';
+  if (finalProgress >= 1) return 'Started';
+  return api.WorkStatusName || 'Not Started';
+}
+
+function getProgressFromDates(startDateStr: string, endDateStr: string): number {
+  if (!startDateStr || !endDateStr) return 0;
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  const now = new Date();
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+  if (now <= start) return 0;
+  if (now >= end) return 100;
+  const totalDuration = end.getTime() - start.getTime();
+  const elapsed = now.getTime() - start.getTime();
+  const progress = Math.round((elapsed / totalDuration) * 100);
+  return Math.min(Math.max(progress, 0), 100);
+}
+
+function getProgress(status: string): number {
+  if (status === 'Completed') return 100;
+  if (status === 'In Progress' || status === 'In Progress Final') return 50;
+  if (status === 'On Hold') return 20;
+  return 0;
+}
 
 const DigitalBoardPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -98,7 +131,7 @@ const DigitalBoardPage = () => {
   const projectType = project.ProjectTypeName || projectTypeMap[project.ProjectType ?? 0] || 'General';
   const startDate = toNepaliDate(project.StartDate);
   const duration = project.ProjectDuration ? `${project.ProjectDuration} days` : '—';
-  const status = project.WorkStatusName || '—';
+  const status = getDerivedStatus(project);
 
   return (
     <div
@@ -205,6 +238,22 @@ const DigitalBoardPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Description Title */}
+          <div className="px-6 pt-5 pb-2">
+            <h2 className="text-xl font-bold text-blue-900 text-center break-words" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.06)' }}>
+              Description
+            </h2>
+          </div>
+
+          {/* Description Content */}
+          <div className="px-6 py-4 space-y-2.5">
+            <div className="bg-slate-50/80 rounded-xl px-5 py-3 border border-slate-200/80">
+              <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">
+                {project.Description || 'No description provided.'}
+              </p>
+            </div>
           </div>
 
           {/* Bottom 3D edge highlight */}

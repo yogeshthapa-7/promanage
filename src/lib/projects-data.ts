@@ -3,7 +3,7 @@
 import { Server, Smartphone, Globe, Megaphone, ShieldCheck, FolderKanban } from 'lucide-react';
 import DateConverter from '@remotemerge/nepali-date-converter';
 
-export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue';
+export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue' | 'Started' | 'In Progress Final';
 export type ProjectPriority = 'Urgent' | 'High' | 'Medium' | 'Low';
 
 export interface ProjectFormData {
@@ -69,6 +69,8 @@ const statusProgressColor: Record<ProjectStatus, string> = {
   'On Hold': 'bg-amber-500',
   'Not Started': 'bg-gray-300',
   'Overdue': 'bg-rose-500',
+  Started: 'bg-indigo-500',
+  'In Progress Final': 'bg-violet-500',
 };
 
 export interface ApiProject {
@@ -258,7 +260,7 @@ export function calculateDueDate(startDateStr: string, durationDays: number): st
 
 export function mapApiProjectToProject(api: ApiProject): Project {
   const category = projectTypeMap[api.ProjectType] ?? api.ProjectTypeName ?? 'General';
-  const status = (api.WorkStatusName === 'In Progress Final' ? 'In Progress' : api.WorkStatusName) as ProjectStatus;
+  const initialStatus = api.WorkStatusName as ProjectStatus;
   const priority = api.PriorityName as Project['priority'];
   const dueDate = api.ProjectOpenDate || calculateDueDate(api.StartDate, api.ProjectDuration) || '';
   const submissionDate =
@@ -266,7 +268,18 @@ export function mapApiProjectToProject(api: ApiProject): Project {
       ? api.LastDateOfSubmission.split('T')[0]
       : '';
   const progress = calculateProgressFromDates(api.StartDate, dueDate);
-  const progressColor = getProgressColor(progress);
+  const finalProgress = progress > 0 || (api.StartDate && dueDate) ? progress : getProgress(initialStatus);
+  let status: ProjectStatus = initialStatus;
+  if (finalProgress === 100) {
+    status = 'Completed';
+  } else if (finalProgress >= 81) {
+    status = 'In Progress Final';
+  } else if (finalProgress >= 11) {
+    status = 'In Progress';
+  } else if (finalProgress >= 1) {
+    status = 'Started';
+  }
+  const progressColor = getProgressColor(finalProgress);
 
   return {
     id: String(api.ProjectInfoID),
@@ -274,7 +287,7 @@ export function mapApiProjectToProject(api: ApiProject): Project {
     title: api.ProjectName,
     category,
     status,
-    progress: progress > 0 || (api.StartDate && dueDate) ? progress : getProgress(status),
+    progress: finalProgress,
     startDate: api.StartDate,
     dueDate,
     startDateBs: convertToBs(api.StartDate),
@@ -291,7 +304,7 @@ export function mapApiProjectToProject(api: ApiProject): Project {
     client: api.ClientName || api.ClientInfoName || api.ProjectHeadEmpName,
     manager: api.ProjectHeadEmpName,
     managerAvatar: api.ProjectHeadEmpPhoto,
-    progressColor: progress > 0 || (api.StartDate && dueDate) ? progressColor : statusProgressColor[status] || 'bg-gray-300',
+    progressColor: finalProgress > 0 || (api.StartDate && dueDate) ? progressColor : statusProgressColor[status] || 'bg-gray-300',
     budget: `Rs. ${api.TotalBudget.toLocaleString()}`,
     daysLeft: computeDaysLeft(dueDate),
     tasksCompleted: 0,

@@ -464,7 +464,7 @@ const {
   }, []);
 
   const statusOptions: (ProjectStatus | 'All')[] = [
-    'All', 'In Progress', 'Completed', 'On Hold', 'Not Started', 'Overdue',
+    'All', 'Started', 'In Progress', 'In Progress Final', 'Completed', 'On Hold', 'Not Started', 'Overdue',
   ];
 
   const sortOptions: { label: string; value: SortField }[] = [

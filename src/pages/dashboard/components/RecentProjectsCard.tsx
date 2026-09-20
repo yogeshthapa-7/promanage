@@ -53,8 +53,8 @@ const RecentProjectsCard = ({ projects, loading = false }: RecentProjectsCardPro
               </div>
               <Badge
                 style={{
-                  background: project.status === 'Completed' ? '#ECFDF5' : project.status === 'In Progress' ? '#EFF6FF' : project.status === 'Overdue' ? '#FEF2F2' : project.status === 'On Hold' ? '#FFFBEB' : '#F3F4F6',
-                  color: project.status === 'Completed' ? '#059669' : project.status === 'In Progress' ? '#2563EB' : project.status === 'Overdue' ? '#DC2626' : project.status === 'On Hold' ? '#D97706' : '#6B7280',
+                  background: project.status === 'Completed' ? '#ECFDF5' : project.status === 'In Progress Final' ? '#F5F3FF' : project.status === 'In Progress' ? '#EFF6FF' : project.status === 'Started' ? '#EEF2FF' : project.status === 'Overdue' ? '#FEF2F2' : project.status === 'On Hold' ? '#FFFBEB' : '#F3F4F6',
+                  color: project.status === 'Completed' ? '#059669' : project.status === 'In Progress Final' ? '#7C3AED' : project.status === 'In Progress' ? '#2563EB' : project.status === 'Started' ? '#4F46E5' : project.status === 'Overdue' ? '#DC2626' : project.status === 'On Hold' ? '#D97706' : '#6B7280',
                 }}
               >
                 {project.status}
