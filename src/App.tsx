@@ -8,6 +8,7 @@ import ProjectDetailsPage from './pages/projects/projectdetails';
 import ProjectsPage from './pages/projects/page';
 import TaskAndSubtasks from './pages/projects/TaskAndSubtasks';
 import KanbanBoardPage from './pages/projects/KanbanBoard';
+import DigitalBoardPage from './pages/projects/board/digital_board';
 import TasksPage from './pages/tasks/page';
 import EmployeePage from './pages/employee/page'
 import UsersPage from './pages/users/page';
@@ -136,6 +137,11 @@ function RootApp() {
           <Route path="/projects/:projectId/kanban" element={
             <ProtectedRoute>
               <AppLayout showTopbar={false}> <KanbanBoardPage /> </AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/projects/:id/board" element={
+            <ProtectedRoute>
+              <AppLayout showTopbar={false}><DigitalBoardPage /></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/WardInfo" element={

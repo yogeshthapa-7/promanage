@@ -25,6 +25,8 @@ const statusConfig: Record<ProjectStatus, { label: string; bg: string; color: st
   'On Hold': { label: 'On Hold', bg: '#FFFBEB', color: '#D97706' },
   'Not Started': { label: 'Not Started', bg: '#F3F4F6', color: '#6B7280' },
   'Overdue': { label: 'Overdue', bg: '#FEF2F2', color: '#EF4444' },
+  Started: { label: 'Started', bg: '#EEF2FF', color: '#4F46E5' },
+  'In Progress Final': { label: 'In Progress Final', bg: '#F5F3FF', color: '#7C3AED' },
 };
 
 const priorityConfig: Record<ProjectPriority, { bg: string; color: string }> = {
@@ -40,6 +42,8 @@ const progressBarColor: Record<ProjectStatus, string> = {
   'On Hold': '#F59E0B',
   'Not Started': '#D1D5DB',
   'Overdue': '#EF4444',
+  Started: '#6366F1',
+  'In Progress Final': '#8B5CF6',
 };
 
 type SortKey = 'name' | 'status' | 'progress' | 'startDate' | 'dueDate' | 'priority';

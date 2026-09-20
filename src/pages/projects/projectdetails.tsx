@@ -16,6 +16,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
+import { mapApiProjectToProject } from '@/lib/projects-data';
 import DateConverter from '@remotemerge/nepali-date-converter';
 import * as XLSX from 'xlsx';
 import { message } from 'antd';
@@ -23,6 +24,38 @@ import { message } from 'antd';
 // --- Lookup Maps & Helpers ---
 const priorityLabelMap: Record<number, string> = { 1: 'Urgent', 2: 'High', 3: 'Medium', 4: 'Low' };
 const projectTypeMap: Record<number, string> = { 0: 'General', 1: 'Development', 2: 'Infrastructure', 3: 'Design' };
+
+function getDerivedStatus(api: ApiProject): string {
+  const dueDate = api.ProjectOpenDate || '';
+  const progress = getProgressFromDates(api.StartDate, dueDate);
+  const finalProgress = progress > 0 || (api.StartDate && dueDate) ? progress : getProgress(api.WorkStatusName || '');
+  if (finalProgress === 100) return 'Completed';
+  if (finalProgress >= 81) return 'In Progress Final';
+  if (finalProgress >= 11) return 'In Progress';
+  if (finalProgress >= 1) return 'Started';
+  return api.WorkStatusName || 'Not Started';
+}
+
+function getProgressFromDates(startDateStr: string, endDateStr: string): number {
+  if (!startDateStr || !endDateStr) return 0;
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  const now = new Date();
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+  if (now <= start) return 0;
+  if (now >= end) return 100;
+  const totalDuration = end.getTime() - start.getTime();
+  const elapsed = now.getTime() - start.getTime();
+  const progress = Math.round((elapsed / totalDuration) * 100);
+  return Math.min(Math.max(progress, 0), 100);
+}
+
+function getProgress(status: string): number {
+  if (status === 'Completed') return 100;
+  if (status === 'In Progress' || status === 'In Progress Final') return 50;
+  if (status === 'On Hold') return 20;
+  return 0;
+}
 
 const priorityStyles: Record<string, { bg: string; text: string; border: string }> = {
   Urgent: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200' },
@@ -37,6 +70,8 @@ const statusStyles: Record<string, { bg: string; text: string }> = {
   Overdue: { bg: 'bg-rose-100', text: 'text-rose-700' },
   'On Hold': { bg: 'bg-amber-100', text: 'text-amber-700' },
   'Not Started': { bg: 'bg-gray-100', text: 'text-gray-700' },
+  Started: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+  'In Progress Final': { bg: 'bg-violet-100', text: 'text-violet-700' },
 };
 
 function hexToRgba(hex: string | null | undefined, alpha: number): string {
@@ -146,7 +181,7 @@ export default function ProjectDetailsPage() {
   const priorityName = project.PriorityName || priorityLabelMap[project.Priority ?? 3] || 'Medium';
   const projectTypeName = project.ProjectTypeName || projectTypeMap[project.ProjectType ?? 0] || 'General';
   const workStatusColor = project.WorkStatusColor || '#6B7280';
-  const statusColor = statusStyles[project.WorkStatusName] || statusStyles['Not Started'];
+  const statusColor = statusStyles[getDerivedStatus(project)] || statusStyles['Not Started'];
   const priorityStyle = priorityStyles[priorityName] || priorityStyles['Medium'];
 
   const hasDocuments = Boolean(project.Attachments || project.TOR);
@@ -158,7 +193,7 @@ export default function ProjectDetailsPage() {
         ['Project Name', project.ProjectName],
         ['Project Code', project.ProjectCode],
         ['Project Type', project.ProjectTypeName],
-        ['Status', project.WorkStatusName],
+        ['Status', getDerivedStatus(project)],
         ['Priority', priorityName],
         ['Start Date', project.StartDate],
         ['Project Open Date', project.ProjectOpenDate],
@@ -248,7 +283,7 @@ export default function ProjectDetailsPage() {
                   }}
                 >
                   <span className="w-1 h-1 rounded-full" style={{ backgroundColor: workStatusColor }} />
-                  {project.WorkStatusName}
+                  {getDerivedStatus(project)}
                 </span>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${priorityStyle.bg} ${priorityStyle.text} ${priorityStyle.border}`}>
                   {priorityName}
@@ -275,7 +310,7 @@ export default function ProjectDetailsPage() {
           <DetailItem label="Project Code" value={project.ProjectCode} />
           <DetailItem label="Project Type" value={projectTypeName} />
           <DetailItem label="Priority" value={priorityName} badgeClass={`${priorityStyle.bg} ${priorityStyle.text}`} />
-          <DetailItem label="Status" value={project.WorkStatusName} badgeClass={`${statusColor.bg} ${statusColor.text}`} />
+          <DetailItem label="Status" value={getDerivedStatus(project)} badgeClass={`${statusColor.bg} ${statusColor.text}`} />
           <DetailItem label="Start Date" value={formatDate(project.StartDate)} />
           <DetailItem label="Project Open Date" value={formatDate(project.ProjectOpenDate)} />
           <DetailItem label="Duration" value={`${project.ProjectDuration} days`} />

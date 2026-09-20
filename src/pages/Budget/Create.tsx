@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, message } from 'antd';
+import { Form, Input, Button, message, Select } from 'antd';
 import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -25,7 +26,19 @@ interface CreateBudgetDrawerProps {
 export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBudget }: CreateBudgetDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (open && !editingBudget) {
+      fetchFiscalYearSelectList().then((options) => {
+        setFiscalYearOptions(options);
+        if (options.length > 0) {
+          form.setFieldsValue({ fiscal_year: options[0].value });
+        }
+      });
+    }
+  }, [open, editingBudget, form]);
 
   useEffect(() => {
     if (open) {
@@ -111,9 +124,11 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBu
             }
             name="fiscal_year"
           >
-            <Input
-              placeholder="e.g. 2082/083"
-              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            <Select
+              placeholder="Select fiscal year"
+              options={fiscalYearOptions}
+              allowClear
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
             />
           </Form.Item>
           <Form.Item

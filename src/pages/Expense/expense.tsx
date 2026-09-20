@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
-import { Modal, message } from 'antd';
+import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
@@ -11,6 +11,7 @@ import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
 import { fetchExpenses, type Expense } from '@/lib/expense-data';
 import { apiCall } from '@/lib/api';
+import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
 import CreateExpenseDrawer from './Create';
 import ViewExpenseDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
@@ -35,8 +36,9 @@ export default function ExpensePage() {
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [fiscalYearInput, setFiscalYearInput] = useState('');
-  const [fiscalYearQuery, setFiscalYearQuery] = useState('');
+  const [fiscalYearId, setFiscalYearId] = useState<string | undefined>(undefined);
+  const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
+  const [fiscalYearLoading, setFiscalYearLoading] = useState(false);
   const [expenseCodeInput, setExpenseCodeInput] = useState('');
   const [expenseCodeQuery, setExpenseCodeQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
@@ -45,8 +47,18 @@ export default function ExpensePage() {
   const [showViewDrawer, setShowViewDrawer] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fiscalYearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const expenseCodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setFiscalYearLoading(true);
+    fetchFiscalYearSelectList(controller.signal)
+      .then((options) => setFiscalYearOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setFiscalYearLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
 
   const {
     data: expenses,
@@ -61,11 +73,11 @@ export default function ExpensePage() {
     fetcher: (params) => fetchExpensesPage({ 
       ...params, 
       search: searchQuery,
-      fiscalYear: fiscalYearQuery,
+      fiscalYear: fiscalYearId || '',
       expenseCode: expenseCodeQuery,
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery, fiscalYearQuery, expenseCodeQuery],
+    extraDeps: [searchQuery, fiscalYearId, expenseCodeQuery],
   });
 
   const handleSearch = () => {
@@ -165,20 +177,17 @@ export default function ExpensePage() {
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3 md:items-end">
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Fiscal Year</div>
-          <SearchInput
-            value={fiscalYearInput}
+          <Select
+            value={fiscalYearId}
             onChange={(value) => {
-              setFiscalYearInput(value);
-              if (fiscalYearTimerRef.current) {
-                clearTimeout(fiscalYearTimerRef.current);
-              }
-              fiscalYearTimerRef.current = setTimeout(() => {
-                setFiscalYearQuery(value);
-                setCurrentPage(1);
-              }, 400);
+              setFiscalYearId(value);
+              setCurrentPage(1);
             }}
-            placeholder="e.g. 2082/083"
-            containerClassName="w-full"
+            options={fiscalYearOptions}
+            loading={fiscalYearLoading}
+            placeholder="Select fiscal year"
+            allowClear
+            className="w-full"
           />
         </div>
         <div>
