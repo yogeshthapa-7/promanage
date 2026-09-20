@@ -6,6 +6,8 @@ import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
+import { UploadOutlined } from '@ant-design/icons';
+import type { UploadFile } from 'antd/es/upload/interface';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -27,6 +29,8 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -54,39 +58,72 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
     }
   }, [open, form, editingPolicy]);
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0];
+     if (file) {
+       setSelectedFileName(file.name);
+       const uploadFormData = new FormData();
+       uploadFormData.append('Image', file);
+       uploadFormData.append('UserId', '0');
 
-      const isEdit = !!editingPolicy;
-      const body = {
-        PolicyProgramID: isEdit ? editingPolicy?.id : 0,
-        PolicyProgramName: values.name,
-        FiscalYear: values.fiscal_year || '',
-        DocumentUrl: values.document_url || '',
-      };
+       try {
+         setUploading(true);
+         const uploadRes = await apiCall(`${API_BASE}/UploadFile`, {
+           method: 'POST',
+           body: uploadFormData,
+         });
 
-      const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
+         if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
 
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+         const uploadJson = await uploadRes.json();
+         const basePath = uploadJson?.Data?.BasePath || '';
+         const fileUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
+         form.setFieldsValue({ document_url: fileUrl });
+       } catch (err) {
+         if (err instanceof Error) {
+           message.error(err.message || 'Failed to upload document');
+         }
+         setSelectedFileName('');
+       } finally {
+         setUploading(false);
+       }
+     }
+   };
 
-      message.success(isEdit ? 'Policy updated successfully' : 'Policy created successfully');
-      form.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['policies'] });
-      onClose();
-      onSuccess();
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message || 'Failed to save policy');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+   const handleSubmit = async () => {
+     try {
+       const values = await form.validateFields();
+       setLoading(true);
+
+       const isEdit = !!editingPolicy;
+       const body = {
+         PolicyProgramID: isEdit ? editingPolicy?.id : 0,
+         PolicyProgramName: values.name,
+         FiscalYear: values.fiscal_year || '',
+         DocumentUrl: values.document_url || '',
+       };
+
+       const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
+         method: 'POST',
+         body: JSON.stringify(body),
+       });
+
+       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+       message.success(isEdit ? 'Policy updated successfully' : 'Policy created successfully');
+       form.resetFields();
+       setSelectedFileName('');
+       queryClient.invalidateQueries({ queryKey: ['policies'] });
+       onClose();
+       onSuccess();
+     } catch (err) {
+       if (err instanceof Error) {
+         message.error(err.message || 'Failed to save policy');
+       }
+     } finally {
+       setLoading(false);
+     }
+   };
 
   return (
       <Drawer
@@ -134,15 +171,23 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Document URL
+                Document
               </span>
             }
             name="document_url"
           >
-            <Input
-              placeholder="https://example.com/policy-document.pdf"
-              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
-            />
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                disabled={uploading}
+                className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-purple-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-purple-700 hover:file:bg-purple-100"
+              />
+              {selectedFileName && (
+                <span className="text-xs text-slate-500">Selected: {selectedFileName}</span>
+              )}
+            </div>
           </Form.Item>
         </div>
       </Form>

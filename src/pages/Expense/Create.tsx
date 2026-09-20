@@ -28,6 +28,8 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -56,40 +58,73 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
     }
   }, [open, form, editingExpense]);
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0];
+     if (file) {
+       setSelectedFileName(file.name);
+       const uploadFormData = new FormData();
+       uploadFormData.append('Image', file);
+       uploadFormData.append('UserId', '0');
 
-      const isEdit = !!editingExpense;
-      const body = {
-        ExpenseInfoID: isEdit ? editingExpense?.id : 0,
-        ExpenseTitle: values.title,
-        ExpenseCode: values.code,
-        FiscalYear: values.fiscal_year || '',
-        DocumentUrl: values.document_url || '',
-      };
+       try {
+         setUploading(true);
+         const uploadRes = await apiCall(`${API_BASE}/UploadFile`, {
+           method: 'POST',
+           body: uploadFormData,
+         });
 
-      const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
+         if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
 
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+         const uploadJson = await uploadRes.json();
+         const basePath = uploadJson?.Data?.BasePath || '';
+         const fileUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
+         form.setFieldsValue({ document_url: fileUrl });
+       } catch (err) {
+         if (err instanceof Error) {
+           message.error(err.message || 'Failed to upload document');
+         }
+         setSelectedFileName('');
+       } finally {
+         setUploading(false);
+       }
+     }
+   };
 
-      message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
-      form.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      onClose();
-      onSuccess();
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message || 'Failed to save expense');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+   const handleSubmit = async () => {
+     try {
+       const values = await form.validateFields();
+       setLoading(true);
+
+       const isEdit = !!editingExpense;
+       const body = {
+         ExpenseInfoID: isEdit ? editingExpense?.id : 0,
+         ExpenseTitle: values.title,
+         ExpenseCode: values.code,
+         FiscalYear: values.fiscal_year || '',
+         DocumentUrl: values.document_url || '',
+       };
+
+       const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
+         method: 'POST',
+         body: JSON.stringify(body),
+       });
+
+       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+       message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
+       form.resetFields();
+       setSelectedFileName('');
+       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+       onClose();
+       onSuccess();
+     } catch (err) {
+       if (err instanceof Error) {
+         message.error(err.message || 'Failed to save expense');
+       }
+     } finally {
+       setLoading(false);
+     }
+   };
 
   return (
       <Drawer
@@ -154,15 +189,23 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Document URL
+                Document
               </span>
             }
             name="document_url"
           >
-            <Input
-              placeholder="https://example.com/expense-document.pdf"
-              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
-            />
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                disabled={uploading}
+                className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-purple-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-purple-700 hover:file:bg-purple-100"
+              />
+              {selectedFileName && (
+                <span className="text-xs text-slate-500">Selected: {selectedFileName}</span>
+              )}
+            </div>
           </Form.Item>
         </div>
       </Form>
