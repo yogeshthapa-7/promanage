@@ -6,7 +6,7 @@ import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '').replace(/\/api$/, '');
 
 interface FiscalYearItem {
   id: number;
@@ -15,7 +15,8 @@ interface FiscalYearItem {
   startDate: string;
   endDate: string;
   status: 'Active' | 'Inactive';
-  isCurrent?: boolean;
+  isRunning?: boolean;
+  yearOrder?: number;
 }
 
 interface CreateFiscalYearDrawerProps {
@@ -37,7 +38,8 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
           code: editingYear.code,
           startDate: editingYear.startDate,
           endDate: editingYear.endDate,
-          isCurrent: editingYear.isCurrent ?? false,
+          isRunning: editingYear.isRunning ?? false,
+          yearOrder: editingYear.yearOrder ?? 0,
         });
       } else {
         form.resetFields();
@@ -51,14 +53,16 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
       setLoading(true);
 
       const isEdit = !!editingYear;
-      const body = {
-        FiscalYearID: isEdit ? editingYear?.id : 0,
+      const body: Record<string, unknown> = {
         FiscalYearName: values.name,
         FiscalYearCode: values.code || '',
         StartDate: values.startDate || '',
         EndDate: values.endDate || '',
-        IsCurrent: values.isCurrent ? 1 : 0,
+        IsRunning: values.isRunning ? 1 : 0,
+        YearOrder: values.yearOrder ?? 0,
+        ...(isEdit ? { FiscalYearID: editingYear!.id } : {}),
       };
+      
 
       const res = await apiCall(`${API_BASE}/SaveFiscalYear`, {
         method: 'POST',
@@ -143,6 +147,22 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
+                Fiscal Year Order <span className="text-rose-500">*</span>
+              </span>
+            }
+            name="yearOrder"
+            rules={[{ required: true, message: 'Please enter fiscal year order' }]}
+          >
+            <Input
+              type="number"
+              placeholder="e.g. 1"
+              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="text-sm font-semibold text-foreground">
                 Start Date <span className="text-rose-500">*</span>
               </span>
             }
@@ -178,7 +198,7 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
                 Set as Current Running Year
               </span>
             }
-            name="isCurrent"
+            name="isRunning"
             valuePropName="checked"
             initialValue={false}
           >

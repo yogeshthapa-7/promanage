@@ -8,20 +8,16 @@ import { apiCall } from '@/lib/api';
 import Card from '@/components/ui/Card';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import Pagination from '@/components/ui/Pagination';
 import CreateFiscalYearDrawer from './Create';
 import { fetchFiscalYears, type FiscalYearItem } from '@/lib/fiscal-year-data';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
-
-type FiscalYearStatus = 'Active' | 'Inactive';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 function fetchFiscalYearsPage(params: PaginatedListParams): Promise<{ items: FiscalYearItem[]; total: number }> {
   return fetchFiscalYears({
     search: (params.search as string) || '',
-    status: (params.status as FiscalYearStatus | 'All') || 'All',
     start: params.start as number,
     length: params.length as number,
     signal: params.signal,
@@ -34,7 +30,6 @@ function fetchFiscalYearsPage(params: PaginatedListParams): Promise<{ items: Fis
 export default function FiscalYearPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<FiscalYearStatus | 'All'>('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<FiscalYearItem | null>(null);
@@ -51,19 +46,13 @@ export default function FiscalYearPage() {
   } = usePaginatedList<FiscalYearItem>({
     fetcher: fetchFiscalYearsPage,
     initialPageSize: 20,
-    extraDeps: [searchQuery, statusFilter],
+    extraDeps: [searchQuery],
     extraParams: {
       search: searchQuery,
-      status: statusFilter,
     },
   });
 
   const handleSearch = () => {
-    setCurrentPage(1);
-  };
-
-  const handleStatusChange = (value: FiscalYearStatus | 'All') => {
-    setStatusFilter(value);
     setCurrentPage(1);
   };
 
@@ -85,7 +74,7 @@ export default function FiscalYearPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '').replace(/\/api$/, '');
           const res = await apiCall(`${API_BASE}/DeleteFiscalYear?id=${year.id}`, {
             method: 'GET',
           });
@@ -108,8 +97,6 @@ export default function FiscalYearPage() {
     queryClient.invalidateQueries({ queryKey: ['fiscalYears'], exact: false });
     setCurrentPage(1);
   };
-
-  const statusOptions: (FiscalYearStatus | 'All')[] = ['All', 'Active', 'Inactive'];
 
   return (
     <div className="fade-in text-slate-800">
@@ -147,15 +134,6 @@ export default function FiscalYearPage() {
       <hr className="border-slate-200 my-6" />
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
-        <div>
-          <div className="mb-1 text-sm font-medium text-slate-500">Status</div>
-          <Select
-            value={statusFilter}
-            onChange={handleStatusChange}
-            options={statusOptions.map((status) => ({ value: status, label: status }))}
-            className="w-full"
-          />
-        </div>
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Search</div>
           <div className="flex gap-2">
@@ -195,7 +173,6 @@ export default function FiscalYearPage() {
                 <th className="bg-slate-50 px-4 py-3">Code</th>
                 <th className="bg-slate-50 px-4 py-3">Start Date</th>
                 <th className="bg-slate-50 px-4 py-3">End Date</th>
-                <th className="bg-slate-50 px-4 py-3">Status</th>
                 <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -216,17 +193,6 @@ export default function FiscalYearPage() {
                   </td>
                   <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
                     {year.endDateBs}
-                  </td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100">
-                    <Badge
-                      className={
-                        year.status === 'Active'
-                          ? '!bg-emerald-100 !text-emerald-700'
-                          : '!bg-gray-100 !text-gray-600'
-                      }
-                    >
-                      {year.status}
-                    </Badge>
                   </td>
                   <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                     <div className="flex items-center justify-end gap-2">
@@ -277,18 +243,6 @@ export default function FiscalYearPage() {
                 <div className="flex items-center justify-between text-sm gap-2">
                   <span className="text-slate-400 shrink-0">End Date</span>
                   <span className="font-semibold text-slate-700 truncate">{year.endDateBs}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm gap-2">
-                  <span className="text-slate-400 shrink-0">Status</span>
-                  <Badge
-                    className={
-                      year.status === 'Active'
-                        ? '!bg-emerald-100 !text-emerald-700'
-                        : '!bg-gray-100 !text-gray-600'
-                    }
-                  >
-                    {year.status}
-                  </Badge>
                 </div>
               </div>
 

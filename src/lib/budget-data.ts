@@ -23,6 +23,7 @@ interface ApiBudgetRow {
   FiscalYear?: string;
   FiscalYearID?: number;
   FiscalYearName?: string;
+  FileUpload?: string;
   DocumentUrl?: string;
 }
 
@@ -98,7 +99,7 @@ async function doFetchBudgets(
 }
 
 function mapApiRowToBudget(row: ApiBudgetRow): Budget {
-  const basePath = row.DocumentUrl;
+  const basePath = row.FileUpload || row.DocumentUrl || '';
   const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   return {
     SN: row.SN,

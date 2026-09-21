@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -92,6 +92,23 @@ export default function BudgetPage() {
   const handleSearch = () => {
     setCurrentPage(1);
   };
+
+  const handleSuccess = useCallback((savedBudget?: { id?: number; document_url?: string; isNew?: boolean }) => {
+    if (savedBudget?.id && savedBudget?.document_url) {
+      queryClient.setQueriesData({ queryKey: ['budgets'] }, (old: any) => {
+        if (!old || !Array.isArray(old?.items)) return old;
+        return {
+          ...old,
+          items: old.items.map((item: Budget) =>
+            item.id === savedBudget.id ? { ...item, document_url: savedBudget.document_url } : item
+          ),
+        };
+      });
+    }
+    if (savedBudget?.isNew) {
+      refetch();
+    }
+  }, [queryClient, refetch]);
 
   const handleAddNew = () => {
     setEditingBudget(null);
@@ -518,7 +535,7 @@ export default function BudgetPage() {
       <CreateBudgetDrawer
         open={showFormModal}
         onClose={() => { setShowFormModal(false); setEditingBudget(null); }}
-        onSuccess={refetch}
+        onSuccess={handleSuccess}
         editingBudget={editingBudget}
       />
     </div>

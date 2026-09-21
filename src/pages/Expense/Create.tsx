@@ -22,7 +22,7 @@ interface Expense {
 interface CreateExpenseDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess?: (savedData?: { id?: number; document_url?: string; isNew?: boolean }) => void;
   editingExpense?: Expense | null;
 }
 
@@ -70,22 +70,41 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           ExpenseTitle: values.title,
           ExpenseCode: values.code,
           FiscalYearID: values.fiscal_year ? Number(values.fiscal_year) : 0,
-          DocumentUrl: documentPath,
+          FileUpload: documentPath,
         };
 
-       const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
-         method: 'POST',
-         body: JSON.stringify(body),
-       });
+        const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
 
-       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+        let savedData: any = {};
+        try {
+          savedData = await res.json();
+        } catch {
+          // ignore parse error
+        }
 
         message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
         form.resetFields();
         setDocumentUrl('');
         queryClient.invalidateQueries({ queryKey: ['expenses'], exact: false });
-       onClose();
-       onSuccess();
+
+        const savedId =
+          savedData?.Data?.id ??
+          savedData?.id ??
+          savedData?.ExpenseInfoID ??
+          editingExpense?.id;
+
+        onSuccess?.({
+          id: savedId,
+          document_url: documentUrl,
+          isNew: !isEdit,
+        });
+
+        onClose();
      } catch (err) {
        if (err instanceof Error) {
          message.error(err.message || 'Failed to save expense');
@@ -162,13 +181,13 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
               </span>
             }
           >
-            <DocumentUploadField
-              value={documentUrl}
-              onChange={setDocumentUrl}
-              uploading={uploading}
-              onUploadingChange={setUploading}
-              accept="application/pdf"
-            />
+             <DocumentUploadField
+               value={documentUrl}
+               onChange={setDocumentUrl}
+               uploading={uploading}
+               onUploadingChange={setUploading}
+               accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp"
+             />
           </Form.Item>
         </div>
       </Form>

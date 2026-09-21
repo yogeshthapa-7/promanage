@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -98,6 +98,23 @@ export default function ExpensePage() {
   const handleSearch = () => {
     setCurrentPage(1);
   };
+
+  const handleSuccess = useCallback((savedExpense?: { id?: number; document_url?: string; isNew?: boolean }) => {
+    if (savedExpense?.id && savedExpense?.document_url) {
+      queryClient.setQueriesData({ queryKey: ['expenses'] }, (old: any) => {
+        if (!old || !Array.isArray(old?.items)) return old;
+        return {
+          ...old,
+          items: old.items.map((item: Expense) =>
+            item.id === savedExpense.id ? { ...item, document_url: savedExpense.document_url } : item
+          ),
+        };
+      });
+    }
+    if (savedExpense?.isNew) {
+      refetch();
+    }
+  }, [queryClient, refetch]);
 
   const handleAddNew = () => {
     setEditingExpense(null);
@@ -539,7 +556,7 @@ export default function ExpensePage() {
       <CreateExpenseDrawer
         open={showFormModal}
         onClose={() => { setShowFormModal(false); setEditingExpense(null); }}
-        onSuccess={refetch}
+        onSuccess={handleSuccess}
         editingExpense={editingExpense}
       />
     </div>
