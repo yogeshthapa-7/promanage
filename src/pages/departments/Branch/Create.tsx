@@ -21,10 +21,10 @@ interface CreateBranchDrawerProps {
   onClose: () => void;
   onSuccess: () => void;
   editingBranch?: { id: string; name: string; branchCode: string; mainBranchId: number; departmentId: number } | null;
-  disabledMainBranch?: boolean;
-  defaultMainBranchId?: string | number;
-  disabledDepartment?: boolean;
-  defaultDepartmentId?: string | number;
+  // disabledMainBranch?: boolean;
+  // defaultMainBranchId?: string | number;
+  // disabledDepartment?: boolean;
+  // defaultDepartmentId?: string | number;
 }
 
 export default function CreateBranchDrawer({
@@ -32,10 +32,10 @@ export default function CreateBranchDrawer({
   onClose,
   onSuccess,
   editingBranch,
-  disabledMainBranch,
-  defaultMainBranchId,
-  disabledDepartment,
-  defaultDepartmentId,
+  // disabledMainBranch,
+  // defaultMainBranchId,
+  // disabledDepartment,
+  // defaultDepartmentId,
 }: CreateBranchDrawerProps) {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
@@ -86,17 +86,17 @@ export default function CreateBranchDrawer({
     }
   }, [open, editingBranch, form]);
 
-  useEffect(() => {
-    if (!open || editingBranch) return;
-    if (disabledMainBranch && mainBranchOptions.length > 0) {
-      const defaultId = defaultMainBranchId ?? mainBranchOptions[0].value;
-      form.setFieldsValue({ mainBranchId: String(defaultId) });
-    }
-    if (disabledDepartment && departmentOptions.length > 0) {
-      const defaultId = defaultDepartmentId ?? departmentOptions[0].value;
-      form.setFieldsValue({ departmentId: String(defaultId) });
-    }
-  }, [open, editingBranch, disabledMainBranch, disabledDepartment, mainBranchOptions, departmentOptions, defaultMainBranchId, defaultDepartmentId, form]);
+  // useEffect(() => {
+  //   if (!open || editingBranch) return;
+  //   if (disabledMainBranch && mainBranchOptions.length > 0) {
+  //     const defaultId = defaultMainBranchId ?? mainBranchOptions[0].value;
+  //     form.setFieldsValue({ mainBranchId: String(defaultId) });
+  //   }
+  //   if (disabledDepartment && departmentOptions.length > 0) {
+  //     const defaultId = defaultDepartmentId ?? departmentOptions[0].value;
+  //     form.setFieldsValue({ departmentId: String(defaultId) });
+  //   }
+  // }, [open, editingBranch, disabledMainBranch, disabledDepartment, mainBranchOptions, departmentOptions, defaultMainBranchId, defaultDepartmentId, form]);
 
   const handleSubmit = async () => {
     try {
@@ -199,10 +199,10 @@ export default function CreateBranchDrawer({
               placeholder={mainBranchLoading ? 'Loading...' : 'Select main branch'}
               options={mainBranchOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
               className="rounded-lg"
-              allowClear={!disabledMainBranch}
+              allowClear={/* !disabledMainBranch */true}
               loading={mainBranchLoading}
               getPopupContainer={getPopupParent}
-              disabled={disabledMainBranch}
+              // disabled={disabledMainBranch}
             />
           </Form.Item>
 
@@ -219,10 +219,10 @@ export default function CreateBranchDrawer({
               placeholder={departmentLoading ? 'Loading...' : 'Select department'}
               options={departmentOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
               className="rounded-lg"
-              allowClear={!disabledDepartment}
+              allowClear={/* !disabledDepartment */true}
               loading={departmentLoading}
               getPopupContainer={getPopupParent}
-              disabled={disabledDepartment}
+              // disabled={disabledDepartment}
             />
           </Form.Item>
         </div>

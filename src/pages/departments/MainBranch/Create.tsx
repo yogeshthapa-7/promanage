@@ -17,8 +17,8 @@ interface CreateMainBranchDrawerProps {
   onClose: () => void;
   onSuccess: () => void;
   editingBranch?: { id: string; name: string; mainBranchCode: string; departmentId: number } | null;
-  disabledDepartment?: boolean;
-  defaultDepartmentId?: string | number;
+  // disabledDepartment?: boolean;
+  // defaultDepartmentId?: string | number;
 }
 
 export default function CreateMainBranchDrawer({
@@ -26,8 +26,8 @@ export default function CreateMainBranchDrawer({
   onClose,
   onSuccess,
   editingBranch,
-  disabledDepartment,
-  defaultDepartmentId,
+  // disabledDepartment,
+  // defaultDepartmentId,
 }: CreateMainBranchDrawerProps) {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
@@ -69,13 +69,13 @@ export default function CreateMainBranchDrawer({
     }
   }, [open, editingBranch, form]);
 
-  useEffect(() => {
-    if (!open || editingBranch || !disabledDepartment) return;
-    if (departmentOptions.length > 0) {
-      const defaultId = defaultDepartmentId ?? departmentOptions[0].value;
-      form.setFieldsValue({ departmentId: String(defaultId) });
-    }
-  }, [open, editingBranch, disabledDepartment, departmentOptions, defaultDepartmentId, form]);
+  // useEffect(() => {
+  //   if (!open || editingBranch || !disabledDepartment) return;
+  //   if (departmentOptions.length > 0) {
+  //     const defaultId = defaultDepartmentId ?? departmentOptions[0].value;
+  //     form.setFieldsValue({ departmentId: String(defaultId) });
+  //   }
+  // }, [open, editingBranch, disabledDepartment, departmentOptions, defaultDepartmentId, form]);
 
   const handleSubmit = async () => {
     try {
@@ -174,10 +174,10 @@ export default function CreateMainBranchDrawer({
               placeholder={departmentLoading ? 'Loading...' : 'Select department'}
               options={departmentOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
               className="rounded-lg"
-              allowClear={!disabledDepartment}
+              allowClear={/* !disabledDepartment */true}
               loading={departmentLoading}
               getPopupContainer={getPopupParent}
-              disabled={disabledDepartment}
+              // disabled={disabledDepartment}
             />
           </Form.Item>
         </div>

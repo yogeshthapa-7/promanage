@@ -21,7 +21,7 @@ import { apiCall } from '@/lib/api';
 import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
-import { getParsedClientConfig } from '@/lib/client-config';
+// import { getParsedClientConfig } from '@/lib/client-config';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { exportCsv } from '@/lib/csv';
 import * as XLSX from 'xlsx';
@@ -57,22 +57,19 @@ export default function DepartmentPage() {
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { localBodyLevel } = getParsedClientConfig();
-
-  const allTabs = [
-    { key: 'department' as const, label: 'विभाग' },
-    { key: 'mainbranch' as const, label: 'महाशाखा' },
-    { key: 'branch' as const, label: 'शाखा' },
-  ];
-
-  const visibleTabs = localBodyLevel === 3
-    ? allTabs.slice(2)
-    : localBodyLevel === 2
-      ? allTabs.slice(1)
-      : allTabs;
-
-  const initialTab = visibleTabs[0]?.key ?? 'department';
-  const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>('department');
+//   const { localBodyLevel } = getParsedClientConfig();
+//   const allTabs = [
+//     { key: 'department' as const, label: 'विभाग' },
+//     { key: 'mainbranch' as const, label: 'महाशाखा' },
+//     { key: 'branch' as const, label: 'शाखा' },
+//   ];
+//   const visibleTabs = localBodyLevel === 3
+//     ? allTabs.slice(2)
+//     : localBodyLevel === 2
+//       ? allTabs.slice(1)
+//       : allTabs;
+//   const initialTab = visibleTabs[0]?.key ?? 'department';
   const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
   const [deptNameLoading, setDeptNameLoading] = useState(false);
 
@@ -267,7 +264,11 @@ export default function DepartmentPage() {
       
       {/* 2. Tabs */}
       <div className="flex items-center gap-0 border-b border-slate-200 no-print">
-        {visibleTabs.map((tab) => (
+        {([
+          { key: 'department' as const, label: 'विभाग' },
+          { key: 'mainbranch' as const, label: 'महाशाखा' },
+          { key: 'branch' as const, label: 'शाखा' },
+        ]).map((tab) => (
           <button
             key={tab.key}
             type="button"
@@ -359,15 +360,15 @@ export default function DepartmentPage() {
 
          {/* Excel Upload/Download Row
          <div className="flex items-center gap-3">
-           <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
-             <Upload className="w-3.5 h-3.5 text-slate-500" />
-             Upload Excel
-           </button>
-           <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
-             <Download className="w-3.5 h-3.5 text-slate-500" />
-             Download Excel
-           </button>
-         </div> */}
+            <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
+              <Upload className="w-3.5 h-3.5 text-slate-500" />
+              Upload Excel
+            </button>
+            <button className="bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-full shadow-xs border border-slate-100 flex items-center gap-2 text-sm transition cursor-pointer">
+              <Download className="w-3.5 h-3.5 text-slate-500" />
+              Download Excel
+            </button>
+          </div> */}
        </div>
 
       {/* 3. Table Controls Bar (Entries + Export utilities) */}
@@ -483,14 +484,14 @@ export default function DepartmentPage() {
 
       {activeTab === 'mainbranch' && (
         <div className="print-area">
-          <MainBranchPage disabledDepartment={localBodyLevel >= 2} />
+          <MainBranchPage /* disabledDepartment={localBodyLevel >= 2} defaultDepartmentId={...} */ />
         </div>
       )}
       {activeTab === 'branch' && (
         <div className="print-area">
           <BranchPage
-            disabledMainBranch={localBodyLevel >= 3}
-            disabledDepartment={localBodyLevel >= 3}
+            /* disabledMainBranch={localBodyLevel >= 3}
+            disabledDepartment={localBodyLevel >= 3} */
           />
         </div>
       )}

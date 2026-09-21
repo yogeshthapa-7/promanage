@@ -50,12 +50,12 @@ function fetchMainBranchesPage(params: PaginatedListParams): Promise<{ items: Ma
   }));
 }
 
-interface MainBranchPageProps {
+/* interface MainBranchPageProps {
   disabledDepartment?: boolean;
   defaultDepartmentId?: string | number;
-}
+} */
 
-export default function MainBranchPage({ disabledDepartment, defaultDepartmentId }: MainBranchPageProps) {
+export default function MainBranchPage(/* { disabledDepartment, defaultDepartmentId }: MainBranchPageProps */) {
   const queryClient = useQueryClient();
   const [editingBranch, setEditingBranch] = useState<MainBranch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -402,8 +402,8 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
         onClose={() => setShowFormModal(false)}
         onSuccess={refreshMainBranches}
         editingBranch={editingBranch}
-        disabledDepartment={disabledDepartment}
-        defaultDepartmentId={defaultDepartmentId}
+        // disabledDepartment={disabledDepartment}
+        // defaultDepartmentId={defaultDepartmentId}
       />
     </div>
   );
