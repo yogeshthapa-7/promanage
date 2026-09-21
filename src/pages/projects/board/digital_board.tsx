@@ -220,8 +220,8 @@ const DigitalBoardPage = () => {
         onClick={() => navigate('/projects')}
         className="
            fixed
-           left-5
-           top-4
+           left-4
+           top-3
            z-50
            inline-flex
            items-center
@@ -230,8 +230,8 @@ const DigitalBoardPage = () => {
            border
            border-slate-200
            bg-white/95
-           px-4
-           py-2
+           px-3
+           py-1.5
            text-sm
            font-semibold
            text-slate-700
@@ -243,15 +243,17 @@ const DigitalBoardPage = () => {
            hover:bg-blue-50
            hover:text-blue-800
            hover:shadow-lg
-           sm:left-[300px]
-           sm:top-6
+           md:left-[300px]
+           md:top-6
+           md:px-4
+           md:py-2
         "
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Projects
       </button>
 
-      <div className="relative mx-auto mt-12 w-full max-w-[1180px]">
+      <div className="relative mx-auto mt-10 w-full max-w-[1180px] md:mt-12">
 
         {/* Physical shadow underneath */}
         <div

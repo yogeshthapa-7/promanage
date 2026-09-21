@@ -95,9 +95,9 @@ export default function ClientPage() {
 
   return (
     <div className="fade-in text-slate-800">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Clients Info</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Clients Info</h1>
           <p className="mt-1 text-base text-slate-500">
             Essential details to strengthen relationships and deliver value.
           </p>
@@ -120,11 +120,11 @@ export default function ClientPage() {
                   clearTimeout(debounceTimerRef.current);
                 }
                  debounceTimerRef.current = setTimeout(() => {
-                    setCurrentPage(1);
-                  }, 400);
+                   setCurrentPage(1);
+                 }, 400);
               }}
               placeholder="Search by client name..."
-              containerClassName="flex-row w-[500px]"
+              containerClassName="flex-1 w-full sm:w-[400px]"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>

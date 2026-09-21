@@ -92,7 +92,8 @@ export default function Drawer({
     visible ? 'translate-x-0' : 'translate-x-full'
   }`}
   style={{
-    width,
+    width: '100%',
+    maxWidth: width,
     marginLeft: 'auto',
     transform: visible ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
     willChange: 'transform',
@@ -101,7 +102,7 @@ export default function Drawer({
   onTransitionEnd={handleTransitionEnd}
 >
   {(title || subtitle) && (
-    <div className="relative flex items-start justify-between px-7 pt-7 pb-5 shrink-0 border-b border-slate-200/80 bg-white/40">
+    <div className="relative flex items-start justify-between px-4 py-4 sm:px-7 sm:pt-7 sm:pb-5 shrink-0 border-b border-slate-200/80 bg-white/40">
       <div>
         {title && (
           <h2 className="text-xl font-bold tracking-tight text-slate-900">
@@ -126,10 +127,10 @@ export default function Drawer({
     </div>
   )}
 
-   <div
-    className="flex-1 overflow-y-auto drawer-scrollbar px-7 py-6"
-    style={{ maxHeight: 'calc(100vh - 100px)' }}
-  >
+    <div
+     className="flex-1 overflow-y-auto drawer-scrollbar px-4 py-4 sm:px-7 sm:py-6"
+     style={{ maxHeight: 'calc(100vh - 100px)' }}
+   >
     {children}
   </div>
 </div>

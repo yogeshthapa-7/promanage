@@ -239,14 +239,14 @@ export default function TasksPage() {
 
   return (
     <div className="fade-in text-slate-800">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Tasks</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Tasks</h1>
           <p className="mt-1 text-base text-slate-500">
             Organize, prioritize and track all your projects tasks in one place.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {project && (
             <Button onClick={() => navigate("/tasks")} icon={<ArrowLeft className="w-3.5 h-3.5" />}>
               Back to Projects

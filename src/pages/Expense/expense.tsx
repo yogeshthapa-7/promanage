@@ -186,9 +186,9 @@ export default function ExpensePage() {
 
   return (
     <div className="fade-in text-slate-800">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Expenses</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Expenses</h1>
           <p className="mt-1 text-base text-slate-500">
             Transparent tracking of costs and financial accountability.
           </p>
@@ -255,7 +255,7 @@ export default function ExpensePage() {
         </div>
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Expense Title</div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <SearchInput
               value={searchInput}
               onChange={(value) => {
@@ -264,13 +264,12 @@ export default function ExpensePage() {
                   clearTimeout(debounceTimerRef.current);
                 }
                  debounceTimerRef.current = setTimeout(() => {
-                    setSearchQuery(value);
-                    setCurrentPage(1);
-                  }, 400);
+                   setSearchQuery(value);
+                   setCurrentPage(1);
+                 }, 400);
               }}
               placeholder="Search by expense title..."
-              containerClassName="flex-1"
-              className="w-full"
+              containerClassName="flex-1 w-full sm:w-[350px]"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>

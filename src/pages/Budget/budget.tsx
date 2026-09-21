@@ -179,9 +179,9 @@ export default function BudgetPage() {
 
   return (
     <div className="fade-in text-slate-800">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Budgets</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Budgets</h1>
           <p className="mt-1 text-base text-slate-500">
             Strategic allocation of resources to maximize impact.
           </p>
@@ -230,24 +230,23 @@ export default function BudgetPage() {
         </div>
         <div className="md:col-span-2">
           <div className="mb-1 text-sm font-medium text-slate-500">Budget Name</div>
-          <div className="flex gap-2">
-            <SearchInput
-              value={searchQuery}
-              onChange={(value) => {
-                setSearchQuery(value);
-                if (debounceTimerRef.current) {
-                  clearTimeout(debounceTimerRef.current);
-                }
-                 debounceTimerRef.current = setTimeout(() => {
-                    setCurrentPage(1);
-                  }, 400);
-              }}
-              placeholder="Search by budget name..."
-              containerClassName="flex-1"
-              className="flex-row w-[350px]"
-            />
-            <Button type="primary" onClick={handleSearch}>Search</Button>
-          </div>
+            <div className="flex gap-2 flex-wrap">
+              <SearchInput
+                value={searchQuery}
+                onChange={(value) => {
+                  setSearchQuery(value);
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                   debounceTimerRef.current = setTimeout(() => {
+                     setCurrentPage(1);
+                   }, 400);
+                }}
+                placeholder="Search by budget name..."
+                containerClassName="flex-1 w-full sm:w-[350px]"
+              />
+              <Button type="primary" onClick={handleSearch}>Search</Button>
+            </div>
         </div>
         
       </div>

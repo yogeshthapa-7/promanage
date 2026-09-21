@@ -2,13 +2,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, ChevronLeft, ChevronRight, LogOut, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, Calendar, } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, ChevronLeft, ChevronRight, LogOut, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, Calendar, X, } from 'lucide-react';
 import { Popover } from 'antd';
 import { useAuth } from '@/context/AuthContext';
 import UserProfileDrawer from '@/pages/profile/page';
 
 interface NavItem { id: string; label: string; icon: React.ReactNode; href: string; badge?: number; section?: string; }
-interface SidebarProps { collapsed?: boolean; onToggle?: () => void; }
+interface SidebarProps { collapsed?: boolean; onToggle?: () => void; mobileOpen?: boolean; onMobileClose?: () => void; }
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/dashboard' },
@@ -46,7 +46,7 @@ function getActiveNavId(pathname: string): string {
   return 'dashboard';
 }
 
-export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
+export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const activeId = getActiveNavId(location.pathname);
@@ -60,6 +60,17 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const { user, logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
 
   useEffect(() => {
     const nav = navRef.current;
@@ -107,108 +118,230 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     );
   };
 
+  const renderNavLinkMobile = (item: NavItem) => {
+    const isActive = activeId === item.id;
+    return (
+      <Link key={item.id} to={item.href} onClick={onMobileClose} className={`group relative flex items-center gap-3 rounded-xl transition-all duration-200 ease-out px-3.5 py-3 ${isActive ? '!text-white' : '!text-slate-200 hover:!text-white'}`}>
+        {isActive && (
+          <>
+            <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600/25 via-blue-500/15 to-transparent border border-blue-400/10" />
+            <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-gradient-to-b from-blue-300 to-blue-600 shadow-[0_0_12px_rgba(59,130,246,.8)]" />
+          </>
+        )}
+        {!isActive && <span className="absolute inset-0 rounded-xl bg-white/[0.035] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />}
+        <span className={`relative z-10 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isActive ? '!text-blue-300' : '!text-slate-400 group-hover:!text-blue-300'} group-hover:scale-105`}>{item.icon}</span>
+        <span className={`relative z-10 flex-1 truncate text-[13px] font-semibold tracking-[-0.01em] ${isActive ? '!text-white' : '!text-slate-200 group-hover:!text-white'}`}>{item.label}</span>
+      </Link>
+    );
+  };
+
   return (
-    <aside className="flex flex-col h-screen flex-shrink-0 relative z-20 overflow-hidden border-r transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"       style={{ width: collapsed ? '80px' : '300px', background: 'linear-gradient(180deg, #07152f 0%, #0a1b3d 45%, #08152e 100%)', borderColor: 'rgba(148, 163, 184, 0.12)', boxShadow: '8px 0 35px rgba(2, 8, 23, 0.25), inset -1px 0 rgba(255,255,255,0.025)' }}>
-      {/* BRAND HEADER */}
-      <div className={`relative flex items-center flex-shrink-0 h-[92px] border-b border-white/[0.07] ${collapsed ? 'justify-center px-3' : 'px-5'}`}>
-        <div className="absolute left-0 top-0 w-full h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(59,130,246,.8), transparent)' }} />
-        <div className="relative flex items-center justify-center flex-shrink-0 w-[62px] h-[62px] overflow-hidden rounded-[18px] bg-white/[0.035] border border-white/[0.09] shadow-lg shadow-blue-950/30">
-          <div className="absolute inset-0 rounded-[18px] pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(59,130,246,.12), transparent 70%)' }} />
-          <div className="absolute inset-0 rounded-[18px] pointer-events-none transition-opacity duration-150" style={{ opacity: logoRotation > 0 ? 0.35 : 0, background: 'radial-gradient(circle at center, rgba(59,130,246,.28), transparent 68%)' }} />
-          <img src="/assets/images/logo.png" alt="ProManage logo" draggable={false} className="relative z-10 w-full h-full object-contain p-2.5 select-none will-change-transform" style={{ transform: `rotate(${logoRotation}deg)`, transition: 'transform 80ms linear' }} />
+    <>
+      {/* Mobile overlay sidebar */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50 flex flex-col h-screen overflow-hidden border-r md:hidden
+          transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+        style={{ width: '300px', background: 'linear-gradient(180deg, #07152f 0%, #0a1b3d 45%, #08152e 100%)', borderColor: 'rgba(148, 163, 184, 0.12)', boxShadow: '8px 0 35px rgba(2, 8, 23, 0.25), inset -1px 0 rgba(255,255,255,0.025)' }}
+      >
+        {/* Mobile close button */}
+        <div className="absolute top-4 right-4 z-10">
+          <button onClick={onMobileClose} className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors">
+            <X size={18} />
+          </button>
         </div>
-        {!collapsed && (
+
+        {/* Brand header - always expanded on mobile */}
+        <div className="relative flex items-center flex-shrink-0 h-[92px] border-b border-white/[0.07] px-5">
+          <div className="absolute left-0 top-0 w-full h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(59,130,246,.8), transparent)' }} />
+          <div className="relative flex items-center justify-center flex-shrink-0 w-[62px] h-[62px] overflow-hidden rounded-[18px] bg-white/[0.035] border border-white/[0.09] shadow-lg shadow-blue-950/30">
+            <div className="absolute inset-0 rounded-[18px] pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(59,130,246,.12), transparent 70%)' }} />
+            <img src="/assets/images/logo.png" alt="ProManage logo" draggable={false} className="relative z-10 w-full h-full object-contain p-2.5 select-none" />
+          </div>
           <div className="ml-4 min-w-0 flex-1 flex flex-col justify-center">
             <div className="text-[21px] leading-none font-extrabold tracking-[-0.04em] whitespace-nowrap"><span className="text-white">Pro</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-400 to-cyan-400">Manage</span></div>
             <div className="mt-[7px] text-[9px] leading-none font-semibold uppercase tracking-[0.13em] text-white whitespace-nowrap">Project Management System</div>
           </div>
-        )}
-      </div>
-
-      {/* NAVIGATION */}
-      <nav ref={navRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-5">
-        <div className="space-y-1.5">
-          {!collapsed && <div className="px-3 mb-3"><span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/70">Workspace</span></div>}
-          {mainNav.map(renderNavLink)}
         </div>
 
-        <div className="mt-7">
-          {!collapsed ? (
+        {/* Navigation */}
+        <nav ref={navRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-5">
+          <div className="space-y-1.5">
+            <div className="px-3 mb-3"><span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/70">Workspace</span></div>
+            {mainNav.map((item) => renderNavLinkMobile(item))}
+          </div>
+
+          <div className="mt-7">
             <div className="flex items-center gap-3 px-3 mb-3">
               <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/70">Team</span>
               <div className="flex-1 h-px bg-white/[0.06]" />
             </div>
-          ) : <div className="mx-2 my-4 h-px bg-white/[0.08]" />}
-          <div className="space-y-1.5">{teamNav.map(renderNavLink)}</div>
-        </div>
+            <div className="space-y-1.5">{teamNav.map((item) => renderNavLinkMobile(item))}</div>
+          </div>
 
-        <div className="mt-7">
-          {!collapsed ? (
+          <div className="mt-7">
             <div className="flex items-center gap-3 px-3 mb-3">
               <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/70">Policy</span>
               <div className="flex-1 h-px bg-white/[0.06]" />
             </div>
-          ) : <div className="mx-2 my-4 h-px bg-white/[0.08]" />}
-          <div className="space-y-1.5">{policyNav.map(renderNavLink)}</div>
-        </div>
-      </nav>
+            <div className="space-y-1.5">{policyNav.map((item) => renderNavLinkMobile(item))}</div>
+          </div>
+        </nav>
 
-      {/* USER MENU */}
-      <div className="flex-shrink-0 px-3 pb-3">
-        <Popover
-          content={
-            <div className="w-56 p-1">
-              <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
-                <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
-                <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-medium">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
+        {/* User menu - always expanded on mobile */}
+        <div className="flex-shrink-0 px-3 pb-3">
+          <Popover
+            content={
+              <div className="w-56 p-1">
+                <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-medium">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
+                </div>
+                <button
+                  onClick={() => { setUserMenuOpen(false); setProfileOpen(true); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
+                >
+                  <User size={14} />
+                  View Profile
+                </button>
+                <button
+                  onClick={() => { logout(); navigate('/login'); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <LogOut size={14} />
+                  Sign Out
+                </button>
               </div>
-              <button
-                onClick={() => { setUserMenuOpen(false); setProfileOpen(true); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
-              >
-                <User size={14} />
-                View Profile
-              </button>
-              <button
-                onClick={() => { logout(); navigate('/login'); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
-              >
-                <LogOut size={14} />
-                Sign Out
-              </button>
-            </div>
-          }
-          trigger="click"
-          open={userMenuOpen}
-          onOpenChange={setUserMenuOpen}
-          placement="topRight"
-        >
-          <button className={`group relative w-full flex items-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 ${collapsed ? 'justify-center py-3' : 'gap-3 px-3.5 py-3'}`}>
-            <div className="relative flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white text-sm font-bold shadow-lg shadow-blue-900/30">
-              {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
-            </div>
-            {!collapsed && (
+            }
+            trigger="click"
+            open={userMenuOpen}
+            onOpenChange={setUserMenuOpen}
+            placement="topRight"
+          >
+            <button className="group relative w-full flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 px-3.5 py-3">
+              <div className="relative flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white text-sm font-bold shadow-lg shadow-blue-900/30">
+                {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
+              </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className="text-[13px] font-semibold truncate">{user?.name || 'User'}</div>
                 <div className="text-[10px] text-slate-400 truncate">{user?.email || ''}</div>
               </div>
-            )}
+            </button>
+          </Popover>
+        </div>
+
+        <UserProfileDrawer open={profileOpen} onClose={() => setProfileOpen(false)} />
+
+        {/* Ambient glow */}
+        <div className="absolute -bottom-32 -left-20 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(37,99,235,.12) 0%, transparent 70%)' }} />
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex flex-col h-screen flex-shrink-0 relative z-20 overflow-hidden border-r transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]" style={{ width: collapsed ? '80px' : '300px', background: 'linear-gradient(180deg, #07152f 0%, #0a1b3d 45%, #08152e 100%)', borderColor: 'rgba(148, 163, 184, 0.12)', boxShadow: '8px 0 35px rgba(2, 8, 23, 0.25), inset -1px 0 rgba(255,255,255,0.025)' }}>
+        {/* BRAND HEADER */}
+        <div className={`relative flex items-center flex-shrink-0 h-[92px] border-b border-white/[0.07] ${collapsed ? 'justify-center px-3' : 'px-5'}`}>
+          <div className="absolute left-0 top-0 w-full h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(59,130,246,.8), transparent)' }} />
+          <div className="relative flex items-center justify-center flex-shrink-0 w-[62px] h-[62px] overflow-hidden rounded-[18px] bg-white/[0.035] border border-white/[0.09] shadow-lg shadow-blue-950/30">
+            <div className="absolute inset-0 rounded-[18px] pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(59,130,246,.12), transparent 70%)' }} />
+            <div className="absolute inset-0 rounded-[18px] pointer-events-none transition-opacity duration-150" style={{ opacity: logoRotation > 0 ? 0.35 : 0, background: 'radial-gradient(circle at center, rgba(59,130,246,.28), transparent 68%)' }} />
+            <img src="/assets/images/logo.png" alt="ProManage logo" draggable={false} className="relative z-10 w-full h-full object-contain p-2.5 select-none will-change-transform" style={{ transform: `rotate(${logoRotation}deg)`, transition: 'transform 80ms linear' }} />
+          </div>
+          {!collapsed && (
+            <div className="ml-4 min-w-0 flex-1 flex flex-col justify-center">
+              <div className="text-[21px] leading-none font-extrabold tracking-[-0.04em] whitespace-nowrap"><span className="text-white">Pro</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-400 to-cyan-400">Manage</span></div>
+              <div className="mt-[7px] text-[9px] leading-none font-semibold uppercase tracking-[0.13em] text-white whitespace-nowrap">Project Management System</div>
+            </div>
+          )}
+        </div>
+
+        {/* NAVIGATION */}
+        <nav ref={navRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-5">
+          <div className="space-y-1.5">
+            {!collapsed && <div className="px-3 mb-3"><span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/70">Workspace</span></div>}
+            {mainNav.map(renderNavLink)}
+          </div>
+
+          <div className="mt-7">
+            {!collapsed ? (
+              <div className="flex items-center gap-3 px-3 mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/70">Team</span>
+                <div className="flex-1 h-px bg-white/[0.06]" />
+              </div>
+            ) : <div className="mx-2 my-4 h-px bg-white/[0.08]" />}
+            <div className="space-y-1.5">{teamNav.map(renderNavLink)}</div>
+          </div>
+
+          <div className="mt-7">
+            {!collapsed ? (
+              <div className="flex items-center gap-3 px-3 mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/70">Policy</span>
+                <div className="flex-1 h-px bg-white/[0.06]" />
+              </div>
+            ) : <div className="mx-2 my-4 h-px bg-white/[0.08]" />}
+            <div className="space-y-1.5">{policyNav.map(renderNavLink)}</div>
+          </div>
+        </nav>
+
+        {/* USER MENU */}
+        <div className="flex-shrink-0 px-3 pb-3">
+          <Popover
+            content={
+              <div className="w-56 p-1">
+                <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-medium">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
+                </div>
+                <button
+                  onClick={() => { setUserMenuOpen(false); setProfileOpen(true); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
+                >
+                  <User size={14} />
+                  View Profile
+                </button>
+                <button
+                  onClick={() => { logout(); navigate('/login'); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <LogOut size={14} />
+                  Sign Out
+                </button>
+              </div>
+            }
+            trigger="click"
+            open={userMenuOpen}
+            onOpenChange={setUserMenuOpen}
+            placement="topRight"
+          >
+            <button className={`group relative w-full flex items-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 ${collapsed ? 'justify-center py-3' : 'gap-3 px-3.5 py-3'}`}>
+              <div className="relative flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white text-sm font-bold shadow-lg shadow-blue-900/30">
+                {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
+              </div>
+              {!collapsed && (
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="text-[13px] font-semibold truncate">{user?.name || 'User'}</div>
+                  <div className="text-[10px] text-slate-400 truncate">{user?.email || ''}</div>
+                </div>
+              )}
+            </button>
+          </Popover>
+        </div>
+
+        <UserProfileDrawer open={profileOpen} onClose={() => setProfileOpen(false)} />
+
+        {/* COLLAPSE BUTTON */}
+        <div className="flex-shrink-0 px-3 pb-4">
+          <button onClick={onToggle} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} className={`group w-full flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 hover:text-blue-300 hover:bg-blue-500/[0.06] hover:border-blue-400/20 transition-all duration-200 ${collapsed ? 'py-3' : 'py-2.5'}`}>
+            {collapsed ? <ChevronRight size={17} className="transition-transform duration-200 group-hover:translate-x-0.5" /> : <ChevronLeft size={17} className="transition-transform duration-200 group-hover:-translate-x-0.5" />}
           </button>
-        </Popover>
-      </div>
+        </div>
 
-      <UserProfileDrawer open={profileOpen} onClose={() => setProfileOpen(false)} />
-
-      {/* COLLAPSE BUTTON */}
-      <div className="flex-shrink-0 px-3 pb-4">
-        <button onClick={onToggle} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} className={`group w-full flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 hover:text-blue-300 hover:bg-blue-500/[0.06] hover:border-blue-400/20 transition-all duration-200 ${collapsed ? 'py-3' : 'py-2.5'}`}>
-          {collapsed ? <ChevronRight size={17} className="transition-transform duration-200 group-hover:translate-x-0.5" /> : <ChevronLeft size={17} className="transition-transform duration-200 group-hover:-translate-x-0.5" />}
-        </button>
-      </div>
-
-      {/* AMBIENT GLOW */}
-      <div className="absolute -bottom-32 -left-20 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(37,99,235,.12) 0%, transparent 70%)' }} />
-    </aside>
+        {/* AMBIENT GLOW */}
+        <div className="absolute -bottom-32 -left-20 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(37,99,235,.12) 0%, transparent 70%)' }} />
+      </aside>
+    </>
   );
 }

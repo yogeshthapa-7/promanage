@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, Filter, X, ChevronDown, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, X, ChevronDown, ArrowUpDown, Menu } from 'lucide-react';
 import type { ProjectStatus } from '@/lib/projects-data';
 
 interface TopbarProps {
@@ -16,6 +16,7 @@ interface TopbarProps {
   sortField?: string;
   sortDir?: 'asc' | 'desc';
   onSortChange?: (field: string) => void;
+  onMenuToggle?: () => void;
 }
 
 const SORT_OPTIONS = [
@@ -45,6 +46,7 @@ export default function Topbar({
   sortField = 'name',
   sortDir = 'asc',
   onSortChange,
+  onMenuToggle,
 }: TopbarProps) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
@@ -91,11 +93,22 @@ export default function Topbar({
   };
 
   return (
-    <header className="flex flex-col gap-2 px-6 flex-shrink-0" style={{ height: 'auto', minHeight: '64px', background: 'transparent', borderBottom: 'none' }}>
+    <header className="flex flex-col gap-2 px-4 sm:px-6 flex-shrink-0" style={{ height: 'auto', minHeight: '64px', background: 'transparent', borderBottom: 'none' }}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">{pageTitle}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{pageSubtitle}</p>
+        <div className="flex items-center gap-3">
+          {onMenuToggle && (
+            <button
+              onClick={onMenuToggle}
+              className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 bg-white/70 text-slate-600 hover:text-foreground hover:bg-white transition-colors"
+              aria-label="Toggle menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">{pageTitle}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{pageSubtitle}</p>
+          </div>
         </div>
 
         {showFilters && (

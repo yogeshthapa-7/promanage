@@ -103,9 +103,9 @@ export default function OrganizationPage() {
 
   return (
     <div className="fade-in text-slate-800">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Organizations</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Organizations</h1>
           <p className="mt-1 text-base text-slate-500">
             Manage organizations, view details, and update or remove entries.
           </p>
