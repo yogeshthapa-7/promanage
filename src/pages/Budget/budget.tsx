@@ -45,9 +45,11 @@ function getFiscalYearName(budget: Budget, options: FiscalYearSelectOption[]): s
 export default function BudgetPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [fiscalYearId, setFiscalYearId] = useState<string | undefined>(undefined);
+  const [selectedFiscalYearId, setSelectedFiscalYearId] = useState<string | undefined>(undefined);
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
   const [fiscalYearLoading, setFiscalYearLoading] = useState(false);
+  const selectedFiscalYear = fiscalYearOptions.find((opt) => opt.value === selectedFiscalYearId);
+  const fiscalYearName = selectedFiscalYear?.label || '';
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [viewingBudget, setViewingBudget] = useState<Budget | null>(null);
@@ -83,19 +85,22 @@ export default function BudgetPage() {
     fetcher: (params) => fetchBudgetsPage({ 
       ...params, 
       search: searchQuery,
-      fiscalYear: fiscalYearId || '',
+      fiscalYear: fiscalYearName,
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery, fiscalYearId],
+    extraDeps: [searchQuery, fiscalYearName],
+    extraParams: {
+      fiscalYear: fiscalYearName,
+    },
   });
 
-  const prevFiscalYearIdRef = useRef(fiscalYearId);
+  const prevFiscalYearNameRef = useRef(fiscalYearName);
   useEffect(() => {
-    if (prevFiscalYearIdRef.current !== fiscalYearId) {
-      prevFiscalYearIdRef.current = fiscalYearId;
+    if (prevFiscalYearNameRef.current !== fiscalYearName) {
+      prevFiscalYearNameRef.current = fiscalYearName;
       refetch();
     }
-  }, [fiscalYearId, refetch]);
+  }, [fiscalYearName, refetch]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -211,9 +216,9 @@ export default function BudgetPage() {
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Fiscal Year</div>
           <Select
-            value={fiscalYearId}
+            value={selectedFiscalYearId}
             onChange={(value) => {
-              setFiscalYearId(value);
+              setSelectedFiscalYearId(value);
               setCurrentPage(1);
             }}
             options={fiscalYearOptions}

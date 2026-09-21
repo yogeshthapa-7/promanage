@@ -48,6 +48,8 @@ export default function PolicyPage() {
   const [fiscalYearId, setFiscalYearId] = useState<string | undefined>(undefined);
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
   const [fiscalYearLoading, setFiscalYearLoading] = useState(false);
+  const selectedFiscalYear = fiscalYearOptions.find((opt) => opt.value === fiscalYearId);
+  const fiscalYearName = selectedFiscalYear?.label || '';
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<Policy | null>(null);
   const [viewingPolicy, setViewingPolicy] = useState<Policy | null>(null);
@@ -79,19 +81,22 @@ export default function PolicyPage() {
     fetcher: (params) => fetchPoliciesPage({ 
       ...params, 
       search: searchQuery,
-      fiscalYear: fiscalYearId || '',
+      fiscalYear: fiscalYearName,
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery, fiscalYearId],
+    extraDeps: [searchQuery, fiscalYearName],
+    extraParams: {
+      fiscalYear: fiscalYearName,
+    },
   });
 
-  const prevFiscalYearIdRef = useRef(fiscalYearId);
+  const prevFiscalYearNameRef = useRef(fiscalYearName);
   useEffect(() => {
-    if (prevFiscalYearIdRef.current !== fiscalYearId) {
-      prevFiscalYearIdRef.current = fiscalYearId;
+    if (prevFiscalYearNameRef.current !== fiscalYearName) {
+      prevFiscalYearNameRef.current = fiscalYearName;
       refetch();
     }
-  }, [fiscalYearId, refetch]);
+  }, [fiscalYearName, refetch]);
 
   const handleSearch = () => {
     setCurrentPage(1);

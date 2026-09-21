@@ -59,8 +59,8 @@ function buildSearchBody(params: FetchExpensesParams) {
     param: {
       ExpenseInfoID: 0,
       ExpenseTitle: params.search,
+      ExpenseCode: params.expenseCode || '',
       FiscalYear: params.fiscalYear,
-      ExpenseCode: params.expenseCode,
     },
   };
 }
