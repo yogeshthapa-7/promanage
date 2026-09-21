@@ -35,7 +35,8 @@ export interface FiscalYearItem {
   yearOrder?: number;
 }
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '').replace(/\/api$/, '');
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
+// .replace(/\/$/, '').replace(/\/api$/, '');
 const SELECT_LIST_URL = `${API_BASE}/FiscalYear/SelectList`;
 const SERVER_SEARCH_URL = `${API_BASE}/FiscalYear/ServerSearch`;
 

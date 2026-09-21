@@ -6,7 +6,8 @@ import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '').replace(/\/api$/, '');
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
+//.replace(/\/$/, '').replace(/\/api$/, '')
 
 interface FiscalYearItem {
   id: number;
@@ -14,8 +15,8 @@ interface FiscalYearItem {
   code: string;
   startDate: string;
   endDate: string;
-  status: 'Active' | 'Inactive';
-  isRunning?: boolean;
+  isRunning?: number;
+  isActive: number;
   yearOrder?: number;
 }
 
@@ -38,8 +39,8 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
           code: editingYear.code,
           startDate: editingYear.startDate,
           endDate: editingYear.endDate,
-          isRunning: editingYear.isRunning ?? false,
-          yearOrder: editingYear.yearOrder ?? 0,
+          isRunning: editingYear.isRunning ?? 0,
+          yearOrder: +editingYear.yearOrder ?? 0,
         });
       } else {
         form.resetFields();
@@ -54,17 +55,19 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
 
       const isEdit = !!editingYear;
       const body: Record<string, unknown> = {
+        // FiscalYearID : 0,
         FiscalYearName: values.name,
         FiscalYearCode: values.code || '',
         StartDate: values.startDate || '',
         EndDate: values.endDate || '',
         IsRunning: values.isRunning ? 1 : 0,
-        YearOrder: values.yearOrder ?? 0,
-        ...(isEdit ? { FiscalYearID: editingYear!.id } : {}),
+        IsActive:0,
+        YearOrder: +values.yearOrder ?? 0,
+        ...(isEdit ? { FiscalYearID: editingYear!.id } : {FiscalYearID: 0}),
       };
       
 
-      const res = await apiCall(`${API_BASE}/SaveFiscalYear`, {
+      const res = await apiCall(`${API_BASE}SaveFiscalYear`, {
         method: 'POST',
         body: JSON.stringify(body),
       });
