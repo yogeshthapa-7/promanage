@@ -190,7 +190,6 @@ const DigitalBoardPage = () => {
   }
 
   const projectTitle = project.ProjectName || 'Untitled Project';
-  const projectHead = project.ProjectHeadEmpName || '—';
   const projectType =
     project.ProjectTypeName ||
     projectTypeMap[project.ProjectType ?? 0] ||
