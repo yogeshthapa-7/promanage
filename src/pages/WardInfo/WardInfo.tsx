@@ -165,7 +165,7 @@ export default function WardInfoPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
-                      Ward {ward.wardNumber || 'Untitled'}
+                      {ward.wardNumber || 'Untitled'}
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">{ward.wardCode}</p>
                   </div>
