@@ -215,7 +215,7 @@ export default function MainBranchPage(/* { disabledDepartment, defaultDepartmen
 
   return (
     <div className="print-area fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
            महाशाखा
@@ -224,13 +224,9 @@ export default function MainBranchPage(/* { disabledDepartment, defaultDepartmen
            महाशाखा अभिलेखहरू विभागसँग सम्बन्धित गरी व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
-        <button
-          onClick={handleAddNew}
-          className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium px-5 py-2.5 rounded-full shadow-xs transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95 no-print"
-        >
-          <Plus className="w-4 h-4" />
+        <Button type="primary" onClick={handleAddNew} icon={<Plus className="w-4 h-4" />} className="no-print">
           Add New Main Branch
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-4 no-print">
