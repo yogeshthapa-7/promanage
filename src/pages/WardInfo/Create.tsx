@@ -111,7 +111,7 @@ const handleSubmit = async () => {
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Ward Number <span className="text-rose-500">*</span>
+                Ward Number / Name <span className="text-rose-500">*</span>
               </span>
             }
             name="wardNumber"

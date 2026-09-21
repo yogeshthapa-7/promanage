@@ -45,11 +45,11 @@ function buildSearchBody(params: FetchWardsParams) {
       length: params.length,
       search: { value: '', regex: '' },
     },
-    param: {
-      WardInfoID: 0,
-      WardNumber: '',
-      WardCode: params.search.trim() || '',
-    },
+      param: {
+        WardInfoID: 0,
+        WardNumber: params.search.trim() || '',
+        WardCode: '',
+      },
   };
 }
 
