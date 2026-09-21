@@ -57,7 +57,14 @@ function fetchBranchesPage(params: PaginatedListParams): Promise<{ items: Branch
   }));
 }
 
-export default function BranchPage() {
+interface BranchPageProps {
+  disabledMainBranch?: boolean;
+  defaultMainBranchId?: string | number;
+  disabledDepartment?: boolean;
+  defaultDepartmentId?: string | number;
+}
+
+export default function BranchPage({ disabledMainBranch, defaultMainBranchId, disabledDepartment, defaultDepartmentId }: BranchPageProps) {
   const queryClient = useQueryClient();
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -407,6 +414,10 @@ export default function BranchPage() {
         onClose={() => setShowFormModal(false)}
         onSuccess={refreshBranches}
         editingBranch={editingBranch}
+        disabledMainBranch={disabledMainBranch}
+        defaultMainBranchId={defaultMainBranchId}
+        disabledDepartment={disabledDepartment}
+        defaultDepartmentId={defaultDepartmentId}
       />
     </div>
   );

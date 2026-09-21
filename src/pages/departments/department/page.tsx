@@ -21,6 +21,7 @@ import { apiCall } from '@/lib/api';
 import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
+import { getParsedClientConfig } from '@/lib/client-config';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { exportCsv } from '@/lib/csv';
 import * as XLSX from 'xlsx';
@@ -56,7 +57,22 @@ export default function DepartmentPage() {
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>('department');
+  const { localBodyLevel } = getParsedClientConfig();
+
+  const allTabs = [
+    { key: 'department' as const, label: 'विभाग' },
+    { key: 'mainbranch' as const, label: 'महाशाखा' },
+    { key: 'branch' as const, label: 'शाखा' },
+  ];
+
+  const visibleTabs = localBodyLevel === 3
+    ? allTabs.slice(2)
+    : localBodyLevel === 2
+      ? allTabs.slice(1)
+      : allTabs;
+
+  const initialTab = visibleTabs[0]?.key ?? 'department';
+  const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>(initialTab);
   const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
   const [deptNameLoading, setDeptNameLoading] = useState(false);
 
@@ -251,11 +267,7 @@ export default function DepartmentPage() {
       
       {/* 2. Tabs */}
       <div className="flex items-center gap-0 border-b border-slate-200 no-print">
-        {([
-          { key: 'department' as const, label: 'विभाग' },
-          { key: 'mainbranch' as const, label: 'महाशाखा' },
-          { key: 'branch' as const, label: 'शाखा' },
-        ]).map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
@@ -471,12 +483,15 @@ export default function DepartmentPage() {
 
       {activeTab === 'mainbranch' && (
         <div className="print-area">
-          <MainBranchPage />
+          <MainBranchPage disabledDepartment={localBodyLevel >= 2} />
         </div>
       )}
       {activeTab === 'branch' && (
         <div className="print-area">
-          <BranchPage />
+          <BranchPage
+            disabledMainBranch={localBodyLevel >= 3}
+            disabledDepartment={localBodyLevel >= 3}
+          />
         </div>
       )}
 

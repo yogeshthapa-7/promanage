@@ -212,8 +212,8 @@ export default function BudgetPage() {
       </div>
       <hr className="border-slate-200 my-6" />
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
-        <div>
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-6 md:items-end">
+        <div className="md:col-span-2">
           <div className="mb-1 text-sm font-medium text-slate-500">Fiscal Year</div>
           <Select
             value={selectedFiscalYearId}
@@ -228,7 +228,7 @@ export default function BudgetPage() {
             className="w-full"
           />
         </div>
-        <div>
+        <div className="md:col-span-2">
           <div className="mb-1 text-sm font-medium text-slate-500">Budget Name</div>
           <div className="flex gap-2">
             <SearchInput
@@ -244,7 +244,7 @@ export default function BudgetPage() {
               }}
               placeholder="Search by budget name..."
               containerClassName="flex-1"
-              className="w-full"
+              className="flex-row w-[350px]"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>

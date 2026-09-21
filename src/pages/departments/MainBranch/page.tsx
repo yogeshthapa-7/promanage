@@ -50,7 +50,12 @@ function fetchMainBranchesPage(params: PaginatedListParams): Promise<{ items: Ma
   }));
 }
 
-export default function MainBranchPage() {
+interface MainBranchPageProps {
+  disabledDepartment?: boolean;
+  defaultDepartmentId?: string | number;
+}
+
+export default function MainBranchPage({ disabledDepartment, defaultDepartmentId }: MainBranchPageProps) {
   const queryClient = useQueryClient();
   const [editingBranch, setEditingBranch] = useState<MainBranch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -397,6 +402,8 @@ export default function MainBranchPage() {
         onClose={() => setShowFormModal(false)}
         onSuccess={refreshMainBranches}
         editingBranch={editingBranch}
+        disabledDepartment={disabledDepartment}
+        defaultDepartmentId={defaultDepartmentId}
       />
     </div>
   );

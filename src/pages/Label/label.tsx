@@ -109,7 +109,7 @@ export default function LabelPage() {
       </div>
       <hr className="border-slate-200 my-6" />
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 md:items-end">
         <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Label Name</div>
           <div className="flex gap-2">
@@ -125,7 +125,7 @@ export default function LabelPage() {
                   }, 400);
               }}
               placeholder="Search by label name..."
-              containerClassName="w-48"
+              containerClassName="flex-row w-[300px]"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>
