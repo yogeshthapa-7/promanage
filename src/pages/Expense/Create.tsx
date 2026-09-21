@@ -161,10 +161,16 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Fiscal Year
+                Fiscal Year <span className="text-rose-500">*</span>
               </span>
             }
             name="fiscal_year"
+            rules = {[
+              {
+                required: true, 
+                message: 'Please select fiscal year'
+              }
+            ]}
           >
             <Select
               placeholder="Select fiscal year"

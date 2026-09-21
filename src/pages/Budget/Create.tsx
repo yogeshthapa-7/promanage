@@ -142,7 +142,7 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBu
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Fiscal Year
+                Fiscal Year <span className="text-rose-500">*</span>
               </span>
             }
             name="fiscal_year"

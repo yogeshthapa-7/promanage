@@ -142,10 +142,13 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Fiscal Year
+                Fiscal Year <span className="text-rose-500">*</span>
               </span>
             }
             name="fiscal_year"
+            rules = {[
+              {required: true, message: 'please select fiscal year'}
+            ]}
           >
             <Select
               placeholder="Select fiscal year"
