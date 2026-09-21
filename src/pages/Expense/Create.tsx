@@ -6,6 +6,7 @@ import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
+import DocumentUploadField from '@/components/DocumentUploadField';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -14,6 +15,7 @@ interface Expense {
   title: string;
   code: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -28,68 +30,70 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (open && !editingExpense) {
-      fetchFiscalYearSelectList().then((options) => {
-        setFiscalYearOptions(options);
-        if (options.length > 0) {
-          form.setFieldsValue({ fiscal_year: options[0].value });
-        }
-      });
-    }
-  }, [open, editingExpense, form]);
-
-  useEffect(() => {
-    if (open) {
+    if (!open) return;
+    fetchFiscalYearSelectList().then((options) => {
+      setFiscalYearOptions(options);
       if (editingExpense) {
-        form.setFieldsValue({ 
+        form.setFieldsValue({
           title: editingExpense.title,
           code: editingExpense.code,
-          fiscal_year: editingExpense.fiscal_year,
+          fiscal_year: editingExpense.fiscal_year_id !== undefined ? String(editingExpense.fiscal_year_id) : editingExpense.fiscal_year,
           document_url: editingExpense.document_url,
         });
+        setDocumentUrl(editingExpense.document_url || '');
       } else {
         form.resetFields();
+        form.setFieldsValue({ fiscal_year: options[0]?.value });
+        setDocumentUrl('');
       }
-    }
-  }, [open, form, editingExpense]);
+    });
+  }, [open, editingExpense, form]);
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+   const handleSubmit = async () => {
+      try {
+        const values = await form.validateFields();
+        setLoading(true);
 
-      const isEdit = !!editingExpense;
-      const body = {
-        ExpenseInfoID: isEdit ? editingExpense?.id : 0,
-        ExpenseTitle: values.title,
-        ExpenseCode: values.code,
-        FiscalYear: values.fiscal_year || '',
-        DocumentUrl: values.document_url || '',
-      };
+        const isEdit = !!editingExpense;
+        let documentPath = documentUrl || '';
+        if (documentPath.startsWith(API_BASE + '/')) {
+          documentPath = documentPath.replace(API_BASE + '/', '');
+        }
 
-      const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
+        const body = {
+          ExpenseInfoID: isEdit ? editingExpense?.id : 0,
+          ExpenseTitle: values.title,
+          ExpenseCode: values.code,
+          FiscalYearID: values.fiscal_year ? Number(values.fiscal_year) : 0,
+          DocumentUrl: documentPath,
+        };
 
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+       const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
+         method: 'POST',
+         body: JSON.stringify(body),
+       });
 
-      message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
-      form.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      onClose();
-      onSuccess();
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message || 'Failed to save expense');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+        message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
+        form.resetFields();
+        setDocumentUrl('');
+        queryClient.invalidateQueries({ queryKey: ['expenses'], exact: false });
+       onClose();
+       onSuccess();
+     } catch (err) {
+       if (err instanceof Error) {
+         message.error(err.message || 'Failed to save expense');
+       }
+     } finally {
+       setLoading(false);
+     }
+   };
 
   return (
       <Drawer
@@ -154,14 +158,16 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Document URL
+                Document
               </span>
             }
-            name="document_url"
           >
-            <Input
-              placeholder="https://example.com/expense-document.pdf"
-              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            <DocumentUploadField
+              value={documentUrl}
+              onChange={setDocumentUrl}
+              uploading={uploading}
+              onUploadingChange={setUploading}
+              accept="application/pdf"
             />
           </Form.Item>
         </div>

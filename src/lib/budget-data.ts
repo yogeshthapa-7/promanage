@@ -5,6 +5,7 @@ export interface Budget {
   id: number;
   name: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -20,6 +21,8 @@ interface ApiBudgetRow {
   BudgetInfoID: number;
   BudgetInfoName: string;
   FiscalYear?: string;
+  FiscalYearID?: number;
+  FiscalYearName?: string;
   DocumentUrl?: string;
 }
 
@@ -95,11 +98,14 @@ async function doFetchBudgets(
 }
 
 function mapApiRowToBudget(row: ApiBudgetRow): Budget {
+  const basePath = row.DocumentUrl;
+  const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   return {
     SN: row.SN,
     id: row.BudgetInfoID,
     name: row.BudgetInfoName,
-    fiscal_year: row.FiscalYear,
-    document_url: row.DocumentUrl,
+    fiscal_year: row.FiscalYearName || row.FiscalYear,
+    fiscal_year_id: row.FiscalYearID,
+    document_url: documentUrl,
   };
 }

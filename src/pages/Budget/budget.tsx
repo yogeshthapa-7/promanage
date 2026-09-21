@@ -31,6 +31,17 @@ function fetchBudgetsPage(params: PaginatedListParams): Promise<{ items: Budget[
   }));
 }
 
+const fiscalYearNameCache = new Map<string | number, string>();
+function getFiscalYearName(budget: Budget, options: FiscalYearSelectOption[]): string {
+  const raw = budget.fiscal_year_id ?? budget.fiscal_year;
+  if (raw === undefined || raw === null) return '—';
+  if (fiscalYearNameCache.has(raw)) return fiscalYearNameCache.get(raw)!;
+  const match = options.find((opt) => opt.value === String(raw));
+  const name = match?.label || String(raw);
+  fiscalYearNameCache.set(raw, name);
+  return name;
+}
+
 export default function BudgetPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,6 +54,10 @@ export default function BudgetPage() {
   const [showViewDrawer, setShowViewDrawer] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    fiscalYearNameCache.clear();
+  }, [fiscalYearOptions]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -184,7 +199,7 @@ export default function BudgetPage() {
             className="w-full"
           />
         </div>
-        <div className="md:col-span-2">
+        <div>
           <div className="mb-1 text-sm font-medium text-slate-500">Budget Name</div>
           <div className="flex gap-2">
             <SearchInput
@@ -199,7 +214,7 @@ export default function BudgetPage() {
                   }, 400);
               }}
               placeholder="Search by budget name..."
-              containerClassName="flex-1"
+              containerClassName="w-48"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>
@@ -260,7 +275,7 @@ export default function BudgetPage() {
                           <div className="font-semibold text-slate-900">{budget.name || 'Untitled'}</div>
                         </td>
                         <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                          {budget.fiscal_year || '—'}
+                          {getFiscalYearName(budget, fiscalYearOptions)}
                         </td>
                         <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
                           {budget.document_url ? (
@@ -356,7 +371,7 @@ export default function BudgetPage() {
                         <div className="font-semibold text-slate-900">{budget.name || 'Untitled'}</div>
                       </td>
                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                        {budget.fiscal_year || '—'}
+                        {getFiscalYearName(budget, fiscalYearOptions)}
                       </td>
                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
                         {budget.document_url ? (
@@ -432,7 +447,7 @@ export default function BudgetPage() {
                 <div className="space-y-2.5 mb-5">
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Fiscal Year</span>
-                    <span className="font-semibold text-slate-700 truncate">{budget.fiscal_year || '—'}</span>
+                    <span className="font-semibold text-slate-700 truncate">{getFiscalYearName(budget, fiscalYearOptions)}</span>
                   </div>
                 </div>
 
@@ -497,6 +512,7 @@ export default function BudgetPage() {
         open={showViewDrawer}
         onClose={() => { setShowViewDrawer(false); setViewingBudget(null); }}
         budget={viewingBudget}
+        fiscalYearOptions={fiscalYearOptions}
       />
 
       <CreateBudgetDrawer

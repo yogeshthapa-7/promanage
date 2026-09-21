@@ -6,6 +6,7 @@ import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
+import DocumentUploadField from '@/components/DocumentUploadField';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -13,6 +14,7 @@ interface Policy {
   id: number;
   name: string;
   fiscal_year?: string;
+  fiscal_year_id?: number;
   document_url?: string;
 }
 
@@ -27,66 +29,68 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (open && !editingPolicy) {
-      fetchFiscalYearSelectList().then((options) => {
-        setFiscalYearOptions(options);
-        if (options.length > 0) {
-          form.setFieldsValue({ fiscal_year: options[0].value });
-        }
-      });
-    }
-  }, [open, editingPolicy, form]);
-
-  useEffect(() => {
-    if (open) {
+    if (!open) return;
+    fetchFiscalYearSelectList().then((options) => {
+      setFiscalYearOptions(options);
       if (editingPolicy) {
-        form.setFieldsValue({ 
+        form.setFieldsValue({
           name: editingPolicy.name,
-          fiscal_year: editingPolicy.fiscal_year,
+          fiscal_year: editingPolicy.fiscal_year_id !== undefined ? String(editingPolicy.fiscal_year_id) : editingPolicy.fiscal_year,
           document_url: editingPolicy.document_url,
         });
+        setDocumentUrl(editingPolicy.document_url || '');
       } else {
         form.resetFields();
+        form.setFieldsValue({ fiscal_year: options[0]?.value });
+        setDocumentUrl('');
       }
-    }
-  }, [open, form, editingPolicy]);
+    });
+  }, [open, editingPolicy, form]);
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+   const handleSubmit = async () => {
+      try {
+        const values = await form.validateFields();
+        setLoading(true);
 
-      const isEdit = !!editingPolicy;
-      const body = {
-        PolicyProgramID: isEdit ? editingPolicy?.id : 0,
-        PolicyProgramName: values.name,
-        FiscalYear: values.fiscal_year || '',
-        DocumentUrl: values.document_url || '',
-      };
+        const isEdit = !!editingPolicy;
+        let documentPath = documentUrl || '';
+        if (documentPath.startsWith(API_BASE + '/')) {
+          documentPath = documentPath.replace(API_BASE + '/', '');
+        }
 
-      const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
+        const body = {
+          PolicyProgramID: isEdit ? editingPolicy?.id : 0,
+          PolicyProgramName: values.name,
+          FiscalYearID: values.fiscal_year ? Number(values.fiscal_year) : 0,
+          DocumentUrl: documentPath,
+        };
 
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+       const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
+         method: 'POST',
+         body: JSON.stringify(body),
+       });
 
-      message.success(isEdit ? 'Policy updated successfully' : 'Policy created successfully');
-      form.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['policies'] });
-      onClose();
-      onSuccess();
-    } catch (err) {
-      if (err instanceof Error) {
-        message.error(err.message || 'Failed to save policy');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+        message.success(isEdit ? 'Policy updated successfully' : 'Policy created successfully');
+        form.resetFields();
+        setDocumentUrl('');
+        queryClient.invalidateQueries({ queryKey: ['policies'], exact: false });
+       onClose();
+       onSuccess();
+     } catch (err) {
+       if (err instanceof Error) {
+         message.error(err.message || 'Failed to save policy');
+       }
+     } finally {
+       setLoading(false);
+     }
+   };
 
   return (
       <Drawer
@@ -134,14 +138,16 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
           <Form.Item
             label={
               <span className="text-sm font-semibold text-foreground">
-                Document URL
+                Document
               </span>
             }
-            name="document_url"
           >
-            <Input
-              placeholder="https://example.com/policy-document.pdf"
-              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
+            <DocumentUploadField
+              value={documentUrl}
+              onChange={setDocumentUrl}
+              uploading={uploading}
+              onUploadingChange={setUploading}
+              accept="application/pdf"
             />
           </Form.Item>
         </div>

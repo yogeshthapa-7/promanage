@@ -22,6 +22,7 @@ import ClientPage from './pages/Client/client';
 import LabelPage from './pages/Label/label';
 import WardPage from './pages/WardInfo/WardInfo';
 import UserProfilePage from './pages/profile/page';
+import FiscalYearPage from './pages/fiscal_year/fiscal_year';
 
 function RootApp() {
   return (
@@ -147,6 +148,11 @@ function RootApp() {
           <Route path="/WardInfo" element={
             <ProtectedRoute>
               <AppLayout showTopbar={false}><WardPage /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/FiscalYear" element={
+            <ProtectedRoute>
+              <AppLayout showTopbar={false}><FiscalYearPage /></AppLayout>
             </ProtectedRoute>
           } />
 

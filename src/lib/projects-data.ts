@@ -120,6 +120,17 @@ export interface ApiProject {
   CanChangeStatus: boolean;
   ClientName?: string | null;
   ClientInfoName?: string | null;
+  ClientInfo?: {
+    ClientInfoID: number;
+    ClientName: string;
+    ClientCode: string;
+    ContactPerson: string;
+    ContactNo: string;
+    Email: string;
+    Address: string;
+    ClientStatus: number;
+    Logo: string;
+  };
 }
 
 const projectTypeMap: Record<number, string> = {

@@ -32,6 +32,17 @@ function fetchExpensesPage(params: PaginatedListParams): Promise<{ items: Expens
   }));
 }
 
+const fiscalYearNameCache = new Map<string | number, string>();
+function getFiscalYearName(expense: Expense, options: FiscalYearSelectOption[]): string {
+  const raw = expense.fiscal_year_id ?? expense.fiscal_year;
+  if (raw === undefined || raw === null) return '—';
+  if (fiscalYearNameCache.has(raw)) return fiscalYearNameCache.get(raw)!;
+  const match = options.find((opt) => opt.value === String(raw));
+  const name = match?.label || String(raw);
+  fiscalYearNameCache.set(raw, name);
+  return name;
+}
+
 export default function ExpensePage() {
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState('');
@@ -48,6 +59,10 @@ export default function ExpensePage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const expenseCodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    fiscalYearNameCache.clear();
+  }, [fiscalYearOptions]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -273,7 +288,7 @@ export default function ExpensePage() {
                           {expense.code || '—'}
                         </td>
                         <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                          {expense.fiscal_year || '—'}
+                          {getFiscalYearName(expense, fiscalYearOptions)}
                         </td>
                         <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
                           {expense.document_url ? (
@@ -373,7 +388,7 @@ export default function ExpensePage() {
                         {expense.code || '—'}
                       </td>
                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                        {expense.fiscal_year || '—'}
+                        {getFiscalYearName(expense, fiscalYearOptions)}
                       </td>
                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
                         {expense.document_url ? (
@@ -453,7 +468,7 @@ export default function ExpensePage() {
                   </div>
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Fiscal Year</span>
-                    <span className="font-semibold text-slate-700 truncate">{expense.fiscal_year || '—'}</span>
+                    <span className="font-semibold text-slate-700 truncate">{getFiscalYearName(expense, fiscalYearOptions)}</span>
                   </div>
                 </div>
 
@@ -518,6 +533,7 @@ export default function ExpensePage() {
         open={showViewDrawer}
         onClose={() => { setShowViewDrawer(false); setViewingExpense(null); }}
         expense={viewingExpense}
+        fiscalYearOptions={fiscalYearOptions}
       />
 
       <CreateExpenseDrawer

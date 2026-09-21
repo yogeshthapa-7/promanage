@@ -16,7 +16,6 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
-import { mapApiProjectToProject } from '@/lib/projects-data';
 import DateConverter from '@remotemerge/nepali-date-converter';
 import * as XLSX from 'xlsx';
 import { message } from 'antd';
