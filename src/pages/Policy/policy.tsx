@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -88,6 +88,23 @@ export default function PolicyPage() {
   const handleSearch = () => {
     setCurrentPage(1);
   };
+
+  const handleSuccess = useCallback((savedPolicy?: { id?: number; document_url?: string; isNew?: boolean }) => {
+    if (savedPolicy?.id && savedPolicy?.document_url) {
+      queryClient.setQueriesData({ queryKey: ['policies'] }, (old: any) => {
+        if (!old || !Array.isArray(old?.items)) return old;
+        return {
+          ...old,
+          items: old.items.map((item: Policy) =>
+            item.id === savedPolicy.id ? { ...item, document_url: savedPolicy.document_url } : item
+          ),
+        };
+      });
+    }
+    if (savedPolicy?.isNew) {
+      refetch();
+    }
+  }, [queryClient, refetch]);
 
   const handleAddNew = () => {
     setEditingPolicy(null);
@@ -497,7 +514,7 @@ export default function PolicyPage() {
       <CreatePolicyDrawer
         open={showFormModal}
         onClose={() => { setShowFormModal(false); setEditingPolicy(null); }}
-        onSuccess={refetch}
+        onSuccess={handleSuccess}
         editingPolicy={editingPolicy}
       />
     </div>

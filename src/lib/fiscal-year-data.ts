@@ -21,6 +21,7 @@ interface ApiFiscalYearRow {
   EndDate: string;
   Status: number;
   IsCurrent: number;
+  YearOrder?: number;
 }
 
 export interface FiscalYearItem {
@@ -31,10 +32,10 @@ export interface FiscalYearItem {
   endDate: string;
   startDateBs: string;
   endDateBs: string;
-  status: 'Active' | 'Inactive';
+  yearOrder?: number;
 }
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '').replace(/\/api$/, '');
 const SELECT_LIST_URL = `${API_BASE}/FiscalYear/SelectList`;
 const SERVER_SEARCH_URL = `${API_BASE}/FiscalYear/ServerSearch`;
 
@@ -166,9 +167,10 @@ async function doFetchFiscalYears(
 function toBsString(adStr: string): string {
   const bs = new DateConverter(adStr).toBs();
   if (typeof bs === 'string') return bs;
-  const y = bs.year ?? bs.y ?? 0;
-  const m = String(bs.month ?? bs.m ?? 1).padStart(2, '0');
-  const d = String(bs.date ?? bs.d ?? 1).padStart(2, '0');
+  const obj = bs as Record<string, unknown>;
+  const y = (typeof obj.year === 'number' ? obj.year : typeof obj.y === 'number' ? obj.y : 0) as number;
+  const m = String(typeof obj.month === 'number' ? obj.month : typeof obj.m === 'number' ? obj.m : 1).padStart(2, '0');
+  const d = String(typeof obj.date === 'number' ? obj.date : typeof obj.d === 'number' ? obj.d : 1).padStart(2, '0');
   return `${y}/${m}/${d}`;
 }
 
@@ -183,6 +185,6 @@ function mapApiRowToFiscalYear(row: ApiFiscalYearRow): FiscalYearItem {
     endDate: row.EndDate,
     startDateBs,
     endDateBs,
-    status: row.Status === 1 ? 'Active' : 'Inactive',
+    yearOrder: row.YearOrder,
   };
 }

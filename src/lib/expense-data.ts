@@ -25,6 +25,7 @@ interface ApiExpenseRow {
   FiscalYear?: string;
   FiscalYearID?: number;
   FiscalYearName?: string;
+  FileUpload?: string;
   DocumentUrl?: string;
 }
 
@@ -102,7 +103,7 @@ async function doFetchExpenses(
 }
 
 function mapApiRowToExpense(row: ApiExpenseRow): Expense {
-  const basePath = row.DocumentUrl;
+  const basePath = row.FileUpload || row.DocumentUrl || '';
   const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   return {
     SN: row.SN,

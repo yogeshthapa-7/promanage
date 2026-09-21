@@ -21,7 +21,7 @@ interface Policy {
 interface CreatePolicyDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess?: (savedData?: { id?: number; document_url?: string; isNew?: boolean }) => void;
   editingPolicy?: Policy | null;
 }
 
@@ -67,22 +67,41 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
           PolicyProgramID: isEdit ? editingPolicy?.id : 0,
           PolicyProgramName: values.name,
           FiscalYearID: values.fiscal_year ? Number(values.fiscal_year) : 0,
-          DocumentUrl: documentPath,
+          FileUpload: documentPath,
         };
 
-       const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
-         method: 'POST',
-         body: JSON.stringify(body),
-       });
+        const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
 
-       if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+        let savedData: any = {};
+        try {
+          savedData = await res.json();
+        } catch {
+          // ignore parse error
+        }
 
         message.success(isEdit ? 'Policy updated successfully' : 'Policy created successfully');
         form.resetFields();
         setDocumentUrl('');
         queryClient.invalidateQueries({ queryKey: ['policies'], exact: false });
-       onClose();
-       onSuccess();
+
+        const savedId =
+          savedData?.Data?.id ??
+          savedData?.id ??
+          savedData?.PolicyProgramID ??
+          editingPolicy?.id;
+
+        onSuccess?.({
+          id: savedId,
+          document_url: documentUrl,
+          isNew: !isEdit,
+        });
+
+        onClose();
      } catch (err) {
        if (err instanceof Error) {
          message.error(err.message || 'Failed to save policy');
@@ -142,13 +161,13 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
               </span>
             }
           >
-            <DocumentUploadField
-              value={documentUrl}
-              onChange={setDocumentUrl}
-              uploading={uploading}
-              onUploadingChange={setUploading}
-              accept="application/pdf"
-            />
+             <DocumentUploadField
+               value={documentUrl}
+               onChange={setDocumentUrl}
+               uploading={uploading}
+               onUploadingChange={setUploading}
+               accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp"
+             />
           </Form.Item>
         </div>
       </Form>
