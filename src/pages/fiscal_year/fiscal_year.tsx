@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus, LayoutList, LayoutGrid, Pencil, Trash2 } from 'lucide-react';
-import { Modal, message } from 'antd';
+import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/lib/api';
 import Card from '@/components/ui/Card';
@@ -10,7 +10,7 @@ import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
 import CreateFiscalYearDrawer from './Create';
-import { fetchFiscalYears, type FiscalYearItem } from '@/lib/fiscal-year-data';
+import { fetchFiscalYears, fetchFiscalYearSelectList, type FiscalYearItem, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -31,11 +31,25 @@ function fetchFiscalYearsPage(params: PaginatedListParams): Promise<{ items: Fis
 export default function FiscalYearPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFiscalYearId, setSelectedFiscalYearId] = useState<string | undefined>(undefined);
+  const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
+  const [fiscalYearLoading, setFiscalYearLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<FiscalYearItem | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debouncedSearchQuery = searchQuery.trim();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setFiscalYearLoading(true);
+    fetchFiscalYearSelectList(controller.signal)
+      .then((options) => setFiscalYearOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setFiscalYearLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (debounceTimerRef.current) {
@@ -68,10 +82,6 @@ export default function FiscalYearPage() {
       search: debouncedSearchQuery,
     },
   });
-
-  const handleSearch = () => {
-    setCurrentPage(1);
-  };
 
   const handleAddNew = () => {
     setEditingYear(null);
@@ -153,16 +163,20 @@ export default function FiscalYearPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
         <div>
-          <div className="mb-1 text-sm font-medium text-slate-500">Search Fiscal Year</div>
-          <div className="flex gap-2">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search fiscal year..."
-              containerClassName="w-48"
-            />
-            <Button type="primary" onClick={handleSearch}>Search</Button>
-          </div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Fiscal Year</div>
+          <Select
+            value={selectedFiscalYearId}
+            onChange={(value) => {
+              setSelectedFiscalYearId(value);
+              const selected = fiscalYearOptions.find((opt) => opt.value === value);
+              setSearchQuery(selected?.label || '');
+            }}
+            options={fiscalYearOptions}
+            loading={fiscalYearLoading}
+            placeholder="Select fiscal year"
+            allowClear
+            className="w-full"
+          />
         </div>
       </div>
 

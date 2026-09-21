@@ -85,6 +85,14 @@ export default function PolicyPage() {
     extraDeps: [searchQuery, fiscalYearId],
   });
 
+  const prevFiscalYearIdRef = useRef(fiscalYearId);
+  useEffect(() => {
+    if (prevFiscalYearIdRef.current !== fiscalYearId) {
+      prevFiscalYearIdRef.current = fiscalYearId;
+      refetch();
+    }
+  }, [fiscalYearId, refetch]);
+
   const handleSearch = () => {
     setCurrentPage(1);
   };
@@ -226,7 +234,8 @@ export default function PolicyPage() {
                   }, 400);
               }}
               placeholder="Search by policy name..."
-              containerClassName="w-48"
+              containerClassName="flex-1"
+              className="w-[100%]"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>

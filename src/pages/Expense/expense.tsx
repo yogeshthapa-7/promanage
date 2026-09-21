@@ -95,6 +95,14 @@ export default function ExpensePage() {
     extraDeps: [searchQuery, fiscalYearId, expenseCodeQuery],
   });
 
+  const prevFiscalYearIdRef = useRef(fiscalYearId);
+  useEffect(() => {
+    if (prevFiscalYearIdRef.current !== fiscalYearId) {
+      prevFiscalYearIdRef.current = fiscalYearId;
+      refetch();
+    }
+  }, [fiscalYearId, refetch]);
+
   const handleSearch = () => {
     setCurrentPage(1);
   };
@@ -256,6 +264,7 @@ export default function ExpensePage() {
               }}
               placeholder="Search by expense title..."
               containerClassName="flex-1"
+              className="w-full"
             />
             <Button type="primary" onClick={handleSearch}>Search</Button>
           </div>

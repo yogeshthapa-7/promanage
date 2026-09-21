@@ -116,7 +116,7 @@ export default function OrganizationPage() {
       </div>
       <hr className="border-slate-200 my-6" />
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-5 md:items-end">
         <div className="md:col-span-2">
           <div className="mb-1 text-sm font-medium text-slate-500">Title</div>
           <div className="flex gap-2">

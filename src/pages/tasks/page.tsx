@@ -290,45 +290,52 @@ export default function TasksPage() {
         </Card>
       )}
 
-      <div className="flex justify-end mb-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Task Name</label>
-            <Select
-              value={selectedTaskId}
-              onChange={handleTaskSelect}
-              placeholder="Select task"
-              options={taskOptions}
-              className="w-40 sm:w-48"
-              loading={selectLoading}
-              allowClear
-              showSearch
-              optionFilterProp="label"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Project Name</label>
-            <Select
-              value={selectedProjectId}
-              onChange={handleProjectSelect}
-              placeholder="Select project"
-              options={projectOptions}
-              className="w-40 sm:w-48"
-              loading={selectLoading}
-              allowClear
-              showSearch
-              optionFilterProp="label"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Manager Name</label>
-            <SearchInput
-              value={managerNameSearch}
-              onChange={handleManagerNameSearchChange}
-              placeholder="Search manager name..."
-              containerClassName="w-40 sm:w-48"
-            />
-          </div>
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+        <div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Task Name</div>
+          <Select
+            value={selectedTaskId}
+            onChange={handleTaskSelect}
+            placeholder="Select task"
+            options={taskOptions}
+            className="w-full"
+            loading={selectLoading}
+            allowClear
+            showSearch
+            optionFilterProp="label"
+          />
+        </div>
+        <div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Project Name</div>
+          <Select
+            value={selectedProjectId}
+            onChange={handleProjectSelect}
+            placeholder="Select project"
+            options={projectOptions}
+            className="w-full"
+            loading={selectLoading}
+            allowClear
+            showSearch
+            optionFilterProp="label"
+          />
+        </div>
+        <div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Manager Name</div>
+          <SearchInput
+            value={managerNameSearch}
+            onChange={handleManagerNameSearchChange}
+            placeholder="Search manager name..."
+            containerClassName="w-full"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button type="primary" onClick={() => setCurrentPage(1)}>Search</Button>
+          <Button onClick={() => {
+            setSelectedTaskId(undefined);
+            setSelectedProjectId(undefined);
+            setManagerNameSearch('');
+            setCurrentPage(1);
+          }}>Clear</Button>
         </div>
       </div>
 
