@@ -33,7 +33,8 @@ function fetchPoliciesPage(params: PaginatedListParams): Promise<{ items: Policy
 
 const fiscalYearNameCache = new Map<string | number, string>();
 function getFiscalYearName(policy: Policy, options: FiscalYearSelectOption[]): string {
-  const raw = policy.fiscal_year_id ?? policy.fiscal_year;
+  if (policy.fiscal_year) return policy.fiscal_year;
+  const raw = policy.fiscal_year_id;
   if (raw === undefined || raw === null) return '—';
   if (fiscalYearNameCache.has(raw)) return fiscalYearNameCache.get(raw)!;
   const match = options.find((opt) => opt.value === String(raw));
@@ -49,7 +50,7 @@ export default function PolicyPage() {
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
   const [fiscalYearLoading, setFiscalYearLoading] = useState(false);
   const selectedFiscalYear = fiscalYearOptions.find((opt) => opt.value === fiscalYearId);
-  const fiscalYearName = selectedFiscalYear?.label || '';
+  const selectedFiscalYearId = selectedFiscalYear?.value || '';
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<Policy | null>(null);
   const [viewingPolicy, setViewingPolicy] = useState<Policy | null>(null);
@@ -81,22 +82,22 @@ export default function PolicyPage() {
     fetcher: (params) => fetchPoliciesPage({ 
       ...params, 
       search: searchQuery,
-      fiscalYear: fiscalYearName,
+      fiscalYear: selectedFiscalYearId,
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery, fiscalYearName],
+    extraDeps: [searchQuery, selectedFiscalYearId],
     extraParams: {
-      fiscalYear: fiscalYearName,
+      fiscalYear: selectedFiscalYearId,
     },
   });
 
-  const prevFiscalYearNameRef = useRef(fiscalYearName);
+  const prevFiscalYearIdRef = useRef(selectedFiscalYearId);
   useEffect(() => {
-    if (prevFiscalYearNameRef.current !== fiscalYearName) {
-      prevFiscalYearNameRef.current = fiscalYearName;
+    if (prevFiscalYearIdRef.current !== selectedFiscalYearId) {
+      prevFiscalYearIdRef.current = selectedFiscalYearId;
       refetch();
     }
-  }, [fiscalYearName, refetch]);
+  }, [selectedFiscalYearId, refetch]);
 
   const handleSearch = () => {
     setCurrentPage(1);

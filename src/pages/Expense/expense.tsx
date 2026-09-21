@@ -34,7 +34,8 @@ function fetchExpensesPage(params: PaginatedListParams): Promise<{ items: Expens
 
 const fiscalYearNameCache = new Map<string | number, string>();
 function getFiscalYearName(expense: Expense, options: FiscalYearSelectOption[]): string {
-  const raw = expense.fiscal_year_id ?? expense.fiscal_year;
+  if (expense.fiscal_year) return expense.fiscal_year;
+  const raw = expense.fiscal_year_id;
   if (raw === undefined || raw === null) return '—';
   if (fiscalYearNameCache.has(raw)) return fiscalYearNameCache.get(raw)!;
   const match = options.find((opt) => opt.value === String(raw));
@@ -51,7 +52,7 @@ export default function ExpensePage() {
   const [fiscalYearOptions, setFiscalYearOptions] = useState<FiscalYearSelectOption[]>([]);
   const [fiscalYearLoading, setFiscalYearLoading] = useState(false);
   const selectedFiscalYear = fiscalYearOptions.find((opt) => opt.value === selectedFiscalYearId);
-  const fiscalYearName = selectedFiscalYear?.label || '';
+  const fiscalYearId = selectedFiscalYear?.value || '';
   const [expenseCodeInput, setExpenseCodeInput] = useState('');
   const [expenseCodeQuery, setExpenseCodeQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
@@ -90,24 +91,24 @@ export default function ExpensePage() {
     fetcher: (params) => fetchExpensesPage({ 
       ...params, 
       search: searchQuery,
-      fiscalYear: fiscalYearName,
+      fiscalYear: fiscalYearId,
       expenseCode: expenseCodeQuery,
     }),
     initialPageSize: 20,
-    extraDeps: [searchQuery, fiscalYearName, expenseCodeQuery],
+    extraDeps: [searchQuery, fiscalYearId, expenseCodeQuery],
     extraParams: {
-      fiscalYear: fiscalYearName,
+      fiscalYear: fiscalYearId,
       expenseCode: expenseCodeQuery,
     },
   });
 
-  const prevFiscalYearNameRef = useRef(fiscalYearName);
+  const prevFiscalYearIdRef = useRef(fiscalYearId);
   useEffect(() => {
-    if (prevFiscalYearNameRef.current !== fiscalYearName) {
-      prevFiscalYearNameRef.current = fiscalYearName;
+    if (prevFiscalYearIdRef.current !== fiscalYearId) {
+      prevFiscalYearIdRef.current = fiscalYearId;
       refetch();
     }
-  }, [fiscalYearName, refetch]);
+  }, [fiscalYearId, refetch]);
 
   const handleSearch = () => {
     setCurrentPage(1);
