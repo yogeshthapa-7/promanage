@@ -206,7 +206,7 @@ const DigitalBoardPage = () => {
   const clientInfo = project.ClientInfo;
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#e9eef5] px-4 py-6 sm:px-6 lg:px-10">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#e9eef5] px-4 py-3 sm:px-6 lg:px-10">
 
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-blue-200/20 blur-3xl" />
@@ -251,7 +251,7 @@ const DigitalBoardPage = () => {
         Back to Projects
       </button>
 
-      <div className="relative mx-auto mt-16 w-full max-w-[1180px]">
+      <div className="relative mx-auto mt-12 w-full max-w-[1180px]">
 
         {/* Physical shadow underneath */}
         <div
@@ -335,7 +335,7 @@ const DigitalBoardPage = () => {
 
                     {/* Left Government Logo */}
                     <div className="flex justify-center md:justify-start">
-                      <div className="flex h-[92px] w-[92px] items-center justify-center sm:h-[105px] sm:w-[105px]">
+                      <div className="flex h-[72px] w-[72px] items-center justify-center sm:h-[78px] sm:w-[78px]">
                         <img
                           src={nepallogo}
                           alt="Nepal Government"
@@ -365,7 +365,7 @@ const DigitalBoardPage = () => {
 
                     {/* Right Government Logo */}
                     <div className="flex justify-center md:justify-end">
-                      <div className="flex h-[92px] w-[92px] items-center justify-center sm:h-[105px] sm:w-[105px]">
+                      <div className="flex h-[72px] w-[72px] items-center justify-center sm:h-[78px] sm:w-[78px]">
                         <img
                           src={nepallogo}
                           alt="Nepal Government"
@@ -378,7 +378,7 @@ const DigitalBoardPage = () => {
 
                 </header>
 
-                <section className="px-5 pb-5 pt-6 text-center sm:px-8 lg:px-10">
+                <section className="px-5 pb-3 pt-4 text-center sm:px-8 lg:px-10">
 
                   <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5">
                     <BriefcaseBusiness className="h-4 w-4 text-[#164e8f]" />
@@ -390,7 +390,7 @@ const DigitalBoardPage = () => {
 
                   <h1
                     className="
-                      mt-4
+                      mt-2
                       break-words
                       text-2xl
                       font-black
@@ -404,7 +404,7 @@ const DigitalBoardPage = () => {
                     {projectTitle}
                   </h1>
 
-                  <div className="mx-auto mt-4 h-[3px] w-24 rounded-full bg-[#164e8f]" />
+                  <div className="mx-auto mt-2 h-[3px] w-24 rounded-full bg-[#164e8f]" />
 
                 </section>
 
@@ -437,7 +437,7 @@ const DigitalBoardPage = () => {
                       <div className="divide-y divide-slate-200">
 
                         {/* Project Type */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-4 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2.5 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <Building2 className="h-[18px] w-[18px]" />
@@ -460,7 +460,7 @@ const DigitalBoardPage = () => {
                         </div>
 
                         {/* Start Date */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-4 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2.5 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <CalendarDays className="h-[18px] w-[18px]" />
@@ -483,7 +483,7 @@ const DigitalBoardPage = () => {
                         </div>
 
                         {/* Duration */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-4 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2.5 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <Clock3 className="h-[18px] w-[18px]" />
@@ -506,7 +506,7 @@ const DigitalBoardPage = () => {
                         </div>
 
                         {/* Status */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-4 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2.5 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald-50 text-emerald-700">
                             <CircleCheck className="h-[18px] w-[18px]" />
@@ -563,7 +563,7 @@ const DigitalBoardPage = () => {
                       <div className="divide-y divide-slate-200">
 
                         {/* Client Name */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-3.5 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <UserRound className="h-[18px] w-[18px]" />
@@ -589,7 +589,7 @@ const DigitalBoardPage = () => {
                         </div>
 
                         {/* Contact Person */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-3.5 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <UserRound className="h-[18px] w-[18px]" />
@@ -612,7 +612,7 @@ const DigitalBoardPage = () => {
                         </div>
 
                         {/* Contact Number */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-3.5 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <Phone className="h-[18px] w-[18px]" />
@@ -635,7 +635,7 @@ const DigitalBoardPage = () => {
                         </div>
 
                         {/* Email */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-3.5 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <Mail className="h-[18px] w-[18px]" />
@@ -658,7 +658,7 @@ const DigitalBoardPage = () => {
                         </div>
 
                         {/* Address */}
-                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-3.5 sm:px-5">
+                        <div className="grid grid-cols-[42px_1fr_auto] items-center gap-3 px-4 py-2 sm:px-5">
 
                           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-[#164e8f]">
                             <MapPin className="h-[18px] w-[18px]" />
@@ -710,7 +710,7 @@ const DigitalBoardPage = () => {
 
                     </div>
 
-                    <div className="min-h-[120px] px-5 py-6 sm:px-7">
+                    <div className="min-h-[80px] px-5 py-3 sm:px-7">
 
                       <p className="whitespace-pre-wrap break-words text-sm leading-7 text-slate-700 sm:text-[15px]">
                         {project.Description || 'No description provided.'}
