@@ -31,7 +31,7 @@ function fetchFiscalYearsPage(params: PaginatedListParams): Promise<{ items: Fis
 export default function FiscalYearPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<FiscalYearItem | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

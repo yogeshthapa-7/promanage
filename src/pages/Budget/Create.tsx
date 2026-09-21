@@ -146,6 +146,9 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBu
               </span>
             }
             name="fiscal_year"
+            rules = {[
+              { required: true, message: 'Please select fiscal year' }
+            ]}
           >
             <Select
               placeholder="Select fiscal year"
