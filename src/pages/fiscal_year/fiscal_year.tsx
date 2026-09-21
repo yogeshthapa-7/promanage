@@ -74,7 +74,7 @@ export default function FiscalYearPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '').replace(/\/api$/, '');
+          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
           const res = await apiCall(`${API_BASE}/DeleteFiscalYear?id=${year.id}`, {
             method: 'GET',
           });
