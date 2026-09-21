@@ -101,9 +101,8 @@ export default function PolicyPage() {
         };
       });
     }
-    if (savedPolicy?.isNew) {
-      refetch();
-    }
+    queryClient.invalidateQueries({ queryKey: ['policies'], exact: false });
+    refetch();
   }, [queryClient, refetch]);
 
   const handleAddNew = () => {

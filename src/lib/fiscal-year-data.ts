@@ -33,6 +33,8 @@ export interface FiscalYearItem {
   startDateBs: string;
   endDateBs: string;
   yearOrder?: number;
+  isActive?: number;
+  isRunning?: number;
 }
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
@@ -168,7 +170,7 @@ async function doFetchFiscalYears(
 function toBsString(adStr: string): string {
   const bs = new DateConverter(adStr).toBs();
   if (typeof bs === 'string') return bs;
-  const obj = bs as Record<string, unknown>;
+  const obj = bs as unknown as Record<string, unknown>;
   const y = (typeof obj.year === 'number' ? obj.year : typeof obj.y === 'number' ? obj.y : 0) as number;
   const m = String(typeof obj.month === 'number' ? obj.month : typeof obj.m === 'number' ? obj.m : 1).padStart(2, '0');
   const d = String(typeof obj.date === 'number' ? obj.date : typeof obj.d === 'number' ? obj.d : 1).padStart(2, '0');

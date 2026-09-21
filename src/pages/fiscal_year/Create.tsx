@@ -5,20 +5,10 @@ import { Form, Input, Button, message, Checkbox } from 'antd';
 import Drawer from '@/components/drawer';
 import { apiCall } from '@/lib/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import { type FiscalYearItem } from '@/lib/fiscal-year-data';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
 //.replace(/\/$/, '').replace(/\/api$/, '')
-
-interface FiscalYearItem {
-  id: number;
-  name: string;
-  code: string;
-  startDate: string;
-  endDate: string;
-  isRunning?: number;
-  isActive: number;
-  yearOrder?: number;
-}
 
 interface CreateFiscalYearDrawerProps {
   open: boolean;
@@ -40,7 +30,7 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
           startDate: editingYear.startDate,
           endDate: editingYear.endDate,
           isRunning: editingYear.isRunning ?? 0,
-          yearOrder: +editingYear.yearOrder ?? 0,
+          yearOrder: Number(editingYear.yearOrder ?? 0),
         });
       } else {
         form.resetFields();
@@ -62,7 +52,7 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
         EndDate: values.endDate || '',
         IsRunning: values.isRunning ? 1 : 0,
         IsActive:0,
-        YearOrder: +values.yearOrder ?? 0,
+        YearOrder: Number(values.yearOrder ?? 0),
         ...(isEdit ? { FiscalYearID: editingYear!.id } : {FiscalYearID: 0}),
       };
       

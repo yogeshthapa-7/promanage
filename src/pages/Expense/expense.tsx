@@ -111,9 +111,8 @@ export default function ExpensePage() {
         };
       });
     }
-    if (savedExpense?.isNew) {
-      refetch();
-    }
+    queryClient.invalidateQueries({ queryKey: ['expenses'], exact: false });
+    refetch();
   }, [queryClient, refetch]);
 
   const handleAddNew = () => {

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, LayoutList, LayoutGrid, Pencil, Trash2 } from 'lucide-react';
-import { Modal, message, Select } from 'antd';
+import { Modal, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/lib/api';
 import Card from '@/components/ui/Card';
@@ -18,6 +18,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 function fetchFiscalYearsPage(params: PaginatedListParams): Promise<{ items: FiscalYearItem[]; total: number }> {
   return fetchFiscalYears({
     search: (params.search as string) || '',
+    status: 'Active',
     start: params.start as number,
     length: params.length as number,
     signal: params.signal,
@@ -33,6 +34,22 @@ export default function FiscalYearPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<FiscalYearItem | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedSearchQuery = searchQuery.trim();
+
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setCurrentPage(1);
+    }, 400);
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [debouncedSearchQuery]);
 
   const {
     data: fiscalYears,
@@ -46,9 +63,9 @@ export default function FiscalYearPage() {
   } = usePaginatedList<FiscalYearItem>({
     fetcher: fetchFiscalYearsPage,
     initialPageSize: 20,
-    extraDeps: [searchQuery],
+    extraDeps: [debouncedSearchQuery],
     extraParams: {
-      search: searchQuery,
+      search: debouncedSearchQuery,
     },
   });
 
@@ -96,7 +113,7 @@ export default function FiscalYearPage() {
 
   const handleDrawerSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['fiscalYears'], exact: false });
-    setCurrentPage(1);
+    refetch();
   };
 
   return (
@@ -136,7 +153,7 @@ export default function FiscalYearPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
         <div>
-          <div className="mb-1 text-sm font-medium text-slate-500">Search</div>
+          <div className="mb-1 text-sm font-medium text-slate-500">Search Fiscal Year</div>
           <div className="flex gap-2">
             <SearchInput
               value={searchQuery}

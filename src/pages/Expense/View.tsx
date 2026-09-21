@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import Drawer from '@/components/drawer';
-import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
+import { type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
 
 interface Expense {
   id: number;
@@ -28,18 +27,6 @@ function getFiscalYearName(expense: Expense, options: FiscalYearSelectOption[]):
 }
 
 export default function ViewExpenseDrawer({ open, onClose, expense, fiscalYearOptions = [] }: ViewExpenseDrawerProps) {
-  useEffect(() => {
-    if (open && expense?.document_url) {
-      const link = document.createElement('a');
-      link.href = expense.document_url;
-      link.target = '_blank';
-      link.download = `${expense.title || 'expense'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  }, [open, expense?.document_url, expense?.title]);
-
   if (!expense) return null;
 
   return (
@@ -58,10 +45,10 @@ export default function ViewExpenseDrawer({ open, onClose, expense, fiscalYearOp
           <div className="text-base font-semibold text-slate-900">{getFiscalYearName(expense, fiscalYearOptions)}</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="text-sm font-medium text-slate-500 mb-1">Attachment</div>
+          <div className="text-sm font-medium text-slate-500 mb-1">File Name</div>
           {expense.document_url ? (
             <a href={expense.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-base font-medium">
-              Download PDF
+              Download File
             </a>
           ) : (
             <div className="text-base text-slate-400">No document attached</div>

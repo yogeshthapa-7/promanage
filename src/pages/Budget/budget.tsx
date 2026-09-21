@@ -105,9 +105,8 @@ export default function BudgetPage() {
         };
       });
     }
-    if (savedBudget?.isNew) {
-      refetch();
-    }
+    queryClient.invalidateQueries({ queryKey: ['budgets'], exact: false });
+    refetch();
   }, [queryClient, refetch]);
 
   const handleAddNew = () => {
