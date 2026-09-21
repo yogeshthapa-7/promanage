@@ -7,6 +7,7 @@ export interface Policy {
   fiscal_year?: string;
   fiscal_year_id?: number;
   document_url?: string;
+  document_name?: string;
 }
 
 interface ApiPolicyResponse {
@@ -99,8 +100,9 @@ async function doFetchPolicies(
 }
 
 function mapApiRowToPolicy(row: ApiPolicyRow): Policy {
-  const documentPath = row.FileUpload || row.DocumentUrl || '';
-  const documentUrl = documentPath ? `${API_BASE}/${documentPath.replace(/^\/+/, '')}` : '';
+  const basePath = row.FileUpload || row.DocumentUrl || '';
+  const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
+  const documentName = basePath ? decodeURIComponent(basePath.split('/').pop() || '') : '';
   return {
     SN: row.SN,
     id: row.PolicyProgramID,
@@ -108,5 +110,6 @@ function mapApiRowToPolicy(row: ApiPolicyRow): Policy {
     fiscal_year: row.FiscalYearName || row.FiscalYear,
     fiscal_year_id: row.FiscalYearID,
     document_url: documentUrl,
+    document_name: documentName,
   };
 }

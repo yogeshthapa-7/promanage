@@ -7,6 +7,7 @@ export interface Budget {
   fiscal_year?: string;
   fiscal_year_id?: number;
   document_url?: string;
+  document_name?: string;
 }
 
 interface ApiBudgetResponse {
@@ -101,6 +102,7 @@ async function doFetchBudgets(
 function mapApiRowToBudget(row: ApiBudgetRow): Budget {
   const basePath = row.FileUpload || row.DocumentUrl || '';
   const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
+  const documentName = basePath ? decodeURIComponent(basePath.split('/').pop() || '') : '';
   return {
     SN: row.SN,
     id: row.BudgetInfoID,
@@ -108,5 +110,6 @@ function mapApiRowToBudget(row: ApiBudgetRow): Budget {
     fiscal_year: row.FiscalYearName || row.FiscalYear,
     fiscal_year_id: row.FiscalYearID,
     document_url: documentUrl,
+    document_name: documentName,
   };
 }
