@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
-import DateConverter from '@remotemerge/nepali-date-converter';
+import NepaliFunctions from '@sajanm/nepali-functions';
 import nepallogo from '@/assets/images/nepal_logo.png';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -48,9 +48,13 @@ const toNepaliDate = (dateStr?: string) => {
   if (!dateStr || dateStr.startsWith('0001')) return '—';
 
   try {
-    const bs = new DateConverter(dateStr).toBs();
-    const monthName = NEPALI_MONTHS[bs.month - 1] || String(bs.month);
-    return `${bs.year} ${monthName} ${bs.date}`;
+    const parts = dateStr.replace(/-/g, '/').split('/');
+    if (parts.length === 3) {
+      const [y, m, d] = parts.map(Number);
+      const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+      const monthName = NEPALI_MONTHS[bs.month - 1] || String(bs.month);
+      return `${bs.year} ${monthName} ${bs.day}`;
+    }
   } catch {
     return dateStr;
   }

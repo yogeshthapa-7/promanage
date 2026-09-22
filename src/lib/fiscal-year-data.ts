@@ -1,5 +1,5 @@
 import { apiCall, cachedQuery } from '@/lib/api';
-import DateConverter from '@remotemerge/nepali-date-converter';
+import NepaliFunctions from '@sajanm/nepali-functions';
 
 export interface FiscalYearSelectOption {
   value: string;
@@ -169,13 +169,15 @@ async function doFetchFiscalYears(
 }
 
 function toBsString(adStr: string): string {
-  const bs = new DateConverter(adStr).toBs();
-  if (typeof bs === 'string') return bs;
-  const obj = bs as unknown as Record<string, unknown>;
-  const y = (typeof obj.year === 'number' ? obj.year : typeof obj.y === 'number' ? obj.y : 0) as number;
-  const m = String(typeof obj.month === 'number' ? obj.month : typeof obj.m === 'number' ? obj.m : 1).padStart(2, '0');
-  const d = String(typeof obj.date === 'number' ? obj.date : typeof obj.d === 'number' ? obj.d : 1).padStart(2, '0');
-  return `${y}/${m}/${d}`;
+  try {
+    const parts = adStr.replace(/-/g, '/').split('/');
+    if (parts.length !== 3) return adStr;
+    const [y, m, d] = parts.map(Number);
+    const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+    return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.day).padStart(2, '0')}`;
+  } catch {
+    return adStr;
+  }
 }
 
 function mapApiRowToFiscalYear(row: ApiFiscalYearRow): FiscalYearItem {

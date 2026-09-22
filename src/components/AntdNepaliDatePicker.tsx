@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Popover, Input, Select, Button } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
-import DateConverter from '@remotemerge/nepali-date-converter';
+import NepaliFunctions from '@sajanm/nepali-functions';
 
 // --- Nepali Constants ---
 const NEPALI_MONTHS_NP = [
@@ -49,9 +49,10 @@ export default function AntdNepaliDatePicker({
     try {
       const today = new Date();
       const adStr = `${today.getFullYear()}-${padZero(today.getMonth() + 1)}-${padZero(today.getDate())}`;
-      return new DateConverter(adStr).toBs();
+      const [y, m, d] = adStr.split('-').map(Number);
+      return NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
     } catch {
-      return { year: 2081, month: 1, date: 1 };
+      return { year: 2081, month: 1, day: 1 };
     }
   }, []);
 
@@ -65,30 +66,33 @@ export default function AntdNepaliDatePicker({
   // Sync external value
   useEffect(() => {
     if (value) {
-      if (returnEnglishDate) {
-        try {
-          const adDate = new Date(value);
-          if (!isNaN(adDate.getTime())) {
-            const adStr = `${adDate.getFullYear()}/${padZero(adDate.getMonth() + 1)}/${padZero(adDate.getDate())}`;
-            const bs = new DateConverter(adStr).toBs();
-            setSelectedBs({ year: bs.year, month: bs.month, date: bs.date });
-            setViewYear(bs.year);
-            setViewMonth(bs.month);
-          }
-        } catch {
-          const parts = value.replace(/-/g, '/').split('/');
-          if (parts.length === 3) {
-            const y = parseInt(parts[0], 10);
-            const m = parseInt(parts[1], 10);
-            const d = parseInt(parts[2], 10);
-            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-              setSelectedBs({ year: y, month: m, date: d });
-              setViewYear(y);
-              setViewMonth(m);
-            }
-          }
-        }
-      } else {
+       if (returnEnglishDate) {
+         try {
+           const adDate = new Date(value);
+           if (!isNaN(adDate.getTime())) {
+             const y = adDate.getFullYear();
+             const m = adDate.getMonth() + 1;
+             const d = adDate.getDate();
+             const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+             setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
+             setViewYear(bs.year);
+             setViewMonth(bs.month);
+           }
+         } catch {
+           const parts = value.replace(/-/g, '/').split('/');
+           if (parts.length === 3) {
+             const y = parseInt(parts[0], 10);
+             const m = parseInt(parts[1], 10);
+             const d = parseInt(parts[2], 10);
+             if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+               const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+               setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
+               setViewYear(bs.year);
+               setViewMonth(bs.month);
+             }
+           }
+         }
+       } else {
         const parts = value.replace(/-/g, '/').split('/');
         if (parts.length === 3) {
           const y = parseInt(parts[0], 10);
@@ -110,23 +114,19 @@ export default function AntdNepaliDatePicker({
   const monthInfo = useMemo(() => {
     try {
       // Get starting AD date for the 1st day of this BS month
-      const adForDay1 = new DateConverter(`${viewYear}/${viewMonth}/1`).toAd();
-      const startDay = new Date(adForDay1.year, adForDay1.month - 1, adForDay1.date).getDay(); // 0 = Sun ... 6 = Sat
+      const adForDay1 = NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: 1 }) as { year: number; month: number; day: number };
+      const startDay = new Date(adForDay1.year, adForDay1.month - 1, adForDay1.day).getDay(); // 0 = Sun ... 6 = Sat
 
-      // Calculate total days in this BS month (testing 29 to 32)
-      let daysInMonth = 29;
-      for (let d = 29; d <= 32; d++) {
-        try {
-          const check = new DateConverter(`${viewYear}/${viewMonth}/${d}`).toBs();
-          if (check.year === viewYear && check.month === viewMonth) {
-            daysInMonth = d;
-          } else {
-            break;
-          }
-        } catch {
-          break;
-        }
-      }
+       // Calculate total days in this BS month (testing 29 to 32)
+       let daysInMonth = 29;
+       for (let d = 29; d <= 32; d++) {
+         try {
+           NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: d });
+           daysInMonth = d;
+         } catch {
+           break;
+         }
+       }
 
       return { startDay, daysInMonth };
     } catch {
@@ -159,8 +159,9 @@ export default function AntdNepaliDatePicker({
 
     if (returnEnglishDate) {
       try {
-        const ad = new DateConverter(formattedBs).toAd();
-        const adStr = `${ad.year}-${padZero(ad.month)}-${padZero(ad.date)}`;
+        const [y, m, d] = formattedBs.split('/').map(Number);
+        const ad = NepaliFunctions.BS2AD({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+        const adStr = `${ad.year}-${padZero(ad.month)}-${padZero(ad.day)}`;
         onChange?.(adStr);
       } catch {
         onChange?.(formattedBs);
@@ -257,7 +258,7 @@ export default function AntdNepaliDatePicker({
           const isToday =
             todayBs.year === viewYear &&
             todayBs.month === viewMonth &&
-            todayBs.date === dayNum;
+            todayBs.day === dayNum;
 
           return (
             <button

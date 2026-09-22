@@ -1,5 +1,5 @@
 
-import DateConverter from '@remotemerge/nepali-date-converter';
+import NepaliFunctions from '@sajanm/nepali-functions';
 
 export interface BSDate {
   year: number;   // e.g. 2081
@@ -34,8 +34,14 @@ function parseDateString(dateStr: string): Date | null {
 
 function convertBsToAd(bsDateStr: string): Date | null {
   try {
-    const ad = new DateConverter(bsDateStr).toAd();
-    return new Date(ad.year, ad.month - 1, ad.date);
+    const parts = bsDateStr.replace(/-/g, '/').split('/');
+    if (parts.length !== 3) return null;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
+    const ad = NepaliFunctions.BS2AD({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+    return new Date(ad.year, ad.month - 1, ad.day);
   } catch {
     return null;
   }

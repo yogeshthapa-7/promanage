@@ -16,7 +16,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/lib/api';
 import type { ApiProject } from '@/lib/projects-data';
-import DateConverter from '@remotemerge/nepali-date-converter';
+import NepaliFunctions from '@sajanm/nepali-functions';
 import * as XLSX from 'xlsx';
 import { message } from 'antd';
 
@@ -90,8 +90,9 @@ const formatDate = (dateStr?: string | null) => {
   try {
     const parts = dateStr.replace(/-/g, '/').split('/');
     if (parts.length === 3) {
-      const bs = new DateConverter(dateStr).toBs();
-      return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.date).padStart(2, '0')}`;
+      const [y, m, d] = parts.map(Number);
+      const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+      return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.day).padStart(2, '0')}`;
     }
   } catch {
     // fallback: return original if conversion fails
