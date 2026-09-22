@@ -134,6 +134,32 @@
   z-index: 12000;
 }
 
+/* Nepali datepicker dark popover */
+.nepali-datepicker-popover,
+.nepali-datepicker-popover > div,
+.nepali-datepicker-popover .ant-popover,
+.nepali-datepicker-popover .ant-popover-inner,
+.nepali-datepicker-popover .ant-popover-content,
+.nepali-datepicker-popover [class*="ant-popover"],
+.nepali-datepicker-popover [class*="ant-popover-inner"] {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.nepali-datepicker-popover .ant-popover-inner,
+.nepali-datepicker-popover [class*="ant-popover-inner"],
+.nepali-datepicker-popover .ant-popover-inner-content,
+.nepali-datepicker-popover [class*="ant-popover-inner-content"] {
+  padding: 0 !important;
+  background: transparent !important;
+}
+.nepali-datepicker-popover .ant-popover-arrow,
+.nepali-datepicker-popover .ant-popover-arrow-content,
+.nepali-datepicker-popover [class*="ant-popover-arrow"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
 /* ── Custom scrollbar (outside @layer for Tailwind v4 compatibility) ── */
 .scrollbar-thin {
   scrollbar-width: thin;

@@ -1,7 +1,37 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Popover, Input, Select, Button } from 'antd';
+import { Popover, Input } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import NepaliFunctions from '@sajanm/nepali-functions';
+
+const NEPALI_CALENDAR_STYLE_ID = 'nepali-calendar-dark-override';
+
+const injectCalendarStyles = () => {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById(NEPALI_CALENDAR_STYLE_ID)) return;
+
+  const style = document.createElement('style');
+  style.id = NEPALI_CALENDAR_STYLE_ID;
+  style.textContent = `
+    .nepali-datepicker-popover .ant-popover,
+    .nepali-datepicker-popover [class*="ant-popover"],
+    .nepali-datepicker-popover .ant-popover-inner,
+    .nepali-datepicker-popover [class*="ant-popover-inner"],
+    .nepali-datepicker-popover .ant-popover-inner-content,
+    .nepali-datepicker-popover [class*="ant-popover-inner-content"] {
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      border: none !important;
+    }
+    .nepali-datepicker-popover .ant-popover-arrow,
+    .nepali-datepicker-popover [class*="ant-popover-arrow"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+  `;
+  document.head.appendChild(style);
+};
 
 // --- Nepali Constants ---
 const NEPALI_MONTHS_NP = [
@@ -10,19 +40,19 @@ const NEPALI_MONTHS_NP = [
   'पुस', 'माघ', 'फागुन', 'चैत',
 ];
 
-const NEPALI_DAYS_NP = ['आइत', 'सोम', 'मंगल', 'बुध', 'बिही', 'शुक्र', 'शनि'];
+const NEPALI_DAYS_NP = ['आ', 'सो', 'मं', 'बु', 'बि', 'शु', 'श'];
 
 const NEPALI_NUMERALS: Record<string, string> = {
   '0': '०', '1': '१', '2': '२', '3': '३', '4': '४',
   '5': '५', '6': '६', '7': '७', '8': '८', '9': '९',
 };
 
-// Utility to translate digits to Devanagari numerals
 const toNepaliNumerals = (num: number | string): string =>
   String(num).replace(/\d/g, (d) => NEPALI_NUMERALS[d] || d);
 
-// Helper to convert padded number strings (e.g., 5 -> "05")
 const padZero = (num: number): string => String(num).padStart(2, '0');
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 interface AntdNepaliDatePickerProps {
   value?: string;
@@ -31,6 +61,7 @@ interface AntdNepaliDatePickerProps {
   className?: string;
   returnEnglishDate?: boolean;
   style?: React.CSSProperties;
+  disabled?: boolean;
 }
 
 export default function AntdNepaliDatePicker({
@@ -39,58 +70,78 @@ export default function AntdNepaliDatePicker({
   placeholder = 'YYYY/MM/DD',
   className = '',
   returnEnglishDate = false,
+  disabled = false,
+  style,
 }: AntdNepaliDatePickerProps) {
+  useEffect(() => {
+    injectCalendarStyles();
+  }, []);
+
   const [open, setOpen] = useState(false);
 
-  // Get current today in BS
+  // Current today in BS
   const todayBs = useMemo(() => {
     try {
       const today = new Date();
       const adStr = `${today.getFullYear()}-${padZero(today.getMonth() + 1)}-${padZero(today.getDate())}`;
       const [y, m, d] = adStr.split('-').map(Number);
-      return NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+      return NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as {
+        year: number;
+        month: number;
+        day: number;
+      };
     } catch {
       return { year: 2081, month: 1, day: 1 };
     }
   }, []);
 
-  // View state for current active calendar month/year
   const [viewYear, setViewYear] = useState<number>(todayBs.year);
-  const [viewMonth, setViewMonth] = useState<number>(todayBs.month); // 1-indexed (1 = Baisakh)
+  const [viewMonth, setViewMonth] = useState<number>(todayBs.month);
 
-  // Selected date state
-  const [selectedBs, setSelectedBs] = useState<{ year: number; month: number; date: number } | null>(null);
+  const [selectedBs, setSelectedBs] = useState<{
+    year: number;
+    month: number;
+    date: number;
+  } | null>(null);
 
   // Sync external value
   useEffect(() => {
     if (value) {
-       if (returnEnglishDate) {
-         try {
-           const adDate = new Date(value);
-           if (!isNaN(adDate.getTime())) {
-             const y = adDate.getFullYear();
-             const m = adDate.getMonth() + 1;
-             const d = adDate.getDate();
-             const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
-             setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
-             setViewYear(bs.year);
-             setViewMonth(bs.month);
-           }
-         } catch {
-           const parts = value.replace(/-/g, '/').split('/');
-           if (parts.length === 3) {
-             const y = parseInt(parts[0], 10);
-             const m = parseInt(parts[1], 10);
-             const d = parseInt(parts[2], 10);
-             if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-               const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
-               setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
-               setViewYear(bs.year);
-               setViewMonth(bs.month);
-             }
-           }
-         }
-       } else {
+      if (returnEnglishDate) {
+        try {
+          const adDate = new Date(value);
+          if (!isNaN(adDate.getTime())) {
+            const y = adDate.getFullYear();
+            const m = adDate.getMonth() + 1;
+            const d = adDate.getDate();
+            const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as {
+              year: number;
+              month: number;
+              day: number;
+            };
+            setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
+            setViewYear(bs.year);
+            setViewMonth(bs.month);
+          }
+        } catch {
+          const parts = value.replace(/-/g, '/').split('/');
+          if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            const d = parseInt(parts[2], 10);
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+              const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as {
+                year: number;
+                month: number;
+                day: number;
+              };
+              setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
+              setViewYear(bs.year);
+              setViewMonth(bs.month);
+            }
+          }
+        }
+      } else {
         const parts = value.replace(/-/g, '/').split('/');
         if (parts.length === 3) {
           const y = parseInt(parts[0], 10);
@@ -108,33 +159,76 @@ export default function AntdNepaliDatePicker({
     }
   }, [value, returnEnglishDate]);
 
-  // Compute month information: start weekday offset and total days in month
+  // Month info: start weekday, days in month, AD day for each BS day, Saturdays
   const monthInfo = useMemo(() => {
     try {
       const daysInMonth = NepaliFunctions.BS.GetDaysInMonth(viewYear, viewMonth);
 
-      const adForDay1 = NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: 1 }) as { year: number; month: number; day: number };
-      const startDay = new Date(adForDay1.year, adForDay1.month - 1, adForDay1.day).getDay();
+      const adForDay1 = NepaliFunctions.BS2AD({
+        year: viewYear,
+        month: viewMonth,
+        day: 1,
+      }) as { year: number; month: number; day: number };
 
+      const startDay = new Date(
+        adForDay1.year,
+        adForDay1.month - 1,
+        adForDay1.day
+      ).getDay();
+
+      const adDays: number[] = [];
       const saturdays = new Set<number>();
+
       for (let d = 1; d <= daysInMonth; d++) {
         try {
-          const ad = NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: d }) as { year: number; month: number; day: number };
+          const ad = NepaliFunctions.BS2AD({
+            year: viewYear,
+            month: viewMonth,
+            day: d,
+          }) as { year: number; month: number; day: number };
+          adDays[d] = ad.day;
           if (new Date(ad.year, ad.month - 1, ad.day).getDay() === 6) {
             saturdays.add(d);
           }
         } catch {
-          // ignore
+          adDays[d] = d;
         }
       }
 
-      return { startDay, daysInMonth, saturdays };
+      // English month range for header (from first & last day of BS month)
+      const adFirst = NepaliFunctions.BS2AD({
+        year: viewYear,
+        month: viewMonth,
+        day: 1,
+      }) as { year: number; month: number; day: number };
+
+      const adLast = NepaliFunctions.BS2AD({
+        year: viewYear,
+        month: viewMonth,
+        day: daysInMonth,
+      }) as { year: number; month: number; day: number };
+
+      let engMonthRange = '';
+      if (adFirst.month === adLast.month) {
+        engMonthRange = `${MONTH_SHORT[adFirst.month - 1]} ${adFirst.year}`;
+      } else if (adFirst.year === adLast.year) {
+        engMonthRange = `${MONTH_SHORT[adFirst.month - 1]} / ${MONTH_SHORT[adLast.month - 1]} ${adFirst.year}`;
+      } else {
+        engMonthRange = `${MONTH_SHORT[adFirst.month - 1]} ${adFirst.year} / ${MONTH_SHORT[adLast.month - 1]} ${adLast.year}`;
+      }
+
+      return { startDay, daysInMonth, saturdays, adDays, engMonthRange };
     } catch {
-      return { startDay: 0, daysInMonth: 30, saturdays: new Set<number>() };
+      return {
+        startDay: 0,
+        daysInMonth: 30,
+        saturdays: new Set<number>(),
+        adDays: [] as number[],
+        engMonthRange: '',
+      };
     }
   }, [viewYear, viewMonth]);
 
-  // Handlers for month navigation
   const handlePrevMonth = () => {
     if (viewMonth === 1) {
       setViewMonth(12);
@@ -160,7 +254,11 @@ export default function AntdNepaliDatePicker({
     if (returnEnglishDate) {
       try {
         const [y, m, d] = formattedBs.split('/').map(Number);
-        const ad = NepaliFunctions.BS2AD({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+        const ad = NepaliFunctions.BS2AD({ year: y, month: m, day: d }) as {
+          year: number;
+          month: number;
+          day: number;
+        };
         const adStr = `${ad.year}-${padZero(ad.month)}-${padZero(ad.day)}`;
         onChange?.(adStr);
       } catch {
@@ -172,82 +270,144 @@ export default function AntdNepaliDatePicker({
     setOpen(false);
   };
 
-  // Formatted display string for input box (Devanagari script)
   const displayValue = selectedBs
     ? `${toNepaliNumerals(selectedBs.year)}/${toNepaliNumerals(padZero(selectedBs.month))}/${toNepaliNumerals(padZero(selectedBs.date))}`
     : '';
 
-  // Generate Year options (2000 BS to 2090 BS)
-  const yearOptions = useMemo(() => {
-    const years = [];
-    for (let y = 2000; y <= 2090; y++) {
-      years.push({ label: toNepaliNumerals(y), value: y });
-    }
-    return years;
-  }, []);
-
   const calendarContent = (
-    <div className="w-72 p-2 select-none">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <Button
-          type="text"
-          size="small"
-          icon={<LeftOutlined />}
+    <div
+      style={{
+        backgroundColor: '#1a1a1a',
+        borderRadius: 12,
+        width: 280,
+        padding: '10px 8px 8px',
+        userSelect: 'none',
+        boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 10,
+        }}
+      >
+        <button
+          type="button"
           onClick={handlePrevMonth}
-          className="text-slate-600 hover:text-violet-600"
-        />
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            border: 'none',
+            background: 'transparent',
+            color: '#fff',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 13,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        >
+          <LeftOutlined />
+        </button>
 
-        <div className="flex items-center gap-1.5">
-          <Select
-            size="small"
-            value={viewMonth}
-            onChange={(val) => setViewMonth(val)}
-            options={NEPALI_MONTHS_NP.map((m, idx) => ({ label: m, value: idx + 1 }))}
-            className="w-24 text-xs font-semibold"
-            popupMatchSelectWidth={false}
-            getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
-          />
-          <Select
-            size="small"
-            value={viewYear}
-            onChange={(val) => setViewYear(val)}
-            options={yearOptions}
-            className="w-20 text-xs font-semibold"
-            popupMatchSelectWidth={false}
-            getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
-          />
+        <div style={{ textAlign: 'center' }}>
+          <div
+            style={{
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 15,
+              lineHeight: 1.3,
+            }}
+          >
+            {NEPALI_MONTHS_NP[viewMonth - 1]} {toNepaliNumerals(viewYear)}
+          </div>
+          <div
+            style={{
+              color: 'rgba(255,255,255,0.4)',
+              fontSize: 10,
+              marginTop: 1,
+              fontWeight: 400,
+            }}
+          >
+            {monthInfo.engMonthRange}
+          </div>
         </div>
 
-        <Button
-          type="text"
-          size="small"
-          icon={<RightOutlined />}
+        <button
+          type="button"
           onClick={handleNextMonth}
-          className="text-slate-600 hover:text-violet-600"
-        />
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            border: 'none',
+            background: 'transparent',
+            color: '#fff',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 13,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        >
+          <RightOutlined />
+        </button>
       </div>
 
-      {/* Weekday Names Header */}
-      <div className="grid grid-cols-7 text-center mb-1 border-b border-slate-100 pb-1">
+      {/* Divider */}
+      <div
+        style={{
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          marginBottom: 6,
+        }}
+      />
+
+      {/* Weekday headers */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          textAlign: 'center',
+          marginBottom: 4,
+        }}
+      >
         {NEPALI_DAYS_NP.map((day, idx) => (
           <span
             key={day}
-            className={`text-xs font-bold ${idx === 6 ? 'text-red-500' : 'text-slate-500'}`}
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: idx === 6 ? '#f87171' : '#ffffff',
+              padding: '3px 0',
+            }}
           >
             {day}
           </span>
         ))}
       </div>
 
-      {/* Day Cells Grid */}
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {/* Empty offset cells for start weekday */}
+      {/* Day grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          gap: '1px 0',
+        }}
+      >
         {Array.from({ length: monthInfo.startDay }).map((_, i) => (
-          <div key={`empty-${i}`} className="h-8" />
+          <div key={`empty-${i}`} />
         ))}
 
-        {/* Month Day Buttons */}
         {Array.from({ length: monthInfo.daysInMonth }).map((_, i) => {
           const dayNum = i + 1;
           const isSelected =
@@ -261,23 +421,76 @@ export default function AntdNepaliDatePicker({
             todayBs.day === dayNum;
 
           const isSaturday = monthInfo.saturdays.has(dayNum);
+          const adDay = monthInfo.adDays[dayNum] ?? dayNum;
+
+          let nepaliColor = 'rgba(255,255,255,0.92)';
+          let engColor = 'rgba(255,255,255,0.38)';
+
+          if (isSelected) {
+            nepaliColor = '#fff';
+            engColor = 'rgba(255,255,255,0.85)';
+          } else if (isToday) {
+            nepaliColor = '#60a5fa';
+            engColor = 'rgba(96,165,250,0.75)';
+          } else if (isSaturday) {
+            nepaliColor = '#f87171';
+            engColor = 'rgba(248,113,113,0.7)';
+          }
 
           return (
             <button
               key={dayNum}
               type="button"
               onClick={() => handleSelectDay(dayNum)}
-              className={`h-8 w-8 mx-auto flex items-center justify-center rounded-full text-sm font-medium transition-all ${
-                isSelected
-                  ? 'bg-violet-600 text-white font-bold shadow-sm'
-                  : isToday
-                  ? 'border border-violet-500 text-violet-700 font-bold'
-                  : isSaturday
-                  ? 'text-red-500 hover:bg-red-50'
-                  : 'text-slate-700 hover:bg-violet-50 hover:text-violet-600'
-              }`}
+              style={{
+                height: 36,
+                border: 'none',
+                borderRadius: 6,
+                background: isSelected ? '#2563eb' : 'transparent',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+                position: 'relative',
+                transition: 'background 0.12s',
+                outline: 'none',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
             >
-              {toNepaliNumerals(dayNum)}
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  lineHeight: 1.15,
+                  color: nepaliColor,
+                }}
+              >
+                {toNepaliNumerals(dayNum)}
+              </span>
+              <span
+                style={{
+                  fontSize: 9,
+                  lineHeight: 1,
+                  marginTop: 1,
+                  color: engColor,
+                  position: 'absolute',
+                  bottom: 2,
+                  right: 4,
+                }}
+              >
+                {adDay}
+              </span>
             </button>
           );
         })}
@@ -289,17 +502,24 @@ export default function AntdNepaliDatePicker({
     <Popover
       content={calendarContent}
       trigger="click"
-      open={open}
-      onOpenChange={setOpen}
+      open={open && !disabled}
+      onOpenChange={(v) => !disabled && setOpen(v)}
       placement="bottomLeft"
       overlayClassName="nepali-datepicker-popover"
+      overlayStyle={{ backgroundColor: 'transparent', boxShadow: 'none', padding: 0 }}
+      styles={{
+        root: { backgroundColor: 'transparent' },
+        inner: { backgroundColor: 'transparent', padding: 0, boxShadow: 'none' },
+      }}
       getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
     >
       <Input
         readOnly
         value={displayValue}
         placeholder={placeholder}
+        disabled={disabled}
         className={`cursor-pointer ${className}`}
+        style={style}
         suffix={<CalendarOutlined className="text-slate-400" />}
       />
     </Popover>
