@@ -746,71 +746,73 @@ const {
 
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Projects</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Manage, organize and monitor all your projects in one place.
-          </p>
-        </div>
-        <div className="flex items-center gap-2.5 flex-nowrap">
-          <SearchInput
-            value={searchQuery}
-            onChange={(value) => {
-              setSearchQuery(value);
-              if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-              debounceTimerRef.current = setTimeout(() => setCurrentPage(1), 400);
-            }}
-            placeholder="Search projects..."
-            containerClassName="w-48 lg:w-56"
-          />
-          <Button type="primary" onClick={openCreateModal} icon={<Plus className="w-4 h-4" />}>
-            New Project
-          </Button>
-          <Button onClick={handleExcelUploadClick} loading={uploading} icon={<Upload className="w-3.5 h-3.5 text-muted-foreground" />}>
-            {uploading ? `Importing ${uploadProgress.current}/${uploadProgress.total}` : 'Upload Excel'}
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <div className="relative">
-            <DropdownMenu
-              trigger={
-                <Button icon={<Filter className="w-3.5 h-3.5 text-muted-foreground" />}>
-                  Filter
-                  {filterStatus !== 'All' && (
-                    <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary" />
-                  )}
-                  <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${filterOpen ? 'rotate-180' : ''}`} />
-                </Button>
-              }
-              items={statusOptions.map((status) => ({
-                label: status,
-                onClick: () => handleFilter(status),
-              }))}
-            />
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Projects</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Manage, organize and monitor all your projects in one place.
+            </p>
           </div>
-          <div className="relative">
-            <DropdownMenu
-              trigger={
-                <Button icon={<ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />}>
-                  Sort
-                  <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
-                </Button>
-              }
-              items={sortOptions.map((opt) => ({
-                label: opt.label,
-                onClick: () => handleSort(opt.value),
-              }))}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <SearchInput
+              value={searchQuery}
+              onChange={(value) => {
+                setSearchQuery(value);
+                if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = setTimeout(() => setCurrentPage(1), 400);
+              }}
+              placeholder="Search projects..."
+              containerClassName="w-full sm:w-40 md:w-48 lg:w-56"
             />
-          </div>
-          <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
-            <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
-            <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+            <Button type="primary" onClick={openCreateModal} icon={<Plus className="w-4 h-4" />}>
+              New Project
+            </Button>
+            <Button onClick={handleExcelUploadClick} loading={uploading} icon={<Upload className="w-3.5 h-3.5 text-muted-foreground" />}>
+              {uploading ? `Importing ${uploadProgress.current}/${uploadProgress.total}` : 'Upload Excel'}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <div className="relative">
+              <DropdownMenu
+                trigger={
+                  <Button icon={<Filter className="w-3.5 h-3.5 text-muted-foreground" />}>
+                    Filter
+                    {filterStatus !== 'All' && (
+                      <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary" />
+                    )}
+                    <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${filterOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                }
+                items={statusOptions.map((status) => ({
+                  label: status,
+                  onClick: () => handleFilter(status),
+                }))}
+              />
+            </div>
+            <div className="relative">
+              <DropdownMenu
+                trigger={
+                  <Button icon={<ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />}>
+                    Sort
+                    <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                }
+                items={sortOptions.map((opt) => ({
+                  label: opt.label,
+                  onClick: () => handleSort(opt.value),
+                }))}
+              />
+            </div>
+            <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+              <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+              <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+            </div>
           </div>
         </div>
       </div>
