@@ -12,7 +12,7 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { apiCall } from '@/services/api';
-import { convertToBs } from '@/data/projects-data';
+import { convertAdToBs } from '@/utils/nepali-date';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -519,8 +519,8 @@ export default function KanbanBoard() {
             <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">{formatCurrency(project?.TotalBudget)}</p>
             {(project?.StartDate || project?.EndDate) && (
               <p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
-                {project?.StartDate ? convertToBs(project.StartDate) : '—'}
-                {project?.EndDate ? ` – ${convertToBs(project.EndDate)}` : ''}
+                {project?.StartDate ? convertAdToBs(project.StartDate) : '—'}
+                {project?.EndDate ? ` – ${convertAdToBs(project.EndDate)}` : ''}
               </p>
             )}
           </div>
@@ -626,7 +626,7 @@ export default function KanbanBoard() {
                         {task.DueDate ? (
                           <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                             <Calendar className="w-3 h-3" />
-                            {convertToBs(task.DueDate)}
+                            {convertAdToBs(task.DueDate)}
                           </div>
                         ) : <span />}
                         <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${getPriorityStyle(task.Priority)}`}>

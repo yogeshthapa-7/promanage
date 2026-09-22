@@ -310,19 +310,22 @@ const DrawerContent = memo(
            ProjectHeadEmpPhoto: photoUrl,
          };
 
-         const API_URL = `${API_BASE}/SaveProjectInfo`;
-         const res = await apiCall(API_URL, {
-           method: 'POST',
-           body: JSON.stringify(body),
-         });
+          const API_URL = `${API_BASE}/SaveProjectInfo`;
+          const res = await apiCall(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(body),
+          });
 
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          const result = await res.json().catch(() => ({}));
+          if (!res.ok || result.Success === false) {
+            throw new Error(result.Message || `Failed: ${res.statusText}`);
+          }
 
-        message.success(isEdit ? 'परियोजना सफलतापूर्वक अपडेट गरियो' : 'परियोजना सफलतापूर्वक सिर्जना गरियो');
-        form.resetFields();
-        setSelectedFileName('');
-        onSuccess();
-        onClose();
+          message.success(isEdit ? 'परियोजना सफलतापूर्वक अपडेट गरियो' : 'परियोजना सफलतापूर्वक सिर्जना गरियो');
+          form.resetFields();
+          setSelectedFileName('');
+          onSuccess();
+          onClose();
       } catch (err) {
         if (err instanceof Error) {
           message.error(err.message || 'परियोजना प्रविष्टि असफल भयो');

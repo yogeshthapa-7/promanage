@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Modal, message, Button } from "antd";
 import type { ApiProject } from "@/data/projects-data";
 import { apiCall } from "@/services/api";
-import { calculateProgressFromDates } from "@/utils/nepali-date";
-import { convertToBs } from "@/data/projects-data";
+import { calculateProgressFromDates, convertAdToBs } from "@/utils/nepali-date";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { LayoutGrid, List, Plus, Search, RotateCcw } from "lucide-react";
@@ -299,8 +298,8 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
                         <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
                       </div>
                     </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertToBs(milestone.StartDate) || "—"}</td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertToBs(milestone.EndDate) || "—"}</td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertAdToBs(milestone.StartDate) || "—"}</td>
+                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertAdToBs(milestone.EndDate) || "—"}</td>
                     <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.MilestoneCost.toLocaleString()}</td>
                     <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                       <div className="flex items-center justify-end gap-1">
@@ -341,8 +340,8 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
                 <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
 
                 <div className="flex items-center justify-between text-base text-muted-foreground">
-                  <span>Start: {convertToBs(milestone.StartDate) || "—"}</span>
-                  <span>End: {convertToBs(milestone.EndDate) || "—"}</span>
+                  <span>Start: {convertAdToBs(milestone.StartDate) || "—"}</span>
+                  <span>End: {convertAdToBs(milestone.EndDate) || "—"}</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">

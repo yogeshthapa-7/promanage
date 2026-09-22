@@ -1,5 +1,5 @@
 import { apiCall, cachedQuery } from '@/services/api';
-import NepaliFunctions from '@sajanm/nepali-functions';
+import { convertAdToBs } from '@/utils/nepali-date';
 
 export interface FiscalYearSelectOption {
   value: string;
@@ -21,6 +21,7 @@ interface ApiFiscalYearRow {
   EndDate: string;
   Status: number;
   IsCurrent: number;
+  IsRunning: number;
   YearOrder?: number;
 }
 
@@ -168,21 +169,9 @@ async function doFetchFiscalYears(
   };
 }
 
-function toBsString(adStr: string): string {
-  try {
-    const parts = adStr.replace(/-/g, '/').split('/');
-    if (parts.length !== 3) return adStr;
-    const [y, m, d] = parts.map(Number);
-    const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
-    return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.day).padStart(2, '0')}`;
-  } catch {
-    return adStr;
-  }
-}
-
 function mapApiRowToFiscalYear(row: ApiFiscalYearRow): FiscalYearItem {
-  const startDateBs = row.StartDate ? toBsString(row.StartDate) : '';
-  const endDateBs = row.EndDate ? toBsString(row.EndDate) : '';
+  const startDateBs = row.StartDate ? convertAdToBs(row.StartDate) : '';
+  const endDateBs = row.EndDate ? convertAdToBs(row.EndDate) : '';
   return {
     id: row.FiscalYearID,
     name: row.FiscalYearName,
@@ -192,5 +181,6 @@ function mapApiRowToFiscalYear(row: ApiFiscalYearRow): FiscalYearItem {
     startDateBs,
     endDateBs,
     yearOrder: row.YearOrder,
+    isRunning: row.IsRunning,
   };
 }

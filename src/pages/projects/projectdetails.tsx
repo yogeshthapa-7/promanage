@@ -13,8 +13,8 @@ import { BlockSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/services/api';
+import { convertAdToBs } from '@/utils/nepali-date';
 import type { ApiProject } from '@/data/projects-data';
-import NepaliFunctions from '@sajanm/nepali-functions';
 import * as XLSX from 'xlsx';
 import { message } from 'antd';
 
@@ -89,8 +89,7 @@ const formatDate = (dateStr?: string | null) => {
     const parts = dateStr.replace(/-/g, '/').split('/');
     if (parts.length === 3) {
       const [y, m, d] = parts.map(Number);
-      const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
-      return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.day).padStart(2, '0')}`;
+      return convertAdToBs(`${y}/${m}/${d}`);
     }
   } catch {
     // fallback: return original if conversion fails

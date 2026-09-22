@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/data/projects-data";
-import { convertToBs } from "@/data/projects-data";
+import { convertAdToBs } from "@/utils/nepali-date";
 import { apiCall } from "@/services/api";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
@@ -266,7 +266,7 @@ export default function IssueTab({ project }: IssueTabProps) {
                     {issue.WorkStatusName && <Badge>{issue.WorkStatusName}</Badge>}
                   </td>
                   <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{issue.RaisedBy || "—"}</td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertToBs(issue.CreatedDate) || "—"}</td>
+                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertAdToBs(issue.CreatedDate) || "—"}</td>
                   <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
                     <div className="flex items-center justify-end gap-1">
                       {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEdit(issue)} />}
@@ -305,7 +305,7 @@ export default function IssueTab({ project }: IssueTabProps) {
                   <span>•</span>
                   <span>Raised by: {issue.RaisedBy || "—"}</span>
                   <span>•</span>
-                   <span>{convertToBs(issue.CreatedDate)}</span>
+                   <span>{convertAdToBs(issue.CreatedDate)}</span>
                 </div>
                 {issue.Comments && (
                   <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>

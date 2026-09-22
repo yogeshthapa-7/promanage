@@ -49,7 +49,7 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
         StartDate: values.startDate || '',
         EndDate: values.endDate || '',
         IsRunning: values.isRunning ? 1 : 0,
-        IsActive:0,
+        IsActive:1,
         YearOrder: Number(values.yearOrder ?? 0),
         ...(isEdit ? { FiscalYearID: editingYear!.id } : {FiscalYearID: 0}),
       };

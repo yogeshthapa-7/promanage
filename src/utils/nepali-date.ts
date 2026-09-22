@@ -1,9 +1,8 @@
-
 import NepaliFunctions from '@sajanm/nepali-functions';
 
 export interface BSDate {
   year: number;   // e.g. 2081
-  month: number;  // 0 to 11
+  month: number;  // 1 to 12
   day: number;    // 1 to 32
 }
 
@@ -32,7 +31,7 @@ function parseDateString(dateStr: string): Date | null {
   return date;
 }
 
-function convertBsToAd(bsDateStr: string): Date | null {
+export function convertBsToAd(bsDateStr: string): Date | null {
   try {
     const parts = bsDateStr.replace(/-/g, '/').split('/');
     if (parts.length !== 3) return null;
@@ -45,6 +44,21 @@ function convertBsToAd(bsDateStr: string): Date | null {
   } catch {
     return null;
   }
+}
+
+export function convertAdToBs(adDateStr: string): string {
+  if (!adDateStr) return '';
+  try {
+    const parts = adDateStr.replace(/-/g, '/').split('/');
+    if (parts.length === 3) {
+      const [y, m, d] = parts.map(Number);
+      const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
+      return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.day).padStart(2, '0')}`;
+    }
+  } catch {
+    // fallback: return original if conversion fails
+  }
+  return adDateStr;
 }
 
 export function calculateProgressFromDates(startDateStr: string, endDateStr: string, existingProgress: number): number {

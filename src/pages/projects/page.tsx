@@ -685,8 +685,9 @@ const {
             body: JSON.stringify(body),
           });
 
-          if (!res.ok) {
-            const text = await res.text().catch(() => '');
+          const result = await res.json().catch(() => ({}));
+          if (!res.ok || result.Success === false) {
+            const text = JSON.stringify(result);
             console.error(`Row ${i + 1} failed (${res.status}):`, body, text.slice(0, 500));
             failCount++;
             continue;
@@ -752,7 +753,7 @@ const {
               Manage, organize and monitor all your projects in one place.
             </p>
           </div>
-          <div className="flex items-center gap-2.5 flex-wrap">
+           <div className="flex items-center gap-2.5 flex-wrap md:flex-nowrap">
             <SearchInput
               value={searchQuery}
               onChange={(value) => {

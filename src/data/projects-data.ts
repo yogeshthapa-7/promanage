@@ -1,5 +1,5 @@
 import { Server, Smartphone, Globe, Megaphone, ShieldCheck, FolderKanban } from 'lucide-react';
-import NepaliFunctions from '@sajanm/nepali-functions';
+import { convertAdToBs, convertBsToAd } from '@/utils/nepali-date';
 
 export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue' | 'Started' | 'In Progress Final';
 export type ProjectPriority = 'Urgent' | 'High' | 'Medium' | 'Low';
@@ -181,17 +181,7 @@ function getProgress(status: string): number {
 
 export function convertToBs(dateStr: string): string {
   if (!dateStr) return '';
-  try {
-    const parts = dateStr.replace(/-/g, '/').split('/');
-    if (parts.length === 3) {
-      const [y, m, d] = parts.map(Number);
-      const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
-      return `${bs.year}/${String(bs.month).padStart(2, '0')}/${String(bs.day).padStart(2, '0')}`;
-    }
-  } catch {
-    // fallback: return original if conversion fails
-  }
-  return dateStr;
+  return convertAdToBs(dateStr);
 }
 
 function computeDaysLeft(dueDate: string): string {
@@ -242,19 +232,19 @@ export function calculateDueDate(startDateStr: string, durationDays: number): st
   const currentYear = now.getFullYear();
 
    try {
-    const [y, m, d] = normalized.split('/').map(Number);
-    const ad = NepaliFunctions.BS2AD({ year: y, month: m, day: d }) as { year: number; month: number; day: number };
-    const startAd = new Date(ad.year, ad.month - 1, ad.day);
-    if (!isNaN(startAd.getTime()) && startAd.getFullYear() >= 2000 && startAd.getFullYear() <= currentYear + 10) {
-      const dueAd = new Date(startAd);
-      dueAd.setDate(dueAd.getDate() + Number(durationDays));
-      const [y2, m2, d2] = [dueAd.getFullYear(), dueAd.getMonth() + 1, dueAd.getDate()];
-      const dueBs = NepaliFunctions.AD2BS({ year: y2, month: m2, day: d2 }) as { year: number; month: number; day: number };
-      return `${dueBs.year}/${String(dueBs.month).padStart(2, '0')}/${String(dueBs.day).padStart(2, '0')}`;
-    }
-  } catch {
-    // fall through to AD
-  }
+     const [y, m, d] = normalized.split('/').map(Number);
+     const adDate = convertBsToAd(`${y}/${m}/${d}`);
+     if (!adDate) return normalized;
+     const startAd = new Date(adDate.getFullYear(), adDate.getMonth(), adDate.getDate());
+     if (!isNaN(startAd.getTime()) && startAd.getFullYear() >= 2000 && startAd.getFullYear() <= currentYear + 10) {
+       const dueAd = new Date(startAd);
+       dueAd.setDate(dueAd.getDate() + Number(durationDays));
+       const [y2, m2, d2] = [dueAd.getFullYear(), dueAd.getMonth() + 1, dueAd.getDate()];
+       return convertAdToBs(`${y2}/${m2}/${d2}`);
+     }
+   } catch {
+     // fall through to AD
+   }
 
   try {
     const startAd = new Date(normalized);
