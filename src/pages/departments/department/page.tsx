@@ -289,13 +289,13 @@ export default function DepartmentPage() {
       {activeTab === 'department' && (
         <div className="print-area">
        {/* 1. Department Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             विभागहरू
           </h2>
           <p className="text-base text-slate-500 mt-1 no-print">
-            विभागीय अभिलेखहरू तथा अभिभावक‑सन्तान संगठन संरचना व्यवस्थापन गर्नुहोस्।
+            विभाग अभिलेखहरू व्यवस्थापन गर्नुहोस्।
           </p>
         </div>
         <Button type="primary" onClick={handleAddNew} icon={<Plus className="w-4 h-4" />} className="no-print">
