@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useMemo } from 'react';
 import StatCardsRow from './components/StatCardsRow';
 import ProjectOverviewSection from './components/ProjectOverviewSection';

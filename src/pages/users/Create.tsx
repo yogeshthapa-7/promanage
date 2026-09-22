@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';

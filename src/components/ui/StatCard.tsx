@@ -1,5 +1,3 @@
-'use client';
-
 import { memo, useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from 'antd';

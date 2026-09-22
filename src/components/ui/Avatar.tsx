@@ -1,5 +1,3 @@
-'use client';
-
 import { Avatar as AntAvatar } from 'antd';
 import type { AvatarProps as AntAvatarProps } from 'antd';
 

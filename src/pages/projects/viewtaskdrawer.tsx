@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 import Drawer from '@/components/drawer';
 import { apiCall } from '@/services/api';

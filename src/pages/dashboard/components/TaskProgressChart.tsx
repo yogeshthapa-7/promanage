@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useRef } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/components/ui/Card';

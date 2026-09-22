@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
 import { apiCall } from '@/services/api';

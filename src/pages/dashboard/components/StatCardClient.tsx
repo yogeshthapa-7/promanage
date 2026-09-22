@@ -1,5 +1,3 @@
-'use client';
-
 import { memo } from 'react';
 import StatCard from '@/components/ui/StatCard';
 

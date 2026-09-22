@@ -1,5 +1,3 @@
-'use client';
-
 import type { ReactNode } from 'react';
 import { Dropdown as AntDropdown } from 'antd';
 import type { MenuProps } from 'antd';

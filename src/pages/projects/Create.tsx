@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { Form, Input, Select, InputNumber, Row, Col, Button, message } from 'antd';
 import { Save } from 'lucide-react';

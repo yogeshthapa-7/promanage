@@ -1,5 +1,3 @@
-'use client';
-
 import type { ReactNode, HTMLAttributes } from 'react';
 import { Card as AntCard } from 'antd';
 

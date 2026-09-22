@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useRef } from 'react';
 import { Plus, Building2 } from 'lucide-react';
 import { Modal, message, Button } from 'antd';

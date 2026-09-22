@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Printer } from 'lucide-react';
 import { Modal, message, Button } from 'antd';

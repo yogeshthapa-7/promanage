@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide-react';

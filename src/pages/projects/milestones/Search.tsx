@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, message, Select } from 'antd';
 import { apiCall } from '@/services/api';

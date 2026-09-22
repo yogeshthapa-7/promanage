@@ -1,5 +1,3 @@
-'use client';
-
 import { memo, forwardRef, type ReactNode } from 'react';
 import { Button as AntButton } from 'antd';
 

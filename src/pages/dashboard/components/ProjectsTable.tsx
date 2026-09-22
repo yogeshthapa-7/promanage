@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, ArrowRight } from 'lucide-react';

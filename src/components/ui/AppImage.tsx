@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useCallback, useMemo, memo } from 'react';
 
 interface AppImageProps {

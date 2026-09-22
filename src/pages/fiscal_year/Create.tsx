@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Checkbox } from 'antd';
 import Drawer from '@/components/drawer';

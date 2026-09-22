@@ -1,5 +1,3 @@
-'use client';
-
 import { Server, Smartphone, Globe, Megaphone, ShieldCheck, FolderKanban } from 'lucide-react';
 import NepaliFunctions from '@sajanm/nepali-functions';
 

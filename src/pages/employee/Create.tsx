@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Upload, Button, Row, Col, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
