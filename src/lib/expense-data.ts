@@ -60,7 +60,8 @@ function buildSearchBody(params: FetchExpensesParams) {
       ExpenseInfoID: 0,
       ExpenseTitle: params.search,
       ExpenseCode: params.expenseCode || '',
-      FiscalYear: params.fiscalYear,
+      // FiscalYear: params.fiscalYear,
+      FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
     },
   };
 }

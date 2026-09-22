@@ -56,7 +56,8 @@ function buildSearchBody(params: FetchBudgetsParams) {
     param: {
       BudgetInfoID: 0,
       BudgetInfoName: params.search,
-      FiscalYear: params.fiscalYear,
+      // FiscalYear: params.fiscalYear,
+      FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
     },
   };
 }

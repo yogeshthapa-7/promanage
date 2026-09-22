@@ -58,6 +58,7 @@ function mapSelectItem(item: ApiSelectItem): FiscalYearSelectOption {
   );
   const value = String(
     item.FiscalYearID ?? item.FiscalYear ?? item.FiscalYearName ?? item.name ?? item.Text ?? label
+    // item.FiscalYearName ?? item.FiscalYear ?? item.FiscalYearID ?? item.name ?? item.Text ?? label
   );
   return { value, label };
 }

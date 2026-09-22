@@ -56,7 +56,8 @@ function buildSearchBody(params: FetchPoliciesParams) {
     param: {
       PolicyProgramID: 0,
       PolicyProgramName: params.search,
-      FiscalYear: params.fiscalYear,
+      // FiscalYear: params.fiscalYear,
+      FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
     },
   };
 }
