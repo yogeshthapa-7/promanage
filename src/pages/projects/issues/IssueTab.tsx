@@ -162,7 +162,7 @@ export default function IssueTab({ project }: IssueTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
             Search

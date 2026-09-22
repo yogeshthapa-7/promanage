@@ -387,7 +387,7 @@ export default function ProjectTasksPage() {
       </Card>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-border">
+      <div className="flex flex-wrap items-center gap-1 border-b border-border">
         {PROJECT_TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -395,7 +395,7 @@ export default function ProjectTasksPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors whitespace-nowrap border-b-2 -mb-px ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
                 active ? 'text-primary border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'
               }`}
             >
