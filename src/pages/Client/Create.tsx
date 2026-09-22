@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import { useQueryClient } from '@tanstack/react-query';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');

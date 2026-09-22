@@ -1,7 +1,7 @@
 'use client';
 
 import Drawer from '@/components/drawer';
-import { type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
+import { type FiscalYearSelectOption } from '@/data/fiscal-year-data';
 
 interface Policy {
   id: number;

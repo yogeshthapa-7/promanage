@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Checkbox } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import { type FiscalYearItem } from '@/lib/fiscal-year-data';
+import { type FiscalYearItem } from '@/data/fiscal-year-data';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
 //.replace(/\/$/, '').replace(/\/api$/, '')

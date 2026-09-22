@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/lib/api';
-import type { TaskItem } from '@/lib/tasks-data';
+import { apiCall } from '@/services/api';
+import type { TaskItem } from '@/data/tasks-data';
 import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 

@@ -5,8 +5,8 @@ import { Form, Input, Select, InputNumber, Row, Col, Button, message } from 'ant
 import { Save } from 'lucide-react';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import type { ApiProject } from '@/lib/projects-data';
-import { apiCall } from '@/lib/api';
+import type { ApiProject } from '@/data/projects-data';
+import { apiCall } from '@/services/api';
 
 interface ProjectFormModalProps {
   open: boolean;

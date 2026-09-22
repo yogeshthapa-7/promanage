@@ -1,6 +1,6 @@
 import StatCardClient from './StatCardClient';
 import { getStatCards } from './statCardsData';
-import { type Project } from '@/lib/projects-data';
+import { type Project } from '@/data/projects-data';
 
 interface StatCardsRowProps {
   projects?: Project[];

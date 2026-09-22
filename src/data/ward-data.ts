@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/services/api';
 
 export interface Ward {
   SN: number;

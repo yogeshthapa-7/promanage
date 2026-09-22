@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/lib/projects-data";
-import { convertToBs } from "@/lib/projects-data";
-import { apiCall } from "@/lib/api";
+import type { ApiProject } from "@/data/projects-data";
+import { convertToBs } from "@/data/projects-data";
+import { apiCall } from "@/services/api";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";

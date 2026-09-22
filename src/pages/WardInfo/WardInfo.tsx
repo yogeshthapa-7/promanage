@@ -9,8 +9,8 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchWards, type Ward } from '@/lib/ward-data';
-import { apiCall } from '@/lib/api';
+import { fetchWards, type Ward } from '@/data/ward-data';
+import { apiCall } from '@/services/api';
 import CreateWardDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 

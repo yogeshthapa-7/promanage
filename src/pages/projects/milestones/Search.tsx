@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, message, Select } from 'antd';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 
 interface MilestoneSearchProps {
   open: boolean;

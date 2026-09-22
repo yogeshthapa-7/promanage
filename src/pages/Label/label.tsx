@@ -9,8 +9,8 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchLabels, type Label } from '@/lib/label-data';
-import { apiCall } from '@/lib/api';
+import { fetchLabels, type Label } from '@/data/label-data';
+import { apiCall } from '@/services/api';
 import CreateLabelDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -181,10 +181,10 @@ export default function LabelPage() {
                 </div>
 
                 <div className="space-y-2.5 mb-5">
-                  <div className="flex items-center justify-between text-sm gap-2">
+                  {/* <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Label ID</span>
                     <span className="font-semibold text-slate-700 truncate">{label.id}</span>
-                  </div>
+                  </div> */}
                   {label.code && (
                     <div className="flex items-center justify-between text-sm gap-2">
                       <span className="text-slate-400 shrink-0">Code</span>

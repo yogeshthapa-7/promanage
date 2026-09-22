@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Search, Filter, X, ChevronDown, ArrowUpDown, Menu } from 'lucide-react';
-import type { ProjectStatus } from '@/lib/projects-data';
+import type { ProjectStatus } from '@/data/projects-data';
 
 interface TopbarProps {
   pageTitle?: string;

@@ -1,26 +1,28 @@
-import { apiCall, cachedQuery } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/services/api';
 
-export interface Budget {
+export interface Expense {
   SN: number;
   id: number;
-  name: string;
+  title: string;
+  code: string;
   fiscal_year?: string;
   fiscal_year_id?: number;
   document_url?: string;
   document_name?: string;
 }
 
-interface ApiBudgetResponse {
+interface ApiExpenseResponse {
   draw: number;
   recordsTotal: number;
   recordsFiltered: number;
-  data: ApiBudgetRow[];
+  data: ApiExpenseRow[];
 }
 
-interface ApiBudgetRow {
+interface ApiExpenseRow {
   SN: number;
-  BudgetInfoID: number;
-  BudgetInfoName: string;
+  ExpenseInfoID: number;
+  ExpenseTitle: string;
+  ExpenseCode: string;
   FiscalYear?: string;
   FiscalYearID?: number;
   FiscalYearName?: string;
@@ -28,24 +30,25 @@ interface ApiBudgetRow {
   DocumentUrl?: string;
 }
 
-interface FetchBudgetsParams {
+interface FetchExpensesParams {
   search: string;
   fiscalYear: string;
+  expenseCode: string;
   start: number;
   length: number;
   signal?: AbortSignal;
 }
 
-interface FetchBudgetsResult {
-  budgets: Budget[];
+interface FetchExpensesResult {
+  expenses: Expense[];
   total: number;
   filtered: number;
 }
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-export const API_URL = `${API_BASE}/BudgetInfo/ServerSearch`;
+export const API_URL = `${API_BASE}/ExpenseInfo/ServerSearch`;
 
-function buildSearchBody(params: FetchBudgetsParams) {
+function buildSearchBody(params: FetchExpensesParams) {
   return {
     model: {
       draw: 1,
@@ -54,60 +57,62 @@ function buildSearchBody(params: FetchBudgetsParams) {
       search: { value: '', regex: '' },
     },
     param: {
-      BudgetInfoID: 0,
-      BudgetInfoName: params.search,
+      ExpenseInfoID: 0,
+      ExpenseTitle: params.search,
+      ExpenseCode: params.expenseCode || '',
       // FiscalYear: params.fiscalYear,
       FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
     },
   };
 }
 
-export async function fetchBudgets(
-  params: FetchBudgetsParams
-): Promise<FetchBudgetsResult> {
+export async function fetchExpenses(
+  params: FetchExpensesParams
+): Promise<FetchExpensesResult> {
   try {
     return await cachedQuery(
-      ['budgets', 'search', params.search, params.fiscalYear, params.start, params.length],
-      (signal) => doFetchBudgets(params, signal),
+      ['expenses', 'search', params.search, params.fiscalYear, params.expenseCode, params.start, params.length],
+      (signal) => doFetchExpenses(params, signal),
       params.signal
     );
   } catch {
-    return { budgets: [], total: 0, filtered: 0 };
+    return { expenses: [], total: 0, filtered: 0 };
   }
 }
 
-async function doFetchBudgets(
-  params: FetchBudgetsParams,
+async function doFetchExpenses(
+  params: FetchExpensesParams,
   signal?: AbortSignal
-): Promise<FetchBudgetsResult> {
+): Promise<FetchExpensesResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
     body: JSON.stringify(buildSearchBody(params)),
     signal,
   });
 
-  if (!res.ok) throw new Error(`Failed to fetch budgets: ${res.statusText}`);
+  if (!res.ok) throw new Error(`Failed to fetch expenses: ${res.statusText}`);
 
   const json = await res.json();
-  const response = json as ApiBudgetResponse;
-  const rows = Array.isArray(response?.data) ? (response.data as ApiBudgetRow[]) : [];
-  const mapped = rows.map(mapApiRowToBudget);
+  const response = json as ApiExpenseResponse;
+  const rows = Array.isArray(response?.data) ? (response.data as ApiExpenseRow[]) : [];
+  const mapped = rows.map(mapApiRowToExpense);
 
   return {
-    budgets: mapped,
+    expenses: mapped,
     total: response.recordsTotal ?? 0,
     filtered: response.recordsFiltered ?? 0,
   };
 }
 
-function mapApiRowToBudget(row: ApiBudgetRow): Budget {
+function mapApiRowToExpense(row: ApiExpenseRow): Expense {
   const basePath = row.FileUpload || row.DocumentUrl || '';
   const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   const documentName = basePath ? decodeURIComponent(basePath.split('/').pop() || '') : '';
   return {
     SN: row.SN,
-    id: row.BudgetInfoID,
-    name: row.BudgetInfoName,
+    id: row.ExpenseInfoID,
+    title: row.ExpenseTitle,
+    code: row.ExpenseCode,
     fiscal_year: row.FiscalYearName || row.FiscalYear,
     fiscal_year_id: row.FiscalYearID,
     document_url: documentUrl,

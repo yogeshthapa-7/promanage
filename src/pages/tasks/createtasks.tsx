@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import { apiCall } from '@/lib/api';
-import type { TaskItem } from '@/lib/tasks-data';
-import type { ApiProject } from '@/lib/projects-data';
+import { apiCall } from '@/services/api';
+import type { TaskItem } from '@/data/tasks-data';
+import type { ApiProject } from '@/data/projects-data';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 

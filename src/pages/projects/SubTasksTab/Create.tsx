@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/lib/api';
-import { fetchEmployees, type Employee } from '@/lib/employees-data';
-import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
+import { apiCall } from '@/services/api';
+import { fetchEmployees, type Employee } from '@/data/employees-data';
+import type { TaskItem, SubTaskItem } from '@/data/tasks-data';
 import Drawer from '@/components/drawer';
 
 interface SubTaskCreateProps {

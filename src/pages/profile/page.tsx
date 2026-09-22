@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import { LogOut, Mail, User, Building2, Shield } from 'lucide-react';
 
 interface UserProfileDrawerProps {

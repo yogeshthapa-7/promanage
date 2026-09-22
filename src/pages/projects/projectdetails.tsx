@@ -14,8 +14,8 @@ import {
 import { BlockSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { apiCall } from '@/lib/api';
-import type { ApiProject } from '@/lib/projects-data';
+import { apiCall } from '@/services/api';
+import type { ApiProject } from '@/data/projects-data';
 import NepaliFunctions from '@sajanm/nepali-functions';
 import * as XLSX from 'xlsx';
 import { message } from 'antd';

@@ -4,12 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, LayoutList, LayoutGrid, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
 import CreateFiscalYearDrawer from './Create';
-import { fetchFiscalYears, fetchFiscalYearSelectList, type FiscalYearItem, type FiscalYearSelectOption } from '@/lib/fiscal-year-data';
+import { fetchFiscalYears, fetchFiscalYearSelectList, type FiscalYearItem, type FiscalYearSelectOption } from '@/data/fiscal-year-data';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];

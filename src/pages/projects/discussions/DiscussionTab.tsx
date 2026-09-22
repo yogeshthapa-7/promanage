@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/lib/projects-data";
-import { apiCall } from "@/lib/api";
+import type { ApiProject } from "@/data/projects-data";
+import { apiCall } from "@/services/api";
 import { Modal, message, Button } from "antd";
 import { LayoutGrid, List, Search, Pencil, Trash2, RotateCcw } from "lucide-react";
 import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
 import DiscussionSearch from "./Search";
-import { convertToBs } from "@/lib/projects-data";
+import { convertToBs } from "@/data/projects-data";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;

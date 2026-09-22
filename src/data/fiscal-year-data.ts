@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/services/api';
 import NepaliFunctions from '@sajanm/nepali-functions';
 
 export interface FiscalYearSelectOption {

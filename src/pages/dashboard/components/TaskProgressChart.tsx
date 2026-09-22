@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/components/ui/Card';
-import type { Project } from '@/lib/projects-data';
+import type { Project } from '@/data/projects-data';
 
 interface TaskProgressChartProps {
   projects?: Project[];

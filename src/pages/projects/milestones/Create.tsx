@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Button, message } from 'antd';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
 

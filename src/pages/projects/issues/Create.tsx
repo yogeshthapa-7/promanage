@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { fetchEmployees } from '@/lib/employees-data';
+import { fetchEmployees } from '@/data/employees-data';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { fetchUsers } from '@/lib/users-data';
-import { fetchEmployees } from '@/lib/employees-data';
-import { fetchDepartments } from '@/lib/departments-data';
-import { fetchOrganizations } from '@/lib/organizations-data';
-import { fetchTaskCount } from '@/lib/stats-data';
+import { fetchUsers } from '@/data/users-data';
+import { fetchEmployees } from '@/data/employees-data';
+import { fetchDepartments } from '@/data/departments-data';
+import { fetchOrganizations } from '@/data/organizations-data';
+import { fetchTaskCount } from '@/services/stats-data';
 
 interface DashboardStats {
   projects: number;

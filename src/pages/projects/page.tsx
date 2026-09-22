@@ -30,10 +30,10 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
 import DropdownMenu from '@/components/ui/DropdownMenu';
-import { apiCall } from '@/lib/api';
-import { mapApiProjectToProject } from '@/lib/projects-data';
-import type { ProjectStatus, Project, ApiProject } from '@/lib/projects-data';
-import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/lib/stats-data';
+import { apiCall } from '@/services/api';
+import { mapApiProjectToProject } from '@/data/projects-data';
+import type { ProjectStatus, Project, ApiProject } from '@/data/projects-data';
+import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/services/stats-data';
 import ProjectFormModal from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 

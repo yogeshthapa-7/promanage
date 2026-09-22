@@ -7,10 +7,10 @@ import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import SearchInput from '@/components/ui/SearchInput';
-import { fetchEmployees, type Employee } from '@/lib/employees-data';
+import { fetchEmployees, type Employee } from '@/data/employees-data';
 import EmployeeSetupModal from './Create';
-import { apiCall } from '@/lib/api';
-import { exportCsv } from '@/lib/csv';
+import { apiCall } from '@/services/api';
+import { exportCsv } from '@/utils/csv';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { useQueryClient } from '@tanstack/react-query';
 

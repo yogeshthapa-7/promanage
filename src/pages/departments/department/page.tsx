@@ -17,13 +17,13 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Drawer from '@/components/drawer';
 import CreateDepartmentDrawer from './Create';
-import { apiCall } from '@/lib/api';
-import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/lib/departments-data';
+import { apiCall } from '@/services/api';
+import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/data/departments-data';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
-// import { getParsedClientConfig } from '@/lib/client-config';
+// import { getParsedClientConfig } from '@/utils/client-config';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
-import { exportCsv } from '@/lib/csv';
+import { exportCsv } from '@/utils/csv';
 import * as XLSX from 'xlsx';
 
 function useDebounce<T>(value: T, delay: number): T {

@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import {
   fetchDepartmentSelectList,
   type DepartmentSelectOption,
-} from '@/lib/departments-data';
+} from '@/data/departments-data';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 

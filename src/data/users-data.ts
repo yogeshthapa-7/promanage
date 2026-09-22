@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/lib/api';
+import { apiCall, cachedQuery } from '@/services/api';
 
 export type UserRole = 'Admin' | 'Manager' | 'Developer' | 'Designer' | 'Member' | 'Employee' | 'Task Mgmt' | 'Super Admin' | 'Report Analysis' | 'DC Admin';
 export type UserStatus = 'Active' | 'Inactive' | 'Suspended';

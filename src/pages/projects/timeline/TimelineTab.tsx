@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/lib/projects-data";
-import { convertToBs } from "@/lib/projects-data";
-import { apiCall } from "@/lib/api";
+import type { ApiProject } from "@/data/projects-data";
+import { convertToBs } from "@/data/projects-data";
+import { apiCall } from "@/services/api";
 import Card from "@/components/ui/Card";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");

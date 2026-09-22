@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Modal, message, Button } from "antd";
-import type { ApiProject } from "@/lib/projects-data";
-import { apiCall } from "@/lib/api";
-import { calculateProgressFromDates } from "@/lib/nepali-date";
-import { convertToBs } from "@/lib/projects-data";
+import type { ApiProject } from "@/data/projects-data";
+import { apiCall } from "@/services/api";
+import { calculateProgressFromDates } from "@/utils/nepali-date";
+import { convertToBs } from "@/data/projects-data";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { LayoutGrid, List, Plus, Search, RotateCcw } from "lucide-react";

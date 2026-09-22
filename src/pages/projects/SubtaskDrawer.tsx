@@ -10,10 +10,10 @@ import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
 import SearchInput from '@/components/ui/SearchInput';
 import { Avatar } from '@/components/ui/Avatar';
-import { apiCall } from '@/lib/api';
-import type { ApiProject } from '@/lib/projects-data';
-import type { TaskItem, SubTaskItem } from '@/lib/tasks-data';
-import { fetchSubTasks, statusColor, priorityColor } from '@/lib/tasks-data';
+import { apiCall } from '@/services/api';
+import type { ApiProject } from '@/data/projects-data';
+import type { TaskItem, SubTaskItem } from '@/data/tasks-data';
+import { fetchSubTasks, statusColor, priorityColor } from '@/data/tasks-data';
 import SubTaskCreate from '@/pages/projects/SubTasksTab/Create';
 
 interface SubtaskDrawerProps {

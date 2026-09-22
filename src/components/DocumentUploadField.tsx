@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
-import { apiCall } from '@/lib/api';
+import { apiCall } from '@/services/api';
 import { message } from 'antd';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');

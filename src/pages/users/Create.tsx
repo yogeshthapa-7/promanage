@@ -3,13 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import type { User, UserGroup, OrganizationSelect } from '@/lib/users-data';
+import type { User, UserGroup, OrganizationSelect } from '@/data/users-data';
 import {
   fetchUserGroups,
   fetchOrganizations,
   saveUser,
   checkUserExists,
-} from '@/lib/users-data';
+} from '@/data/users-data';
 import Drawer from '@/components/drawer';
 import ProgressBar from '@/components/ui/ProgressBar';
 

@@ -15,8 +15,8 @@ import {
   CircleCheck,
   BriefcaseBusiness,
 } from 'lucide-react';
-import { apiCall } from '@/lib/api';
-import type { ApiProject } from '@/lib/projects-data';
+import { apiCall } from '@/services/api';
+import type { ApiProject } from '@/data/projects-data';
 import NepaliFunctions from '@sajanm/nepali-functions';
 import nepallogo from '@/assets/images/nepal_logo.png';
 

@@ -13,8 +13,8 @@ import {
   ClipboardList,
   FolderOpen,
 } from 'lucide-react';
-import { apiCall } from '@/lib/api';
-import { convertToBs } from '@/lib/projects-data';
+import { apiCall } from '@/services/api';
+import { convertToBs } from '@/data/projects-data';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
