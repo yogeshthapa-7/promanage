@@ -113,20 +113,10 @@ export default function AntdNepaliDatePicker({
   // Compute month information: start weekday offset and total days in month
   const monthInfo = useMemo(() => {
     try {
-      // Get starting AD date for the 1st day of this BS month
-      const adForDay1 = NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: 1 }) as { year: number; month: number; day: number };
-      const startDay = new Date(adForDay1.year, adForDay1.month - 1, adForDay1.day).getDay(); // 0 = Sun ... 6 = Sat
+      const daysInMonth = NepaliFunctions.BS.GetDaysInMonth(viewYear, viewMonth);
 
-       // Calculate total days in this BS month (testing 29 to 32)
-       let daysInMonth = 29;
-       for (let d = 29; d <= 32; d++) {
-         try {
-           NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: d });
-           daysInMonth = d;
-         } catch {
-           break;
-         }
-       }
+      const adForDay1 = NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: 1 }) as { year: number; month: number; day: number };
+      const startDay = new Date(adForDay1.year, adForDay1.month - 1, adForDay1.day).getDay();
 
       return { startDay, daysInMonth };
     } catch {
