@@ -3,6 +3,7 @@ import { Form, Input, Select, InputNumber, Row, Col, Button, message } from 'ant
 import { Save } from 'lucide-react';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import DocumentUploadField from '@/components/DocumentUploadField';
 import type { ApiProject } from '@/data/projects-data';
 import { apiCall } from '@/services/api';
 
@@ -88,8 +89,8 @@ const DrawerContent = memo(
     const [form] = Form.useForm();
     const abortControllerRef = useRef<AbortController | null>(null);
     const [loading, setLoading] = useState(false);
-    const [selectedFileName, setSelectedFileName] = useState<string>('');
-    const [projectHeadEmpPhoto, setProjectHeadEmpPhoto] = useState<string>('');
+    const [documentUrl, setDocumentUrl] = useState('');
+    const [uploading, setUploading] = useState(false);
     const [optionsLoading, setOptionsLoading] = useState(false);
     const [optionsError, setOptionsError] = useState<string | null>(null);
 
@@ -237,78 +238,49 @@ const DrawerContent = memo(
           projectHeadEmpPhoto: editingProject.ProjectHeadEmpPhoto,
           ward: (editingProject as any).WardInfoID ? String((editingProject as any).WardInfoID) : undefined,
         });
-        setProjectHeadEmpPhoto(editingProject.ProjectHeadEmpPhoto || '');
-        setSelectedFileName('');
+        setDocumentUrl(editingProject.ProjectHeadEmpPhoto || '');
       } else if (open && !editingProject) {
         form.resetFields();
-        setProjectHeadEmpPhoto('');
-        setSelectedFileName('');
+        setDocumentUrl('');
       }
     }, [open, editingProject, form, projectHeadOptions, statusOptions, clientOptions, projectTypeOptions]);
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-       const file = e.target.files?.[0];
-      if (file) {
-        setSelectedFileName(file.name);
-        const uploadFormData = new FormData();
-        uploadFormData.append('Image', file);
-        uploadFormData.append('UserId', '0');
-
-        try {
-          const uploadRes = await apiCall(`${API_BASE}/UploadFile`, {
-            method: 'POST',
-            body: uploadFormData,
-          });
-
-         if (!uploadRes.ok) throw new Error(`File upload failed: ${uploadRes.statusText}`);
-
-          const uploadJson = await uploadRes.json();
-          const basePath = uploadJson?.Data?.BasePath || '';
-          const photoUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
-          setProjectHeadEmpPhoto(photoUrl);
-          form.setFieldValue('projectHeadEmpPhoto', photoUrl);
-        } catch (err) {
-          if (err instanceof Error) {
-            message.error(err.message || 'Image upload failed');
-          }
-        }
-      }
-    };
 
     const handleSubmit = async () => {
        try {
          const values = await form.validateFields();
          setLoading(true);
 
-         const projectId = isEdit && editingProject ? Number(editingProject.ProjectInfoID) : 0;
+          const projectId = isEdit && editingProject ? Number(editingProject.ProjectInfoID) : 0;
 
-         const formPhoto = form.getFieldValue('projectHeadEmpPhoto');
-         const photoUrl = formPhoto || projectHeadEmpPhoto || '';
+          let documentPath = documentUrl || '';
+          if (documentPath.startsWith(API_BASE + '/')) {
+            documentPath = documentPath.replace(API_BASE + '/', '');
+          }
 
-         const body = {
-           ProjectInfoID: projectId,
-           ProjectName: values.projectName,
-           ProjectDuration: values.projectDuration,
-           StartDate: values.startDate || '',
-           Description: values.description,
-           TotalBudget: values.totalBudget,
-           Priority: values.priority1 ? Number(values.priority1) : 2,
-           WorkStatusID: isNaN(Number(values.statusName)) ? (editingProject?.WorkStatusID || 0) : Number(values.statusName),
-           PolicyProgramIDs: values.policyAndProgram,
-           PolicyProgramIDArray: values.policyAndProgram ? [values.policyAndProgram] : [],
-           BudgetInfoIDs: values.budget,
-           BudgetInfoIDArray: values.budget ? [values.budget] : [],
-           ClientInfoID: isNaN(Number(values.ClientName)) ? (editingProject?.ClientInfoID || 0) : Number(values.ClientName),
-           DepartmentID: values.department ? Number(values.department) : 0,
+          const body = {
+            ProjectInfoID: projectId,
+            ProjectName: values.projectName,
+            ProjectDuration: values.projectDuration,
+            StartDate: values.startDate || '',
+            Description: values.description,
+            TotalBudget: values.totalBudget,
+            Priority: values.priority1 ? Number(values.priority1) : 2,
+            WorkStatusID: isNaN(Number(values.statusName)) ? (editingProject?.WorkStatusID || 0) : Number(values.statusName),
+            PolicyProgramIDs: values.policyAndProgram,
+            PolicyProgramIDArray: values.policyAndProgram ? [values.policyAndProgram] : [],
+            BudgetInfoIDs: values.budget,
+            BudgetInfoIDArray: values.budget ? [values.budget] : [],
+            ClientInfoID: isNaN(Number(values.ClientName)) ? (editingProject?.ClientInfoID || 0) : Number(values.ClientName),
+            DepartmentID: values.department ? Number(values.department) : 0,
             ExpenseInfoID: Number(values.expenseInfo),
             WardInfoID: values.ward ? Number(values.ward) : 0,
-           ProjectType: isNaN(Number(values.projectType)) ? (editingProject?.ProjectType || 0) : Number(values.projectType),
-           ProjectHeadEmpID: isNaN(Number(values.projectHeadName)) ? (editingProject?.ProjectHeadEmpID || 0) : Number(values.projectHeadName),
-           BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
-           BankGuranteeExpiryDate: values.bankGuaranteeExpiryDate || '',
-           IsPolicyRelated: 0,
-           ProjectHeadEmpPhoto: photoUrl,
-         };
+            ProjectType: isNaN(Number(values.projectType)) ? (editingProject?.ProjectType || 0) : Number(values.projectType),
+            ProjectHeadEmpID: isNaN(Number(values.projectHeadName)) ? (editingProject?.ProjectHeadEmpID || 0) : Number(values.projectHeadName),
+            BankGuranteeIssueDate: values.bankGuaranteeIssueDate || '',
+            BankGuranteeExpiryDate: values.bankGuaranteeExpiryDate || '',
+            IsPolicyRelated: 0,
+            ProjectHeadEmpPhoto: documentPath,
+          };
 
           const API_URL = `${API_BASE}/SaveProjectInfo`;
           const res = await apiCall(API_URL, {
@@ -321,11 +293,11 @@ const DrawerContent = memo(
             throw new Error(result.Message || `Failed: ${res.statusText}`);
           }
 
-          message.success(isEdit ? 'परियोजना सफलतापूर्वक अपडेट गरियो' : 'परियोजना सफलतापूर्वक सिर्जना गरियो');
-          form.resetFields();
-          setSelectedFileName('');
-          onSuccess();
-          onClose();
+           message.success(isEdit ? 'परियोजना सफलतापूर्वक अपडेट गरियो' : 'परियोजना सफलतापूर्वक सिर्जना गरियो');
+           form.resetFields();
+           setDocumentUrl('');
+           onSuccess();
+           onClose();
       } catch (err) {
         if (err instanceof Error) {
           message.error(err.message || 'परियोजना प्रविष्टि असफल भयो');
@@ -709,15 +681,13 @@ const DrawerContent = memo(
                 >
                   <input type="hidden" />
                 </Form.Item>
-                <div className="flex items-center gap-2">
-                  <div className="bg-[#e5e7eb] text-slate-700 px-3 py-1.5 rounded-md text-sm min-w-[120px] truncate border border-slate-300">
-                    {selectedFileName || 'Upload here'}
-                  </div>
-                  <label className="bg-[#6b7280] hover:bg-[#4b5563] text-white px-4 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors shadow-sm">
-                    Browse
-                    <input type="file" className="hidden" onChange={handleFileChange} />
-                  </label>
-                </div>
+                <DocumentUploadField
+                  value={documentUrl}
+                  onChange={setDocumentUrl}
+                  uploading={uploading}
+                  onUploadingChange={setUploading}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp"
+                />
               </Col>
             </Row>
           </fieldset>
