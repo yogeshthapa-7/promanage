@@ -509,7 +509,7 @@ export default function AntdNepaliDatePicker({
       overlayStyle={{ backgroundColor: 'transparent', boxShadow: 'none', padding: 0 }}
       styles={{
         root: { backgroundColor: 'transparent' },
-        inner: { backgroundColor: 'transparent', padding: 0, boxShadow: 'none' },
+        container: { backgroundColor: 'transparent', padding: 0, boxShadow: 'none' },
       }}
       getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
     >
