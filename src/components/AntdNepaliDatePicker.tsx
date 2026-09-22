@@ -118,9 +118,21 @@ export default function AntdNepaliDatePicker({
       const adForDay1 = NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: 1 }) as { year: number; month: number; day: number };
       const startDay = new Date(adForDay1.year, adForDay1.month - 1, adForDay1.day).getDay();
 
-      return { startDay, daysInMonth };
+      const saturdays = new Set<number>();
+      for (let d = 1; d <= daysInMonth; d++) {
+        try {
+          const ad = NepaliFunctions.BS2AD({ year: viewYear, month: viewMonth, day: d }) as { year: number; month: number; day: number };
+          if (new Date(ad.year, ad.month - 1, ad.day).getDay() === 6) {
+            saturdays.add(d);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      return { startDay, daysInMonth, saturdays };
     } catch {
-      return { startDay: 0, daysInMonth: 30 };
+      return { startDay: 0, daysInMonth: 30, saturdays: new Set<number>() };
     }
   }, [viewYear, viewMonth]);
 
@@ -250,6 +262,8 @@ export default function AntdNepaliDatePicker({
             todayBs.month === viewMonth &&
             todayBs.day === dayNum;
 
+          const isSaturday = monthInfo.saturdays.has(dayNum);
+
           return (
             <button
               key={dayNum}
@@ -260,6 +274,8 @@ export default function AntdNepaliDatePicker({
                   ? 'bg-violet-600 text-white font-bold shadow-sm'
                   : isToday
                   ? 'border border-violet-500 text-violet-700 font-bold'
+                  : isSaturday
+                  ? 'text-red-500 hover:bg-red-50'
                   : 'text-slate-700 hover:bg-violet-50 hover:text-violet-600'
               }`}
             >
