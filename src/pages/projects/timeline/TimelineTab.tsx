@@ -102,7 +102,7 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-16 font-sans select-none overflow-hidden">
+    <div className="w-full max-w-6xl mx-auto px-4 py-16 font-sans select-none overflow-x-hidden">
       {/* Header */}
       <div className="text-center mb-16">
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
@@ -121,7 +121,6 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
           const isLeft = idx % 2 === 0;
           const hasNext = idx < timelines.length - 1;
 
-          // Colors for SVG gradient
           const hexColors: Record<string, string> = {
             "bg-indigo-600": "#4f46e5",
             "bg-blue-600": "#2563eb",
@@ -136,69 +135,81 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
           return (
             <div
               key={item.CreateDateTime + idx}
-              className="flex w-full relative group"
+              className="relative group md:flex md:w-full"
             >
-              {/* Left Column (Card or Empty) */}
-              <div className="w-[calc(50%-40px)] sm:w-[calc(50%-60px)] pb-12 flex justify-end pr-4 sm:pr-8">
-                {isLeft && (
-           <TimelineCard
-                     palette={palette}
-                     item={item}
-                     itemNumber={timelines.length - idx}
-                     isLeft={true}
-                   />
-                )}
-              </div>
-
-              {/* Center Column (Nodes and Zigzag Lines) */}
-              <div className="w-[80px] sm:w-[120px] relative shrink-0">
-                {/* Connecting SVG Line to Next Node */}
-                {hasNext && (
-                  <svg
-                    className="absolute top-[38px] left-0 w-full h-full pointer-events-none"
-                    preserveAspectRatio="none"
-                    viewBox="0 0 120 100"
-                  >
-                    <defs>
-                      <linearGradient id={`grad-${idx}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor={currentColor} />
-                        <stop offset="100%" stopColor={nextColorHex} />
-                      </linearGradient>
-                    </defs>
-                    <line
-                      x1={isLeft ? 28 : 92}
-                      y1="0"
-                      x2={!isLeft ? 28 : 92}
-                      y2="100"
-                      stroke={`url(#grad-${idx})`}
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                )}
-
-                {/* The Circular Node */}
-                <div
-                  className={`absolute top-4 w-10 h-10 sm:w-14 sm:h-14 rounded-full border-[4px] border-white z-10 flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 ${
-                    palette.bg
-                  } ${isLeft ? "left-0 sm:left-1" : "right-0 sm:right-1"}`}
-                >
-                  <span className="text-white font-bold text-sm sm:text-base">
-                    {timelines.length - idx}
-                  </span>
+              {/* Mobile: single column layout */}
+              <div className="md:hidden flex gap-3">
+                <div className="flex flex-col items-center">
+                  <div className={`w-8 h-8 rounded-full border-[3px] border-white shadow flex items-center justify-center ${palette.bg}`}>
+                    <span className="text-white font-bold text-xs">{timelines.length - idx}</span>
+                  </div>
+                  {hasNext && <div className="w-0.5 flex-1 bg-slate-200 min-h-[24px]" />}
+                </div>
+                <div className="flex-1 min-w-0 pb-4">
+                  <TimelineCard palette={palette} item={item} itemNumber={timelines.length - idx} isLeft={isLeft} />
                 </div>
               </div>
 
-              {/* Right Column (Card or Empty) */}
-              <div className="w-[calc(50%-40px)] sm:w-[calc(50%-60px)] pb-12 flex justify-start pl-4 sm:pl-8">
-                {!isLeft && (
-                   <TimelineCard
-                     palette={palette}
-                     item={item}
-                     itemNumber={timelines.length - idx}
-                     isLeft={false}
-                   />
-                )}
+              {/* Desktop: alternating layout */}
+              <div className="hidden md:flex w-full relative">
+                {/* Left Column */}
+                <div className="w-[calc(50%-60px)] pb-12 flex justify-end pr-8">
+                  {isLeft && (
+                    <TimelineCard
+                      palette={palette}
+                      item={item}
+                      itemNumber={timelines.length - idx}
+                      isLeft={true}
+                    />
+                  )}
+                </div>
+
+                {/* Center Column */}
+                <div className="w-[120px] relative shrink-0">
+                  {hasNext && (
+                    <svg
+                      className="absolute top-[38px] left-0 w-full h-full pointer-events-none"
+                      preserveAspectRatio="none"
+                      viewBox="0 0 120 100"
+                    >
+                      <defs>
+                        <linearGradient id={`grad-${idx}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor={currentColor} />
+                          <stop offset="100%" stopColor={nextColorHex} />
+                        </linearGradient>
+                      </defs>
+                      <line
+                        x1={isLeft ? 28 : 92}
+                        y1="0"
+                        x2={!isLeft ? 28 : 92}
+                        y2="100"
+                        stroke={`url(#grad-${idx})`}
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  )}
+
+                  <div
+                    className={`absolute top-4 w-14 h-14 rounded-full border-[4px] border-white z-10 flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110 ${palette.bg} ${isLeft ? "left-1" : "right-1"}`}
+                  >
+                    <span className="text-white font-bold text-base">
+                      {timelines.length - idx}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="w-[calc(50%-60px)] pb-12 flex justify-start pl-8">
+                  {!isLeft && (
+                    <TimelineCard
+                      palette={palette}
+                      item={item}
+                      itemNumber={timelines.length - idx}
+                      isLeft={false}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           );
@@ -220,7 +231,7 @@ function TimelineCard({
   isLeft: boolean;
 }) {
   return (
-    <div className="w-full max-w-md bg-white rounded-xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left relative z-20">
+    <div className="w-full max-w-md bg-white rounded-xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left relative z-20 break-words">
       
       {/* Visual Category / Title */}
       <div className="mb-3">
@@ -230,7 +241,7 @@ function TimelineCard({
       </div>
       
       {/* Main Content */}
-      <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line mb-4 font-medium">
+      <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line mb-4 font-medium break-words">
         {item.Remarks || "No additional remarks were provided for this log entry."}
       </div>
 
@@ -238,7 +249,7 @@ function TimelineCard({
       <div className="flex items-center gap-2 pt-4 border-t border-slate-50 text-xs font-semibold text-slate-400">
         <span className="flex items-center gap-1 text-slate-500">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
           </svg>
           {convertToBs(item.CreatedDate)}
         </span>
