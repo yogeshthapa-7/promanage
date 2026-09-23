@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, Calendar, } from 'lucide-react';
 import { Popover, Modal } from 'antd';
 import { useAuth } from '@/context/AuthContext';
 import UserProfileDrawer from '@/pages/profile/page';
@@ -26,6 +26,7 @@ const navItems: NavItem[] = [
   { id: 'ward', label: 'Ward Info', icon: <MapPin size={18} />, href: '/WardInfo', section: 'POLICY' },
   { id: 'client', label: 'Client', icon: <Handshake size={18} />, href: '/Client', section: 'POLICY' },
   { id: 'label', label: 'Label Info', icon: <Tag size={18} />, href: '/Label', section: 'POLICY' },
+  { id: 'year', label: 'Fiscal Year', icon: <Calendar size={18} />, href: '/FiscalYear', section: 'POLICY' },
 ];
 
 function getActiveNavId(pathname: string): string {
@@ -44,6 +45,7 @@ function getActiveNavId(pathname: string): string {
   if (pathname.startsWith('/Client')) return 'client';
   if (pathname.startsWith('/Label')) return 'label';
   if (pathname.startsWith('/WardInfo')) return 'ward';
+  if (pathname.startsWith('/FiscalYear')) return 'year';
   if (pathname.startsWith('/dashboard')) return 'dashboard';
   return 'dashboard';
 }
