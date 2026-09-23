@@ -40,7 +40,7 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
           startDate: editingYear.startDate,
           endDate: editingYear.endDate,
           isRunning: editingYear.isRunning ?? 0,
-          yearOrder: +editingYear.yearOrder ?? 0,
+          yearOrder: +editingYear?.yearOrder ?? 0,
         });
       } else {
         form.resetFields();
@@ -67,7 +67,7 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
       };
       
 
-      const res = await apiCall(`${API_BASE}SaveFiscalYear`, {
+      const res = await apiCall(`${API_BASE}/SaveFiscalYear`, {
         method: 'POST',
         body: JSON.stringify(body),
       });
