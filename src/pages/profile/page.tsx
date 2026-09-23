@@ -1,10 +1,9 @@
-'use client';
-
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
 import { LogOut, Mail, User, Hash, Building2, Shield } from 'lucide-react';
+import { Modal } from 'antd';
 
 interface UserProfileDrawerProps {
   open: boolean;
@@ -15,8 +14,17 @@ export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerPr
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    logout();
-    onClose();
+    Modal.confirm({
+      title: 'Sign Out',
+      content: 'Are you sure you want to sign out?',
+      okText: 'Sign Out',
+      okType: 'danger',
+      styles: { wrapper: { zIndex: 10000 } },
+      onOk: () => {
+        logout();
+        onClose();
+      },
+    });
   };
 
   return (

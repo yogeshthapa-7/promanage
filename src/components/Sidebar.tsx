@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, } from 'lucide-react';
-import { Popover } from 'antd';
+import { Popover, Modal } from 'antd';
 import { useAuth } from '@/context/AuthContext';
 import UserProfileDrawer from '@/pages/profile/page';
 
@@ -173,7 +173,15 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 View Profile
               </button>
               <button
-                onClick={() => { logout(); navigate('/login'); }}
+                onClick={() =>
+                  Modal.confirm({
+                    title: 'Sign Out',
+                    content: 'Are you sure you want to sign out?',
+                    okText: 'Sign Out',
+                    okType: 'danger',
+                    onOk: () => { setUserMenuOpen(false); logout(); navigate('/login'); },
+                  })
+                }
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
               >
                 <LogOut size={14} />
