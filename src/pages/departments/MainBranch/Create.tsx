@@ -15,8 +15,9 @@ interface CreateMainBranchDrawerProps {
   onClose: () => void;
   onSuccess: () => void;
   editingBranch?: { id: string; name: string; mainBranchCode: string; departmentId: number } | null;
-  // disabledDepartment?: boolean;
-  // defaultDepartmentId?: string | number;
+  //localbodylevel:
+  disabledDepartment?: boolean;
+  defaultDepartmentId?: string | number;
 }
 
 export default function CreateMainBranchDrawer({
@@ -24,8 +25,9 @@ export default function CreateMainBranchDrawer({
   onClose,
   onSuccess,
   editingBranch,
-  // disabledDepartment,
-  // defaultDepartmentId,
+  //localbodylevel
+  disabledDepartment,
+  defaultDepartmentId,
 }: CreateMainBranchDrawerProps) {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
@@ -67,13 +69,15 @@ export default function CreateMainBranchDrawer({
     }
   }, [open, editingBranch, form]);
 
-  // useEffect(() => {
-  //   if (!open || editingBranch || !disabledDepartment) return;
-  //   if (departmentOptions.length > 0) {
-  //     const defaultId = defaultDepartmentId ?? departmentOptions[0].value;
-  //     form.setFieldsValue({ departmentId: String(defaultId) });
-  //   }
-  // }, [open, editingBranch, disabledDepartment, departmentOptions, defaultDepartmentId, form]);
+  //localbodylevel
+
+  useEffect(() => {
+    if (!open || editingBranch || !disabledDepartment) return;
+    if (departmentOptions.length > 0) {
+      const defaultId = defaultDepartmentId ?? departmentOptions[0].value;
+      form.setFieldsValue({ departmentId: String(defaultId) });
+    }
+  }, [open, editingBranch, disabledDepartment, departmentOptions, defaultDepartmentId, form]);
 
   const handleSubmit = async () => {
     try {
@@ -90,7 +94,8 @@ export default function CreateMainBranchDrawer({
         MainBranchCode: values.code,
         DepartmentID: values.departmentId ? Number(values.departmentId) : 0,
         DepartmentName: selectedDepartment?.label || '',
-        // ParentDepartmentID: 0,
+        //localbodylevel
+        ParentDepartmentID: 0,
         OrderKey: 0,
       };
 
@@ -172,10 +177,10 @@ export default function CreateMainBranchDrawer({
               placeholder={departmentLoading ? 'Loading...' : 'Select department'}
               options={departmentOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
               className="rounded-lg"
-              allowClear={/* !disabledDepartment */true}
+              allowClear={!disabledDepartment}
               loading={departmentLoading}
               getPopupContainer={getPopupParent}
-              // disabled={disabledDepartment}
+              disabled={disabledDepartment}
             />
           </Form.Item>
         </div>

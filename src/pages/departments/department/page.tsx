@@ -17,9 +17,13 @@ import Drawer from '@/components/drawer';
 import CreateDepartmentDrawer from './Create';
 import { apiCall } from '@/services/api';
 import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/data/departments-data';
+import {
+  fetchMainBranchSelectList,
+  type MainBranchSelectOption,
+} from '@/data/main-branches-data';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
-// import { getParsedClientConfig } from '@/utils/client-config';
+import { getParsedClientConfig } from '@/utils/client-config';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { exportCsv } from '@/utils/csv';
 import * as XLSX from 'xlsx';
@@ -52,24 +56,27 @@ function fetchDepartmentsPage(params: PaginatedListParams): Promise<{ items: Dep
 
 export default function DepartmentPage() {
   const queryClient = useQueryClient();
+  const { localBodyLevel } = getParsedClientConfig();
+  const allTabs = [
+    { key: 'department' as const, label: 'विभाग' },
+    { key: 'mainbranch' as const, label: 'महाशाखा' },
+    { key: 'branch' as const, label: 'शाखा' },
+  ];
+  const visibleTabs = localBodyLevel === 3
+    ? allTabs.slice(2)
+    : localBodyLevel === 2
+      ? allTabs.slice(1)
+      : allTabs;
+  const initialTab = visibleTabs[0]?.key ?? 'department';
+
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>('department');
-//   const { localBodyLevel } = getParsedClientConfig();
-//   const allTabs = [
-//     { key: 'department' as const, label: 'विभाग' },
-//     { key: 'mainbranch' as const, label: 'महाशाखा' },
-//     { key: 'branch' as const, label: 'शाखा' },
-//   ];
-//   const visibleTabs = localBodyLevel === 3
-//     ? allTabs.slice(2)
-//     : localBodyLevel === 2
-//       ? allTabs.slice(1)
-//       : allTabs;
-//   const initialTab = visibleTabs[0]?.key ?? 'department';
+  const [activeTab, setActiveTab] = useState<'department' | 'mainbranch' | 'branch'>(initialTab);
+
   const [deptNameOptions, setDeptNameOptions] = useState<DepartmentSelectOption[]>([]);
   const [deptNameLoading, setDeptNameLoading] = useState(false);
+  const [mainBranchOptionsForBranch, setMainBranchOptionsForBranch] = useState<MainBranchSelectOption[]>([]);
 
   const [filterDeptId, setFilterDeptId] = useState<string | undefined>(undefined);
   const [filterDeptCode, setFilterDeptCode] = useState('');
@@ -92,7 +99,7 @@ export default function DepartmentPage() {
   } = usePaginatedList<Department>({
     fetcher: fetchDepartmentsPage,
     initialPageSize: 20,
-    extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab],
+    extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab, mainBranchOptionsForBranch],
     extraParams: {
       departmentId: filterDeptId,
       code: debouncedDeptCode,
@@ -108,6 +115,20 @@ export default function DepartmentPage() {
       .then((options) => setDeptNameOptions(options))
       .finally(() => {
         if (!controller.signal.aborted) setDeptNameLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchMainBranchSelectList(controller.signal)
+      .then((options) => setMainBranchOptionsForBranch(options))
+      .catch(() => {})
+      .finally(() => {
+        if (!controller.signal.aborted) {
+        }
       });
     return () => controller.abort();
   }, []);
@@ -262,11 +283,7 @@ export default function DepartmentPage() {
       
       {/* 2. Tabs */}
       <div className="flex items-center gap-0 border-b border-slate-200 no-print">
-        {([
-          { key: 'department' as const, label: 'विभाग' },
-          { key: 'mainbranch' as const, label: 'महाशाखा' },
-          { key: 'branch' as const, label: 'शाखा' },
-        ]).map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
@@ -482,14 +499,16 @@ export default function DepartmentPage() {
 
       {activeTab === 'mainbranch' && (
         <div className="print-area">
-          <MainBranchPage /* disabledDepartment={localBodyLevel >= 2} defaultDepartmentId={...} */ />
+          <MainBranchPage disabledDepartment={localBodyLevel >= 2} defaultDepartmentId={localBodyLevel >= 2 ? deptNameOptions[0]?.value : undefined} />
         </div>
       )}
       {activeTab === 'branch' && (
         <div className="print-area">
           <BranchPage
-            /* disabledMainBranch={localBodyLevel >= 3}
-            disabledDepartment={localBodyLevel >= 3} */
+            disabledMainBranch={localBodyLevel >= 3}
+            defaultMainBranchId={localBodyLevel >= 3 ? mainBranchOptionsForBranch[0]?.value : undefined}
+            disabledDepartment={localBodyLevel >= 2}
+            defaultDepartmentId={localBodyLevel >= 2 ? deptNameOptions[0]?.value : undefined}
           />
         </div>
       )}

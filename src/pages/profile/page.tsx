@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/services/api';
+import { Modal } from 'antd';
 import { LogOut, Mail, User, Building2, Shield } from 'lucide-react';
 
 interface UserProfileDrawerProps {
@@ -12,6 +14,7 @@ interface UserProfileDrawerProps {
 
 export default function UserProfileDrawer({ open = true, onClose = () => {} }: UserProfileDrawerProps) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [employeeName, setEmployeeName] = useState('');
   const [departmentName, setDepartmentName] = useState('');
   const [employeeLoading, setEmployeeLoading] = useState(false);
@@ -85,12 +88,21 @@ export default function UserProfileDrawer({ open = true, onClose = () => {} }: U
   }, [open, user?.employeeId, user?.departmentCode, API_BASE]);
 
   const handleLogout = () => {
-    logout();
-    onClose();
+    Modal.confirm({
+      title: 'Sign out?',
+      content: 'Are you sure you want to sign out?',
+      okText: 'Sign Out',
+      cancelText: 'Cancel',
+      okButtonProps: { danger: true },
+      onOk: () => {
+        logout();
+        navigate('/login');
+      },
+    });
   };
 
   return (
-    <Drawer open={open} onClose={onClose} title="Profile" width={420}>
+    <Drawer open={open} onClose={onClose} title="Profile" width={420} zIndex={10001}>
       <div className="flex flex-col items-center text-center mb-8">
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white text-3xl font-bold flex items-center justify-center shadow-lg shadow-blue-900/30 mb-4">
           {user?.name ? user.name.charAt(0).toUpperCase() : <User size={32} />}

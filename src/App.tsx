@@ -21,8 +21,9 @@ import ExpensePage from './pages/Expense/expense';
 import ClientPage from './pages/Client/client';
 import LabelPage from './pages/Label/label';
 import WardPage from './pages/WardInfo/WardInfo';
-import UserProfilePage from './pages/profile/page';
+import ProfilePageDrawer from './pages/profile/page';
 import FiscalYearPage from './pages/fiscal_year/fiscal_year';
+import { useNavigate } from 'react-router-dom';
 
 function RootApp() {
   return (
@@ -125,11 +126,11 @@ function RootApp() {
               <AppLayout showTopbar={false}><LabelPage /></AppLayout>
             </ProtectedRoute>
           } />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <AppLayout showTopbar={false}><UserProfilePage /></AppLayout>
-            </ProtectedRoute>
-          } />
+<Route path="/profile" element={
+  <ProtectedRoute>
+    <AppLayout showTopbar={false}><ProfilePageDrawer open={true} onClose={() => {}} /></AppLayout>
+  </ProtectedRoute>
+} />
           <Route path="/projects/:id/tasks"element={
             <ProtectedRoute>
               <AppLayout showTopbar={false}><TaskAndSubtasks /></AppLayout>

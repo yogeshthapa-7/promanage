@@ -9,6 +9,7 @@ interface DrawerProps {
   subtitle?: string;
   children: React.ReactNode;
   width?: number;
+  zIndex?: number;
 }
 
 export default function Drawer({
@@ -18,17 +19,32 @@ export default function Drawer({
   subtitle,
   children,
   width = 480,
+  zIndex = 9999,
 }: DrawerProps) {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const rafRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const onCloseRef = useRef(onClose);
+  const bodyOverflowRef = useRef('');
+  const bodyPaddingRightRef = useRef('');
+  const bodyLockedRef = useRef(false);
   onCloseRef.current = onClose;
+
+const unlockBody = () => {
+    if (!bodyLockedRef.current) return;
+    
+    // Use requestAnimationFrame for smooth restore to prevent layout shift
+    requestAnimationFrame(() => {
+      document.body.style.overflow = bodyOverflowRef.current;
+      document.body.style.paddingRight = bodyPaddingRightRef.current;
+      bodyLockedRef.current = false;
+    });
+  };
 
   const close = () => onCloseRef.current();
 
-  useEffect(() => {
+useEffect(() => {
     if (open) {
       setMounted(true);
       setVisible(false);
@@ -37,12 +53,27 @@ export default function Drawer({
           setVisible(true);
         });
       });
-      document.body.style.overflow = 'hidden';
+      
+      // Fix: Calculate and set body styles in same frame to prevent layout shift
+      const updateBodyStyles = () => {
+        bodyOverflowRef.current = document.body.style.overflow;
+        bodyPaddingRightRef.current = document.body.style.paddingRight;
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        // Only set padding if there's actually a scrollbar to compensate for
+        if (scrollbarWidth > 0) {
+          document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
+        document.body.style.overflow = 'hidden';
+        bodyLockedRef.current = true;
+      };
+      
+      // Use requestAnimationFrame to ensure we read current styles before writing
+      requestAnimationFrame(updateBodyStyles);
     } else if (mounted) {
       setVisible(false);
       timeoutRef.current = window.setTimeout(() => {
         setMounted(false);
-        document.body.style.overflow = '';
+        unlockBody();
       }, 320);
     }
     return () => {
@@ -54,12 +85,13 @@ export default function Drawer({
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
+      unlockBody();
     };
   }, [open]);
 
   useEffect(() => {
     return () => {
-      document.body.style.overflow = '';
+      unlockBody();
     };
   }, []);
 
@@ -70,14 +102,14 @@ export default function Drawer({
         timeoutRef.current = null;
       }
       setMounted(false);
-      document.body.style.overflow = '';
+      unlockBody();
     }
   };
 
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex" aria-hidden={!open}>
+    <div className="fixed inset-0 flex" style={{ zIndex }} aria-hidden={!open}>
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           visible ? 'opacity-100' : 'opacity-0'

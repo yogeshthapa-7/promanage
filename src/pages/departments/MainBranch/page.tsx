@@ -48,18 +48,19 @@ function fetchMainBranchesPage(params: PaginatedListParams): Promise<{ items: Ma
   }));
 }
 
-/* interface MainBranchPageProps {
+//localbodyleve:
+ interface MainBranchPageProps {
   disabledDepartment?: boolean;
   defaultDepartmentId?: string | number;
-} */
+} 
 
-export default function MainBranchPage(/* { disabledDepartment, defaultDepartmentId }: MainBranchPageProps */) {
+export default function MainBranchPage({ disabledDepartment, defaultDepartmentId }: MainBranchPageProps) {
   const queryClient = useQueryClient();
   const [editingBranch, setEditingBranch] = useState<MainBranch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
 
   const [filterMainBranchId, setFilterMainBranchId] = useState<string | undefined>(undefined);
-  const [filterDepartmentId, setFilterDepartmentId] = useState<string | undefined>(undefined);
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string | undefined>(defaultDepartmentId !== undefined ? String(defaultDepartmentId) : undefined);
   const [filterCode, setFilterCode] = useState('');
 
   const [mainBranchOptions, setMainBranchOptions] = useState<MainBranchSelectOption[]>([]);
@@ -118,7 +119,7 @@ export default function MainBranchPage(/* { disabledDepartment, defaultDepartmen
 
   const handleClear = () => {
     setFilterMainBranchId(undefined);
-    setFilterDepartmentId(undefined);
+    setFilterDepartmentId(disabledDepartment ? (defaultDepartmentId !== undefined ? String(defaultDepartmentId) : undefined) : undefined);
     setFilterCode('');
     setCurrentPage(1);
   };
@@ -258,12 +259,13 @@ export default function MainBranchPage(/* { disabledDepartment, defaultDepartmen
               onChange={(value) => setFilterDepartmentId(value)}
               options={departmentOptions}
               className="w-full"
-              allowClear
+              allowClear={!disabledDepartment}
               loading={departmentLoading}
               showSearch
               filterOption={(input, option) =>
                 ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
               }
+              disabled={disabledDepartment}
             />
           </div>
 
@@ -396,8 +398,9 @@ export default function MainBranchPage(/* { disabledDepartment, defaultDepartmen
         onClose={() => setShowFormModal(false)}
         onSuccess={refreshMainBranches}
         editingBranch={editingBranch}
-        // disabledDepartment={disabledDepartment}
-        // defaultDepartmentId={defaultDepartmentId}
+        //localbodylevel:
+        disabledDepartment={disabledDepartment}
+        defaultDepartmentId={defaultDepartmentId}
       />
     </div>
   );

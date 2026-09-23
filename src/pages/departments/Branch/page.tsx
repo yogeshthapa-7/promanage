@@ -12,6 +12,10 @@ import {
   fetchMainBranchSelectList,
   type MainBranchSelectOption,
 } from '@/data/main-branches-data';
+import {
+  fetchDepartmentSelectList,
+  type DepartmentSelectOption,
+} from '@/data/departments-data';
 import CreateBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { exportCsv } from '@/utils/csv';
@@ -55,26 +59,30 @@ function fetchBranchesPage(params: PaginatedListParams): Promise<{ items: Branch
   }));
 }
 
-/* interface BranchPageProps {
+//localbodylevel:
+ interface BranchPageProps {
   disabledMainBranch?: boolean;
   defaultMainBranchId?: string | number;
   disabledDepartment?: boolean;
   defaultDepartmentId?: string | number;
-} */
+} 
 
-export default function BranchPage(/* { disabledMainBranch, defaultMainBranchId, disabledDepartment, defaultDepartmentId }: BranchPageProps */) {
+export default function BranchPage( { disabledMainBranch, defaultMainBranchId, disabledDepartment, defaultDepartmentId }: BranchPageProps ) {
   const queryClient = useQueryClient();
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
 
   const [branchNameId, setBranchNameId] = useState<string | undefined>(undefined);
   const [searchCode, setSearchCode] = useState('');
-  const [mainBranchId, setMainBranchId] = useState<string | undefined>(undefined);
+  const [mainBranchId, setMainBranchId] = useState<string | undefined>(defaultMainBranchId !== undefined ? String(defaultMainBranchId) : undefined);
+  const [departmentId, setDepartmentId] = useState<string | undefined>(defaultDepartmentId !== undefined ? String(defaultDepartmentId) : undefined);
 
   const [branchOptions, setBranchOptions] = useState<BranchSelectOption[]>([]);
   const [branchLoading, setBranchLoading] = useState(false);
   const [mainBranchOptions, setMainBranchOptions] = useState<MainBranchSelectOption[]>([]);
   const [mainBranchLoading, setMainBranchLoading] = useState(false);
+  const [departmentOptions, setDepartmentOptions] = useState<DepartmentSelectOption[]>([]);
+  const [departmentLoading, setDepartmentLoading] = useState(false);
 
   const debouncedSearchCode = useDebounce(searchCode, 300);
 
@@ -102,6 +110,19 @@ export default function BranchPage(/* { disabledMainBranch, defaultMainBranchId,
     return () => controller.abort();
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- select list loading state */
+  useEffect(() => {
+    const controller = new AbortController();
+    setDepartmentLoading(true);
+    fetchDepartmentSelectList(controller.signal)
+      .then((options) => setDepartmentOptions(options))
+      .finally(() => {
+        if (!controller.signal.aborted) setDepartmentLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const {
@@ -116,12 +137,13 @@ export default function BranchPage(/* { disabledMainBranch, defaultMainBranchId,
   } = usePaginatedList<Branch>({
     fetcher: fetchBranchesPage,
     initialPageSize: 20,
-    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId],
+    extraDeps: [debouncedSearchCode, branchNameId, mainBranchId, departmentId],
     extraParams: {
       code: debouncedSearchCode,
       name: branchNameId ? branchOptions.find(o => o.value === branchNameId)?.label : undefined,
       mainBranchId: mainBranchId ? Number(mainBranchId) : undefined,
       mainBranchName: mainBranchId ? mainBranchOptions.find(o => o.value === mainBranchId)?.label : undefined,
+      departmentId: departmentId ? Number(departmentId) : undefined,
     },
   });
 
@@ -130,7 +152,8 @@ export default function BranchPage(/* { disabledMainBranch, defaultMainBranchId,
   const handleClear = () => {
     setBranchNameId(undefined);
     setSearchCode('');
-    setMainBranchId(undefined);
+    setMainBranchId(disabledMainBranch ? (defaultMainBranchId !== undefined ? String(defaultMainBranchId) : undefined) : undefined);
+    setDepartmentId(disabledDepartment ? (defaultDepartmentId !== undefined ? String(defaultDepartmentId) : undefined) : undefined);
     setCurrentPage(1);
   };
 
@@ -279,12 +302,33 @@ export default function BranchPage(/* { disabledMainBranch, defaultMainBranchId,
               onChange={(value) => setMainBranchId(value)}
               options={mainBranchOptions}
               className="w-full"
-              allowClear
+              allowClear={!disabledMainBranch}
               loading={mainBranchLoading}
               showSearch
               filterOption={(input, option) =>
                 ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
               }
+              disabled={disabledMainBranch}
+            />
+          </div>
+
+          <div className="flex-1 min-w-[220px]">
+            <label className="block text-sm font-semibold text-slate-500 mb-1.5">
+              Department / विभाग
+            </label>
+            <Select
+              placeholder="Select department..."
+              value={departmentId}
+              onChange={(value) => setDepartmentId(value)}
+              options={departmentOptions}
+              className="w-full"
+              allowClear={!disabledDepartment}
+              loading={departmentLoading}
+              showSearch
+              filterOption={(input, option) =>
+                ((option?.label ?? '') as string).toLowerCase().includes(input.toLowerCase())
+              }
+              disabled={disabledDepartment}
             />
           </div>
 
@@ -408,10 +452,11 @@ export default function BranchPage(/* { disabledMainBranch, defaultMainBranchId,
         onClose={() => setShowFormModal(false)}
         onSuccess={refreshBranches}
         editingBranch={editingBranch}
-        // disabledMainBranch={disabledMainBranch}
-        // defaultMainBranchId={defaultMainBranchId}
-        // disabledDepartment={disabledDepartment}
-        // defaultDepartmentId={defaultDepartmentId}
+        //localbodylevel:
+        disabledMainBranch={disabledMainBranch}
+        defaultMainBranchId={defaultMainBranchId}
+        disabledDepartment={disabledDepartment}
+        defaultDepartmentId={defaultDepartmentId}
       />
     </div>
   );

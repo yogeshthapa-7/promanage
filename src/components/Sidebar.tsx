@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FolderKanban, CheckSquare, ChevronLeft, ChevronRight, LogOut, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, Calendar, X, } from 'lucide-react';
-import { Popover } from 'antd';
+import { Modal, Popover } from 'antd';
 import { useAuth } from '@/context/AuthContext';
-import UserProfileDrawer from '@/pages/profile/page';
 
 interface NavItem { id: string; label: string; icon: React.ReactNode; href: string; badge?: number; section?: string; }
-interface SidebarProps { collapsed?: boolean; onToggle?: () => void; mobileOpen?: boolean; onMobileClose?: () => void; }
+interface SidebarProps { collapsed?: boolean; onToggle?: () => void; mobileOpen?: boolean; onMobileClose?: () => void; onOpenProfile?: () => void; }
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/dashboard' },
@@ -44,7 +43,7 @@ function getActiveNavId(pathname: string): string {
   return 'dashboard';
 }
 
-export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
+export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMobileClose, onOpenProfile }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const activeId = getActiveNavId(location.pathname);
@@ -56,8 +55,33 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
   const animationFrameRef = useRef<number | null>(null);
   const [logoRotation, setLogoRotation] = useState(0);
   const { user, logout } = useAuth();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const handleViewProfile = () => {
+    setUserMenuOpen(false);
+    onOpenProfile?.();
+  };
+
+  const handleSignOut = () => {
+    setUserMenuOpen(false);
+    confirmLogout();
+  };
+
+  const confirmLogout = () => {
+    setUserMenuOpen(false);
+    Modal.confirm({
+      title: 'Sign out?',
+      content: 'Are you sure you want to sign out?',
+      okText: 'Sign Out',
+      cancelText: 'Cancel',
+      okButtonProps: { danger: true },
+      styles: { mask: { zIndex: 10001 } },
+      onOk: () => {
+        logout();
+        navigate('/login');
+      },
+    });
+  };
 
   useEffect(() => {
     if (mobileOpen) {
@@ -188,38 +212,38 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
           </div>
         </nav>
 
-        {/* User menu - always expanded on mobile */}
-        <div className="flex-shrink-0 px-3 pb-3">
-          <Popover
-            content={
-              <div className="w-56 p-1">
-                <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                  <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
-                  <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-medium">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
-                </div>
-                <button
-                  onClick={() => { setUserMenuOpen(false); setProfileOpen(true); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
-                >
-                  <User size={14} />
-                  View Profile
-                </button>
-                <button
-                  onClick={() => { logout(); navigate('/login'); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                >
-                  <LogOut size={14} />
-                  Sign Out
-                </button>
-              </div>
-            }
-            trigger="click"
-            open={userMenuOpen}
-            onOpenChange={setUserMenuOpen}
-            placement="topRight"
-          >
-            <button className="group relative w-full flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 px-3.5 py-3">
+{/* User menu - always expanded on mobile */}
+              <div className="flex-shrink-0 px-3 pb-3">
+                    <Popover
+                      content={
+                        <div className="w-56 p-1">
+                          <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                            <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
+                            <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
+                            <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-medium">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
+                          </div>
+                           <button
+                          onClick={(e) => { e.stopPropagation(); handleViewProfile(); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
+                        >
+                          <User size={14} />
+                          View Profile
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleSignOut(); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        >
+                          <LogOut size={14} />
+                          Sign Out
+                        </button>
+                      </div>
+                      }
+                      trigger="click"
+                      open={userMenuOpen}
+                      onOpenChange={setUserMenuOpen}
+                      placement="topRight"
+                    >
+             <button className="group relative w-full flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 px-3.5 py-3">
               <div className="relative flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white text-sm font-bold shadow-lg shadow-blue-900/30">
                 {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
               </div>
@@ -230,8 +254,6 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
             </button>
           </Popover>
         </div>
-
-        <UserProfileDrawer open={profileOpen} onClose={() => setProfileOpen(false)} />
 
         {/* Ambient glow */}
         <div className="absolute -bottom-32 -left-20 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(37,99,235,.12) 0%, transparent 70%)' }} />
@@ -283,38 +305,38 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
           </div>
         </nav>
 
-        {/* USER MENU */}
-        <div className="flex-shrink-0 px-3 pb-3">
-          <Popover
-            content={
-              <div className="w-56 p-1">
-                <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                  <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
-                  <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-medium">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
-                </div>
-                <button
-                  onClick={() => { setUserMenuOpen(false); setProfileOpen(true); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
-                >
-                  <User size={14} />
-                  View Profile
-                </button>
-                <button
-                  onClick={() => { logout(); navigate('/login'); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                >
-                  <LogOut size={14} />
-                  Sign Out
-                </button>
-              </div>
-            }
-            trigger="click"
-            open={userMenuOpen}
-            onOpenChange={setUserMenuOpen}
-            placement="topRight"
-          >
-            <button className={`group relative w-full flex items-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 ${collapsed ? 'justify-center py-3' : 'gap-3 px-3.5 py-3'}`}>
+{/* USER MENU */}
+              <div className="flex-shrink-0 px-3 pb-3">
+                    <Popover
+                      content={
+                        <div className="w-56 p-1">
+                          <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                            <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
+                            <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
+                            <p className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5 font-medium">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
+                          </div>
+                           <button
+                          onClick={(e) => { e.stopPropagation(); handleViewProfile(); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition-colors"
+                        >
+                          <User size={14} />
+                          View Profile
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleSignOut(); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        >
+                          <LogOut size={14} />
+                          Sign Out
+                        </button>
+                      </div>
+                      }
+                      trigger="click"
+                      open={userMenuOpen}
+                      onOpenChange={setUserMenuOpen}
+                      placement="topRight"
+                    >
+             <button className={`group relative w-full flex items-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-300 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 ${collapsed ? 'justify-center py-3' : 'gap-3 px-3.5 py-3'}`}>
               <div className="relative flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white text-sm font-bold shadow-lg shadow-blue-900/30">
                 {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
               </div>
@@ -327,8 +349,6 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
             </button>
           </Popover>
         </div>
-
-        <UserProfileDrawer open={profileOpen} onClose={() => setProfileOpen(false)} />
 
         {/* COLLAPSE BUTTON */}
         <div className="flex-shrink-0 px-3 pb-4">
