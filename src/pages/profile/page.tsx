@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
@@ -97,7 +96,7 @@ export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerPr
       </div>
 
       <div className="mt-8">
-        <Button danger block onClick={handleLogout} icon={<LogOut size={16} />}>
+        <Button danger style={{ width: '100%' }} onClick={handleLogout} icon={<LogOut size={16} />}>
           Sign Out
         </Button>
       </div>

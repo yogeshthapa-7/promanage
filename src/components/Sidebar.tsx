@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import UserProfileDrawer from '@/pages/profile/page';
 
 interface NavItem { id: string; label: string; icon: React.ReactNode; href: string; badge?: number; section?: string; }
-interface SidebarProps { collapsed?: boolean; onToggle?: () => void; }
+interface SidebarProps { collapsed?: boolean; onToggle?: () => void; mobileOpen?: boolean; onMobileClose?: () => void; }
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/dashboard' },

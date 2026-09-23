@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import DashboardBackground from '@/pages/dashboard/DashboardBackground';
@@ -22,12 +21,6 @@ export default function AppLayout({
 }: AppLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleOpenProfile = () => {
-    navigate('/profile');
-  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -48,7 +41,6 @@ export default function AppLayout({
         onToggle={() => setCollapsed(!collapsed)}
         mobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
-        onOpenProfile={handleOpenProfile}
       />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden relative z-[1]">
