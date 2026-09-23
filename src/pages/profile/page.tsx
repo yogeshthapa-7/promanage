@@ -1,108 +1,26 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+'use client';
+
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Drawer from '@/components/drawer';
 import Button from '@/components/ui/Button';
-import { apiCall } from '@/services/api';
-import { Modal } from 'antd';
-import { LogOut, Mail, User, Building2, Shield } from 'lucide-react';
+import { LogOut, Mail, User, Hash, Building2, Shield } from 'lucide-react';
 
 interface UserProfileDrawerProps {
-  open?: boolean;
-  onClose?: () => void;
+  open: boolean;
+  onClose: () => void;
 }
 
-export default function UserProfileDrawer({ open = true, onClose = () => {} }: UserProfileDrawerProps) {
+export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerProps) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [employeeName, setEmployeeName] = useState('');
-  const [departmentName, setDepartmentName] = useState('');
-  const [employeeLoading, setEmployeeLoading] = useState(false);
-
-  const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!open || !user?.employeeId) {
-      if (!cancelled) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setEmployeeName('');
-        setDepartmentName('');
-      }
-      return;
-    }
-
-    const controller = new AbortController();
-    setEmployeeLoading(true);
-
-    apiCall(`${API_BASE}/EmployeeInfo/ServerSearch`, {
-      method: 'POST',
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start: 0,
-          length: 1,
-          columns: [
-            { data: 'EmployeeInfoID', name: 'EmployeeInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          ],
-          search: { value: '', regex: '' },
-          order: [{ column: 0, dir: 'desc' }],
-        },
-        param: {
-          EmployeeInfoID: user.employeeId,
-          Fullname: '',
-          Address: '',
-          Phone: '',
-          DepartmentID: user.departmentCode || 0,
-          DepartmentName: '',
-          DOB: '',
-          Email: '',
-          Gender: 0,
-          Password: '',
-          Username: '',
-        },
-      }),
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-        const json = await res.json();
-        const data = Array.isArray(json?.data) ? json.data : [];
-        const emp = data[0];
-        if (emp) {
-          setEmployeeName(emp.Fullname || '');
-          setDepartmentName(emp.DepartmentName || '');
-        }
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') console.error(err);
-      })
-      .finally(() => {
-        if (!cancelled) setEmployeeLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [open, user?.employeeId, user?.departmentCode, API_BASE]);
 
   const handleLogout = () => {
-    Modal.confirm({
-      title: 'Sign out?',
-      content: 'Are you sure you want to sign out?',
-      okText: 'Sign Out',
-      cancelText: 'Cancel',
-      okButtonProps: { danger: true },
-      onOk: () => {
-        logout();
-        navigate('/login');
-      },
-    });
+    logout();
+    onClose();
   };
 
   return (
-    <Drawer open={open} onClose={onClose} title="Profile" width={420} zIndex={10001}>
+    <Drawer open={open} onClose={onClose} title="Profile" width={420}>
       <div className="flex flex-col items-center text-center mb-8">
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white text-3xl font-bold flex items-center justify-center shadow-lg shadow-blue-900/30 mb-4">
           {user?.name ? user.name.charAt(0).toUpperCase() : <User size={32} />}
@@ -145,33 +63,33 @@ export default function UserProfileDrawer({ open = true, onClose = () => {} }: U
           </div>
         </div>
 
-        {employeeName && (
+        {user?.employeeId && (
           <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-              <User size={16} />
+              <Hash size={16} />
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Employee Name</p>
-              <p className="text-sm font-semibold text-slate-800 truncate">{employeeName}{employeeLoading && ' (loading…)'}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Employee ID</p>
+              <p className="text-sm font-semibold text-slate-800">{user.employeeId}</p>
             </div>
           </div>
         )}
 
-        {departmentName && (
+        {user?.departmentCode && (
           <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
               <Building2 size={16} />
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Department</p>
-              <p className="text-sm font-semibold text-slate-800 truncate">{departmentName}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Department Code</p>
+              <p className="text-sm font-semibold text-slate-800">{user.departmentCode}</p>
             </div>
           </div>
         )}
       </div>
 
       <div className="mt-8">
-         <Button danger style={{ width: '100%' }} onClick={handleLogout} icon={<LogOut size={16} />}>
+        <Button danger block onClick={handleLogout} icon={<LogOut size={16} />}>
           Sign Out
         </Button>
       </div>
