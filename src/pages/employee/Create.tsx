@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Select, Upload, Button, Row, Col, message } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import type { UploadFile } from 'antd/es/upload/interface';
+import { Form, Input, Select, Button, Row, Col, message } from 'antd';
 import type { Employee } from '@/data/employees-data';
 import { apiCall } from '@/services/api';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import ProgressBar from '@/components/ui/ProgressBar';
+import DocumentUploadField from '@/components/DocumentUploadField';
 
 interface EmployeeSetupModalProps {
   open: boolean;
@@ -58,7 +57,8 @@ export default function EmployeeSetupModal({
 }: EmployeeSetupModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [documentUrl, setDocumentUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const [orgOffices, setOrgOffices] = useState<OrgOfficeItem[]>([]);
   const [departments, setDepartments] = useState<DepartmentItem[]>([]);
@@ -151,6 +151,7 @@ export default function EmployeeSetupModal({
           form.resetFields();
           setSelectedDepartmentId(null);
           setSelectedMainBranchId(null);
+          setDocumentUrl('');
         }
       } catch (err) {
         if (err instanceof Error) message.error(err.message);
@@ -266,24 +267,29 @@ export default function EmployeeSetupModal({
          const selectedMainBranch = mainBranches.find((mb) => Number(mb.MainBranchID) === Number(values.MainBranchID));
          const selectedBranch = branches.find((b) => Number(b.BranchID) === Number(values.BranchID));
 
-         const body: Record<string, unknown> = {
-           EmployeeInfoID: employeeId,
-           Fullname: values.Fullname,
-           Address: values.Address || '',
-           Phone: values.Phone || '',
-           Email: values.Email || '',
-           Gender: values.Gender || 1,
-            DOB: values.DOB ? values.DOB.replace(/\//g, '-') : '',
-           OrganizationOfficeID: values.OrganizationOfficeID || 1,
-           DepartmentID: values.DepartmentID || 0,
-           DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
-           BranchID: values.BranchID || 0,
-           BranchName: selectedBranch ? selectedBranch.BranchName : '',
-           MainBranchID: values.MainBranchID || 0,
-           MainBranchName: selectedMainBranch ? selectedMainBranch.MainBranchName : '',
-           Photo: '',
-           EmpStatus: values.EmployeeStatus || 1,
-         };
+          let photoPath = documentUrl || '';
+          if (photoPath.startsWith(API_BASE + '/')) {
+            photoPath = photoPath.replace(API_BASE + '/', '');
+          }
+
+          const body: Record<string, unknown> = {
+            EmployeeInfoID: employeeId,
+            Fullname: values.Fullname,
+            Address: values.Address || '',
+            Phone: values.Phone || '',
+            Email: values.Email || '',
+            Gender: values.Gender || 1,
+             DOB: values.DOB ? values.DOB.replace(/\//g, '-') : '',
+            OrganizationOfficeID: values.OrganizationOfficeID || 1,
+            DepartmentID: values.DepartmentID || 0,
+            DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
+            BranchID: values.BranchID || 0,
+            BranchName: selectedBranch ? selectedBranch.BranchName : '',
+            MainBranchID: values.MainBranchID || 0,
+            MainBranchName: selectedMainBranch ? selectedMainBranch.MainBranchName : '',
+            Photo: photoPath,
+            EmpStatus: values.EmployeeStatus || 1,
+          };
 
          if (isEdit) {
            if (values.Username) body.Username = values.Username;
@@ -318,10 +324,10 @@ export default function EmployeeSetupModal({
         message.success(
           isEdit ? 'कर्मचारी विवरण सफलतापूर्वक अपडेट गरियो' : 'कर्मचारी विवरण सफलतापूर्वक सुरक्षित गरियो'
         );
-       form.resetFields();
-       setFileList([]);
-       setSelectedDepartmentId(null);
-       setSelectedMainBranchId(null);
+        form.resetFields();
+        setDocumentUrl('');
+        setSelectedDepartmentId(null);
+        setSelectedMainBranchId(null);
        onClose();
        onSuccess(savedEmployee);
      } catch (err) {
@@ -339,7 +345,7 @@ export default function EmployeeSetupModal({
   };
 
   const resetAndClose = () => {
-    setFileList([]);
+    setDocumentUrl('');
     setSelectedDepartmentId(null);
     setSelectedMainBranchId(null);
     onClose();
@@ -423,18 +429,17 @@ export default function EmployeeSetupModal({
               <Form.Item
                 label={<span className="text-slate-700 font-semibold text-[13px]">फोटो<span className="text-red-500 ml-0.5">*</span></span>}
                 name="Photo"
+                initialValue=""
               >
-                <Upload
-                  fileList={fileList}
-                  beforeUpload={() => false}
-                  onChange={({ fileList }) => setFileList(fileList)}
-                  maxCount={1}
-                >
-                  <Button icon={<UploadOutlined />} className="rounded-md border-slate-300 text-sm h-8">
-                    फोटो अपलोड गर्नुहोस्
-                  </Button>
-                </Upload>
+                <input type="hidden" />
               </Form.Item>
+              <DocumentUploadField
+                value={documentUrl}
+                onChange={setDocumentUrl}
+                uploading={uploading}
+                onUploadingChange={setUploading}
+                accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.pdf,.doc,.docx"
+              />
 
               <Form.Item
                 label={<span className="text-slate-700 font-semibold text-[13px]">कर्मचारी स्थिति<span className="text-red-500 ml-0.5">*</span></span>}
