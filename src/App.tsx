@@ -51,7 +51,7 @@ function RootApp() {
         },
       }}
       modal={{
-        style: { zIndex: 10001 },
+        style: { zIndex: 99999 },
       }}
     >
       <BrowserRouter>

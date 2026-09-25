@@ -131,7 +131,26 @@
 
 /* Keep AntD messages above drawers and other overlays. */
 .ant-message {
-  z-index: 12000;
+  z-index: 12000 !important;
+}
+
+/* Keep AntD modals, wrapper, and backdrop above drawers (Drawer has z-index 9999). */
+.ant-modal-root,
+.ant-modal-wrap,
+.ant-modal-mask,
+.ant-modal {
+  z-index: 12000 !important;
+}
+
+/* Table row hover highlight for AntD tables inside AppTable.
+   Only the currently hovered row is highlighted. */
+.app-table-highlight .ant-table-tbody > tr > td {
+  transition: background-color 0.15s ease;
+}
+
+.app-table-highlight .ant-table-tbody > tr:hover > td,
+.app-table-highlight .ant-table-tbody > tr > td.ant-table-cell-row-hover {
+  background-color: #dbeafe !important;
 }
 
 /* Nepali datepicker dark popover */

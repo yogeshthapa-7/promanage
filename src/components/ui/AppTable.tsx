@@ -19,18 +19,19 @@ export default function AppTable<T extends { key?: React.Key }>({
   cardClassName = '',
   cardStyle,
   toolbar,
-  rowHoverClassName = 'hover:bg-blue-50/60',
+  rowHoverClassName = '',
   ...rest
 }: AppTableProps<T>) {
   const rowClassName = (record: T, index: number) => {
     const base = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
-    return `${base} ${rowHoverClassName}`;
+    return rowHoverClassName ? `${base} ${rowHoverClassName}` : base;
   };
 
   return (
     <Card className={cardClassName} style={cardStyle}>
       {toolbar && <div className="mb-4">{toolbar}</div>}
       <Table<T>
+        className="app-table-highlight"
         columns={columns}
         loading={loading}
         pagination={false}

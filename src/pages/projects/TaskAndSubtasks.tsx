@@ -29,7 +29,7 @@ import type { ApiProject } from '@/types/projects-types';
 import type { TaskItem } from '@/types/tasks-types';
 import CreateTaskDrawer from '@/pages/tasks/createtasks';
 import ViewTaskDrawer from '@/components/projects/viewtaskdrawer';
-import SubtaskDrawer from '@/components/projects/SubtaskDrawer';
+import SubtaskDrawer from '@/pages/projects/subtasks/page';
 
 const IssuesPanel = lazy(() => import('./issues/IssueTab'));
 const DiscussionsPanel = lazy(() => import('./discussions/DiscussionTab'));
@@ -320,17 +320,18 @@ export default function ProjectTasksPage() {
   const projectTypeName = project.ProjectTypeName || projectTypeMap[project.ProjectType ?? 0] || 'General';
   const workStatusColor = project.WorkStatusColor || '#6B7280';
 
-  const handleDeleteTask = (taskId: number) => {
+  const handleDeleteTask = (taskId: number, taskTitle?: string) => {
     Modal.confirm({
       title: 'Delete Task',
-      content: 'Are you sure?',
+      content: taskTitle ? `Are you sure you want to delete "${taskTitle}"?` : 'Are you sure you want to delete this task?',
       okText: 'Delete',
       okType: 'danger',
+      zIndex: 12000,
       onOk: async () => {
         try {
           const res = await apiCall(`${getBase()}/DeleteTaskInfo?id=${taskId}`, { method: 'GET' });
           if (!res.ok) throw new Error('Failed');
-          message.success('Task deleted');
+          message.success('Task deleted successfully');
           refetch();
         } catch (err) {
           message.error('Delete failed');
@@ -400,7 +401,7 @@ export default function ProjectTasksPage() {
           <div className="flex items-center justify-end gap-1">
             <Button size="small" type="text" onClick={() => { setSelectedTaskId(taskId); setViewDrawerOpen(true); }} icon={<Eye className="w-3.5 h-3.5" />} />
             <Button size="small" type="text" onClick={() => openEditTask(record)} icon={<Pencil className="w-3.5 h-3.5" />} />
-            <Button size="small" type="text" danger onClick={() => handleDeleteTask(taskId)} icon={<Trash2 className="w-3.5 h-3.5" />} />
+            <Button size="small" type="text" danger onClick={() => handleDeleteTask(taskId, extractEntity(record, TASK_KEYS).title)} icon={<Trash2 className="w-3.5 h-3.5" />} />
             <Button size="small" type="primary" onClick={() => openSubtasksModal(record)} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">
               Subtasks
             </Button>
@@ -499,7 +500,7 @@ export default function ProjectTasksPage() {
                      task={task}
                      onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
                      onEdit={() => openEditTask(task)}
-                     onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))}
+                     onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys), extractEntity(task, TASK_KEYS).title)}
                      onViewSubtasks={() => openSubtasksModal(task)}
                    />
                 ))}
@@ -510,7 +511,6 @@ export default function ProjectTasksPage() {
                 dataSource={tasks}
                 rowKey={(record) => pick(record, TASK_KEYS.idKeys)}
                 cardClassName="mt-4 overflow-x-auto"
-                rowHoverClassName="hover:bg-slate-50/60"
               />
             )}
           </div>
