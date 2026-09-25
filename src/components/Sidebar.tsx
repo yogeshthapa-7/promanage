@@ -199,7 +199,7 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
           </button>
 
           {userMenuOpen && (
-            <div className="absolute bottom-full left-0 mb-2 w-56 rounded-lg border border-slate-200 bg-white shadow-lg z-50">
+            <div className="absolute bottom-full left-0 mb-2 w-full rounded-lg border border-slate-200 bg-white shadow-lg z-50">
               <div className="p-1">
                 <div className="px-3 py-2 border-b border-slate-100 mb-1">
                   <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
@@ -214,15 +214,16 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
                   View Profile
                 </button>
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    setUserMenuOpen(false);
                     Modal.confirm({
                       title: 'Sign Out',
                       content: 'Are you sure you want to sign out?',
                       okText: 'Sign Out',
                       okType: 'danger',
-                      onOk: () => { setUserMenuOpen(false); logout(); navigate('/login'); },
-                    })
-                  }
+                      onOk: () => { logout(); navigate('/login'); },
+                    });
+                  }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
                 >
                   <LogOut size={14} />
@@ -301,7 +302,7 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
           </button>
 
           {userMenuOpen && (
-            <div className="absolute bottom-full left-0 mb-2 w-56 rounded-lg border border-slate-200 bg-white shadow-lg z-50">
+            <div className="absolute bottom-full left-0 mb-2 w-full rounded-lg border border-slate-200 bg-white shadow-lg z-50">
               <div className="p-1">
                 <div className="px-3 py-2 border-b border-slate-100 mb-1">
                   <p className="text-sm font-semibold text-slate-800 truncate">{user?.name || 'User'}</p>
@@ -316,15 +317,16 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
                   View Profile
                 </button>
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    setUserMenuOpen(false);
                     Modal.confirm({
                       title: 'Sign Out',
                       content: 'Are you sure you want to sign out?',
                       okText: 'Sign Out',
                       okType: 'danger',
-                      onOk: () => { setUserMenuOpen(false); logout(); navigate('/login'); },
-                    })
-                  }
+                      onOk: () => { logout(); navigate('/login'); },
+                    });
+                  }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
                 >
                   <LogOut size={14} />
