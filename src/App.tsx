@@ -7,7 +7,7 @@ import DashboardPage from './pages/dashboard/page';
 import ProjectDetailsPage from './pages/projects/projectdetails';
 import ProjectsPage from './pages/projects/page';
 import TaskAndSubtasks from './pages/projects/TaskAndSubtasks';
-import KanbanBoardPage from './pages/projects/KanbanBoard';
+import KanbanBoardPage from './pages/projects/kanban/page';
 import DigitalBoardPage from './pages/projects/board/digital_board';
 import TasksPage from './pages/tasks/page';
 import EmployeePage from './pages/employee/page'
@@ -129,7 +129,7 @@ function RootApp() {
               <AppLayout showTopbar={false}><TaskAndSubtasks /></AppLayout>
             </ProtectedRoute>
           } />
-          <Route path="/projects/:projectId/kanban" element={
+           <Route path="/projects/:id/kanban" element={
             <ProtectedRoute>
               <AppLayout showTopbar={false}> <KanbanBoardPage /> </AppLayout>
             </ProtectedRoute>
@@ -150,7 +150,7 @@ function RootApp() {
             </ProtectedRoute>
           } />
 
-        <Route path="*" element={<AppLayout showTopbar={false}><NotFound /></AppLayout>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       </App>
       </BrowserRouter>
