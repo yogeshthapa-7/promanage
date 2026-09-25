@@ -3,8 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
-import { TableSkeleton } from '@/components/ui/Loaders';
-import Card from '@/components/ui/Card';
+import AppTable from '@/components/ui/AppTable';
 import Button from '@/components/ui/Button';
 import {
   fetchMainBranches,
@@ -211,6 +210,41 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
     message.success('Excel exported successfully');
   };
 
+  const columns = [
+    {
+      title: 'S.N.',
+      key: 'sn',
+      align: 'center',
+      width: 64,
+      render: (_: any, record: MainBranch) => record.sn,
+    },
+    {
+      title: 'Main Branch Name /महाशाखा नाम',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string) => <span className="font-bold text-slate-800">{text}</span>,
+    },
+    {
+      title: 'Department / विभाग',
+      dataIndex: 'departmentName',
+      key: 'departmentName',
+      render: (text: string) => <span className="font-medium text-slate-600">{text || '-'}</span>,
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'center',
+      width: 160,
+      className: 'no-print',
+      render: (_: any, record: MainBranch) => (
+        <div className="flex items-center justify-center gap-2">
+          <Button size="sm" onClick={() => handleEdit(record)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
+          <Button size="sm" danger onClick={() => handleDelete(record)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="print-area fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -318,65 +352,14 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
-                <th className="py-4 px-6 text-center w-16">S.N.</th>
-                <th className="py-4 px-6">Main Branch Name /महाशाखा नाम</th>
-                <th className="py-4 px-6">Department / विभाग</th>
-                <th className="py-4 px-6 text-center w-40 no-print">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {loading ? (
-                <TableSkeleton columns={4} rows={6} message="Loading main branches..." />
-              ) : mainBranches.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    No main branch records found.
-                  </td>
-                </tr>
-              ) : (
-                mainBranches.map((branch, index) => {
-                  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                  };
-                  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  };
-
-                  return (
-                  <tr
-                    key={branch.id ?? `branch-${index}`}
-                    className="hover:bg-slate-50/50 transition"
-                    onMouseEnter={handleRowMouseEnter}
-                    onMouseLeave={handleRowMouseLeave}
-                  >
-                    <td className="py-4 px-6 text-center text-slate-400 font-medium">
-                      {branch.sn}
-                    </td>
-                    <td className="py-4 px-6 font-bold text-slate-800">
-                      {branch.name}
-                    </td>
-                    <td className="py-4 px-6 font-medium text-slate-600">
-                      {branch.departmentName || '-'}
-                    </td>
-                    <td className="py-4 px-6 text-center no-print">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button size="sm" onClick={() => handleEdit(branch)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
-                        <Button size="sm" danger onClick={() => handleDelete(branch)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
-                      </div>
-                    </td>
-                    </tr>
-                  );})
-                )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <AppTable
+        columns={columns}
+        dataSource={mainBranches}
+        rowKey={(record) => record.id ?? `branch-${record.sn}`}
+        loading={loading}
+        emptyText="No main branch records found."
+        rowHoverClassName="hover:bg-slate-50/50"
+      />
 
       <div className="flex justify-end pt-2 no-print">
         <Pagination

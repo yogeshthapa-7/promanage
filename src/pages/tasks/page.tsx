@@ -9,6 +9,7 @@ import Pagination from "@/components/ui/Pagination";
 import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
+import AppTable from "@/components/ui/AppTable";
 import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 import { statusColor, priorityColor } from "@/services/taskservice";
 import CreateTaskDrawer from "./createtasks";
@@ -237,6 +238,50 @@ export default function TasksPage() {
   const start = filteredTotal === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const end = Math.min(currentPage * pageSize, filteredTotal);
 
+  const taskColumns = [
+    {
+      title: 'Task',
+      dataIndex: 'TaskTitle',
+      key: 'TaskTitle',
+      render: (value: string) => <div className="font-semibold text-slate-900">{value}</div>,
+    },
+    {
+      title: 'Project',
+      dataIndex: 'ProjectInfoName',
+      key: 'ProjectInfoName',
+      render: (value: string) => <span className="text-slate-600 font-medium">{value || "—"}</span>,
+    },
+    {
+      title: 'Manager',
+      dataIndex: 'TaskManagerName',
+      key: 'TaskManagerName',
+      render: (value: string) => <span className="text-slate-600 font-medium">{value || "—"}</span>,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'WorkStatusName',
+      key: 'WorkStatusName',
+      render: (value: string) => <Badge className={statusColor[value] ?? "!bg-gray-100 !text-gray-700"}>{value}</Badge>,
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right' as const,
+      width: 140,
+      render: (_: unknown, record: TaskItem) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button type="text" size="small" onClick={() => handleViewTask(record)} icon={<Eye className="w-4 h-4" />} />
+          {record.CanEdit && (
+            <Button type="text" size="small" onClick={() => handleEditTask(record)} icon={<Pencil className="w-4 h-4" />} />
+          )}
+          {record.CanDelete && (
+            <Button type="text" size="small" danger onClick={() => handleDeleteTask(record)} icon={<Trash2 className="w-4 h-4" />} />
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="fade-in text-slate-800">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -360,81 +405,25 @@ export default function TasksPage() {
       </div>
 
        {loading ? (
-         <Card className="mt-4">
-           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-             <div className="px-4 py-3 text-center text-sm text-slate-400">Loading tasks...</div>
-           </div>
-         </Card>
-       ) : filteredTasks.length === 0 ? (
-         <Card className="mt-4">
-           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-base text-slate-400">
-             No tasks found.
-           </div>
-         </Card>
-       ) : viewMode === 'list' ? (
-         <Card className="mt-4">
-           <div className="overflow-x-auto">
-             <table className="w-full border-separate border-spacing-y-1.5">
-               <thead>
-                 <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                   <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
-                   <th className="bg-slate-50 px-4 py-3">Project</th>
-                   <th className="bg-slate-50 px-4 py-3">Manager</th>
-                   <th className="bg-slate-50 px-4 py-3">Status</th>
-                   <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-                 </tr>
-               </thead>
-               <tbody>
-                 {filteredTasks.map((task) => {
-                   const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                     e.currentTarget.style.transform = 'scale(1.01)';
-                     e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                   };
-                   const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                     e.currentTarget.style.transform = 'scale(1)';
-                   };
-
-                   return (
-                     <tr
-                       key={task.TaskInfoID}
-                       className="text-sm text-slate-700"
-                       onMouseEnter={handleRowMouseEnter}
-                       onMouseLeave={handleRowMouseLeave}
-                     >
-                       <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                         <div className="font-semibold text-slate-900">{task.TaskTitle}</div>
-                         {/* {task.TaskCode && <div className="text-xs text-muted-foreground font-mono">{task.TaskCode}</div>} */}
-                       </td>
-                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                         {task.ProjectInfoName || "—"}
-                       </td>
-                       <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                         {task.TaskManagerName || "—"}
-                       </td>
-                       <td className="bg-white px-4 py-3 border-b border-slate-100">
-                         <Badge className={statusColor[task.WorkStatusName] ?? "!bg-gray-100 !text-gray-700"}>
-                           {task.WorkStatusName}
-                         </Badge>
-                       </td>
-                       <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                         <div className="flex items-center justify-end gap-2">
-                           <Button type="text" size="small" onClick={() => handleViewTask(task)} icon={<Eye className="w-4 h-4" />} />
-                           {task.CanEdit && (
-                             <Button type="text" size="small" onClick={() => handleEditTask(task)} icon={<Pencil className="w-4 h-4" />} />
-                           )}
-                           {task.CanDelete && (
-                             <Button type="text" size="small" danger onClick={() => handleDeleteTask(task)} icon={<Trash2 className="w-4 h-4" />} />
-                           )}
-                         </div>
-                       </td>
-                     </tr>
-                   );
-                 })}
-               </tbody>
-             </table>
-           </div>
-         </Card>
-       ) : (
+          <Card className="mt-4">
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <div className="px-4 py-3 text-center text-sm text-slate-400">Loading tasks...</div>
+            </div>
+          </Card>
+        ) : filteredTasks.length === 0 ? (
+          <Card className="mt-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-base text-slate-400">
+              No tasks found.
+            </div>
+          </Card>
+        ) : viewMode === 'list' ? (
+          <AppTable
+            columns={taskColumns}
+            dataSource={filteredTasks}
+            rowKey={(record) => record.TaskInfoID}
+            cardClassName="mt-4"
+          />
+        ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
            {filteredTasks.map((task) => (
              <Card key={task.TaskInfoID} hover className="group overflow-hidden flex flex-col">

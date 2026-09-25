@@ -8,6 +8,8 @@ import Badge from "@/components/ui/Badge";
 import { LayoutGrid, List, Pencil, Trash2, Plus, Search, RotateCcw } from "lucide-react";
 import IssueCreate from "./Create";
 import IssueSearch from "./Search";
+import AppTable from '@/components/ui/AppTable';
+import { TableSkeleton } from '@/components/ui/Loaders';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
@@ -160,6 +162,69 @@ export default function IssueTab({ project }: IssueTabProps) {
     setIsCreateOpen(true);
   };
 
+  const issueColumns = [
+    {
+      title: 'Issue',
+      dataIndex: 'IssuesTitle',
+      key: 'IssuesTitle',
+      render: (text: string, record: IssueItem) => (
+        <div>
+          <div className="font-semibold text-slate-900">{record.IssuesTitle}</div>
+          {record.Comments && (
+            <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{record.Comments}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Label',
+      dataIndex: 'LabelInfoName',
+      key: 'LabelInfoName',
+      render: (_, record: IssueItem) =>
+        record.LabelInfoName ? (
+          <Badge
+            style={{
+              background: record.LabelColor ? `${record.LabelColor}15` : undefined,
+              color: record.LabelColor || undefined,
+              borderColor: record.LabelColor ? `${record.LabelColor}40` : undefined,
+            }}
+          >
+            {record.LabelInfoName}
+          </Badge>
+        ) : null,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'WorkStatusName',
+      key: 'WorkStatusName',
+      render: (status: string) => status ? <Badge>{status}</Badge> : null,
+    },
+    {
+      title: 'Raised By',
+      dataIndex: 'RaisedBy',
+      key: 'RaisedBy',
+      render: (text: string) => text || '—',
+    },
+    {
+      title: 'Date',
+      dataIndex: 'CreatedDate',
+      key: 'CreatedDate',
+      render: (date: string) => convertAdToBs(date) || '—',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record: IssueItem) => (
+        <div className="flex items-center justify-end gap-1">
+          {record.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEdit(record)} />}
+          {record.HasUserRightToDelete && (
+            <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(record)} />
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -205,9 +270,7 @@ export default function IssueTab({ project }: IssueTabProps) {
       )}
 
       {issuesLoading ? (
-        <Card>
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading issues...</div>
-        </Card>
+        <TableSkeleton />
       ) : issues.length === 0 ? (
         <Card>
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground text-center">
@@ -215,72 +278,13 @@ export default function IssueTab({ project }: IssueTabProps) {
           </div>
         </Card>
       ) : viewMode === 'list' ? (
-        <Card className="mt-4 overflow-x-auto">
-          <table className="w-full border-separate border-spacing-y-1.5">
-            <thead>
-              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                <th className="rounded-l-xl bg-slate-50 px-5 py-3">Issue</th>
-                <th className="bg-slate-50 px-4 py-3">Label</th>
-                <th className="bg-slate-50 px-4 py-3">Status</th>
-                <th className="bg-slate-50 px-4 py-3">Raised By</th>
-                <th className="bg-slate-50 px-4 py-3">Date</th>
-                <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {issues.map((issue) => {
-                const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                  e.currentTarget.style.transform = 'scale(1.01)';
-                  e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                };
-                const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                };
-                return (
-                <tr
-                  key={issue.IssuesID}
-                  className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
-                  onMouseEnter={handleRowMouseEnter}
-                  onMouseLeave={handleRowMouseLeave}
-                >
-                  <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                    <div className="font-semibold text-slate-900">{issue.IssuesTitle}</div>
-                    {issue.Comments && (
-                      <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{issue.Comments}</div>
-                    )}
-                  </td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100">
-                    {issue.LabelInfoName && (
-                      <Badge
-                        style={{
-                          background: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
-                          color: issue.LabelColor || undefined,
-                          borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
-                        }}
-                      >
-                        {issue.LabelInfoName}
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100">
-                    {issue.WorkStatusName && <Badge>{issue.WorkStatusName}</Badge>}
-                  </td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{issue.RaisedBy || "—"}</td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertAdToBs(issue.CreatedDate) || "—"}</td>
-                  <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                    <div className="flex items-center justify-end gap-1">
-                      {issue.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEdit(issue)} />}
-                      {issue.HasUserRightToDelete && (
-                        <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteIssue(issue)} />
-                      )}
-                    </div>
-                  </td>
-                </tr>
-                );
-              })}
-             </tbody>
-           </table>
-        </Card>
+        <AppTable
+          columns={issueColumns}
+          dataSource={issues}
+          rowKey={(record) => record.IssuesID}
+          cardClassName="mt-4 overflow-x-auto"
+          rowHoverClassName="hover:bg-slate-50/60"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {issues.map((issue) => (

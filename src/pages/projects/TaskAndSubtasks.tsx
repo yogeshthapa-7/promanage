@@ -19,7 +19,8 @@ import {
   Flag,
 } from 'lucide-react';
 
-import { BlockSkeleton } from '@/components/ui/Loaders';
+import { BlockSkeleton, TableSkeleton } from '@/components/ui/Loaders';
+import AppTable from '@/components/ui/AppTable';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -353,6 +354,62 @@ export default function ProjectTasksPage() {
     setSubtaskDrawerOpen(true);
   };
 
+  const taskColumns = [
+    {
+      title: 'Task',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text: string, record: RawEntity) => {
+        const t = extractEntity(record, TASK_KEYS);
+        return (
+          <div>
+            <div className="font-semibold text-slate-900">{t.title}</div>
+            {t.description && <div className="text-xs text-muted-foreground truncate max-w-xs">{t.description}</div>}
+          </div>
+        );
+      },
+    },
+    {
+      title: 'Manager',
+      dataIndex: 'manager',
+      key: 'manager',
+      render: (_, record: RawEntity) => {
+        const t = extractEntity(record, TASK_KEYS);
+        return t.managerName || '—';
+      },
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (_, record: RawEntity) => {
+        const t = extractEntity(record, TASK_KEYS);
+        return (
+          <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
+            {t.statusName}
+          </Badge>
+        );
+      },
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record: RawEntity) => {
+        const taskId = pick(record, TASK_KEYS.idKeys);
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <Button size="small" type="text" onClick={() => { setSelectedTaskId(taskId); setViewDrawerOpen(true); }} icon={<Eye className="w-3.5 h-3.5" />} />
+            <Button size="small" type="text" onClick={() => openEditTask(record)} icon={<Pencil className="w-3.5 h-3.5" />} />
+            <Button size="small" type="text" danger onClick={() => handleDeleteTask(taskId)} icon={<Trash2 className="w-3.5 h-3.5" />} />
+            <Button size="small" type="primary" onClick={() => openSubtasksModal(record)} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">
+              Subtasks
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
       <button onClick={() => navigate('/projects')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
@@ -448,52 +505,13 @@ export default function ProjectTasksPage() {
                 ))}
               </div>
             ) : (
-              <Card className="mt-4 overflow-x-auto">
-                <table className="w-full border-separate border-spacing-y-1.5">
-                  <thead>
-                    <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                      <th className="rounded-l-xl bg-slate-50 px-5 py-3">Task</th>
-                      <th className="bg-slate-50 px-4 py-3">Manager</th>
-                      <th className="bg-slate-50 px-4 py-3">Status</th>
-                      <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tasks.map((task, i) => {
-                      const t = extractEntity(task, TASK_KEYS);
-                      return (
-                        <tr
-                          key={pick(task, TASK_KEYS.idKeys, i)}
-                          className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
-                        >
-                          <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                            <div className="font-semibold text-slate-900">{t.title}</div>
-                            {t.description && <div className="text-xs text-muted-foreground truncate max-w-xs">{t.description}</div>}
-                          </td>
-                          <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">
-                            {t.managerName || '—'}
-                          </td>
-                          <td className="bg-white px-4 py-3 border-b border-slate-100">
-                            <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
-                              {t.statusName}
-                            </Badge>
-                          </td>
-                          <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button size="small" type="text" onClick={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }} icon={<Eye className="w-3.5 h-3.5" />} />
-                              <Button size="small" type="text" onClick={() => openEditTask(task)} icon={<Pencil className="w-3.5 h-3.5" />} />
-                              <Button size="small" type="text" danger onClick={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys))} icon={<Trash2 className="w-3.5 h-3.5" />} />
-                              <Button size="small" type="primary" onClick={() => openSubtasksModal(task)} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">
-                                Subtasks
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </Card>
+              <AppTable
+                columns={taskColumns}
+                dataSource={tasks}
+                rowKey={(record) => pick(record, TASK_KEYS.idKeys)}
+                cardClassName="mt-4 overflow-x-auto"
+                rowHoverClassName="hover:bg-slate-50/60"
+              />
             )}
           </div>
         ) : (

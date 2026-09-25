@@ -5,7 +5,8 @@ import {
 import { Button, Input, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
-import Card from '@/components/ui/Card';
+import AppTable from '@/components/ui/AppTable';
+import SearchInput from '@/components/ui/SearchInput';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/services/apiservice';
 import { fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/services/userservice';
@@ -106,6 +107,45 @@ export default function UsersPage() {
       },
     });
   };
+
+  const userColumns = [
+    {
+      title: 'Username',
+      dataIndex: 'email',
+      key: 'email',
+      render: (value: string) => <div className="text-slate-700 font-medium">{value}</div>,
+    },
+    {
+      title: 'Full name',
+      dataIndex: 'name',
+      key: 'name',
+      render: (value: string) => <span className="font-semibold text-slate-800">{value}</span>,
+    },
+    {
+      title: 'User Group',
+      dataIndex: 'role',
+      key: 'role',
+      render: (value: string) => <span className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium border ${ROLE_STYLE[value]}`}>{value}</span>,
+    },
+    {
+      title: 'Theme',
+      dataIndex: 'theme',
+      key: 'theme',
+      render: (value: string) => <span className="text-slate-600 font-medium">{value}</span>,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      align: 'right' as const,
+      width: 140,
+      render: (_: unknown, record: User) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button size="small" onClick={() => handleEditUser(record)}>Edit</Button>
+          <Button size="small" danger onClick={() => handleDeleteUser(record)}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="fade-in text-slate-800">
@@ -210,39 +250,12 @@ export default function UsersPage() {
         {loading ? (
           <TableSkeleton columns={5} rows={6} message="Loading users..." />
         ) : (
-          <Card>
-            <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-y-1.5">
-                <thead>
-                  <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="rounded-l-xl bg-slate-50 px-5 py-3">Username</th>
-                    <th className="bg-slate-50 px-4 py-3">Full name</th>
-                    <th className="bg-slate-50 px-4 py-3">User Group</th>
-                    <th className="bg-slate-50 px-4 py-3">Theme</th>
-                    <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-base text-slate-400">
-                        No users found
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedUsers.map((u) => (
-                      <UserRow
-                        key={u.id}
-                        user={u}
-                        onEditUser={handleEditUser}
-                        onDeleteUser={handleDeleteUser}
-                      />
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+          <AppTable
+            columns={userColumns}
+            dataSource={paginatedUsers}
+            rowKey={(record) => record.id}
+            cardClassName="no-print"
+          />
         )}
 
         <Pagination
@@ -268,57 +281,6 @@ export default function UsersPage() {
         onSuccess={refetch}
       />
     </div>
-  );
-}
-
-function UserRow({
-  user,
-  onEditUser,
-  onDeleteUser,
-}: {
-  user: User;
-  onEditUser: (user: User) => void;
-  onDeleteUser: (user: User) => void;
-}) {
-  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-    e.currentTarget.style.transform = 'scale(1.02)';
-    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-  };
-  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-    e.currentTarget.style.transform = 'scale(1)';
-  };
-
-  return (
-    <tr
-      className="text-sm text-slate-700"
-      onMouseEnter={handleRowMouseEnter}
-      onMouseLeave={handleRowMouseLeave}
-    >
-      <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-        <div className="text-slate-700 font-medium">{user.email}</div>
-      </td>
-      <td className="bg-white px-4 py-3 border-b border-slate-100 font-semibold text-slate-800">
-        {user.name}
-      </td>
-      <td className="bg-white px-4 py-3 border-b border-slate-100">
-        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium border ${ROLE_STYLE[user.role]}`}>
-          {user.role}
-        </span>
-      </td>
-      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-        {user.theme}
-      </td>
-      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-        <div className="flex items-center justify-end gap-2">
-          <Button size="small" onClick={() => onEditUser(user)}>
-            Edit
-          </Button>
-          <Button size="small" danger onClick={() => onDeleteUser(user)}>
-            Delete
-          </Button>
-        </div>
-      </td>
-    </tr>
   );
 }
 

@@ -22,12 +22,13 @@ import {
 import * as XLSX from 'xlsx';
 import Card from '@/components/ui/Card';
 import Pagination from '@/components/ui/Pagination';
-import { CardGridSkeleton } from '@/components/ui/Loaders';
+import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
 import DropdownMenu from '@/components/ui/DropdownMenu';
+import AppTable from '@/components/ui/AppTable';
 import { apiCall } from '@/services/apiservice';
 import { mapApiProjectToProject } from '@/services/projectservice';
 import type { ProjectStatus, Project, ApiProject } from '@/types/projects-types';
@@ -743,6 +744,62 @@ const {
     });
   };
 
+  const projectColumns = [
+    {
+      title: 'Project',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string, record: Project) => {
+        const projectTitle = record.title || record.name || 'Untitled Project';
+        const Icon = record.icon;
+        return (
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${record.iconBg} shrink-0`}><Icon className="w-4 h-4" /></div>
+            <div className="min-w-0">
+              <div className="font-semibold text-slate-900 truncate">{projectTitle}</div>
+              <div className="text-xs text-muted-foreground font-mono truncate">{record.category || '—'}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => <Badge>{status}</Badge>,
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      render: (priority: string) => <span className="text-sm text-muted-foreground">{priority}</span>,
+    },
+    {
+      title: 'Progress',
+      dataIndex: 'progress',
+      key: 'progress',
+      render: (progress: number, record: Project) => (
+        <div className="flex items-center gap-3">
+          <ProgressBar value={progress} color={record.progressColor} />
+          <span className="text-sm font-semibold text-foreground w-8 text-right">{progress}%</span>
+        </div>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record: Project) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); handleViewProjectTasks(record); }} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">Tasks</Button>
+          <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); handleViewProject(record); }} icon={<Eye className="w-3.5 h-3.5" />} />
+          <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); openEditModal(record); }} icon={<Pencil className="w-3.5 h-3.5" />} />
+          <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(record); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="fade-in space-y-4 max-w-screen-2xl mx-auto w-full pb-8">
       <div className="flex flex-col gap-3">
@@ -940,63 +997,15 @@ const {
                   );
                 })}
               </div>
-            ) : (
-              <Card className="overflow-x-auto">
-                <table className="w-full border-separate border-spacing-y-1.5">
-                  <thead>
-                    <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                      <th className="rounded-l-xl bg-slate-50 px-5 py-3">Project</th>
-                      <th className="bg-slate-50 px-4 py-3">Status</th>
-                      <th className="bg-slate-50 px-4 py-3">Priority</th>
-                      <th className="bg-slate-50 px-4 py-3">Progress</th>
-                      <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedProjects.map((project) => {
-                      const Icon = project.icon;
-                      const projectTitle = project.title || project.name || 'Untitled Project';
-                      return (
-                        <tr
-                          key={project.id}
-                          className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
-                        >
-                          <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                            <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-lg ${project.iconBg} shrink-0`}><Icon className="w-4 h-4" /></div>
-                              <div className="min-w-0">
-                                <div className="font-semibold text-slate-900 truncate">{projectTitle}</div>
-                                <div className="text-xs text-muted-foreground font-mono truncate">{project.category || '—'}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="bg-white px-4 py-3 border-b border-slate-100">
-                            <Badge>{project.status}</Badge>
-                          </td>
-                          <td className="bg-white px-4 py-3 border-b border-slate-100">
-                            <span className="text-sm text-muted-foreground">{project.priority}</span>
-                          </td>
-                          <td className="bg-white px-4 py-3 border-b border-slate-100">
-                            <div className="flex items-center gap-3">
-                              <ProgressBar value={project.progress} color={project.progressColor} />
-                              <span className="text-sm font-semibold text-foreground w-8 text-right">{project.progress}%</span>
-                            </div>
-                          </td>
-                          <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); handleViewProjectTasks(project); }} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">Tasks</Button>
-                              <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); handleViewProject(project); }} icon={<Eye className="w-3.5 h-3.5" />} />
-                              <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); openEditModal(project); }} icon={<Pencil className="w-3.5 h-3.5" />} />
-                              <Button size="small" type="text" danger onClick={(e) => { e.stopPropagation(); handleDeleteClick(project); }} icon={<Trash2 className="w-3.5 h-3.5" />} />
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </Card>
-            )}
+              ) : (
+                <AppTable
+                  columns={projectColumns}
+                  dataSource={paginatedProjects}
+                  rowKey={(record) => record.id}
+                  cardClassName="mt-4 overflow-x-auto"
+                  rowHoverClassName="hover:bg-slate-50/60"
+                />
+              )}
 
             {!loading && projects.length > 0 && (
               <Pagination

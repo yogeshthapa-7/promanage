@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, LayoutList, LayoutGrid, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/services/apiservice';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import AppTable from '@/components/ui/AppTable';
+import { TableSkeleton } from '@/components/ui/Loaders';
 import Pagination from '@/components/ui/Pagination';
 import CreateFiscalYearDrawer from './Create';
 import { fetchFiscalYears, fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
@@ -124,6 +127,57 @@ export default function FiscalYearPage() {
     refetch();
   };
 
+  const columns: ColumnsType<FiscalYearItem> = [
+    {
+      title: 'Fiscal Year',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string) => (
+        <div className="font-semibold text-slate-900">{text}</div>
+      ),
+    },
+    {
+      title: 'Code',
+      dataIndex: 'code',
+      key: 'code',
+    },
+    {
+      title: 'Start Date',
+      dataIndex: 'startDateBs',
+      key: 'startDateBs',
+    },
+    {
+      title: 'End Date',
+      dataIndex: 'endDateBs',
+      key: 'endDateBs',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right',
+      render: (_: any, record: FiscalYearItem) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleEdit(record)}
+            icon={<Pencil className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button
+            size="small"
+            danger
+            onClick={() => handleDelete(record)}
+            icon={<Trash2 className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="fade-in text-slate-800">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -195,60 +249,7 @@ export default function FiscalYearPage() {
           </div>
         </Card>
       ) : viewMode === 'list' ? (
-        <Card className="mt-4 overflow-x-auto">
-          <table className="w-full border-separate border-spacing-y-1.5">
-            <thead>
-              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                <th className="rounded-l-xl bg-slate-50 px-5 py-3">Fiscal Year</th>
-                <th className="bg-slate-50 px-4 py-3">Code</th>
-                <th className="bg-slate-50 px-4 py-3">Start Date</th>
-                <th className="bg-slate-50 px-4 py-3">End Date</th>
-                <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fiscalYears.map((year) => (
-                <tr
-                  key={year.id}
-                  className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
-                >
-                  <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                    <div className="font-semibold text-slate-900">{year.name}</div>
-                  </td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                    {year.code}
-                  </td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                    {year.startDateBs}
-                  </td>
-                  <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                    {year.endDateBs}
-                  </td>
-                  <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => handleEdit(year)}
-                        icon={<Pencil className="w-4 h-4" />}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="small"
-                        danger
-                        onClick={() => handleDelete(year)}
-                        icon={<Trash2 className="w-4 h-4" />}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+        <AppTable columns={columns} dataSource={fiscalYears} rowKey="id" cardClassName="mt-4" />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4">
           {fiscalYears.map((year) => (

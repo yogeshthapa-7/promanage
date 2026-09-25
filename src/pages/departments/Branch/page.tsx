@@ -3,8 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
+import AppTable from '@/components/ui/AppTable';
 import { TableSkeleton } from '@/components/ui/Loaders';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/services/apiservice';
 import { fetchBranches, fetchBranchSelectList } from '@/services/branchservice';
@@ -249,6 +249,50 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
     message.success('Excel exported successfully');
   };
 
+  const columns = [
+    {
+      title: 'S.N.',
+      dataIndex: 'sn',
+      key: 'sn',
+      width: 64,
+      align: 'center',
+      className: 'text-slate-400 font-medium',
+    },
+    {
+      title: 'Branch Name / शाखा नाम',
+      dataIndex: 'name',
+      key: 'name',
+      className: 'font-bold text-slate-800',
+    },
+    {
+      title: 'Main Branch / महाशाखा',
+      dataIndex: 'mainBranchName',
+      key: 'mainBranchName',
+      className: 'font-medium text-slate-600',
+      render: (text: string) => text || '-',
+    },
+    {
+      title: 'Department / विभाग',
+      dataIndex: 'departmentName',
+      key: 'departmentName',
+      className: 'font-medium text-slate-600',
+      render: (text: string) => text || '-',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 160,
+      align: 'center',
+      className: 'no-print',
+      render: (_: any, branch: Branch) => (
+        <div className="flex items-center justify-center gap-2">
+          <Button size="sm" onClick={() => handleEdit(branch)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
+          <Button size="sm" danger onClick={() => handleDelete(branch)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="print-area fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -370,69 +414,13 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
         Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
       </div>
 
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
-                <th className="py-4 px-6 text-center w-16">S.N.</th>
-                <th className="py-4 px-6">Branch Name / शाखा नाम</th>
-                <th className="py-4 px-6">Main Branch /महाशाखा</th>
-                <th className="py-4 px-6">Department / विभाग</th>
-                <th className="py-4 px-6 text-center w-40 no-print">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {loading ? (
-                <TableSkeleton columns={5} rows={6} message="Loading branches..." />
-              ) : branches.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
-                    No branch records found.
-                  </td>
-                </tr>
-              ) : (
-                branches.map((branch, index) => {
-                  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                  };
-                  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  };
+       <AppTable
+         columns={columns}
+         dataSource={branches}
+         loading={loading}
+         rowKey={(branch, index) => branch.id ?? `branch-${index}`}
+       />
 
-                  return (
-                  <tr
-                    key={branch.id ?? `branch-${index}`}
-                    className="hover:bg-slate-50/50 transition"
-                    onMouseEnter={handleRowMouseEnter}
-                    onMouseLeave={handleRowMouseLeave}
-                  >
-                    <td className="py-4 px-6 text-center text-slate-400 font-medium">
-                      {branch.sn}
-                    </td>
-                    <td className="py-4 px-6 font-bold text-slate-800">
-                      {branch.name}
-                    </td>
-                    <td className="py-4 px-6 font-medium text-slate-600">
-                      {branch.mainBranchName || '-'}
-                    </td>
-                    <td className="py-4 px-6 font-medium text-slate-600">
-                      {branch.departmentName || '-'}
-                    </td>
-                    <td className="py-4 px-6 text-center no-print">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button size="sm" onClick={() => handleEdit(branch)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
-                        <Button size="sm" danger onClick={() => handleDelete(branch)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
-                      </div>
-                    </td>
-                    </tr>
-                  );})
-                )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
 
       <div className="flex justify-end pt-2 no-print">
         <Pagination

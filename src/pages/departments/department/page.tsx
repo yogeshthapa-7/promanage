@@ -10,8 +10,8 @@ import {
 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
+import AppTable from '@/components/ui/AppTable';
 import { TableSkeleton } from '@/components/ui/Loaders';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Drawer from '@/components/drawer';
 import CreateDepartmentDrawer from './Create';
@@ -278,6 +278,43 @@ export default function DepartmentPage() {
     message.success('Excel exported successfully');
   };
 
+  const columns = [
+    {
+      title: 'S.N.',
+      dataIndex: 'sn',
+      key: 'sn',
+      width: 64,
+      align: 'center',
+      className: 'text-slate-400 font-medium',
+    },
+    {
+      title: 'Department Name / विभागको नाम',
+      dataIndex: 'name',
+      key: 'name',
+      className: 'font-bold text-slate-800',
+    },
+    {
+      title: 'Parent Department / प्रमुख विभाग',
+      dataIndex: 'parentDepartmentName',
+      key: 'parentDepartmentName',
+      className: 'font-medium text-slate-600',
+      render: (text: string) => text || ' ',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 160,
+      align: 'center',
+      className: 'no-print',
+      render: (_: any, dept: Department) => (
+        <div className="flex items-center justify-center gap-2">
+          <Button size="sm" onClick={() => handleEdit(dept)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
+          <Button size="sm" danger onClick={() => handleDelete(dept)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     /* Direct Page Canvas - Background wave/gradient style */
     <div className="fade-in space-y-6 max-w-screen-2xl mx-auto w-full pb-10 text-slate-800 font-sans">
@@ -419,67 +456,13 @@ export default function DepartmentPage() {
       </div>
 
       {/* 4. ONLY Table is in a White Container Card */}
-      <Card>
-        {loading ? (
-          <TableSkeleton columns={4} rows={6} message="Loading departments..." />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 text-sm font-bold tracking-wider uppercase">
-                  <th className="py-4 px-6 text-center w-16">S.N.</th>
-                  <th className="py-4 px-6">Department Name / विभागको नाम</th>
-                  <th className="py-4 px-6">Parent Department / प्रमुख विभाग</th>
-                  <th className="py-4 px-6 text-center w-40 no-print">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {departments.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="py-12 text-center text-slate-400">
-                      No department records found.
-                    </td>
-                  </tr>
-                ) : (
-                  departments.map((dept, index) => {
-                    const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                      e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                    };
-                    const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    };
+       <AppTable
+         columns={columns}
+         dataSource={departments}
+         loading={loading}
+         rowKey={(dept, index) => dept.id ?? `dept-${index}`}
+       />
 
-                    return (
-                    <tr
-                      key={dept.id ?? `dept-${index}`}
-                      className="hover:bg-slate-50/50 transition"
-                      onMouseEnter={handleRowMouseEnter}
-                      onMouseLeave={handleRowMouseLeave}
-                    >
-                      <td className="py-4 px-6 text-center text-slate-400 font-medium">
-                        {dept.sn}
-                      </td>
-                      <td className="py-4 px-6 font-bold text-slate-800">
-                        {dept.name}
-                      </td>
-                      <td className="py-4 px-6 font-medium text-slate-600">
-                        {dept.parentDepartmentName || ' '}
-                      </td>
-                      <td className="py-4 px-6 text-center no-print">
-                        <div className="flex items-center justify-center gap-2">
-                          <Button size="sm" onClick={() => handleEdit(dept)} icon={<Pencil className="w-3 h-3" />}>Edit</Button>
-                          <Button size="sm" danger onClick={() => handleDelete(dept)} icon={<Trash2 className="w-3 h-3" />}>Delete</Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );})
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
 
       {/* 5. Pagination */}
       <div className="flex justify-end pt-2 no-print">

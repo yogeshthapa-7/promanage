@@ -3,7 +3,7 @@ import { UserPlus, Edit2, Trash2, Copy, Printer } from 'lucide-react';
 import { Modal, message, Button } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
-import Card from '@/components/ui/Card';
+import AppTable from '@/components/ui/AppTable';
 import SearchInput from '@/components/ui/SearchInput';
 import { fetchEmployees } from '@/services/employeeservice';
 import { type Employee } from '@/types/employees-types';
@@ -185,6 +185,59 @@ export default function EmployeePage() {
     window.print();
   };
 
+  const employeeColumns = [
+    {
+      title: 'S.N.',
+      dataIndex: 'SN',
+      key: 'SN',
+      width: 80,
+      render: (value: number) => <span className="tabular-nums">{value}</span>,
+    },
+    {
+      title: 'Full Name',
+      dataIndex: 'Fullname',
+      key: 'Fullname',
+      render: (value: string) => <span className="font-semibold text-slate-800">{value}</span>,
+    },
+    {
+      title: 'Address',
+      dataIndex: 'Address',
+      key: 'Address',
+    },
+    {
+      title: 'Phone',
+      dataIndex: 'Phone',
+      key: 'Phone',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'Email',
+      key: 'Email',
+    },
+    {
+      title: 'Department Name',
+      dataIndex: 'DepartmentName',
+      key: 'DepartmentName',
+    },
+    {
+      title: 'Branch Name',
+      dataIndex: 'BranchName',
+      key: 'BranchName',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right' as const,
+      width: 140,
+      render: (_: unknown, record: Employee) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button size="small" onClick={() => handleEditEmployee(record)} icon={<Edit2 className="h-3.5 w-3.5" />}>Edit</Button>
+          <Button size="small" danger onClick={() => handleDeleteEmployee(record)} icon={<Trash2 className="h-3.5 w-3.5" />}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="print-area fade-in text-slate-800">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -248,85 +301,16 @@ export default function EmployeePage() {
         <div className="mb-2 text-base text-slate-500 no-print">
            Showing {employees.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {(currentPage - 1) * pageSize + employees.length} of {totalFiltered} entries
         </div>
-        <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full border-separate border-spacing-y-1.5">
-            <thead>
-              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                <th className="rounded-l-xl bg-slate-50 px-4 py-3">S.N.</th>
-                <th className="bg-slate-50 px-4 py-3">Full Name</th>
-                <th className="bg-slate-50 px-4 py-3">Address</th>
-                <th className="bg-slate-50 px-4 py-3">Phone</th>
-                <th className="bg-slate-50 px-4 py-3">Email</th>
-                {/* <th className="bg-slate-50 px-4 py-3">DOB</th> */}
-                <th className="bg-slate-50 px-4 py-3">Department Name</th>
-                <th className="bg-slate-50 px-4 py-3">Branch Name</th>
-                <th className="rounded-r-xl bg-slate-50 px-4 py-3 text-right no-print">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <TableSkeleton columns={9} rows={6} message="Loading employees..." />
-               ) : employees.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-base text-slate-400">
-                    No employees found
-                  </td>
-                </tr>
-              ) : (
-                employees.map((emp) => {
-                  const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                    e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                  };
-                  const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  };
-
-                  return (
-                  <tr
-                    key={emp.EmployeeInfoID}
-                    className="text-sm text-slate-700"
-                    onMouseEnter={handleRowMouseEnter}
-                    onMouseLeave={handleRowMouseLeave}
-                  >
-                    <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                      {emp.SN}
-                    </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 font-semibold text-slate-800">
-                      {emp.Fullname}
-                    </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100">
-                      {emp.Address}
-                    </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100">
-                      {emp.Phone}
-                    </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100">
-                      {emp.Email}
-                    </td>
-                    {/* <td className="bg-white px-4 py-3 border-b border-slate-100">
-                      {emp.DOB}
-                    </td> */}
-                    <td className="bg-white px-4 py-3 border-b border-slate-100">
-                      {emp.DepartmentName}
-                    </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100">
-                      {emp.BranchName}
-                    </td>
-                    <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100 no-print">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button size="small" onClick={() => handleEditEmployee(emp)} icon={<Edit2 className="h-3.5 w-3.5" />}>Edit</Button>
-                        <Button size="small" danger onClick={() => handleDeleteEmployee(emp)} icon={<Trash2 className="h-3.5 w-3.5" />}>Delete</Button>
-                      </div>
-                    </td>
-                  </tr>
-                );})
-              )}
-            </tbody>
-          </table>
-        </div>
-        </Card>
+        {loading ? (
+          <TableSkeleton columns={7} rows={6} message="Loading employees..." />
+        ) : (
+          <AppTable
+            columns={employeeColumns}
+            dataSource={employees}
+            rowKey={(record) => record.EmployeeInfoID}
+            cardClassName="no-print"
+          />
+        )}
 
          <Pagination
            total={totalFiltered}

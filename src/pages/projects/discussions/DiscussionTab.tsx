@@ -3,6 +3,7 @@ import type { ApiProject } from "@/types/projects-data";
 import { apiCall } from "@/services/apiservice";
 import { Modal, message, Button } from "antd";
 import { LayoutGrid, List, Search, Pencil, Trash2, RotateCcw } from "lucide-react";
+import AppTable from "@/components/ui/AppTable";
 import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
 import DiscussionSearch from "./Search";
@@ -138,6 +139,39 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
     discussionsRefetch();
   }, [project]);
 
+  const columns = [
+    {
+      title: 'Discussion',
+      dataIndex: 'DiscussionTitle',
+      key: 'DiscussionTitle',
+      render: (text: string) => <div className="font-semibold text-slate-900">{text}</div>,
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'PriorityName',
+      key: 'PriorityName',
+      render: (text: string) => text || '—',
+    },
+    {
+      title: 'Date',
+      key: 'CreatedDate',
+      render: (date: string) => convertAdToBs(date) || '—',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right',
+      render: (_: any, record: ProjectDiscussionItem) => (
+        <div className="flex items-center justify-end gap-1">
+          {record.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(record)} />}
+          {record.HasUserRightToDelete && (
+            <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(record)} />
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
   <div className="space-y-4">
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -192,51 +226,13 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         </div>
       </Card>
     ) : viewMode === 'list' ? (
-      <Card className="mt-4 overflow-x-auto">
-        <table className="w-full border-separate border-spacing-y-1.5">
-          <thead>
-            <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-              <th className="rounded-l-xl bg-slate-50 px-5 py-3">Discussion</th>
-              <th className="bg-slate-50 px-4 py-3">Priority</th>
-              <th className="bg-slate-50 px-4 py-3">Date</th>
-              <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {discussions.map((d) => {
-              const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                e.currentTarget.style.transform = 'scale(1.01)';
-                e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-              };
-              const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              };
-              return (
-              <tr
-                key={d.ProjectDiscussionID}
-                className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
-                onMouseEnter={handleRowMouseEnter}
-                onMouseLeave={handleRowMouseLeave}
-              >
-                <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                  <div className="font-semibold text-slate-900">{d.DiscussionTitle}</div>
-                </td>
-                <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{d.PriorityName || "—"}</td>
-                <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertAdToBs(d.CreatedDate) || "—"}</td>
-                <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                  <div className="flex items-center justify-end gap-1">
-                    {d.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(d)} />}
-                    {d.HasUserRightToDelete && (
-                      <Button type="text" size="small" danger icon={<Trash2 size={16} />} onClick={() => handleDeleteDiscussion(d)} />
-                    )}
-                  </div>
-                </td>
-              </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Card>
+      <AppTable
+        columns={columns}
+        dataSource={discussions}
+        rowKey="ProjectDiscussionID"
+        rowHoverClassName="hover:bg-slate-50/60"
+        cardClassName="mt-4"
+      />
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {discussions.map((d) => (

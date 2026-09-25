@@ -3,7 +3,9 @@ import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
+import AppTable from '@/components/ui/AppTable';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
+import { TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
@@ -178,6 +180,84 @@ export default function BudgetPage() {
     });
   };
 
+  const columns = [
+    {
+      title: 'Title',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string) => (
+        <div className="font-semibold text-slate-900">{text || 'Untitled'}</div>
+      ),
+    },
+    {
+      title: 'Fiscal Year',
+      dataIndex: 'fiscal_year',
+      key: 'fiscalYear',
+      render: (_: any, budget: Budget) => getFiscalYearName(budget, fiscalYearOptions),
+    },
+    {
+      title: 'Attachment',
+      dataIndex: 'document_url',
+      key: 'attachment',
+      render: (url?: string) =>
+        url ? (
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            Document
+          </a>
+        ) : (
+          '—'
+        ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right',
+      render: (_: any, budget: Budget) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            type="text"
+            size="small"
+            onClick={() => handleViewBudget(budget)}
+            icon={<Eye className="w-3.5 h-3.5" />}
+            disabled={!budget.document_url}
+          />
+          <Button
+            size="small"
+            onClick={() => handleDownloadBudget(budget)}
+            icon={<Download className="w-3.5 h-3.5" />}
+            disabled={!budget.document_url}
+          />
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleEdit(budget)}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            }
+          >
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            danger
+            onClick={() => handleDelete(budget)}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            }
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="fade-in text-slate-800">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -275,193 +355,32 @@ export default function BudgetPage() {
           </span>
         </div>
 
-        {loading ? (
-          viewMode === 'list' ? (
-            <Card className="mt-4">
-              <div className="overflow-x-auto">
-                <table className="w-full border-separate border-spacing-y-1.5">
-                  <thead>
-                    <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                      <th className="rounded-l-xl bg-slate-50 px-5 py-3">Title</th>
-                      <th className="bg-slate-50 px-4 py-3">Fiscal Year</th>
-                      <th className="bg-slate-50 px-4 py-3">Attachment</th>
-                      <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {budgets.map((budget) => (
-                      <tr
-                        key={budget.id}
-                        className="text-sm text-slate-700"
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.01)';
-                          e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                      >
-                        <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                          <div className="font-semibold text-slate-900">{budget.name || 'Untitled'}</div>
-                        </td>
-                        <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                          {getFiscalYearName(budget, fiscalYearOptions)}
-                        </td>
-                        <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                          {budget.document_url ? (
-                            <a href={budget.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                              Document
-                            </a>
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                        <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              type="text"
-                              size="small"
-                              onClick={() => handleViewBudget(budget)}
-                              icon={<Eye className="w-3.5 h-3.5" />}
-                              disabled={!budget.document_url}
-                            />
-                            <Button
-                              size="small"
-                              onClick={() => handleDownloadBudget(budget)}
-                              icon={<Download className="w-3.5 h-3.5" />}
-                              disabled={!budget.document_url}
-                            />
-                            <Button
-                              type="primary"
-                              size="small"
-                              onClick={() => handleEdit(budget)}
-                              icon={
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>
-                              }
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              size="small"
-                              danger
-                              onClick={() => handleDelete(budget)}
-                              icon={
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="3 6 5 6 21 6" />
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                              }
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          ) : (
-            <CardGridSkeleton count={8} />
-          )
-        ) : budgets.length === 0 ? (
+         {loading ? (
+           viewMode === 'list' ? (
+             <AppTable
+               columns={columns}
+               dataSource={[]}
+               loading={true}
+               rowKey={(budget) => budget.id}
+               cardClassName="mt-4"
+             />
+           ) : (
+             <CardGridSkeleton count={8} />
+           )
+         ) : budgets.length === 0 ? (
+
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
             <p className="text-base text-slate-400">No budgets found</p>
           </div>
-        ) : viewMode === 'list' ? (
-          <Card className="mt-4">
-            <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-y-1.5">
-                <thead>
-                  <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="rounded-l-xl bg-slate-50 px-5 py-3">Title</th>
-                    <th className="bg-slate-50 px-4 py-3">Fiscal Year</th>
-                    <th className="bg-slate-50 px-4 py-3">Attachment</th>
-                    <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {budgets.map((budget) => (
-                    <tr
-                      key={budget.id}
-                      className="text-sm text-slate-700"
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.01)';
-                        e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                      }}
-                    >
-                      <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                        <div className="font-semibold text-slate-900">{budget.name || 'Untitled'}</div>
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                        {getFiscalYearName(budget, fiscalYearOptions)}
-                      </td>
-                      <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600 font-medium">
-                        {budget.document_url ? (
-                          <a href={budget.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                            Document
-                          </a>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            type="text"
-                            size="small"
-                            onClick={() => handleViewBudget(budget)}
-                            icon={<Eye className="w-3.5 h-3.5" />}
-                            disabled={!budget.document_url}
-                          />
-                          <Button
-                            size="small"
-                            onClick={() => handleDownloadBudget(budget)}
-                            icon={<Download className="w-3.5 h-3.5" />}
-                            disabled={!budget.document_url}
-                          />
-                          <Button
-                            type="primary"
-                            size="small"
-                            onClick={() => handleEdit(budget)}
-                            icon={
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
-                            }
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            danger
-                            onClick={() => handleDelete(budget)}
-                            icon={
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                              </svg>
-                            }
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        ) : (
+         ) : viewMode === 'list' ? (
+           <AppTable
+             columns={columns}
+             dataSource={budgets}
+             rowKey={(budget) => budget.id}
+             cardClassName="mt-4"
+           />
+         ) : (
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {budgets.map((budget) => (
               <Card

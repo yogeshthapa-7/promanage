@@ -6,6 +6,7 @@ import { calculateProgressFromDates, convertAdToBs } from "@/utils/nepali-date";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { LayoutGrid, List, Plus, Search, RotateCcw } from "lucide-react";
+import AppTable from "@/components/ui/AppTable";
 import MilestoneCreate from "./Create";
 import MilestoneSearch from "./Search";
 
@@ -141,8 +142,80 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
     setMilestones(allMilestones);
   };
 
-  if (milestonesLoading) {
-    return (
+  const columns = [
+    {
+      title: 'Milestone',
+      key: 'MilestoneTitle',
+      render: (_: any, record: MilestoneItem) => {
+        const calculatedProgress = calculateProgressFromDates(record.StartDate, record.EndDate, record.Progress);
+        const progressColor =
+          calculatedProgress >= 75
+            ? '#10B981'
+            : calculatedProgress >= 40
+            ? '#3B82F6'
+            : calculatedProgress > 0
+            ? '#F59E0B'
+            : '#D1D5DB';
+        return (
+          <div>
+            <div className="font-semibold text-slate-900">{record.MilestoneTitle}</div>
+            {record.Summary && (
+              <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{record.Summary}</div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      title: 'Progress',
+      key: 'Progress',
+      render: (_: any, record: MilestoneItem) => {
+        const calculatedProgress = calculateProgressFromDates(record.StartDate, record.EndDate, record.Progress);
+        const progressColor =
+          calculatedProgress >= 75
+            ? '#10B981'
+            : calculatedProgress >= 40
+            ? '#3B82F6'
+            : calculatedProgress > 0
+            ? '#F59E0B'
+            : '#D1D5DB';
+        return (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-slate-700">{calculatedProgress}%</span>
+            <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
+          </div>
+        );
+      },
+    },
+    {
+      title: 'Start Date',
+      key: 'StartDate',
+      render: (date: string) => convertAdToBs(date) || '—',
+    },
+    {
+      title: 'End Date',
+      key: 'EndDate',
+      render: (date: string) => convertAdToBs(date) || '—',
+    },
+    {
+      title: 'Cost',
+      key: 'MilestoneCost',
+      render: (cost: number) => cost.toLocaleString(),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right',
+      render: (_: any, record: MilestoneItem) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button size="small" onClick={() => handleEdit(record)}>Edit</Button>
+          <Button size="small" danger onClick={() => handleDelete(record)}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
       <div className="space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
@@ -249,70 +322,13 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
       )}
 
       {viewMode === 'list' ? (
-        <Card className="mt-4 overflow-x-auto">
-          <table className="w-full border-separate border-spacing-y-1.5">
-            <thead>
-              <tr className="text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-                <th className="rounded-l-xl bg-slate-50 px-5 py-3">Milestone</th>
-                <th className="bg-slate-50 px-4 py-3">Progress</th>
-                <th className="bg-slate-50 px-4 py-3">Start Date</th>
-                <th className="bg-slate-50 px-4 py-3">End Date</th>
-                <th className="bg-slate-50 px-4 py-3">Cost</th>
-                <th className="rounded-r-xl bg-slate-50 px-5 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {milestones.map((milestone) => {
-                const calculatedProgress = calculateProgressFromDates(milestone.StartDate, milestone.EndDate, milestone.Progress);
-                const progressColor =
-                  calculatedProgress >= 75
-                    ? "#10B981"
-                    : calculatedProgress >= 40
-                    ? "#3B82F6"
-                    : calculatedProgress > 0
-                    ? "#F59E0B"
-                    : "#D1D5DB";
-                const handleRowMouseEnter = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                  e.currentTarget.style.transform = 'scale(1.01)';
-                  e.currentTarget.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
-                };
-                const handleRowMouseLeave = (e: React.MouseEvent<HTMLTableRowElement>) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                };
-                return (
-                <tr
-                  key={milestone.ProjectMilestoneID}
-                  className="text-sm text-slate-700 hover:bg-slate-50/60 hover:scale-[1.01] transition-all duration-200 origin-center relative z-10"
-                  onMouseEnter={handleRowMouseEnter}
-                  onMouseLeave={handleRowMouseLeave}
-                >
-                    <td className="rounded-l-xl bg-white px-4 py-3 border-b border-slate-100">
-                      <div className="font-semibold text-slate-900">{milestone.MilestoneTitle}</div>
-                      {milestone.Summary && (
-                        <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{milestone.Summary}</div>
-                      )}
-                    </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-slate-700">{calculatedProgress}%</span>
-                        <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
-                      </div>
-                    </td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertAdToBs(milestone.StartDate) || "—"}</td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{convertAdToBs(milestone.EndDate) || "—"}</td>
-                    <td className="bg-white px-4 py-3 border-b border-slate-100 text-slate-600">{milestone.MilestoneCost.toLocaleString()}</td>
-                    <td className="rounded-r-xl bg-white px-4 py-3 text-right border-b border-slate-100">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button size="small" onClick={() => handleEdit(milestone)}>Edit</Button>
-                        <Button size="small" danger onClick={() => handleDelete(milestone)}>Delete</Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Card>
+        <AppTable
+          columns={columns}
+          dataSource={milestones}
+          rowKey="ProjectMilestoneID"
+          rowHoverClassName="hover:bg-slate-50/60"
+          cardClassName="mt-4"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {milestones.map((milestone) => {
