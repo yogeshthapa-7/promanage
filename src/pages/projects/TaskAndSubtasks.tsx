@@ -28,8 +28,8 @@ import { apiCall } from '@/services/apiservice';
 import type { ApiProject } from '@/types/projects-types';
 import type { TaskItem } from '@/types/tasks-types';
 import CreateTaskDrawer from '@/pages/tasks/createtasks';
-import ViewTaskDrawer from '@/pages/projects/viewtaskdrawer';
-import SubtaskDrawer from './SubtaskDrawer';
+import ViewTaskDrawer from '@/components/projects/viewtaskdrawer';
+import SubtaskDrawer from '@/components/projects/SubtaskDrawer';
 
 const IssuesPanel = lazy(() => import('./issues/IssueTab'));
 const DiscussionsPanel = lazy(() => import('./discussions/DiscussionTab'));

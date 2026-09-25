@@ -13,7 +13,7 @@ import AppTable from "@/components/ui/AppTable";
 import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
 import { statusColor, priorityColor } from "@/services/taskservice";
 import CreateTaskDrawer from "./createtasks";
-import ViewTaskDrawer from '../projects/viewtaskdrawer';
+import ViewTaskDrawer from '@/components/projects/viewtaskdrawer';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
