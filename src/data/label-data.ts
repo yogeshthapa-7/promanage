@@ -99,49 +99,4 @@ function mapApiRowToLabel(row: ApiLabelRow): Label {
   };
 }
 
-export async function createLabel(data: { name: string; code: string }): Promise<Label> {
-  const res = await apiCall(`${API_BASE}/SaveLabelInfo`, {
-    method: 'POST',
-    body: JSON.stringify({
-      LabelInfoID: 0,
-      LabelName: data.name,
-      LabelCode: data.code,
-    }),
-  });
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-  const json = await res.json();
-  const item = (json?.data ?? json) as Record<string, unknown>;
-  return {
-    SN: Number(item.SN ?? 0),
-    id: Number(item.LabelInfoID ?? 0),
-    name: String(item.LabelName ?? data.name),
-    code: String(item.LabelCode ?? data.code),
-  };
-}
 
-export async function updateLabel(id: number, data: { name: string; code: string }): Promise<Label> {
-  const res = await apiCall(`${API_BASE}/SaveLabelInfo`, {
-    method: 'POST',
-    body: JSON.stringify({
-      LabelInfoID: id,
-      LabelName: data.name,
-      LabelCode: data.code,
-    }),
-  });
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-  const json = await res.json();
-  const item = (json?.data ?? json) as Record<string, unknown>;
-  return {
-    SN: Number(item.SN ?? 0),
-    id: Number(item.LabelInfoID ?? id),
-    name: String(item.LabelName ?? data.name),
-    code: String(item.LabelCode ?? data.code),
-  };
-}
-
-export async function deleteLabel(id: number): Promise<void> {
-  const res = await apiCall(`${API_BASE}/DeleteLabelInfo?id=${id}`, {
-    method: 'GET',
-  });
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-}

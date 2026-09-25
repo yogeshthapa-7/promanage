@@ -1,15 +1,56 @@
 import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
+import { apiCall } from '@/services/api';
 import type { User, UserGroup, OrganizationSelect } from '@/data/users-data';
 import {
   fetchUserGroups,
   fetchOrganizations,
-  saveUser,
-  checkUserExists,
 } from '@/data/users-data';
 import Drawer from '@/components/drawer';
 import ProgressBar from '@/components/ui/ProgressBar';
+
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+const SAVE_USER_URL = `${API_BASE}/SaveUserPublic`;
+
+async function checkUserExists(userName: string, excludeUserId?: number): Promise<boolean> {
+  try {
+    const body = {
+      model: {
+        draw: 1,
+        start: 0,
+        length: 10,
+        columns: [
+          { data: 'UserId', name: 'UserId', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'UserName', name: 'UserName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+        ],
+        search: { value: '', regex: '' },
+        order: [{ column: 1, dir: 'desc' }],
+      },
+      param: {
+        UserId: excludeUserId ?? 0,
+        UserName: userName,
+        FullName: '',
+        Password: '',
+        UserGroupId: 0,
+        UserGroupName: '',
+        Theme: '',
+      },
+    };
+
+    const res = await apiCall(`${API_BASE}/Users/ServerSearch`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) return false;
+    const json = await res.json();
+    const rows = Array.isArray(json?.data) ? json.data : [];
+    return rows.some((user: Record<string, unknown>) => (user.UserName as string)?.toLowerCase() === userName.toLowerCase() && (user.UserId as number) !== (excludeUserId ?? 0));
+  } catch {
+    return false;
+  }
+}
 
 interface UserFormModalProps {
   open: boolean;
@@ -166,12 +207,15 @@ export default function UserFormModal({
         UserGroupId: 0,
       };
 
-      const result = await saveUser(payload);
-
-      // Check the API's Success property.
-      if (!result.success) {
-        const apiMessage = result.message?.trim() || 'Failed to save user';
-
+      const result = await apiCall(SAVE_USER_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      const json = await result.json();
+      const successFlag = json.Success ?? json.success;
+      const messageText = json.Message ?? json.message;
+      if (successFlag === false) {
+        const apiMessage = messageText?.trim() || 'Failed to save user';
         if (isUsernameExistsError(apiMessage)) {
           form.setFields([
             {
@@ -179,11 +223,9 @@ export default function UserFormModal({
               errors: ['Username already exists'],
             },
           ]);
-
           message.error('User was not saved. That username already exists.');
           return;
         }
-
         message.error(`User was not saved: ${apiMessage}`);
         return;
       }

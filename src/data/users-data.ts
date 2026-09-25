@@ -41,8 +41,6 @@ interface ApiUserResponse {
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/Users/ServerSearch`;
 export const USER_GROUP_API_URL = `${API_BASE}/UserGroup/SelectList`;
-export const SAVE_USER_URL = `${API_BASE}/SaveUserPublic`;
-export const DELETE_USER_URL = `${API_BASE}/DeleteUser`;
 
 export interface UserGroup {
   UserGroupId: number;
@@ -177,105 +175,7 @@ export async function fetchOrganizations(): Promise<OrganizationSelect[]> {
   }
 }
 
-export interface SaveUserPayload {
-  UserId: number;
-  UserName: string;
-  FullName: string;
-  Password: string;
-  CPassword: string;
-  OrganizationID: number;
-  Theme: string;
-  UserGroupCode: string;
-  UserGroupId: number;
-}
 
-export interface SaveUserResult {
-  success: boolean;
-  message: string;
-  data?: unknown;
-}
-
-export async function saveUser(payload: SaveUserPayload): Promise<SaveUserResult> {
-  try {
-    const body = JSON.stringify(payload);
-    const res = await apiCall(SAVE_USER_URL, {
-      method: 'POST',
-      body,
-    });
-    const json = await res.json();
-    const successFlag = json.Success ?? json.success;
-    const messageText = json.Message ?? json.message;
-    if (successFlag === false) {
-      const msg = messageText || '';
-      return { success: false, message: msg || 'Failed. Check the payload or user group permissions.', data: json.Data ?? json.data };
-    }
-    if (!res.ok) throw new Error(`Failed to save user: ${res.statusText}`);
-    return { success: true, message: 'User saved successfully', data: json.Data ?? json.data };
-  } catch (err) {
-    if (err instanceof Error) {
-      return { success: false, message: err.message };
-    }
-    return { success: false, message: 'An unknown error occurred' };
-  }
-}
-
-export async function deleteUser(userId: number): Promise<SaveUserResult> {
-  try {
-    const url = `${DELETE_USER_URL}?userid=${userId}`;
-    const res = await apiCall(url, { method: 'GET' });
-    const json = await res.json();
-    if (json.Success === false) {
-      const msg = json.Message || '';
-      return { success: false, message: msg ? `Delete failed: ${msg}` : 'Delete failed. The user may have dependent records.', data: json.Data };
-    }
-    if (!res.ok) throw new Error(`Failed to delete user: ${res.statusText}`);
-    return { success: true, message: 'User deleted successfully', data: json.Data };
-  } catch (err) {
-    if (err instanceof Error) {
-      return { success: false, message: err.message };
-    }
-    return { success: false, message: 'An unknown error occurred' };
-  }
-}
-
-export async function checkUserExists(userName: string, excludeUserId?: number): Promise<boolean> {
-  try {
-    const body = {
-      model: {
-        draw: 1,
-        start: 0,
-        length: 10,
-        columns: [
-          { data: 'UserId', name: 'UserId', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'UserName', name: 'UserName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: '', regex: '' },
-        order: [{ column: 1, dir: 'desc' }],
-      },
-      param: {
-        UserId: excludeUserId ?? 0,
-        UserName: userName,
-        FullName: '',
-        Password: '',
-        UserGroupId: 0,
-        UserGroupName: '',
-        Theme: '',
-      },
-    };
-
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) return false;
-    const json = await res.json();
-    const rows = Array.isArray(json?.data) ? json.data : [];
-    return rows.some((user: any) => user.UserName?.toLowerCase() === userName.toLowerCase() && user.UserId !== (excludeUserId ?? 0));
-  } catch {
-    return false;
-  }
-}
 
 export const ROLE_STYLE: Record<UserRole, string> = {
   Admin: 'bg-violet-50 text-violet-600 border-violet-200/60',

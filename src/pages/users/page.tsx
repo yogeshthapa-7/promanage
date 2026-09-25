@@ -7,7 +7,8 @@ import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import { useQueryClient } from '@tanstack/react-query';
-import { fetchUsers, ROLE_STYLE, fetchUserGroups, deleteUser } from '@/data/users-data';
+import { apiCall } from '@/services/api';
+import { fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/data/users-data';
 import type { User } from '@/data/users-data';
 import UserFormModal from './Create';
 import { message, Modal } from 'antd';
@@ -89,12 +90,18 @@ export default function UsersPage() {
       okType: 'danger',
       onOk: async () => {
         const userId = Number(user.id);
-         const result = await deleteUser(userId);
-         if (result.success) {
-           queryClient.invalidateQueries({ queryKey: ['users', 'search'] });
-           refetch();
-         } else {
-          message.error(result.message || 'Failed to delete user');
+        const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+        const res = await apiCall(`${API_BASE}/DeleteUser?userid=${userId}`, {
+          method: 'GET',
+        });
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json.Success !== false) {
+          queryClient.invalidateQueries({ queryKey: ['users', 'search'] });
+          refetch();
+          message.success('User deleted successfully');
+        } else {
+          const msg = json.Message || 'Failed to delete user';
+          message.error(msg);
         }
       },
     });
