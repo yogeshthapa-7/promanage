@@ -1,4 +1,4 @@
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -76,3 +76,4 @@ export async function fetchDepartmentCount(): Promise<number> {
   const json = await res.json();
   return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
 }
+

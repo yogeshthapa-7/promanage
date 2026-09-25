@@ -1,8 +1,9 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/services/api';
-import { fetchEmployees, type Employee } from '@/data/employees-data';
-import type { TaskItem, SubTaskItem } from '@/data/tasks-data';
+import { apiCall } from '@/services/apiservice';
+import { fetchEmployees } from '@/services/employeeservice';
+import { type Employee } from '@/types/employees-types';
+import type { TaskItem, SubTaskItem } from '@/types/tasks-types';
 import Drawer from '@/components/drawer';
 
 interface SubTaskCreateProps {
@@ -352,3 +353,4 @@ export default function SubTaskCreate({
     </Drawer>
   );
 }
+

@@ -7,8 +7,9 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchClients, type Client } from '@/data/client-data';
-import { apiCall } from '@/services/api';
+import { fetchClients } from '@/services/clientservice';
+import { type Client } from '@/types/client-types';
+import { apiCall } from '@/services/apiservice';
 import CreateClientDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -254,3 +255,4 @@ export default function ClientPage() {
     </div>
   );
 }
+

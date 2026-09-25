@@ -1,16 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface Branch {
-  id: string;
-  sn: number;
-  name: string;
-  branchCode: string;
-  mainBranchId: number;
-  mainBranchName: string;
-  departmentId: number;
-  departmentName: string;
-  orderKey: number;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Branch, BranchSelectOption } from '@/types/branches-types';
 
 interface ApiBranchResponse {
   data: ApiBranchRow[];
@@ -30,17 +19,6 @@ interface ApiBranchRow {
   OrderKey: number;
 }
 
-const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/Branch/ServerSearch';
-
-const SELECT_LIST_URL =
-  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
-  '/Branch/SelectList';
-
-export interface BranchSelectOption {
-  value: string;
-  label: string;
-}
-
 interface ApiSelectItem {
   BranchID?: number | string;
   BranchName?: string;
@@ -49,6 +27,12 @@ interface ApiSelectItem {
   Value?: number | string;
   Text?: string;
 }
+
+const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/Branch/ServerSearch';
+
+const SELECT_LIST_URL =
+  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
+  '/Branch/SelectList';
 
 function mapSelectItem(item: ApiSelectItem): BranchSelectOption {
   const value = String(
@@ -110,7 +94,6 @@ interface FetchBranchesResult {
 }
 
 function buildSearchBody(params: FetchBranchesParams) {
-  // Ensure IDs are strictly numbers or 0, avoiding NaN
   const parsedMainBranchId = params.mainBranchId ? Number(params.mainBranchId) : 0;
   const parsedDepartmentId = params.departmentId ? Number(params.departmentId) : 0;
 
@@ -203,3 +186,6 @@ function mapApiRowToBranch(row: ApiBranchRow): Branch {
     orderKey: row.OrderKey,
   };
 }
+
+export { API_URL, SELECT_LIST_URL };
+

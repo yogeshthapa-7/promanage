@@ -1,15 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface Expense {
-  SN: number;
-  id: number;
-  title: string;
-  code: string;
-  fiscal_year?: string;
-  fiscal_year_id?: number;
-  document_url?: string;
-  document_name?: string;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Expense } from '@/types/expense-types';
 
 interface ApiExpenseResponse {
   draw: number;
@@ -60,7 +50,6 @@ function buildSearchBody(params: FetchExpensesParams) {
       ExpenseInfoID: 0,
       ExpenseTitle: params.search,
       ExpenseCode: params.expenseCode || '',
-      // FiscalYear: params.fiscalYear,
       FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
     },
   };
@@ -119,3 +108,4 @@ function mapApiRowToExpense(row: ApiExpenseRow): Expense {
     document_name: documentName,
   };
 }
+

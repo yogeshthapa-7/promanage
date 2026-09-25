@@ -5,9 +5,10 @@ import Pagination from '@/components/ui/Pagination';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import SearchInput from '@/components/ui/SearchInput';
-import { fetchOrganizations, type Organization } from '@/data/organizations-data';
+import { fetchOrganizations } from '@/services/organizationservice';
+import { type Organization } from '@/types/organizations-types';
 import CreateOrganizationModal from './Create';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { useQueryClient } from '@tanstack/react-query';
 

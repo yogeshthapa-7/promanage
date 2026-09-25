@@ -1,12 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface Organization {
-  SN: number;
-  id: number;
-  title: string;
-  parentOrganizationId: number;
-  parentOrganizationName: string;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Organization } from '@/types/organizations-types';
 
 interface ApiOrganizationResponse {
   draw: number;
@@ -99,3 +92,4 @@ function mapApiRowToOrganization(row: ApiOrganizationRow): Organization {
     parentOrganizationName: row.ParentOrganizationName,
   };
 }
+

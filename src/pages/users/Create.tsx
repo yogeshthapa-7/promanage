@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiCall } from '@/services/api';
-import type { User, UserGroup, OrganizationSelect } from '@/data/users-data';
+import { apiCall } from '@/services/apiservice';
+import type { User, UserGroup, OrganizationSelect } from '@/types/users-types';
 import {
   fetchUserGroups,
   fetchOrganizations,
-} from '@/data/users-data';
+} from '@/services/userservice';
 import Drawer from '@/components/drawer';
 import ProgressBar from '@/components/ui/ProgressBar';
 

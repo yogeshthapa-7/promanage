@@ -7,8 +7,9 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchLabels, type Label } from '@/data/label-data';
-import { apiCall } from '@/services/api';
+import { fetchLabels } from '@/services/labelservice';
+import { type Label } from '@/types/label-types';
+import { apiCall } from '@/services/apiservice';
 import CreateLabelDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -248,3 +249,4 @@ export default function LabelPage() {
     </div>
   );
 }
+

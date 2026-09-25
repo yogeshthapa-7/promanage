@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/components/ui/Card';
-import type { Project } from '@/data/projects-data';
+import type { Project } from '@/types/projects-types';
 
 interface TaskProgressChartProps {
   projects?: Project[];
@@ -74,3 +74,4 @@ export default function TaskProgressChart({ projects = [], loading = false }: Ta
     </Card>
   );
 }
+

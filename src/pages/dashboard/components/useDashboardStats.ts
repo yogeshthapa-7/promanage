@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { fetchUsers } from '@/data/users-data';
-import { fetchEmployees } from '@/data/employees-data';
-import { fetchDepartments } from '@/data/departments-data';
-import { fetchOrganizations } from '@/data/organizations-data';
-import { fetchTaskCount } from '@/services/stats-data';
+import { fetchUsers } from '@/services/userservice';
+import { fetchEmployees } from '@/services/employeeservice';
+import { fetchDepartments } from '@/services/departmentservice';
+import { fetchOrganizations } from '@/services/organizationservice';
+import { fetchTaskCount } from '@/services/statsservice';
 
 interface DashboardStats {
   projects: number;
@@ -76,3 +76,4 @@ export function useDashboardStats(projectCount = 0) {
 
   return stats;
 }
+

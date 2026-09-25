@@ -15,12 +15,13 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Drawer from '@/components/drawer';
 import CreateDepartmentDrawer from './Create';
-import { apiCall } from '@/services/api';
-import { fetchDepartments, fetchDepartmentSelectList, type Department, type DepartmentSelectOption } from '@/data/departments-data';
+import { apiCall } from '@/services/apiservice';
+import { fetchDepartments, fetchDepartmentSelectList } from '@/services/departmentservice';
+import type { Department, DepartmentSelectOption } from '@/types/departments-types';
 import {
   fetchMainBranchSelectList,
-  type MainBranchSelectOption,
-} from '@/data/main-branches-data';
+} from '@/services/mainbranchservice';
+import type { MainBranchSelectOption } from '@/types/main-branches-types';
 import MainBranchPage from '../MainBranch/page';
 import BranchPage from '../Branch/page';
 import { getParsedClientConfig } from '@/utils/client-config';
@@ -590,3 +591,4 @@ export default function DepartmentPage() {
     </div>
   );
 }
+

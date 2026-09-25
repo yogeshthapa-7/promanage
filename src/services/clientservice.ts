@@ -1,18 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface Client {
-  SN: number;
-  id: number;
-  clientCode: string;
-  clientName: string;
-  clientStatus: number;
-  contactNo: string;
-  contactPerson: string;
-  email: string;
-  logo: string;
-  address: string;
-  status: number;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Client } from '@/types/client-types';
 
 interface ApiClientResponse {
   draw: number;
@@ -124,3 +111,4 @@ function mapApiRowToClient(row: ApiClientRow): Client {
     status: row.Status,
   };
 }
+

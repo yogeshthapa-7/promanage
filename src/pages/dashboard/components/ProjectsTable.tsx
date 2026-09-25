@@ -6,7 +6,7 @@ import Badge from '@/components/ui/Badge';
 import { AvatarStack } from '@/components/ui/Avatar';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
-import type { Project, ProjectStatus, ProjectPriority } from '@/data/projects-data';
+import type { Project, ProjectStatus, ProjectPriority } from '@/types/projects-types';
 
 interface ProjectsTableProps {
   projects?: Project[];
@@ -254,3 +254,4 @@ export default function ProjectsTable({
     </Card>
   );
 }
+

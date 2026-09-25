@@ -1,82 +1,11 @@
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
+import type { TaskItem, SubTaskItem, TaskStats, ProjectTaskCounts } from '@/types/tasks-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
 const SUBTASKS_API = `${API_BASE}/SubTaskInfo/ServerSearch`;
 
-export interface TaskManagerInfo {
-  EmployeeInfoID: number;
-  Fullname: string;
-  Address: string;
-  Phone: string;
-  Email: string;
-  Gender: number;
-  DOB: string | null;
-  DepartmentID: number;
-  MainBranchID: number;
-  BranchID: number;
-  Photo: string;
-  EmpStatus: number;
-  Username: string | null;
-  Password: string | null;
-  OrganizationOfficeID: number;
-  DepartmentName: string;
-  BranchName: string;
-  MainBranchName: string | null;
-  OrganizationOfficeName: string | null;
-  TraceKey: string | null;
-}
-
-export interface TaskItem {
-  TaskInfoID: number;
-  TaskTitle: string;
-  TaskCode: string;
-  TaskManagerID: number;
-  InvolvedEmployees: string;
-  Weightage: number;
-  OrderKey: number;
-  Priority: number;
-  WorkStatusID: number;
-  Description: string;
-  Attachments: string;
-  ProjectInfoID: number;
-  ProjectInfoName: string;
-  DueDate: string;
-  TaskManagerName: string;
-  WorkStatusIconName: string;
-  TaskManagerPhoto: string | null;
-  WorkStatusName: string;
-  WorkStatusColor: string;
-  DueInfo: string;
-  PriorityName: string;
-  InvolvedEmployeesDetail: unknown | null;
-  CanEdit: boolean;
-  CanDelete: boolean;
-  CanChangeStatus: boolean;
-  TaskManagerInfo?: TaskManagerInfo;
-}
-
-export interface SubTaskItem {
-  SubTaskInfoID: number;
-  SubTaskTitle: string;
-  SubTaskCode: string;
-  SubTaskManagerID: number;
-  InvolvedEmployees: string;
-  Weightage: number;
-  OrderKey: number;
-  Priority: number;
-  WorkStatusID: number;
-  TaskInfoID: number;
-  ProjectInfoID: number;
-  TaskInfoName: string | null;
-  SubTaskManagerName: string | null;
-  SubTaskManagerPhoto: string | null;
-  WorkStatusColor: string;
-  WorkStatusName: string;
-  PriorityName: string;
-  WorkStatusIconName: string;
-  SubTaskManagerInfo?: TaskManagerInfo;
-}
+export { TASKS_API, SUBTASKS_API };
 
 export const statusColor: Record<string, string> = {
   "In Progress": "!bg-blue-100 !text-blue-700",
@@ -93,16 +22,16 @@ export const priorityColor: Record<string, string> = {
   Low: "!bg-gray-100 !text-gray-700",
 };
 
-interface FetchResult<T> {
-  items: T[];
-  total: number;
-  filtered: number;
-}
-
 interface ServerSearchResponse {
   data?: unknown[];
   recordsTotal?: number;
   recordsFiltered?: number;
+}
+
+interface FetchResult<T> {
+  items: T[];
+  total: number;
+  filtered: number;
 }
 
 export async function fetchTasks(params: {
@@ -278,11 +207,6 @@ export async function fetchAllTasks(params: {
   }
 }
 
-export interface TaskStats {
-  total: number;
-  [status: string]: number;
-}
-
 export async function fetchTaskStats(projectId: number, signal?: AbortSignal): Promise<TaskStats> {
   const res = await apiCall(TASKS_API, {
     method: 'POST',
@@ -328,17 +252,6 @@ export async function fetchTaskStats(projectId: number, signal?: AbortSignal): P
   return stats;
 }
 
-export interface ProjectTaskCounts {
-  total: number;
-  completed: number;
-  byStatus: Record<string, number>;
-}
-
-/**
- * Fetches ALL tasks in a single request (ProjectInfoID: 0) and aggregates
- * total / completed / per-status counts per project. This avoids firing one
- * API call per project from the dashboard.
- */
 export async function fetchAllProjectTaskCounts(
   signal?: AbortSignal
 ): Promise<Record<number, ProjectTaskCounts>> {
@@ -463,3 +376,4 @@ export async function fetchSubTasks(params: {
     return { items: [], total: 0, filtered: 0 };
   }
 }
+

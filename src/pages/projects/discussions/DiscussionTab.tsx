@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/data/projects-data";
-import { apiCall } from "@/services/api";
+import type { ApiProject } from "@/types/projects-data";
+import { apiCall } from "@/services/apiservice";
 import { Modal, message, Button } from "antd";
 import { LayoutGrid, List, Search, Pencil, Trash2, RotateCcw } from "lucide-react";
 import Card from "@/components/ui/Card";
@@ -273,3 +273,5 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   </div>
 );
 }
+
+

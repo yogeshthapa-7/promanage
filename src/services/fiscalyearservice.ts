@@ -1,10 +1,6 @@
-import { apiCall, cachedQuery } from '@/services/api';
+import { apiCall, cachedQuery } from '@/services/apiservice';
 import { convertAdToBs } from '@/utils/nepali-date';
-
-export interface FiscalYearSelectOption {
-  value: string;
-  label: string;
-}
+import type { FiscalYearSelectOption, FiscalYearItem } from '@/types/fiscal-year-types';
 
 interface ApiFiscalYearResponse {
   draw: number;
@@ -25,24 +21,6 @@ interface ApiFiscalYearRow {
   YearOrder?: number;
 }
 
-export interface FiscalYearItem {
-  id: number;
-  name: string;
-  code: string;
-  startDate: string;
-  endDate: string;
-  startDateBs: string;
-  endDateBs: string;
-  yearOrder?: number;
-  isActive?: number;
-  isRunning?: number;
-}
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
-// .replace(/\/$/, '').replace(/\/api$/, '');
-const SELECT_LIST_URL = `${API_BASE}/FiscalYear/SelectList`;
-const SERVER_SEARCH_URL = `${API_BASE}/FiscalYear/ServerSearch`;
-
 interface ApiSelectItem {
   FiscalYearID?: number | string;
   FiscalYearName?: string;
@@ -53,13 +31,16 @@ interface ApiSelectItem {
   Text?: string;
 }
 
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
+export const SELECT_LIST_URL = `${API_BASE}/FiscalYear/SelectList`;
+export const SERVER_SEARCH_URL = `${API_BASE}/FiscalYear/ServerSearch`;
+
 function mapSelectItem(item: ApiSelectItem): FiscalYearSelectOption {
   const label = String(
     item.FiscalYearName ?? item.FiscalYear ?? item.name ?? item.Text ?? ''
   );
   const value = String(
     item.FiscalYearID ?? item.FiscalYear ?? item.FiscalYearName ?? item.name ?? item.Text ?? label
-    // item.FiscalYearName ?? item.FiscalYear ?? item.FiscalYearID ?? item.name ?? item.Text ?? label
   );
   return { value, label };
 }
@@ -184,3 +165,4 @@ function mapApiRowToFiscalYear(row: ApiFiscalYearRow): FiscalYearItem {
     isRunning: row.IsRunning,
   };
 }
+

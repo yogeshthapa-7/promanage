@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
 
@@ -190,3 +190,4 @@ export default function DiscussionCreate({
     </Drawer>
   );
 }
+

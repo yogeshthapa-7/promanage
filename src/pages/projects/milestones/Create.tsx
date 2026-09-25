@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Button, message } from 'antd';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
 
@@ -325,3 +325,4 @@ export default function MilestoneCreate({
     </Drawer>
   );
 }
+

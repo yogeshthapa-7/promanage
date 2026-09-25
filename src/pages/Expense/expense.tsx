@@ -7,9 +7,11 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchExpenses, type Expense } from '@/data/expense-data';
-import { apiCall } from '@/services/api';
-import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/data/fiscal-year-data';
+import { fetchExpenses } from '@/services/expenseservice';
+import { type Expense } from '@/types/expense-types';
+import { apiCall } from '@/services/apiservice';
+import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
+import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
 import CreateExpenseDrawer from './Create';
 import ViewExpenseDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
@@ -574,3 +576,4 @@ export default function ExpensePage() {
     </div>
   );
 }
+

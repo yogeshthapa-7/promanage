@@ -1,23 +1,10 @@
-import { apiCall, cachedQuery } from '@/services/api';
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { User, UserGroup, OrganizationSelect, UserRole, UserStatus } from '@/types/users-types';
 
-export type UserRole = 'Admin' | 'Manager' | 'Developer' | 'Designer' | 'Member' | 'Employee' | 'Task Mgmt' | 'Super Admin' | 'Report Analysis' | 'DC Admin';
-export type UserStatus = 'Active' | 'Inactive' | 'Suspended';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  title: string;
-  department: string;
-  avatar: string;
-  status: UserStatus;
-  lastActive: string;
-  projectsCount: number;
-  userGroupId: number;
-  organizationId: number;
-  theme: string;
-}
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+export const API_URL = `${API_BASE}/Users/ServerSearch`;
+export const USER_GROUP_API_URL = `${API_BASE}/UserGroup/SelectList`;
+export const ORGANIZATION_API_URL = `${API_BASE}/Organization/SelectList`;
 
 interface ApiUser {
   UserId: number;
@@ -36,30 +23,6 @@ interface ApiUserResponse {
   recordsTotal: number;
   recordsFiltered: number;
   data: ApiUser[];
-}
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-export const API_URL = `${API_BASE}/Users/ServerSearch`;
-export const USER_GROUP_API_URL = `${API_BASE}/UserGroup/SelectList`;
-
-export interface UserGroup {
-  UserGroupId: number;
-  UserGroupName: string;
-  UserGroupCode: string;
-  IsActive: boolean;
-  AllowWebLogin: boolean;
-}
-
-export async function fetchUserGroups(): Promise<UserGroup[]> {
-  try {
-    const res = await apiCall(USER_GROUP_API_URL);
-    if (!res.ok) throw new Error(`Failed to fetch user groups: ${res.statusText}`);
-    const json = await res.json();
-    const rows = Array.isArray(json) ? (json as UserGroup[]) : [];
-    return rows;
-  } catch {
-    return [];
-  }
 }
 
 interface FetchUsersParams {
@@ -150,18 +113,17 @@ function mapApiUserToUser(apiUser: ApiUser): User {
   };
 }
 
-export const STATUS_STYLE: Record<UserStatus, string> = {
-  Active: 'bg-emerald-50 text-emerald-600 border-emerald-200/60',
-  Inactive: 'bg-slate-50 text-slate-600 border-slate-200/60',
-  Suspended: 'bg-rose-50 text-rose-600 border-rose-200/60',
-};
-
-export interface OrganizationSelect {
-  OrganizationID: number;
-  Title: string;
+export async function fetchUserGroups(): Promise<UserGroup[]> {
+  try {
+    const res = await apiCall(USER_GROUP_API_URL);
+    if (!res.ok) throw new Error(`Failed to fetch user groups: ${res.statusText}`);
+    const json = await res.json();
+    const rows = Array.isArray(json) ? (json as UserGroup[]) : [];
+    return rows;
+  } catch {
+    return [];
+  }
 }
-
-export const ORGANIZATION_API_URL = `${API_BASE}/Organization/SelectList`;
 
 export async function fetchOrganizations(): Promise<OrganizationSelect[]> {
   try {
@@ -175,7 +137,11 @@ export async function fetchOrganizations(): Promise<OrganizationSelect[]> {
   }
 }
 
-
+export const STATUS_STYLE: Record<UserStatus, string> = {
+  Active: 'bg-emerald-50 text-emerald-600 border-emerald-200/60',
+  Inactive: 'bg-slate-50 text-slate-600 border-slate-200/60',
+  Suspended: 'bg-rose-50 text-rose-600 border-rose-200/60',
+};
 
 export const ROLE_STYLE: Record<UserRole, string> = {
   Admin: 'bg-violet-50 text-violet-600 border-violet-200/60',
@@ -189,3 +155,4 @@ export const ROLE_STYLE: Record<UserRole, string> = {
   'Report Analysis': 'bg-teal-50 text-teal-600 border-teal-200/60',
   'DC Admin': 'bg-orange-50 text-orange-600 border-orange-200/60',
 };
+

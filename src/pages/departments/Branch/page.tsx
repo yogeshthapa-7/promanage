@@ -6,16 +6,17 @@ import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { apiCall } from '@/services/api';
-import { fetchBranches, fetchBranchSelectList, type Branch, type BranchSelectOption } from '@/data/branches-data';
+import { apiCall } from '@/services/apiservice';
+import { fetchBranches, fetchBranchSelectList } from '@/services/branchservice';
+import type { Branch, BranchSelectOption } from '@/types/branches-types';
 import {
   fetchMainBranchSelectList,
-  type MainBranchSelectOption,
-} from '@/data/main-branches-data';
+} from '@/services/mainbranchservice';
+import type { MainBranchSelectOption } from '@/types/main-branches-types';
 import {
   fetchDepartmentSelectList,
-  type DepartmentSelectOption,
-} from '@/data/departments-data';
+} from '@/services/departmentservice';
+import type { DepartmentSelectOption } from '@/types/departments-types';
 import CreateBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { exportCsv } from '@/utils/csv';
@@ -461,3 +462,4 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
     </div>
   );
 }
+

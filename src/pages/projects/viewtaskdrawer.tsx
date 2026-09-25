@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/api';
-import type { TaskItem } from '@/data/tasks-data';
+import { apiCall } from '@/services/apiservice';
+import type { TaskItem } from '@/types/tasks-types';
 import Badge from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -154,3 +154,4 @@ export default function ViewTaskDrawer({ open, onClose, taskId }: ViewTaskDrawer
     </Drawer>
   );
 }
+

@@ -7,8 +7,9 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchWards, type Ward } from '@/data/ward-data';
-import { apiCall } from '@/services/api';
+import { fetchWards } from '@/services/wardservice';
+import { type Ward } from '@/types/ward-types';
+import { apiCall } from '@/services/apiservice';
 import CreateWardDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -236,3 +237,4 @@ export default function WardInfoPage() {
     </div>
   );
 }
+

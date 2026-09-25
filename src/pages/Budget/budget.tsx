@@ -7,9 +7,11 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchBudgets, type Budget } from '@/data/budget-data';
-import { apiCall } from '@/services/api';
-import { fetchFiscalYearSelectList, type FiscalYearSelectOption } from '@/data/fiscal-year-data';
+import { fetchBudgets } from '@/services/budgetservice';
+import { type Budget } from '@/types/budget-types';
+import { apiCall } from '@/services/apiservice';
+import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
+import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
 import CreateBudgetDrawer from './Create';
 import ViewBudgetDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
@@ -552,3 +554,4 @@ export default function BudgetPage() {
     </div>
   );
 }
+

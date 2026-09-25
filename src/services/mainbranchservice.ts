@@ -1,19 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface MainBranch {
-  id: string;
-  sn: number;
-  name: string;
-  mainBranchCode: string;
-  departmentId: number;
-  departmentName: string;
-  orderKey: number;
-}
-
-export interface MainBranchSelectOption {
-  value: string;
-  label: string;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { MainBranch, MainBranchSelectOption } from '@/types/main-branches-types';
 
 interface ApiMainBranchResponse {
   data: ApiMainBranchRow[];
@@ -175,3 +161,4 @@ function mapApiRowToMainBranch(row: ApiMainBranchRow): MainBranch {
     orderKey: row.OrderKey,
   };
 }
+

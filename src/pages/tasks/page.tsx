@@ -2,15 +2,15 @@ import { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, Pencil, Trash2, Plus, LayoutList, LayoutGrid } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
-import { apiCall } from "@/services/api";
-import type { ApiProject } from "@/data/projects-data";
-import type { TaskItem } from "@/data/tasks-data";
+import { apiCall } from "@/services/apiservice";
+import type { ApiProject } from "@/types/projects-data";
+import type { TaskItem } from "@/types/tasks-data";
 import Pagination from "@/components/ui/Pagination";
 import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
 import { usePaginatedList, type PaginatedListParams } from "@/hooks/usePaginatedList";
-import { statusColor, priorityColor } from "@/data/tasks-data";
+import { statusColor, priorityColor } from "@/services/taskservice";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from '../projects/viewtaskdrawer';
 
@@ -524,3 +524,5 @@ export default function TasksPage() {
     </div>
   );
 }
+
+

@@ -7,9 +7,9 @@ import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiCall } from '@/services/api';
-import { fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/data/users-data';
-import type { User } from '@/data/users-data';
+import { apiCall } from '@/services/apiservice';
+import { fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/services/userservice';
+import type { User } from '@/types/users-types';
 import UserFormModal from './Create';
 import { message, Modal } from 'antd';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
@@ -321,3 +321,4 @@ function UserRow({
     </tr>
   );
 }
+

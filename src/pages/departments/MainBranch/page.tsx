@@ -9,14 +9,13 @@ import Button from '@/components/ui/Button';
 import {
   fetchMainBranches,
   fetchMainBranchSelectList,
-  type MainBranch,
-  type MainBranchSelectOption,
-} from '@/data/main-branches-data';
+} from '@/services/mainbranchservice';
+import type { MainBranch, MainBranchSelectOption } from '@/types/main-branches-types';
 import {
   fetchDepartmentSelectList,
-  type DepartmentSelectOption,
-} from '@/data/departments-data';
-import { apiCall } from '@/services/api';
+} from '@/services/departmentservice';
+import type { DepartmentSelectOption } from '@/types/departments-types';
+import { apiCall } from '@/services/apiservice';
 import CreateMainBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { exportCsv } from '@/utils/csv';
@@ -405,3 +404,4 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
     </div>
   );
 }
+

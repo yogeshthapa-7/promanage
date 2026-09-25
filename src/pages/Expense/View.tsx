@@ -1,5 +1,5 @@
 import Drawer from '@/components/drawer';
-import { type FiscalYearSelectOption } from '@/data/fiscal-year-data';
+import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
 
 interface Expense {
   id: number;
@@ -57,3 +57,4 @@ export default function ViewExpenseDrawer({ open, onClose, expense, fiscalYearOp
     </Drawer>
   );
 }
+

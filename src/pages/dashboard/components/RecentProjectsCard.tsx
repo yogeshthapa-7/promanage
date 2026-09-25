@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import type { Project } from '@/data/projects-data';
+import type { Project } from '@/types/projects-types';
 
 interface RecentProjectsCardProps {
   projects: Project[];
@@ -66,3 +66,4 @@ const RecentProjectsCard = ({ projects, loading = false }: RecentProjectsCardPro
 };
 
 export default RecentProjectsCard;
+

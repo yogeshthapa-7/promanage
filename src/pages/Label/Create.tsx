@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import { useQueryClient } from '@tanstack/react-query';
-import type { Label } from '@/data/label-data';
+import type { Label } from '@/types/label-types';
 
 interface CreateLabelDrawerProps {
   open: boolean;
@@ -132,3 +132,4 @@ export default function CreateLabelDrawer({ open, onClose, onSuccess, editingLab
     </Drawer>
   );
 }
+

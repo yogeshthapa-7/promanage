@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/components/ui/Card';
-import type { Project } from '@/data/projects-data';
+import type { Project } from '@/types/projects-types';
 
 interface ProjectOverviewSectionProps {
   projects: Project[];
@@ -90,3 +90,4 @@ export default function ProjectOverviewSection({ projects, loading = false }: Pr
     </Card>
   );
 }
+

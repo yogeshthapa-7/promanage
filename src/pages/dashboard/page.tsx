@@ -5,11 +5,12 @@ import TaskProgressChart from './components/TaskProgressChart';
 import RecentProjectsCard from './components/RecentProjectsCard';
 import EntitySummaryCard from './components/EntitySummaryCard';
 import ProjectsTable from './components/ProjectsTable';
-import { type Project, type ProjectStatus, type ApiProject, mapApiProjectToProject } from '@/data/projects-data';
-import { fetchAllProjectTaskCounts } from '@/data/tasks-data';
+import { type Project, type ProjectStatus, type ApiProject } from '@/types/projects-types';
+import { mapApiProjectToProject } from '@/services/projectservice';
+import { fetchAllProjectTaskCounts } from '@/services/taskservice';
 import Topbar from '@/components/Topbar';
 import { useDashboardStats } from './components/useDashboardStats';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -233,3 +234,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

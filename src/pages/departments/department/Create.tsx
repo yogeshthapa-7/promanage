@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/api';
-import { fetchDepartmentSelectList, type DepartmentSelectOption } from '@/data/departments-data';
+import { apiCall } from '@/services/apiservice';
+import { fetchDepartmentSelectList } from '@/services/departmentservice';
+import type { DepartmentSelectOption } from '@/types/departments-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -163,3 +164,4 @@ export default function CreateDepartmentDrawer({
     </Drawer>
   );
 }
+

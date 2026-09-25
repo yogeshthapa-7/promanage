@@ -12,9 +12,9 @@ import {
 import { BlockSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import { convertAdToBs } from '@/utils/nepali-date';
-import type { ApiProject } from '@/data/projects-data';
+import type { ApiProject } from '@/types/projects-types';
 import * as XLSX from 'xlsx';
 import { message } from 'antd';
 
@@ -387,3 +387,4 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+

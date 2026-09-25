@@ -1,26 +1,17 @@
-import { apiCall, cachedQuery } from '@/services/api';
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Budget } from '@/types/budget-types';
 
-export interface Policy {
-  SN: number;
-  id: number;
-  name: string;
-  fiscal_year?: string;
-  fiscal_year_id?: number;
-  document_url?: string;
-  document_name?: string;
-}
-
-interface ApiPolicyResponse {
+interface ApiBudgetResponse {
   draw: number;
   recordsTotal: number;
   recordsFiltered: number;
-  data: ApiPolicyRow[];
+  data: ApiBudgetRow[];
 }
 
-interface ApiPolicyRow {
+interface ApiBudgetRow {
   SN: number;
-  PolicyProgramID: number;
-  PolicyProgramName: string;
+  BudgetInfoID: number;
+  BudgetInfoName: string;
   FiscalYear?: string;
   FiscalYearID?: number;
   FiscalYearName?: string;
@@ -28,7 +19,7 @@ interface ApiPolicyRow {
   DocumentUrl?: string;
 }
 
-interface FetchPoliciesParams {
+interface FetchBudgetsParams {
   search: string;
   fiscalYear: string;
   start: number;
@@ -36,16 +27,16 @@ interface FetchPoliciesParams {
   signal?: AbortSignal;
 }
 
-interface FetchPoliciesResult {
-  policies: Policy[];
+interface FetchBudgetsResult {
+  budgets: Budget[];
   total: number;
   filtered: number;
 }
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-export const API_URL = `${API_BASE}/PolicyProgram/ServerSearch`;
+export const API_URL = `${API_BASE}/BudgetInfo/ServerSearch`;
 
-function buildSearchBody(params: FetchPoliciesParams) {
+function buildSearchBody(params: FetchBudgetsParams) {
   return {
     model: {
       draw: 1,
@@ -54,63 +45,63 @@ function buildSearchBody(params: FetchPoliciesParams) {
       search: { value: '', regex: '' },
     },
     param: {
-      PolicyProgramID: 0,
-      PolicyProgramName: params.search,
-      // FiscalYear: params.fiscalYear,
+      BudgetInfoID: 0,
+      BudgetInfoName: params.search,
       FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
     },
   };
 }
 
-export async function fetchPolicies(
-  params: FetchPoliciesParams
-): Promise<FetchPoliciesResult> {
+export async function fetchBudgets(
+  params: FetchBudgetsParams
+): Promise<FetchBudgetsResult> {
   try {
     return await cachedQuery(
-      ['policies', 'search', params.search, params.fiscalYear, params.start, params.length],
-      (signal) => doFetchPolicies(params, signal),
+      ['budgets', 'search', params.search, params.fiscalYear, params.start, params.length],
+      (signal) => doFetchBudgets(params, signal),
       params.signal
     );
   } catch {
-    return { policies: [], total: 0, filtered: 0 };
+    return { budgets: [], total: 0, filtered: 0 };
   }
 }
 
-async function doFetchPolicies(
-  params: FetchPoliciesParams,
+async function doFetchBudgets(
+  params: FetchBudgetsParams,
   signal?: AbortSignal
-): Promise<FetchPoliciesResult> {
+): Promise<FetchBudgetsResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
     body: JSON.stringify(buildSearchBody(params)),
     signal,
   });
 
-  if (!res.ok) throw new Error(`Failed to fetch policies: ${res.statusText}`);
+  if (!res.ok) throw new Error(`Failed to fetch budgets: ${res.statusText}`);
 
   const json = await res.json();
-  const response = json as ApiPolicyResponse;
-  const rows = Array.isArray(response?.data) ? (response.data as ApiPolicyRow[]) : [];
-  const mapped = rows.map(mapApiRowToPolicy);
+  const response = json as ApiBudgetResponse;
+  const rows = Array.isArray(response?.data) ? (response.data as ApiBudgetRow[]) : [];
+  const mapped = rows.map(mapApiRowToBudget);
 
   return {
-    policies: mapped,
+    budgets: mapped,
     total: response.recordsTotal ?? 0,
     filtered: response.recordsFiltered ?? 0,
   };
 }
 
-function mapApiRowToPolicy(row: ApiPolicyRow): Policy {
+function mapApiRowToBudget(row: ApiBudgetRow): Budget {
   const basePath = row.FileUpload || row.DocumentUrl || '';
   const documentUrl = basePath ? `${API_BASE}/${basePath.replace(/^\/+/, '')}` : '';
   const documentName = basePath ? decodeURIComponent(basePath.split('/').pop() || '') : '';
   return {
     SN: row.SN,
-    id: row.PolicyProgramID,
-    name: row.PolicyProgramName,
+    id: row.BudgetInfoID,
+    name: row.BudgetInfoName,
     fiscal_year: row.FiscalYearName || row.FiscalYear,
     fiscal_year_id: row.FiscalYearID,
     document_url: documentUrl,
     document_name: documentName,
   };
 }
+

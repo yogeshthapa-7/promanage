@@ -5,9 +5,10 @@ import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import SearchInput from '@/components/ui/SearchInput';
-import { fetchEmployees, type Employee } from '@/data/employees-data';
+import { fetchEmployees } from '@/services/employeeservice';
+import { type Employee } from '@/types/employees-types';
 import EmployeeSetupModal from './Create';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import { exportCsv } from '@/utils/csv';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { useQueryClient } from '@tanstack/react-query';
@@ -352,3 +353,4 @@ export default function EmployeePage() {
     </div>
   );
 }
+

@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, LayoutList, LayoutGrid, Pencil, Trash2 } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
 import CreateFiscalYearDrawer from './Create';
-import { fetchFiscalYears, fetchFiscalYearSelectList, type FiscalYearItem, type FiscalYearSelectOption } from '@/data/fiscal-year-data';
+import { fetchFiscalYears, fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
+import { type FiscalYearItem, type FiscalYearSelectOption } from '@/types/fiscal-year-types';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -323,3 +324,4 @@ export default function FiscalYearPage() {
     </div>
   );
 }
+

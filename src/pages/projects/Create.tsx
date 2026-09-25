@@ -4,8 +4,8 @@ import { Save } from 'lucide-react';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import DocumentUploadField from '@/components/DocumentUploadField';
-import type { ApiProject } from '@/data/projects-data';
-import { apiCall } from '@/services/api';
+import type { ApiProject } from '@/types/projects-types';
+import { apiCall } from '@/services/apiservice';
 
 interface ProjectFormModalProps {
   open: boolean;
@@ -741,3 +741,4 @@ export default function ProjectFormModal({
     </Drawer>
   );
 }
+

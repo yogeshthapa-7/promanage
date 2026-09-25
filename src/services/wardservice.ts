@@ -1,11 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface Ward {
-  SN: number;
-  id: number;
-  wardNumber: string;
-  wardCode: string;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Ward } from '@/types/ward-types';
 
 interface ApiWardResponse {
   draw: number;
@@ -99,3 +93,4 @@ function mapApiRowToWard(row: ApiWardRow): Ward {
     wardCode: row.WardCode,
   };
 }
+

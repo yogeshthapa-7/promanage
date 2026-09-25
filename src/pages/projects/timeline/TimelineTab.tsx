@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/data/projects-data";
+import type { ApiProject } from "@/types/projects-data";
 import { convertAdToBs } from "@/utils/nepali-date";
-import { apiCall } from "@/services/api";
+import { apiCall } from "@/services/apiservice";
 import Card from "@/components/ui/Card";
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
@@ -259,3 +259,5 @@ function TimelineCard({
     </div>
   );
 }
+
+

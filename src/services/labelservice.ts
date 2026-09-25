@@ -1,11 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface Label {
-  SN: number;
-  id: number;
-  name: string;
-  code: string;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Label } from '@/types/label-types';
 
 interface ApiLabelResponse {
   draw: number;
@@ -98,5 +92,4 @@ function mapApiRowToLabel(row: ApiLabelRow): Label {
     code: row.LabelCode,
   };
 }
-
 

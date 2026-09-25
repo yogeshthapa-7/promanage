@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, message, Select } from 'antd';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 
 interface MilestoneSearchProps {
   open: boolean;
@@ -187,3 +187,4 @@ export default function MilestoneSearch({ open, onClose, onSearch, project, moda
     </div>
   ) : null;
 }
+

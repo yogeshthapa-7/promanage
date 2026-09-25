@@ -13,9 +13,9 @@ import {
   CircleCheck,
   BriefcaseBusiness,
 } from 'lucide-react';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import { convertAdToBs } from '@/utils/nepali-date';
-import type { ApiProject } from '@/data/projects-data';
+import type { ApiProject } from '@/types/projects-types';
 import nepallogo from '@/assets/images/nepal_logo.png';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');

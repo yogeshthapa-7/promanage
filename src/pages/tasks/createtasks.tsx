@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import { apiCall } from '@/services/api';
-import type { TaskItem } from '@/data/tasks-data';
-import type { ApiProject } from '@/data/projects-data';
+import { apiCall } from '@/services/apiservice';
+import type { TaskItem } from '@/types/tasks-types';
+import type { ApiProject } from '@/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -357,3 +357,4 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
     </Drawer>
   );
 }
+

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 
 export interface Organization {
   id?: number;
@@ -179,3 +179,4 @@ export default function CreateOrganizationModal({
     </Drawer>
   );
 }
+

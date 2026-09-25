@@ -8,10 +8,10 @@ import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
 import SearchInput from '@/components/ui/SearchInput';
 import { Avatar } from '@/components/ui/Avatar';
-import { apiCall } from '@/services/api';
-import type { ApiProject } from '@/data/projects-data';
-import type { TaskItem, SubTaskItem } from '@/data/tasks-data';
-import { fetchSubTasks, statusColor, priorityColor } from '@/data/tasks-data';
+import { apiCall } from '@/services/apiservice';
+import type { ApiProject } from '@/types/projects-types';
+import type { TaskItem, SubTaskItem } from '@/types/tasks-types';
+import { fetchSubTasks, statusColor, priorityColor } from '@/services/taskservice';
 import SubTaskCreate from '@/pages/projects/SubTasksTab/Create';
 
 interface SubtaskDrawerProps {
@@ -333,3 +333,4 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
     </Drawer>
   );
 }
+

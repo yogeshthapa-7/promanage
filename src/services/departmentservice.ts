@@ -1,15 +1,5 @@
-import { apiCall, cachedQuery } from '@/services/api';
-
-export interface Department {
-  id: string;
-  sn: number;
-  name: string;
-  departmentCode: string;
-  parentDepartmentId: number;
-  parentDepartmentName: string;
-  orderKey: number;
-  status: number;
-}
+import { apiCall, cachedQuery } from '@/services/apiservice';
+import type { Department, DepartmentSelectOption } from '@/types/departments-types';
 
 interface ApiDepartmentResponse {
   data: ApiDepartmentRow[];
@@ -28,7 +18,62 @@ interface ApiDepartmentRow {
   Status: number;
 }
 
+interface ApiSelectItem {
+  DepartmentID?: number | string;
+  DepartmentInfoID?: number | string;
+  DepartmentName?: string;
+  name?: string;
+  id?: number | string;
+  ID?: number | string;
+  Value?: number | string;
+  Text?: string;
+  text?: string;
+}
+
 const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/Department/ServerSearch';
+
+const SELECT_LIST_URL =
+  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
+  '/Department/SelectList';
+
+function mapSelectItem(item: ApiSelectItem): DepartmentSelectOption {
+  const rawValue = item.DepartmentID ?? item.DepartmentInfoID ?? item.id ?? item.ID ?? item.Value ?? '';
+  const rawLabel = item.DepartmentName ?? item.name ?? item.Text ?? item.text ?? rawValue;
+
+  return {
+    value: String(rawValue),
+    label: String(rawLabel),
+  };
+}
+
+export async function fetchDepartmentSelectList(
+  signal?: AbortSignal
+): Promise<DepartmentSelectOption[]> {
+  try {
+    const res = await apiCall(
+      SELECT_LIST_URL,
+      { method: 'GET', signal },
+      30000
+    );
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch department list: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+    const rows: ApiSelectItem[] = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.data)
+        ? json.data
+        : Array.isArray(json?.Data)
+          ? json.Data
+          : [];
+
+    return rows.map(mapSelectItem);
+  } catch {
+    return [];
+  }
+}
 
 interface FetchDepartmentsParams {
   search: string;
@@ -133,62 +178,3 @@ function mapApiRowToDepartment(row: ApiDepartmentRow): Department {
   };
 }
 
-export interface DepartmentSelectOption {
-  value: string;
-  label: string;
-}
-
-interface ApiSelectItem {
-  DepartmentID?: number | string;
-  DepartmentInfoID?: number | string;
-  DepartmentName?: string;
-  name?: string;
-  id?: number | string;
-  ID?: number | string;
-  Value?: number | string;
-  Text?: string;
-  text?: string;
-}
-
-const SELECT_LIST_URL =
-  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
-  '/Department/SelectList';
-
-function mapSelectItem(item: ApiSelectItem): DepartmentSelectOption {
-  const rawValue = item.DepartmentID ?? item.DepartmentInfoID ?? item.id ?? item.ID ?? item.Value ?? '';
-  const rawLabel = item.DepartmentName ?? item.name ?? item.Text ?? item.text ?? rawValue;
-
-  return {
-    value: String(rawValue),
-    label: String(rawLabel),
-  };
-}
-
-export async function fetchDepartmentSelectList(
-  signal?: AbortSignal
-): Promise<DepartmentSelectOption[]> {
-  try {
-    const res = await apiCall(
-      SELECT_LIST_URL,
-      { method: 'GET', signal },
-      30000
-    );
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch department list: ${res.statusText}`);
-    }
-
-    const json = await res.json();
-    const rows: ApiSelectItem[] = Array.isArray(json)
-      ? json
-      : Array.isArray(json?.data)
-        ? json.data
-        : Array.isArray(json?.Data)
-          ? json.Data
-          : [];
-
-    return rows.map(mapSelectItem);
-  } catch {
-    return [];
-  }
-}

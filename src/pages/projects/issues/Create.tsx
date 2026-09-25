@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/services/api';
+import { apiCall } from '@/services/apiservice';
 import { useAuth } from '@/context/AuthContext';
-import { fetchEmployees } from '@/data/employees-data';
+import { fetchEmployees } from '@/services/employeeservice';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
 
@@ -399,3 +399,4 @@ export default function IssueCreate({
     </Drawer>
   );
 }
+

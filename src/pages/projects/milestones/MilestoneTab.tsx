@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Modal, message, Button } from "antd";
-import type { ApiProject } from "@/data/projects-data";
-import { apiCall } from "@/services/api";
+import type { ApiProject } from "@/types/projects-data";
+import { apiCall } from "@/services/apiservice";
 import { calculateProgressFromDates, convertAdToBs } from "@/utils/nepali-date";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -369,3 +369,5 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
     </div>
   );
 }
+
+

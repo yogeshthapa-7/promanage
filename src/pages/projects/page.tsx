@@ -28,10 +28,10 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
 import DropdownMenu from '@/components/ui/DropdownMenu';
-import { apiCall } from '@/services/api';
-import { mapApiProjectToProject } from '@/data/projects-data';
-import type { ProjectStatus, Project, ApiProject } from '@/data/projects-data';
-import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/services/stats-data';
+import { apiCall } from '@/services/apiservice';
+import { mapApiProjectToProject } from '@/services/projectservice';
+import type { ProjectStatus, Project, ApiProject } from '@/types/projects-types';
+import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/services/statsservice';
 import ProjectFormModal from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -1024,3 +1024,4 @@ const {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Row, Col, message } from 'antd';
-import type { Employee } from '@/data/employees-data';
-import { apiCall } from '@/services/api';
+import type { Employee } from '@/types/employees-types';
+import { apiCall } from '@/services/apiservice';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import ProgressBar from '@/components/ui/ProgressBar';
@@ -603,3 +603,4 @@ export default function EmployeeSetupModal({
     </Drawer>
   );
 }
+

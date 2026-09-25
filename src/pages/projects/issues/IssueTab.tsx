@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/data/projects-data";
+import type { ApiProject } from "@/types/projects-data";
 import { convertAdToBs } from "@/utils/nepali-date";
-import { apiCall } from "@/services/api";
+import { apiCall } from "@/services/apiservice";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -332,3 +332,5 @@ export default function IssueTab({ project }: IssueTabProps) {
     </div>
   );
 }
+
+
