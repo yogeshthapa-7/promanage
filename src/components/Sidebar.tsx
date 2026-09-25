@@ -141,7 +141,7 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
       >
         {/* Mobile close button */}
         <div className="absolute top-4 right-4 z-10">
-          <button onClick={onMobileClose} className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors">
+          <button onClick={() => { setUserMenuOpen(false); onMobileClose?.(); }} className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -339,7 +339,7 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
 
         {/* COLLAPSE BUTTON */}
         <div className="flex-shrink-0 px-3 pb-4">
-          <button onClick={onToggle} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} className={`group w-full flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 hover:text-blue-300 hover:bg-blue-500/[0.06] hover:border-blue-400/20 transition-all duration-200 ${collapsed ? 'py-3' : 'py-2.5'}`}>
+          <button onClick={() => { setUserMenuOpen(false); onToggle?.(); }} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} className={`group w-full flex items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 hover:text-blue-300 hover:bg-blue-500/[0.06] hover:border-blue-400/20 transition-all duration-200 ${collapsed ? 'py-3' : 'py-2.5'}`}>
             {collapsed ? <ChevronRight size={17} className="transition-transform duration-200 group-hover:translate-x-0.5" /> : <ChevronLeft size={17} className="transition-transform duration-200 group-hover:-translate-x-0.5" />}
           </button>
         </div>
