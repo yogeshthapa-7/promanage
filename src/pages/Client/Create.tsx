@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
+import { saveClient } from '@/services/clientservice';
 import { useQueryClient } from '@tanstack/react-query';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -66,12 +66,10 @@ export default function CreateClientDrawer({ open, onClose, onSuccess, editingCl
         Logo: values.logo || '',
       };
 
-      const res = await apiCall(`${API_BASE}/SaveClientInfo`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const result = await saveClient(body);
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to save client');
+      }
 
       message.success(isEdit ? 'Client updated successfully' : 'Client created successfully');
       form.resetFields();

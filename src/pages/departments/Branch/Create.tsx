@@ -3,13 +3,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
 import { apiCall } from '@/services/apiservice';
-import {
-  fetchMainBranchSelectList,
-} from '@/services/mainbranchservice';
+import { fetchMainBranchSelectList } from '@/services/mainbranchservice';
+import { fetchDepartmentSelectList } from '@/services/departmentservice';
+import { saveBranch } from '@/services/branchservice';
 import type { MainBranchSelectOption } from '@/types/main-branches-types';
-import {
-  fetchDepartmentSelectList,
-} from '@/services/departmentservice';
 import type { DepartmentSelectOption } from '@/types/departments-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -19,7 +16,6 @@ interface CreateBranchDrawerProps {
   onClose: () => void;
   onSuccess: () => void;
   editingBranch?: { id: string; name: string; branchCode: string; mainBranchId: number; departmentId: number } | null;
-  //localbodylevel:
   disabledMainBranch?: boolean;
   defaultMainBranchId?: string | number;
   disabledDepartment?: boolean;
@@ -122,12 +118,8 @@ export default function CreateBranchDrawer({
         OrderKey: 0,
       };
 
-      const res = await apiCall(`${API_BASE}/SaveBranch`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+       const result = await saveBranch(body);
+       if (!result.success) throw new Error(result.message || 'Failed to save branch');
 
       message.success(isEdit ? 'Branch updated successfully' : 'Branch created successfully');
       form.resetFields();

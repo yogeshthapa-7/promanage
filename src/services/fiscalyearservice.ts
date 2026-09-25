@@ -31,7 +31,7 @@ interface ApiSelectItem {
   Text?: string;
 }
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const SELECT_LIST_URL = `${API_BASE}/FiscalYear/SelectList`;
 export const SERVER_SEARCH_URL = `${API_BASE}/FiscalYear/ServerSearch`;
 
@@ -163,6 +163,27 @@ function mapApiRowToFiscalYear(row: ApiFiscalYearRow): FiscalYearItem {
     endDateBs,
     yearOrder: row.YearOrder,
     isRunning: row.IsRunning,
+  };
+}
+
+export async function deleteFiscalYear(id: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/DeleteFiscalYear?id=${id}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to delete fiscal year: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
+}
+
+export async function saveFiscalYear(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
+  const res = await apiCall(`${API_BASE}/SaveFiscalYear`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to save fiscal year: ${res.statusText}`);
+  return {
+    success: json.Success ?? true,
+    message: json.Message,
+    data: json.Data ?? json.data,
   };
 }
 

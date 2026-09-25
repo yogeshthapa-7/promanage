@@ -28,11 +28,10 @@ interface ApiSelectItem {
   Text?: string;
 }
 
-const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/Branch/ServerSearch';
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+const API_URL = `${API_BASE}/Branch/ServerSearch`;
 
-const SELECT_LIST_URL =
-  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
-  '/Branch/SelectList';
+const SELECT_LIST_URL = `${API_BASE}/Branch/SelectList`;
 
 function mapSelectItem(item: ApiSelectItem): BranchSelectOption {
   const value = String(
@@ -185,6 +184,27 @@ function mapApiRowToBranch(row: ApiBranchRow): Branch {
     departmentName: row.DepartmentName,
     orderKey: row.OrderKey,
   };
+}
+
+export async function saveBranch(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
+  const res = await apiCall(`${API_BASE}/SaveBranch`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to save branch: ${res.statusText}`);
+  return {
+    success: json.Success ?? true,
+    message: json.Message,
+    data: json.Data ?? json.data,
+  };
+}
+
+export async function deleteBranch(id: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/DeleteBranch?id=${id}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to delete branch: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
 }
 
 export { API_URL, SELECT_LIST_URL };

@@ -30,11 +30,10 @@ interface ApiSelectItem {
   text?: string;
 }
 
-const API_URL = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') + '/Department/ServerSearch';
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+const API_URL = `${API_BASE}/Department/ServerSearch`;
 
-const SELECT_LIST_URL =
-  (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '') +
-  '/Department/SelectList';
+const SELECT_LIST_URL = `${API_BASE}/Department/SelectList`;
 
 function mapSelectItem(item: ApiSelectItem): DepartmentSelectOption {
   const rawValue = item.DepartmentID ?? item.DepartmentInfoID ?? item.id ?? item.ID ?? item.Value ?? '';
@@ -176,5 +175,26 @@ function mapApiRowToDepartment(row: ApiDepartmentRow): Department {
     orderKey: row.OrderKey,
     status: row.Status,
   };
+}
+
+export async function saveDepartment(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
+  const res = await apiCall(`${API_BASE}/SaveDepartment`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to save department: ${res.statusText}`);
+  return {
+    success: json.Success ?? true,
+    message: json.Message,
+    data: json.Data ?? json.data,
+  };
+}
+
+export async function deleteDepartment(id: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/DeleteDepartment?id=${id}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to delete department: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
 }
 

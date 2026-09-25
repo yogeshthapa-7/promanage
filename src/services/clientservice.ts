@@ -112,3 +112,24 @@ function mapApiRowToClient(row: ApiClientRow): Client {
   };
 }
 
+export async function saveClient(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
+  const res = await apiCall(`${API_BASE}/SaveClientInfo`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to save client: ${res.statusText}`);
+  return {
+    success: json.Success ?? true,
+    message: json.Message,
+    data: json.Data ?? json.data,
+  };
+}
+
+export async function deleteClient(id: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/DeleteClientInfo?id=${id}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to delete client: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
+}
+

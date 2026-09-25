@@ -377,3 +377,24 @@ export async function fetchSubTasks(params: {
   }
 }
 
+export async function saveTask(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
+  const res = await apiCall(`${API_BASE}/SaveTaskInfo`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to save task: ${res.statusText}`);
+  return {
+    success: json.Success ?? true,
+    message: json.Message,
+    data: json.Data ?? json.data,
+  };
+}
+
+export async function deleteTask(id: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/DeleteTaskInfo?id=${id}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to delete task: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
+}
+

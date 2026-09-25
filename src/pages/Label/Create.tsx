@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
+import { saveLabel } from '@/services/labelservice';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Label } from '@/types/label-types';
 
@@ -45,12 +45,8 @@ export default function CreateLabelDrawer({ open, onClose, onSuccess, editingLab
         LabelCode: values.LabelCode,
       };
 
-      const res = await apiCall(`${API_BASE}/SaveLabelInfo`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const result = await saveLabel(body);
+      if (!result.success) throw new Error(result.message || 'Failed to save label');
 
       message.success(isEditing ? 'Label updated successfully' : 'Label created successfully');
       form.resetFields();

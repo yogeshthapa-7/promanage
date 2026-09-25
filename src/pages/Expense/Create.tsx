@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Select } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
+import { saveExpense } from '@/services/expenseservice';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
 import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
@@ -72,30 +72,18 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
           FileUpload: documentPath,
         };
 
-        const res = await apiCall(`${API_BASE}/SaveExpenseInfo`, {
-          method: 'POST',
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
-        let savedData: any = {};
-        try {
-          savedData = await res.json();
-        } catch {
-          // ignore parse error
-        }
+         const result = await saveExpense(body);
+         if (!result.success) throw new Error(result.message || 'Failed to save expense');
 
         message.success(isEdit ? 'Expense updated successfully' : 'Expense created successfully');
         form.resetFields();
         setDocumentUrl('');
         queryClient.invalidateQueries({ queryKey: ['expenses'], exact: false });
 
-        const savedId =
-          savedData?.Data?.id ??
-          savedData?.id ??
-          savedData?.ExpenseInfoID ??
-          editingExpense?.id;
+         const savedId =
+           result.data?.id ??
+           result.data?.ExpenseInfoID ??
+           editingExpense?.id;
 
         onSuccess?.({
           id: savedId,

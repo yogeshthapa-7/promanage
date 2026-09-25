@@ -3,10 +3,7 @@ import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/services/apiservice';
 import type { User, UserGroup, OrganizationSelect } from '@/types/users-types';
-import {
-  fetchUserGroups,
-  fetchOrganizations,
-} from '@/services/userservice';
+import { fetchUserGroups, fetchOrganizations, saveUser } from '@/services/userservice';
 import Drawer from '@/components/drawer';
 import ProgressBar from '@/components/ui/ProgressBar';
 
@@ -207,15 +204,9 @@ export default function UserFormModal({
         UserGroupId: 0,
       };
 
-      const result = await apiCall(SAVE_USER_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-      const json = await result.json();
-      const successFlag = json.Success ?? json.success;
-      const messageText = json.Message ?? json.message;
-      if (successFlag === false) {
-        const apiMessage = messageText?.trim() || 'Failed to save user';
+      const result = await saveUser(payload);
+      if (!result.success) {
+        const apiMessage = result.message?.trim() || 'Failed to save user';
         if (isUsernameExistsError(apiMessage)) {
           form.setFields([
             {

@@ -16,6 +16,43 @@ interface ApiOrganizationRow {
   Title: string;
 }
 
+interface ApiSelectItem {
+  OrganizationID?: number | string;
+  Title?: string;
+  name?: string;
+  id?: number | string;
+  Value?: number | string;
+  Text?: string;
+}
+
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+export const API_URL = `${API_BASE}/Organization/ServerSearch`;
+const SELECT_LIST_URL = `${API_BASE}/Organization/SelectList`;
+
+function mapSelectItem(item: ApiSelectItem): { value: string; label: string } {
+  const value = String(item.OrganizationID ?? item.id ?? item.Value ?? '');
+  const label = String(item.Title ?? item.name ?? item.Text ?? value);
+  return { value, label };
+}
+
+export async function fetchOrganizationSelectList(signal?: AbortSignal): Promise<{ value: string; label: string }[]> {
+  try {
+    const res = await apiCall(SELECT_LIST_URL, { method: 'GET', signal }, 30000);
+    if (!res.ok) throw new Error(`Failed to fetch organization list: ${res.statusText}`);
+    const json = await res.json();
+    const rows: ApiSelectItem[] = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.data)
+        ? json.data
+        : Array.isArray(json?.Data)
+          ? json.Data
+          : [];
+    return rows.map(mapSelectItem);
+  } catch {
+    return [];
+  }
+}
+
 interface FetchOrganizationsParams {
   search: string;
   start: number;
@@ -28,9 +65,6 @@ interface FetchOrganizationsResult {
   total: number;
   filtered: number;
 }
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-export const API_URL = `${API_BASE}/Organization/ServerSearch`;
 
 function buildSearchBody(params: FetchOrganizationsParams) {
   return {
@@ -90,6 +124,20 @@ function mapApiRowToOrganization(row: ApiOrganizationRow): Organization {
     title: row.Title,
     parentOrganizationId: row.ParentOrganizationID,
     parentOrganizationName: row.ParentOrganizationName,
+  };
+}
+
+export async function saveOrganization(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
+  const res = await apiCall(`${API_BASE}/SaveOrganization`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to save organization: ${res.statusText}`);
+  return {
+    success: json.Success ?? true,
+    message: json.Message,
+    data: json.Data ?? json.data,
   };
 }
 

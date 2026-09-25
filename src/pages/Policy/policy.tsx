@@ -9,14 +9,14 @@ import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchPolicies } from '@/services/policyservice';
+import { fetchPolicies, deletePolicy } from '@/services/policyservice';
 import { type Policy } from '@/types/policy-types';
 import { apiCall } from '@/services/apiservice';
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
 import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
-import CreatePolicyDrawer from './Create';
 import ViewPolicyDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import CreatePolicyDrawer from './Create';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -158,12 +158,8 @@ export default function PolicyPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeletePolicyProgram?id=${policy.id}`, {
-            method: 'GET',
-          });
-
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
+          const result = await deletePolicy(policy.id);
+          if (!result.success) throw new Error(result.message || 'Failed to delete policy');
           message.success('Policy deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['policies'] });
           refetch();

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Row, Col, message } from 'antd';
 import type { Employee } from '@/types/employees-types';
+import { saveEmployee } from '@/services/employeeservice';
 import { apiCall } from '@/services/apiservice';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
@@ -300,18 +301,9 @@ export default function EmployeeSetupModal({
            body.ConfirmPassword = values.confirmPassword || '';
          }
 
-           const res = await apiCall(`${API_BASE}/SaveEmployeeInfo`, {
-            method: 'POST',
-            body: JSON.stringify(body),
-          });
-
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
-        const json = await res.json();
-        const successFlag = json.Success ?? json.success;
-        const messageText = json.Message ?? json.message;
-        if (successFlag === false) {
-          throw new Error(messageText || 'Failed. Check the payload or permissions.');
+           const result = await saveEmployee(body);
+        if (!result.success) {
+          throw new Error(result.message || 'Failed. Check the payload or permissions.');
         }
 
         let savedEmployee: Employee | undefined;

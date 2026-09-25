@@ -156,3 +156,24 @@ export const ROLE_STYLE: Record<UserRole, string> = {
   'DC Admin': 'bg-orange-50 text-orange-600 border-orange-200/60',
 };
 
+export async function saveUser(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
+  const res = await apiCall(`${API_BASE}/SaveUserPublic`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to save user: ${res.statusText}`);
+  return {
+    success: json.Success ?? true,
+    message: json.Message,
+    data: json.Data ?? json.data,
+  };
+}
+
+export async function deleteUser(userId: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/DeleteUser?userid=${userId}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.Message || `Failed to delete user: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
+}
+

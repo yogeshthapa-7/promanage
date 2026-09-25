@@ -7,7 +7,7 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchClients } from '@/services/clientservice';
+import { fetchClients, deleteClient } from '@/services/clientservice';
 import { type Client } from '@/types/client-types';
 import { apiCall } from '@/services/apiservice';
 import CreateClientDrawer from './Create';
@@ -74,12 +74,8 @@ export default function ClientPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteClientInfo?id=${client.id}`, {
-            method: 'GET',
-          });
-
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
+          const result = await deleteClient(client.id);
+          if (!result.success) throw new Error(result.message || 'Failed to delete client');
           message.success('Client deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['clients'] });
           refetch();

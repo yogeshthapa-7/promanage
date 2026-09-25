@@ -8,8 +8,7 @@ import { TableSkeleton } from '@/components/ui/Loaders';
 import AppTable from '@/components/ui/AppTable';
 import SearchInput from '@/components/ui/SearchInput';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiCall } from '@/services/apiservice';
-import { fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/services/userservice';
+import { deleteUser, fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/services/userservice';
 import type { User } from '@/types/users-types';
 import UserFormModal from './Create';
 import { message, Modal } from 'antd';
@@ -91,18 +90,13 @@ export default function UsersPage() {
       okType: 'danger',
       onOk: async () => {
         const userId = Number(user.id);
-        const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-        const res = await apiCall(`${API_BASE}/DeleteUser?userid=${userId}`, {
-          method: 'GET',
-        });
-        const json = await res.json().catch(() => ({}));
-        if (res.ok && json.Success !== false) {
+        const result = await deleteUser(userId);
+        if (result.success) {
           queryClient.invalidateQueries({ queryKey: ['users', 'search'] });
           refetch();
           message.success('User deleted successfully');
         } else {
-          const msg = json.Message || 'Failed to delete user';
-          message.error(msg);
+          message.error(result.message || 'Failed to delete user');
         }
       },
     });

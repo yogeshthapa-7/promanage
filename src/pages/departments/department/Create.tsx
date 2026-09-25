@@ -2,17 +2,16 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
-import { fetchDepartmentSelectList } from '@/services/departmentservice';
+import { fetchDepartmentSelectList, saveDepartment } from '@/services/departmentservice';
 import type { DepartmentSelectOption } from '@/types/departments-types';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 interface CreateDepartmentDrawerProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
+
+const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 export default function CreateDepartmentDrawer({
   open,
@@ -59,12 +58,10 @@ export default function CreateDepartmentDrawer({
         OrderKey: 0,
       };
 
-      const res = await apiCall(`${API_BASE}/SaveDepartment`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+       const result = await saveDepartment(body);
+       if (!result.success) {
+         throw new Error(result.message || 'Failed to create department');
+       }
 
       message.success('Department created successfully');
       form.resetFields();

@@ -30,7 +30,7 @@ import ProgressBar from '@/components/ui/ProgressBar';
 import DropdownMenu from '@/components/ui/DropdownMenu';
 import AppTable from '@/components/ui/AppTable';
 import { apiCall } from '@/services/apiservice';
-import { mapApiProjectToProject } from '@/services/projectservice';
+import { mapApiProjectToProject, deleteProject } from '@/services/projectservice';
 import type { ProjectStatus, Project, ApiProject } from '@/types/projects-types';
 import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/services/statsservice';
 import ProjectFormModal from './Create';
@@ -731,10 +731,8 @@ const {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteProjectInfo?id=${project.id}`, {
-            method: 'GET',
-          });
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          const result = await deleteProject(Number(project.id));
+          if (!result.success) throw new Error(result.message || 'Delete failed');
           message.success('Project deleted successfully');
           refetch();
         } catch (err) {

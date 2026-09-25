@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
+import { saveWard } from '@/services/wardservice';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Ward } from '@/types/ward-types';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 interface CreateWardDrawerProps {
   open: boolean;
@@ -45,30 +43,19 @@ const handleSubmit = async () => {
       WardCode: values.wardCode,
     };
 
-    const res = await apiCall(`${API_BASE}/SaveWardInfo`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed: ${res.statusText}`);
-    }
-
-    const result = await res.json();
-
-    // Backend validation failed
-    if (!result.Success) {
-      message.error(result.Message || 'Failed to save ward');
-      return;
-    }
+     const result = await saveWard(body);
+     if (!result.success) {
+       message.error(result.message || 'Failed to save ward');
+       return;
+     }
 
     // Backend save succeeded
-    message.success(
-      result.Message ||
-      (isEdit
-        ? 'Ward updated successfully'
-        : 'Ward created successfully')
-    );
+     message.success(
+       result.message ||
+       (isEdit
+         ? 'Ward updated successfully'
+         : 'Ward created successfully')
+     );
 
     form.resetFields();
 

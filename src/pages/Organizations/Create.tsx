@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
+import { saveOrganization, fetchOrganizationSelectList } from '@/services/organizationservice';
 
 export interface Organization {
   id?: number;
@@ -36,8 +36,6 @@ export default function CreateOrganizationModal({
 
   const getPopupParent = (triggerNode: HTMLElement) => triggerNode.parentNode as HTMLElement;
 
-  const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
   useEffect(() => {
     if (open) {
       fetchParentOrganizations();
@@ -47,9 +45,7 @@ export default function CreateOrganizationModal({
   const fetchParentOrganizations = async () => {
     setParentOrgsLoading(true);
     try {
-      const res = await apiCall(`${API_BASE}/Organization/SelectList`);
-      if (!res.ok) throw new Error(`Failed to fetch parent organizations: ${res.statusText}`);
-      const data: ParentOrgOption[] = await res.json();
+      const data = await fetchOrganizationSelectList();
       setParentOrgs(data);
     } catch (err) {
       if (err instanceof Error) {
@@ -61,8 +57,8 @@ export default function CreateOrganizationModal({
   };
 
   const parentOrgOptions = parentOrgs.map((org) => ({
-    value: String(org.OrganizationID),
-    label: org.Title,
+    value: org.value,
+    label: org.label,
   }));
 
   useEffect(() => {
@@ -85,19 +81,16 @@ export default function CreateOrganizationModal({
 
        const orgId = isEdit ? Number(editingOrganization?.id) : 0;
 
-       const body = {
-         OrganizationID: orgId,
-         Title: values.title,
-         ParentOrganizationID: values.parentOrganization ? Number(values.parentOrganization) : 0,
-       };
+        const body = {
+          OrganizationID: orgId,
+          Title: values.title,
+          ParentOrganizationID: values.parentOrganization ? Number(values.parentOrganization) : 0,
+        };
 
-        const API_URL = `${API_BASE}/SaveOrganization`;
-        const res = await apiCall(API_URL, {
-         method: 'POST',
-         body: JSON.stringify(body),
-       });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+         const result = await saveOrganization(body);
+         if (!result.success) {
+           throw new Error(result.message || 'Failed to save organization');
+         }
 
       message.success(
         isEdit ? 'संगठन सफलतापूर्वक अपडेट गरियो' : 'संगठन सफलतापूर्वक सिर्जना गरियो'

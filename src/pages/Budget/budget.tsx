@@ -9,14 +9,13 @@ import { TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchBudgets } from '@/services/budgetservice';
+import { fetchBudgets, deleteBudget } from '@/services/budgetservice';
 import { type Budget } from '@/types/budget-types';
-import { apiCall } from '@/services/apiservice';
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
 import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
-import CreateBudgetDrawer from './Create';
 import ViewBudgetDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import CreateBudgetDrawer from './Create';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -162,12 +161,8 @@ export default function BudgetPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteBudgetInfo?id=${budget.id}`, {
-            method: 'GET',
-          });
-
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
+          const result = await deleteBudget(budget.id);
+          if (!result.success) throw new Error(result.message || 'Failed to delete budget');
           message.success('Budget deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['budgets'] });
           refetch();

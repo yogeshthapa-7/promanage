@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Select } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
+import { savePolicy } from '@/services/policyservice';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
 import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
@@ -69,30 +69,18 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
           FileUpload: documentPath,
         };
 
-        const res = await apiCall(`${API_BASE}/SavePolicyProgram`, {
-          method: 'POST',
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
-        let savedData: any = {};
-        try {
-          savedData = await res.json();
-        } catch {
-          // ignore parse error
-        }
+         const result = await savePolicy(body);
+         if (!result.success) throw new Error(result.message || 'Failed to save policy');
 
         message.success(isEdit ? 'Policy updated successfully' : 'Policy created successfully');
         form.resetFields();
         setDocumentUrl('');
         queryClient.invalidateQueries({ queryKey: ['policies'], exact: false });
 
-        const savedId =
-          savedData?.Data?.id ??
-          savedData?.id ??
-          savedData?.PolicyProgramID ??
-          editingPolicy?.id;
+         const savedId =
+           result.data?.id ??
+           result.data?.PolicyProgramID ??
+           editingPolicy?.id;
 
         onSuccess?.({
           id: savedId,

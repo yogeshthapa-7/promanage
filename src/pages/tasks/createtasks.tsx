@@ -3,6 +3,7 @@ import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import { apiCall } from '@/services/apiservice';
+import { saveTask } from '@/services/taskservice';
 import type { TaskItem } from '@/types/tasks-types';
 import type { ApiProject } from '@/types/projects-types';
 
@@ -184,12 +185,10 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
         PriorityName: selectedPriority?.label || 'High',
       };
 
-      const res = await apiCall(`${API_BASE}/SaveTaskInfo`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const result = await saveTask(body);
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to save task');
+      }
 
       message.success(isEdit ? 'Task updated successfully' : 'Task created successfully');
       form.resetFields();

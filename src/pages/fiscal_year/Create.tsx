@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Checkbox } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
+import { saveFiscalYear } from '@/services/fiscalyearservice';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import { type FiscalYearItem } from '@/types/fiscal-year-types';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '')
-//.replace(/\/$/, '').replace(/\/api$/, '')
 
 interface CreateFiscalYearDrawerProps {
   open: boolean;
@@ -55,21 +52,10 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
       };
       
 
-      const res = await apiCall(`${API_BASE}SaveFiscalYear`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed: ${res.statusText}`);
-      }
-
-      const result = await res.json();
-
-      if (result.Success === false) {
-        message.error(result.Message || 'Failed to save fiscal year');
-        return;
-      }
+         const result = await saveFiscalYear(body);
+         if (!result.success) {
+           throw new Error(result.message || 'Failed to save fiscal year');
+         }
 
       message.success(
         result.Message ||

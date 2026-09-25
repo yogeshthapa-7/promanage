@@ -9,14 +9,14 @@ import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchExpenses } from '@/services/expenseservice';
+import { fetchExpenses, deleteExpense } from '@/services/expenseservice';
 import { type Expense } from '@/types/expense-types';
 import { apiCall } from '@/services/apiservice';
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
 import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
-import CreateExpenseDrawer from './Create';
 import ViewExpenseDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
+import CreateExpenseDrawer from './Create';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -169,12 +169,8 @@ export default function ExpensePage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteExpenseInfo?id=${expense.id}`, {
-            method: 'GET',
-          });
-
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
+          const result = await deleteExpense(expense.id);
+          if (!result.success) throw new Error(result.message || 'Failed to delete expense');
           message.success('Expense deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['expenses'] });
           refetch();

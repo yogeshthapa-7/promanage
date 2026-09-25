@@ -10,7 +10,7 @@ import AppTable from '@/components/ui/AppTable';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import Pagination from '@/components/ui/Pagination';
 import CreateFiscalYearDrawer from './Create';
-import { fetchFiscalYears, fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
+import { fetchFiscalYears, fetchFiscalYearSelectList, deleteFiscalYear } from '@/services/fiscalyearservice';
 import { type FiscalYearItem, type FiscalYearSelectOption } from '@/types/fiscal-year-types';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -102,14 +102,8 @@ export default function FiscalYearPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '');
-          // .replace(/\/$/, '').replace(/\/api$/, '')
-          const res = await apiCall(`${API_BASE}/DeleteFiscalYear?id=${year.id}`, {
-            method: 'GET',
-          });
-
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
+          const result = await deleteFiscalYear(year.id);
+          if (!result.success) throw new Error(result.message || 'Failed to delete fiscal year');
           message.success(`Fiscal year "${year.name}" deleted successfully`);
           queryClient.invalidateQueries({ queryKey: ['fiscalYears'] });
           refetch();

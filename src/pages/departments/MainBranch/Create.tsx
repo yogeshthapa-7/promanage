@@ -6,6 +6,9 @@ import { apiCall } from '@/services/apiservice';
 import {
   fetchDepartmentSelectList,
 } from '@/services/departmentservice';
+import {
+  saveMainBranch,
+} from '@/services/mainbranchservice';
 import type { DepartmentSelectOption } from '@/types/departments-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -15,7 +18,6 @@ interface CreateMainBranchDrawerProps {
   onClose: () => void;
   onSuccess: () => void;
   editingBranch?: { id: string; name: string; mainBranchCode: string; departmentId: number } | null;
-  //localbodylevel:
   disabledDepartment?: boolean;
   defaultDepartmentId?: string | number;
 }
@@ -99,12 +101,8 @@ export default function CreateMainBranchDrawer({
         OrderKey: 0,
       };
 
-      const res = await apiCall(`${API_BASE}/SaveMainBranch`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+       const result = await saveMainBranch(body);
+       if (!result.success) throw new Error(result.message || 'Failed to save main branch');
 
       message.success(isEdit ? 'Main branch updated successfully' : 'Main branch created successfully');
       form.resetFields();

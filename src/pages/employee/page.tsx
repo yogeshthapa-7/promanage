@@ -5,10 +5,9 @@ import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import AppTable from '@/components/ui/AppTable';
 import SearchInput from '@/components/ui/SearchInput';
-import { fetchEmployees } from '@/services/employeeservice';
+import { fetchEmployees, deleteEmployee } from '@/services/employeeservice';
 import { type Employee } from '@/types/employees-types';
 import EmployeeSetupModal from './Create';
-import { apiCall } from '@/services/apiservice';
 import { exportCsv } from '@/utils/csv';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { useQueryClient } from '@tanstack/react-query';
@@ -113,10 +112,8 @@ export default function EmployeePage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-          const deleteUrl = `${API_BASE}/DeleteEmployeeInfo?id=${employee.EmployeeInfoID}`;
-          const res = await apiCall(deleteUrl, { method: 'GET' });
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          const result = await deleteEmployee(employee.EmployeeInfoID);
+          if (!result.success) throw new Error(result.message || 'Failed to delete employee');
           message.success('Employee removed successfully');
           queryClient.invalidateQueries({ queryKey: ['employees', 'search'] });
           refetch();

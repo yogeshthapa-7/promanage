@@ -6,6 +6,7 @@ import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import DocumentUploadField from '@/components/DocumentUploadField';
 import type { ApiProject } from '@/types/projects-types';
 import { apiCall } from '@/services/apiservice';
+import { saveProject } from '@/services/projectservice';
 
 interface ProjectFormModalProps {
   open: boolean;
@@ -282,16 +283,10 @@ const DrawerContent = memo(
             ProjectHeadEmpPhoto: documentPath,
           };
 
-          const API_URL = `${API_BASE}/SaveProjectInfo`;
-          const res = await apiCall(API_URL, {
-            method: 'POST',
-            body: JSON.stringify(body),
-          });
-
-          const result = await res.json().catch(() => ({}));
-          if (!res.ok || result.Success === false) {
-            throw new Error(result.Message || `Failed: ${res.statusText}`);
-          }
+           const result = await saveProject(body);
+           if (!result.success) {
+             throw new Error(result.message || 'Failed to save project');
+           }
 
            message.success(isEdit ? 'परियोजना सफलतापूर्वक अपडेट गरियो' : 'परियोजना सफलतापूर्वक सिर्जना गरियो');
            form.resetFields();

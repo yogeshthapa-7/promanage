@@ -12,6 +12,7 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { apiCall } from '@/services/apiservice';
+import { deleteTask } from '@/services/taskservice';
 import { convertAdToBs } from '@/utils/nepali-date';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -389,10 +390,8 @@ export default function KanbanBoard() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteTaskInfo?id=${taskId}`, {
-            method: 'GET',
-          });
-          if (!res.ok) throw new Error('Failed to delete task');
+          const result = await deleteTask(taskId);
+          if (!result.success) throw new Error(result.message || 'Failed to delete task');
           message.success('Task deleted');
           await refreshBoard();
         } catch (err) {

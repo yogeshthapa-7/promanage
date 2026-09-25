@@ -7,7 +7,7 @@ import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
-import { fetchLabels } from '@/services/labelservice';
+import { fetchLabels, deleteLabel } from '@/services/labelservice';
 import { type Label } from '@/types/label-types';
 import { apiCall } from '@/services/apiservice';
 import CreateLabelDrawer from './Create';
@@ -75,12 +75,8 @@ export default function LabelPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteLabelInfo?id=${label.id}`, {
-            method: 'GET',
-          });
-
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
+          const result = await deleteLabel(label.id);
+          if (!result.success) throw new Error(result.message || 'Failed to delete label');
           message.success('Label deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['labels'] });
           refetch();
