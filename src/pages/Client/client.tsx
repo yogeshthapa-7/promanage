@@ -1,15 +1,15 @@
 import { useState, useRef } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, LayoutGrid, List } from 'lucide-react';
 import { Modal, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
-import { CardGridSkeleton } from '@/components/ui/Loaders';
+import AppTable from '@/components/ui/AppTable';
+import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
 import { fetchClients, deleteClient } from '@/services/clientservice';
 import { type Client } from '@/types/client-types';
-import { apiCall } from '@/services/apiservice';
 import CreateClientDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
@@ -32,6 +32,7 @@ export default function ClientPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
@@ -88,6 +89,60 @@ export default function ClientPage() {
     });
   };
 
+  const handleCreateSuccess = () => {
+    setShowFormModal(false);
+    setEditingClient(null);
+    setCurrentPage(1);
+    queryClient.invalidateQueries({ queryKey: ['clients'] });
+    refetch();
+    message.success('Client saved successfully');
+  };
+
+  const clientColumns = [
+    {
+      title: 'Client Name',
+      dataIndex: 'clientName',
+      key: 'clientName',
+      render: (value: string) => <span className="font-semibold text-slate-800">{value || '—'}</span>,
+    },
+    {
+      title: 'Client Code',
+      dataIndex: 'clientCode',
+      key: 'clientCode',
+      render: (value: string) => <span className="text-slate-600">{value || '—'}</span>,
+    },
+    {
+      title: 'Contact Person',
+      dataIndex: 'contactPerson',
+      key: 'contactPerson',
+      render: (value: string) => <span className="text-slate-600">{value || '—'}</span>,
+    },
+    {
+      title: 'Contact No',
+      dataIndex: 'contactNo',
+      key: 'contactNo',
+      render: (value: string) => <span className="text-slate-600">{value || '—'}</span>,
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+      render: (value: string) => <span className="text-slate-600">{value || '—'}</span>,
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right' as const,
+      width: 140,
+      render: (_: unknown, record: Client) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button size="small" onClick={() => handleEdit(record)}>Edit</Button>
+          <Button size="small" danger onClick={() => handleDelete(record)}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="fade-in text-slate-800">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -128,34 +183,34 @@ export default function ClientPage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          {/* <div className="flex items-center gap-3">
-            <span className="text-base text-slate-500">Show</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="w-20 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm"
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span className="text-base text-slate-500">entries</span>
-          </div> */}
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
+          <div className="flex items-center bg-white/70 border border-border rounded-xl p-0.5 shadow-xs">
+            <Button
+              type="text"
+              onClick={() => setViewMode('list')}
+              icon={<List className="w-4 h-4" />}
+            />
+            <Button
+              type="text"
+              onClick={() => setViewMode('grid')}
+              icon={<LayoutGrid className="w-4 h-4" />}
+            />
+          </div>
         </div>
 
         {loading ? (
-          <CardGridSkeleton count={8} />
+          viewMode === 'grid' ? (
+            <CardGridSkeleton count={8} />
+          ) : (
+            <TableSkeleton columns={6} rows={6} message="Loading clients..." />
+          )
         ) : clients.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
             <p className="text-base text-slate-400">No clients found</p>
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {clients.map((client) => (
               <Card
@@ -170,9 +225,6 @@ export default function ClientPage() {
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">{client.clientCode}</p>
                   </div>
-                  {/* <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
-                    #{client.SN}
-                  </span> */}
                 </div>
 
                 <div className="space-y-2.5 mb-5">
@@ -225,6 +277,12 @@ export default function ClientPage() {
               </Card>
             ))}
           </div>
+        ) : (
+          <AppTable
+            columns={clientColumns}
+            dataSource={clients}
+            rowKey={(record) => record.id}
+          />
         )}
 
         {!loading && clients.length > 0 && (

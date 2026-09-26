@@ -141,3 +141,10 @@ export async function saveOrganization(body: Record<string, unknown>): Promise<{
   };
 }
 
+export async function deleteOrganization(id: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/DeleteOrganization?id=${id}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to delete organization: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
+}
+

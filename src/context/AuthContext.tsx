@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { apiCall, clearTokenRefreshSubscribers, isTokenExpired } from '@/services/apiservice';
+import { apiCall } from '@/services/apiservice';
+import { clearTokenRefreshSubscribers, isTokenExpired } from '@/interceptor/token';
 
 interface AuthContextType {
   isAuthenticated: boolean;

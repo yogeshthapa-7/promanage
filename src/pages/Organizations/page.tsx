@@ -1,14 +1,14 @@
 import { useState, useRef } from 'react';
-import { Plus, Building2 } from 'lucide-react';
+import { Plus, Building2, LayoutGrid, List } from 'lucide-react';
 import { Modal, message, Button } from 'antd';
 import Pagination from '@/components/ui/Pagination';
-import { CardGridSkeleton } from '@/components/ui/Loaders';
+import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
+import AppTable from '@/components/ui/AppTable';
 import SearchInput from '@/components/ui/SearchInput';
-import { fetchOrganizations } from '@/services/organizationservice';
+import { fetchOrganizations, deleteOrganization } from '@/services/organizationservice';
 import { type Organization } from '@/types/organizations-types';
 import CreateOrganizationModal from './Create';
-import { apiCall } from '@/services/apiservice';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -25,9 +25,11 @@ function fetchOrganizationsPage(params: PaginatedListParams): Promise<{ items: O
 }
 
 export default function OrganizationPage() {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
@@ -51,8 +53,6 @@ export default function OrganizationPage() {
     setCurrentPage(1);
   };
 
-  const queryClient = useQueryClient();
-
   const handleAddNew = () => {
     setEditingOrg(null);
     setShowCreateModal(true);
@@ -71,16 +71,10 @@ export default function OrganizationPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-        const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-        const res = await apiCall(
-          `${API_BASE}/DeleteOrganization?id=${org.id}`,
-          { method: 'GET' }
-        );
-
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
+          const result = await deleteOrganization(org.id);
+          if (!result.success) throw new Error(result.message || 'Failed to delete organization');
           message.success(`Organization "${org.title}" deleted successfully`);
-          queryClient.invalidateQueries({ queryKey: ['organizations', 'search'] });
+          queryClient.invalidateQueries({ queryKey: ['organizations'] });
           refetch();
         } catch (err) {
           if (err instanceof Error) {
@@ -95,10 +89,43 @@ export default function OrganizationPage() {
     setShowCreateModal(false);
     setEditingOrg(null);
     setCurrentPage(1);
-    queryClient.invalidateQueries({ queryKey: ['organizations', 'search'] });
+    queryClient.invalidateQueries({ queryKey: ['organizations'] });
     refetch();
     message.success('Organization saved successfully');
   };
+
+  const organizationColumns = [
+    {
+      title: 'Title',
+      dataIndex: 'title',
+      key: 'title',
+      render: (value: string) => <span className="font-semibold text-slate-800">{value || 'Untitled'}</span>,
+    },
+    {
+      title: 'Parent Organization',
+      dataIndex: 'parentOrganizationName',
+      key: 'parentOrganizationName',
+      render: (value: string) => <span className="text-slate-600">{value || '—'}</span>,
+    },
+    {
+      title: 'Parent ID',
+      dataIndex: 'parentOrganizationId',
+      key: 'parentOrganizationId',
+      render: (value: number | string) => <span className="text-slate-600">{value || '—'}</span>,
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right' as const,
+      width: 140,
+      render: (_: unknown, record: Organization) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button size="small" onClick={() => handleEdit(record)}>Edit</Button>
+          <Button size="small" danger onClick={() => handleDelete(record)}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="fade-in text-slate-800">
@@ -140,36 +167,35 @@ export default function OrganizationPage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          {/* <div className="flex items-center gap-3">
-            <span className="text-base text-slate-500">Show</span>
-            <Select
-              value={pageSize}
-              onChange={(value) => {
-                setPageSize(Number(value));
-                setCurrentPage(1);
-              }}
-              className="w-20"
-              options={[
-                { value: 20, label: '20' },
-                { value: 50, label: '50' },
-                { value: 100, label: '100' },
-              ]}
-            />
-            <span className="text-base text-slate-500">entries</span>
-          </div> */}
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
+          <div className="flex items-center bg-white/70 border border-border rounded-xl p-0.5 shadow-xs">
+            <Button
+              type="text"
+              onClick={() => setViewMode('list')}
+              icon={<List className="w-4 h-4" />}
+            />
+            <Button
+              type="text"
+              onClick={() => setViewMode('grid')}
+              icon={<LayoutGrid className="w-4 h-4" />}
+            />
+          </div>
         </div>
 
         {loading ? (
-          <CardGridSkeleton count={8} />
+          viewMode === 'grid' ? (
+            <CardGridSkeleton count={8} />
+          ) : (
+            <TableSkeleton columns={4} rows={6} message="Loading organizations..." />
+          )
         ) : organizations.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
             <Building2 className="mx-auto h-12 w-12 text-slate-300 mb-3" />
             <p className="text-base text-slate-400">No organizations found</p>
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {organizations.map((org) => (
               <Card
@@ -188,9 +214,6 @@ export default function OrganizationPage() {
                       </h3>
                     </div>
                   </div>
-                  {/* <span className="text-sm font-semibold uppercase tracking-wider text-slate-400 shrink-0 ml-2">
-                    #{org.SN}
-                  </span> */}
                 </div>
 
                 <div className="space-y-2.5 mb-5">
@@ -221,6 +244,12 @@ export default function OrganizationPage() {
               </Card>
             ))}
           </div>
+        ) : (
+          <AppTable
+            columns={organizationColumns}
+            dataSource={organizations}
+            rowKey={(record) => record.id}
+          />
         )}
 
         {!loading && organizations.length > 0 && (
