@@ -10,10 +10,10 @@ import {
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
-const REFRESH_TOKEN_URL = (
-  import.meta.env.VITE_REFRESH_TOKEN_URL ||
-  `${API_BASE}/Authenticate/RefreshToken`
-).replace(/\/$/, '');
+// const REFRESH_TOKEN_URL = (
+//   import.meta.env.VITE_REFRESH_TOKEN_URL ||
+//   `${API_BASE}/Authenticate/RefreshToken`
+// ).replace(/\/$/, '');
 
 const DEFAULT_TIMEOUT_MS = 30000;
 const REFRESH_TIMEOUT_MS = 15000;
@@ -26,21 +26,21 @@ export async function apiCall(
   let token = getStoredToken();
 
   if (token && isTokenExpired(token)) {
-    const newToken = await refreshAuthToken(
-      API_BASE,
-      REFRESH_TOKEN_URL,
-      REFRESH_TIMEOUT_MS
-    );
+    // const newToken = await refreshAuthToken(
+    //   API_BASE,
+    //   REFRESH_TOKEN_URL,
+    //   REFRESH_TIMEOUT_MS
+    // );
 
-    if (newToken) {
-      token = newToken;
-    } else {
-      clearAuthentication();
-      clearTokenRefreshSubscribers();
-      dispatchAuthExpired();
+    // if (newToken) {
+    //   token = newToken;
+    // } else {
+    //   clearAuthentication();
+    //   clearTokenRefreshSubscribers();
+    //   dispatchAuthExpired();
 
-      throw new Error('Session expired. Please log in again.');
-    }
+    //   throw new Error('Session expired. Please log in again.');
+    // }
   }
 
   let hasRetriedAfterRefresh = false;
@@ -94,21 +94,21 @@ export async function apiCall(
 
       hasRetriedAfterRefresh = true;
 
-      const newToken = await refreshAuthToken(
-        API_BASE,
-        REFRESH_TOKEN_URL,
-        REFRESH_TIMEOUT_MS
-      );
+      // const newToken = await refreshAuthToken(
+      //   API_BASE,
+      //   REFRESH_TOKEN_URL,
+      //   REFRESH_TIMEOUT_MS
+      // );
 
-      if (!newToken) {
-        clearAuthentication();
-        clearTokenRefreshSubscribers();
-        dispatchAuthExpired();
+      // if (!newToken) {
+      //   clearAuthentication();
+      //   clearTokenRefreshSubscribers();
+      //   dispatchAuthExpired();
 
-        throw new Error('Session expired. Please log in again.');
-      }
+      //   throw new Error('Session expired. Please log in again.');
+      // }
 
-      token = newToken;
+      // token = newToken;
 
       continue;
     } catch (error) {
