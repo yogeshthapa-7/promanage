@@ -30,17 +30,19 @@ export default function AppTable<T>({
   return (
     <Card className={cardClassName} style={cardStyle}>
       {toolbar && <div className="mb-4">{toolbar}</div>}
-      <Table<T>
-        className="app-table-highlight"
-        columns={columns}
-        loading={loading}
-        pagination={false}
-        locale={{ emptyText }}
-        bordered={false}
-        size="middle"
-        rowClassName={rowClassName}
-        {...rest}
-      />
+      <div className="overflow-x-auto">
+        <Table<T>
+          className="app-table-highlight"
+          columns={columns}
+          loading={loading}
+          pagination={false}
+          locale={{ emptyText }}
+          bordered={false}
+          size="middle"
+          rowClassName={rowClassName}
+          {...rest}
+        />
+      </div>
     </Card>
   );
 }
