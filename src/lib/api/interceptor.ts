@@ -59,6 +59,7 @@ export function clearAuthentication(): void {
   try {
     localStorage.removeItem('token');
     localStorage.removeItem('auth');
+    localStorage.removeItem('access_token');
   } catch (error) {
     console.error('Unable to clear authentication data:', error);
   }
@@ -199,6 +200,7 @@ export function buildHeaders(
   options: RequestInit,
   token: string | null
 ): Headers {
+  debugger;
   const headers = new Headers(options.headers);
 
   if (!headers.has('Content-Type')) {

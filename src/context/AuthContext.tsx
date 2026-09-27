@@ -48,12 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
    const logout = useCallback(() => {
-     setIsAuthenticated(false);
-     setUser(null);
-     localStorage.removeItem('auth');
-     localStorage.removeItem('token');
-     clearTokenRefreshSubscribers();
-   }, []);
+      setIsAuthenticated(false);
+      setUser(null);
+      localStorage.removeItem('auth');
+      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
+      clearTokenRefreshSubscribers();
+    }, []);
 
   // Initialize Auth State on Mount and listen for auth-expired events
   useEffect(() => {
@@ -62,22 +63,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener('auth-expired', handleAuthExpired);
 
+    localStorage.removeItem('access_token');
     const stored = localStorage.getItem('auth');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as StoredAuth;
-        const token = parsed.token || localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
-        if (token && !isTokenExpired(token)) {
-          localStorage.setItem('token', token);
+    if (token && !isTokenExpired(token)) {
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as StoredAuth;
           setIsAuthenticated(Boolean(parsed.isAuthenticated));
           setUser(parsed.user ?? null);
-        } else {
+        } catch {
           logout();
         }
-      } catch {
+      } else {
         logout();
       }
+    } else {
+      logout();
     }
     setLoading(false);
 
