@@ -19,7 +19,7 @@ import {
   Flag,
 } from 'lucide-react';
 
-import { BlockSkeleton, TableSkeleton } from '@/components/ui/Loaders';
+import { BlockSkeleton } from '@/components/ui/Loaders';
 import AppTable from '@/components/ui/AppTable';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -360,21 +360,40 @@ export default function ProjectTasksPage() {
       title: 'Task',
       dataIndex: 'title',
       key: 'title',
-      render: (text: string, record: RawEntity) => {
+      render: (_text: string, record: RawEntity) => {
         const t = extractEntity(record, TASK_KEYS);
-        return (
-          <div>
-            <div className="font-semibold text-slate-900">{t.title}</div>
-            {t.description && <div className="text-xs text-muted-foreground truncate max-w-xs">{t.description}</div>}
-          </div>
-        );
+        return <div className="font-semibold text-slate-900">{t.title}</div>;
+      },
+    },
+    {
+      title: 'Task Code',
+      dataIndex: 'TaskCode',
+      key: 'TaskCode',
+      render: (_: any, record: RawEntity) => pick(record, ['TaskCode'], '—'),
+    },
+    {
+      title: 'Due Date',
+      dataIndex: 'DueDate',
+      key: 'DueDate',
+      render: (_: any, record: RawEntity) => {
+        const t = extractEntity(record, TASK_KEYS);
+        return t.dueDate || '—';
+      },
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'PriorityName',
+      key: 'PriorityName',
+      render: (_: any, record: RawEntity) => {
+        const t = extractEntity(record, TASK_KEYS);
+        return t.priorityName || '—';
       },
     },
     {
       title: 'Manager',
       dataIndex: 'manager',
       key: 'manager',
-      render: (_, record: RawEntity) => {
+      render: (_: any, record: RawEntity) => {
         const t = extractEntity(record, TASK_KEYS);
         return t.managerName || '—';
       },
@@ -383,7 +402,7 @@ export default function ProjectTasksPage() {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (_, record: RawEntity) => {
+      render: (_: any, record: RawEntity) => {
         const t = extractEntity(record, TASK_KEYS);
         return (
           <Badge style={{ backgroundColor: hexToRgba(t.statusColor, 0.1), color: t.statusColor, borderColor: hexToRgba(t.statusColor, 0.2) }}>
@@ -395,7 +414,7 @@ export default function ProjectTasksPage() {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record: RawEntity) => {
+      render: (_: any, record: RawEntity) => {
         const taskId = pick(record, TASK_KEYS.idKeys);
         return (
           <div className="flex items-center justify-end gap-1">

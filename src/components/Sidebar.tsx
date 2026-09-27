@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, Users, ChevronLeft, ChevronRight, LogOut, ChartLine, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, Calendar, X, } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, ChevronLeft, ChevronRight, LogOut, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, Calendar, X, } from 'lucide-react';
 import { Modal } from 'antd';
 import { useAuth } from '@/context/AuthContext';
 import UserProfileDrawer from '@/pages/profile/page';

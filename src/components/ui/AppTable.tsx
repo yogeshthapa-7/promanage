@@ -12,7 +12,7 @@ export interface AppTableProps<T> extends Omit<TableProps<T>, 'columns'> {
   rowHoverClassName?: string;
 }
 
-export default function AppTable<T extends { key?: React.Key }>({
+export default function AppTable<T>({
   columns,
   loading = false,
   emptyText = 'No data found',
@@ -22,7 +22,7 @@ export default function AppTable<T extends { key?: React.Key }>({
   rowHoverClassName = '',
   ...rest
 }: AppTableProps<T>) {
-  const rowClassName = (record: T, index: number) => {
+  const rowClassName = (_record: T, index: number) => {
     const base = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
     return rowHoverClassName ? `${base} ${rowHoverClassName}` : base;
   };

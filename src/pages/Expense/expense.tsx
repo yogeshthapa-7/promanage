@@ -5,21 +5,21 @@ import type { ColumnsType } from 'antd/es/table';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import AppTable from '@/components/ui/AppTable';
-import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
+import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import ViewToggle from '@/components/ui/ViewToggle';
 import Pagination from '@/components/ui/Pagination';
 import { fetchExpenses, deleteExpense } from '@/services/expenseservice';
 import { type Expense } from '@/types/expense-types';
-import { apiCall } from '@/services/apiservice';
+
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
 import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
 import ViewExpenseDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import CreateExpenseDrawer from './Create';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 
 function fetchExpensesPage(params: PaginatedListParams): Promise<{ items: Expense[]; total: number }> {
   return fetchExpenses({

@@ -308,7 +308,7 @@ export default function EmployeeSetupModal({
 
         let savedEmployee: Employee | undefined;
         try {
-          savedEmployee = json.Data ?? json.data ?? json;
+          savedEmployee = (result.data as Employee) ?? undefined;
         } catch {
           // fallback
         }

@@ -78,8 +78,8 @@ export default function CreateBudgetDrawer({ open, onClose, onSuccess, editingBu
         queryClient.invalidateQueries({ queryKey: ['budgets'], exact: false });
 
          const savedId =
-           result.data?.id ??
-           result.data?.BudgetInfoID ??
+           (result.data as { id?: number; BudgetInfoID?: number } | undefined)?.id ??
+           (result.data as { id?: number; BudgetInfoID?: number } | undefined)?.BudgetInfoID ??
            editingBudget?.id;
 
         onSuccess?.({

@@ -6,7 +6,6 @@ import { Button, Input, Select } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { TableSkeleton } from '@/components/ui/Loaders';
 import AppTable from '@/components/ui/AppTable';
-import SearchInput from '@/components/ui/SearchInput';
 import { useQueryClient } from '@tanstack/react-query';
 import { deleteUser, fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/services/userservice';
 import type { User } from '@/types/users-types';
@@ -119,7 +118,7 @@ export default function UsersPage() {
       title: 'User Group',
       dataIndex: 'role',
       key: 'role',
-      render: (value: string) => <span className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium border ${ROLE_STYLE[value]}`}>{value}</span>,
+      render: (value: string) => <span className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium border ${ROLE_STYLE[value as keyof typeof ROLE_STYLE]}`}>{value}</span>,
     },
     {
       title: 'Theme',

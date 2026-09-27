@@ -12,8 +12,6 @@ interface CreateLabelDrawerProps {
   editingLabel?: Label | null;
 }
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
 export default function CreateLabelDrawer({ open, onClose, onSuccess, editingLabel }: CreateLabelDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);

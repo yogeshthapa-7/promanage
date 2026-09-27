@@ -14,8 +14,6 @@ import { type Label } from '@/types/label-types';
 import CreateLabelDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
 function fetchLabelsPage(params: PaginatedListParams): Promise<{ items: Label[]; total: number }> {
   return fetchLabels({
     search: (params.search as string) || '',
@@ -91,14 +89,7 @@ export default function LabelPage() {
     });
   };
 
-  const handleCreateSuccess = () => {
-    setShowFormModal(false);
-    setEditingLabel(null);
-    setCurrentPage(1);
-    queryClient.invalidateQueries({ queryKey: ['labels'] });
-    refetch();
-    message.success('Label saved successfully');
-  };
+
 
   const labelColumns = [
     {

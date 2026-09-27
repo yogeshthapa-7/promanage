@@ -214,7 +214,7 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
     {
       title: 'S.N.',
       key: 'sn',
-      align: 'center',
+      align: 'center' as const,
       width: 64,
       render: (_: any, record: MainBranch) => record.sn,
     },
@@ -233,7 +233,7 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
     {
       title: 'Actions',
       key: 'actions',
-      align: 'center',
+      align: 'center' as const,
       width: 160,
       className: 'no-print',
       render: (_: any, record: MainBranch) => (

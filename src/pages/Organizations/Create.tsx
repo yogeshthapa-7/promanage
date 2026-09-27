@@ -46,7 +46,7 @@ export default function CreateOrganizationModal({
     setParentOrgsLoading(true);
     try {
       const data = await fetchOrganizationSelectList();
-      setParentOrgs(data);
+      setParentOrgs(data.map(item => ({ OrganizationID: Number(item.value), Title: item.label })));
     } catch (err) {
       if (err instanceof Error) {
         message.error(err.message);
@@ -57,8 +57,8 @@ export default function CreateOrganizationModal({
   };
 
   const parentOrgOptions = parentOrgs.map((org) => ({
-    value: org.value,
-    label: org.label,
+    value: String(org.OrganizationID),
+    label: org.Title,
   }));
 
   useEffect(() => {

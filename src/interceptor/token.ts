@@ -71,7 +71,7 @@ export function dispatchAuthExpired(): void {
 }
 
 export async function refreshAuthToken(
-  apiBase: string,
+  _apiBase: string,
   refreshUrl: string,
   timeoutMs: number
 ): Promise<string | null> {

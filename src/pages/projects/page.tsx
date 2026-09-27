@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import {
   Filter,
-  LayoutGrid,
-  List,
   Plus,
   Star,
   ArrowUpDown,
@@ -22,7 +20,7 @@ import {
 import * as XLSX from 'xlsx';
 import Card from '@/components/ui/Card';
 import Pagination from '@/components/ui/Pagination';
-import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
+import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import ViewToggle from '@/components/ui/ViewToggle';
 import Button from '@/components/ui/Button';
@@ -748,7 +746,7 @@ const {
       title: 'Project',
       dataIndex: 'name',
       key: 'name',
-      render: (text: string, record: Project) => {
+      render: (_text: string, record: Project) => {
         const projectTitle = record.title || record.name || 'Untitled Project';
         const Icon = record.icon;
         return (
@@ -788,7 +786,7 @@ const {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record: Project) => (
+      render: (_: any, record: Project) => (
         <div className="flex items-center justify-end gap-2">
           <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); handleViewProjectTasks(record); }} icon={<ListChecks className="w-3.5 h-3.5" />} className="!bg-green-600 hover:!bg-green-700 !border-green-600">Tasks</Button>
           <Button size="small" type="text" onClick={(e) => { e.stopPropagation(); handleViewProject(record); }} icon={<Eye className="w-3.5 h-3.5" />} />

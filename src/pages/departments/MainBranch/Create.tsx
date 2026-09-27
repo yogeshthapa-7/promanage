@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/components/drawer';
-import { apiCall } from '@/services/apiservice';
 import {
   fetchDepartmentSelectList,
 } from '@/services/departmentservice';
@@ -10,8 +9,6 @@ import {
   saveMainBranch,
 } from '@/services/mainbranchservice';
 import type { DepartmentSelectOption } from '@/types/departments-types';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 interface CreateMainBranchDrawerProps {
   open: boolean;

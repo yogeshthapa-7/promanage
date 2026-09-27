@@ -4,7 +4,7 @@ import Drawer from '@/components/drawer';
 import { saveClient } from '@/services/clientservice';
 import { useQueryClient } from '@tanstack/react-query';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 
 interface Client {
   id: number;

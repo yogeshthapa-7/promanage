@@ -147,22 +147,8 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
       title: 'Milestone',
       key: 'MilestoneTitle',
       render: (_: any, record: MilestoneItem) => {
-        const calculatedProgress = calculateProgressFromDates(record.StartDate, record.EndDate, record.Progress);
-        const progressColor =
-          calculatedProgress >= 75
-            ? '#10B981'
-            : calculatedProgress >= 40
-            ? '#3B82F6'
-            : calculatedProgress > 0
-            ? '#F59E0B'
-            : '#D1D5DB';
         return (
-          <div>
-            <div className="font-semibold text-slate-900">{record.MilestoneTitle}</div>
-            {record.Summary && (
-              <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{record.Summary}</div>
-            )}
-          </div>
+          <div className="font-semibold text-slate-900">{record.MilestoneTitle}</div>
         );
       },
     },
@@ -189,23 +175,26 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
     },
     {
       title: 'Start Date',
+      dataIndex: 'StartDate',
       key: 'StartDate',
-      render: (date: string) => convertAdToBs(date) || '—',
+      render: (date: string) => (date ? convertAdToBs(date) : '—'),
     },
     {
       title: 'End Date',
+      dataIndex: 'EndDate',
       key: 'EndDate',
-      render: (date: string) => convertAdToBs(date) || '—',
+      render: (date: string) => (date ? convertAdToBs(date) : '—'),
     },
     {
       title: 'Cost',
+      dataIndex: 'MilestoneCost',
       key: 'MilestoneCost',
-      render: (cost: number) => cost.toLocaleString(),
+      render: (cost: number) => (typeof cost === 'number' ? cost.toLocaleString() : '—'),
     },
     {
       title: 'Actions',
       key: 'actions',
-      align: 'right',
+      align: 'right' as const,
       render: (_: any, record: MilestoneItem) => (
         <div className="flex items-center justify-end gap-1">
           <Button size="small" onClick={() => handleEdit(record)}>Edit</Button>

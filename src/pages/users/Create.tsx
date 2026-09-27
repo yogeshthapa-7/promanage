@@ -8,7 +8,6 @@ import Drawer from '@/components/drawer';
 import ProgressBar from '@/components/ui/ProgressBar';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-const SAVE_USER_URL = `${API_BASE}/SaveUserPublic`;
 
 async function checkUserExists(userName: string, excludeUserId?: number): Promise<boolean> {
   try {

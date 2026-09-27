@@ -81,8 +81,8 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
         queryClient.invalidateQueries({ queryKey: ['expenses'], exact: false });
 
          const savedId =
-           result.data?.id ??
-           result.data?.ExpenseInfoID ??
+           (result.data as { id?: number; ExpenseInfoID?: number } | undefined)?.id ??
+           (result.data as { id?: number; ExpenseInfoID?: number } | undefined)?.ExpenseInfoID ??
            editingExpense?.id;
 
         onSuccess?.({

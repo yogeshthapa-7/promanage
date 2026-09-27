@@ -1,4 +1,3 @@
-import { type ReactNode } from 'react';
 import { LayoutGrid, List } from 'lucide-react';
 import Button from './Button';
 

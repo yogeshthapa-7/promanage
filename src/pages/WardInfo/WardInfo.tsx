@@ -14,8 +14,6 @@ import { type Ward } from '@/types/ward-types';
 import CreateWardDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
 function fetchWardsPage(params: PaginatedListParams): Promise<{ items: Ward[]; total: number }> {
   return fetchWards({
     search: (params.search as string) || '',
@@ -91,14 +89,7 @@ export default function WardInfoPage() {
     });
   };
 
-  const handleCreateSuccess = () => {
-    setShowFormModal(false);
-    setEditingWard(null);
-    setCurrentPage(1);
-    queryClient.invalidateQueries({ queryKey: ['wards'] });
-    refetch();
-    message.success('Ward saved successfully');
-  };
+
 
   const wardColumns = [
     {

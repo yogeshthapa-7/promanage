@@ -4,7 +4,6 @@ import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import AppTable from '@/components/ui/AppTable';
-import { TableSkeleton } from '@/components/ui/Loaders';
 import Button from '@/components/ui/Button';
 import { apiCall } from '@/services/apiservice';
 import { fetchBranches, fetchBranchSelectList } from '@/services/branchservice';
@@ -255,7 +254,7 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
       dataIndex: 'sn',
       key: 'sn',
       width: 64,
-      align: 'center',
+      align: 'center' as const,
       className: 'text-slate-400 font-medium',
     },
     {
@@ -282,7 +281,7 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
       title: 'Actions',
       key: 'actions',
       width: 160,
-      align: 'center',
+      align: 'center' as const,
       className: 'no-print',
       render: (_: any, branch: Branch) => (
         <div className="flex items-center justify-center gap-2">

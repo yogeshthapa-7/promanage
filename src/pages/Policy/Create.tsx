@@ -78,8 +78,8 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
         queryClient.invalidateQueries({ queryKey: ['policies'], exact: false });
 
          const savedId =
-           result.data?.id ??
-           result.data?.PolicyProgramID ??
+           (result.data as { id?: number; PolicyProgramID?: number } | undefined)?.id ??
+           (result.data as { id?: number; PolicyProgramID?: number } | undefined)?.PolicyProgramID ??
            editingPolicy?.id;
 
         onSuccess?.({

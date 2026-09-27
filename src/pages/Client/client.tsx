@@ -14,8 +14,6 @@ import { type Client } from '@/types/client-types';
 import CreateClientDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
 function fetchClientsPage(params: PaginatedListParams): Promise<{ items: Client[]; total: number }> {
   return fetchClients({
     search: (params.search as string) || '',
@@ -90,14 +88,7 @@ export default function ClientPage() {
     });
   };
 
-  const handleCreateSuccess = () => {
-    setShowFormModal(false);
-    setEditingClient(null);
-    setCurrentPage(1);
-    queryClient.invalidateQueries({ queryKey: ['clients'] });
-    refetch();
-    message.success('Client saved successfully');
-  };
+
 
   const clientColumns = [
     {

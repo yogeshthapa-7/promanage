@@ -167,20 +167,15 @@ export default function IssueTab({ project }: IssueTabProps) {
       title: 'Issue',
       dataIndex: 'IssuesTitle',
       key: 'IssuesTitle',
-      render: (text: string, record: IssueItem) => (
-        <div>
+       render: (_text: string, record: IssueItem) => (
           <div className="font-semibold text-slate-900">{record.IssuesTitle}</div>
-          {record.Comments && (
-            <div className="text-xs text-muted-foreground truncate max-w-xs mt-1">{record.Comments}</div>
-          )}
-        </div>
-      ),
+        ),
     },
     {
       title: 'Label',
       dataIndex: 'LabelInfoName',
       key: 'LabelInfoName',
-      render: (_, record: IssueItem) =>
+       render: (__: any, record: IssueItem) =>
         record.LabelInfoName ? (
           <Badge
             style={{
@@ -203,18 +198,18 @@ export default function IssueTab({ project }: IssueTabProps) {
       title: 'Raised By',
       dataIndex: 'RaisedBy',
       key: 'RaisedBy',
-      render: (text: string) => text || '—',
+      render: (text: string) => text || '',
     },
     {
       title: 'Date',
       dataIndex: 'CreatedDate',
       key: 'CreatedDate',
-      render: (date: string) => convertAdToBs(date) || '—',
+      render: (date: string) => convertAdToBs(date) || '',
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record: IssueItem) => (
+       render: (_: any, record: IssueItem) => (
         <div className="flex items-center justify-end gap-1">
           {record.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEdit(record)} />}
           {record.HasUserRightToDelete && (
@@ -307,7 +302,7 @@ export default function IssueTab({ project }: IssueTabProps) {
                     <Badge>{issue.WorkStatusName}</Badge>
                   )}
                   <span>•</span>
-                  <span>Raised by: {issue.RaisedBy || "—"}</span>
+                  <span>Raised by: {issue.RaisedBy || ""}</span>
                   <span>•</span>
                    <span>{convertAdToBs(issue.CreatedDate)}</span>
                 </div>

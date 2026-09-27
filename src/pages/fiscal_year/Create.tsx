@@ -58,7 +58,7 @@ export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editi
          }
 
       message.success(
-        result.Message ||
+        result.message ||
         (isEdit
           ? 'Fiscal year updated successfully'
           : 'Fiscal year created successfully')

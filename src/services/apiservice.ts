@@ -1,6 +1,5 @@
 import {
   getStoredToken,
-  refreshAuthToken,
   clearAuthentication,
   clearTokenRefreshSubscribers,
   dispatchAuthExpired,
@@ -8,7 +7,7 @@ import {
   buildHeaders,
 } from '@/interceptor/token';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 
 // const REFRESH_TOKEN_URL = (
 //   import.meta.env.VITE_REFRESH_TOKEN_URL ||
@@ -16,7 +15,7 @@ const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 // ).replace(/\/$/, '');
 
 const DEFAULT_TIMEOUT_MS = 30000;
-const REFRESH_TIMEOUT_MS = 15000;
+
 
 export async function apiCall(
   url: string,

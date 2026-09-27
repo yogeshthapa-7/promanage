@@ -11,7 +11,6 @@ import {
 import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import AppTable from '@/components/ui/AppTable';
-import { TableSkeleton } from '@/components/ui/Loaders';
 import Button from '@/components/ui/Button';
 import Drawer from '@/components/drawer';
 import CreateDepartmentDrawer from './Create';
@@ -284,7 +283,7 @@ export default function DepartmentPage() {
       dataIndex: 'sn',
       key: 'sn',
       width: 64,
-      align: 'center',
+      align: 'center' as const,
       className: 'text-slate-400 font-medium',
     },
     {
@@ -304,7 +303,7 @@ export default function DepartmentPage() {
       title: 'Actions',
       key: 'actions',
       width: 160,
-      align: 'center',
+      align: 'center' as const,
       className: 'no-print',
       render: (_: any, dept: Department) => (
         <div className="flex items-center justify-center gap-2">

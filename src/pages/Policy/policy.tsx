@@ -5,21 +5,21 @@ import type { ColumnsType } from 'antd/es/table';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import AppTable from '@/components/ui/AppTable';
-import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
+import { CardGridSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import ViewToggle from '@/components/ui/ViewToggle';
 import Pagination from '@/components/ui/Pagination';
 import { fetchPolicies, deletePolicy } from '@/services/policyservice';
 import { type Policy } from '@/types/policy-types';
-import { apiCall } from '@/services/apiservice';
+
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
 import { type FiscalYearSelectOption } from '@/types/fiscal-year-types';
 import ViewPolicyDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import CreatePolicyDrawer from './Create';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 
 function fetchPoliciesPage(params: PaginatedListParams): Promise<{ items: Policy[]; total: number }> {
   return fetchPolicies({

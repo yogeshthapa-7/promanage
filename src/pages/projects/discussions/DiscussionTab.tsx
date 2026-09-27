@@ -150,17 +150,18 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
       title: 'Priority',
       dataIndex: 'PriorityName',
       key: 'PriorityName',
-      render: (text: string) => text || '—',
+      render: (text: string) => text || '',
     },
     {
       title: 'Date',
+      dataIndex: 'CreatedDate',
       key: 'CreatedDate',
-      render: (date: string) => convertAdToBs(date) || '—',
+      render: (date: string) => (date ? convertAdToBs(date) : ''),
     },
     {
       title: 'Actions',
       key: 'actions',
-      align: 'right',
+      align: 'right' as const,
       render: (_: any, record: ProjectDiscussionItem) => (
         <div className="flex items-center justify-end gap-1">
           {record.HasUserRightToEdit && <Button type="text" size="small" icon={<Pencil size={16} />} onClick={() => handleEditDiscussion(record)} />}

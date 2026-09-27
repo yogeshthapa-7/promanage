@@ -3,13 +3,12 @@ import { Plus, Eye, Download } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
-import AppTable from '@/components/ui/AppTable';
 import { CardGridSkeleton } from '@/components/ui/Loaders';
-import { TableSkeleton } from '@/components/ui/Loaders';
-import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
 import ViewToggle from '@/components/ui/ViewToggle';
 import Pagination from '@/components/ui/Pagination';
+import SearchInput from '@/components/ui/SearchInput';
+import AppTable from '@/components/ui/AppTable';
 import { fetchBudgets, deleteBudget } from '@/services/budgetservice';
 import { type Budget } from '@/types/budget-types';
 import { fetchFiscalYearSelectList } from '@/services/fiscalyearservice';
@@ -18,7 +17,7 @@ import ViewBudgetDrawer from './View';
 import { usePaginatedList, type PaginatedListParams } from '@/hooks/usePaginatedList';
 import CreateBudgetDrawer from './Create';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 
 function fetchBudgetsPage(params: PaginatedListParams): Promise<{ items: Budget[]; total: number }> {
   return fetchBudgets({
@@ -207,7 +206,7 @@ export default function BudgetPage() {
     {
       title: 'Actions',
       key: 'actions',
-      align: 'right',
+      align: 'right' as const,
       render: (_: any, budget: Budget) => (
         <div className="flex items-center justify-end gap-2">
           <Button
