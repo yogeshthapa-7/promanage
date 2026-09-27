@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Client } from '@/features/client/types/client-types';
 
 interface ApiClientResponse {
@@ -132,6 +132,7 @@ export async function deleteClient(id: number): Promise<{ success: boolean; mess
   if (!res.ok) throw new Error(`Failed to delete client: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

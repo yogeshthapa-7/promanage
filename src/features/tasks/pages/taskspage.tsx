@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
-import { apiCall } from "@/features/projects/services/api.service";
+import { apiCall } from "@/lib/api/api.service";
 import type { ApiProject } from "@/features/projects/types/projects-data";
 import type { TaskItem } from "@/features/projects/types/tasks-data";
 import Pagination from "@/components/ui/Pagination";
@@ -497,6 +497,7 @@ export default function TasksPage() {
     </div>
   );
 }
+
 
 
 

@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Label } from '@/features/label/types/label-types';
 
 interface ApiLabelResponse {
@@ -113,6 +113,7 @@ export async function deleteLabel(id: number): Promise<{ success: boolean; messa
   if (!res.ok) throw new Error(`Failed to delete label: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

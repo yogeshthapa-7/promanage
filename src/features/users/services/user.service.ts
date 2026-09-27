@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { User, UserGroup, OrganizationSelect, UserRole, UserStatus } from '@/features/users/types/users-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -176,6 +176,7 @@ export async function deleteUser(userId: number): Promise<{ success: boolean; me
   if (!res.ok) throw new Error(json.Message || `Failed to delete user: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Employee } from '@/features/employee/types/employees-types';
 
 interface ApiEmployeeResponse {
@@ -105,6 +105,7 @@ export async function deleteEmployee(id: number): Promise<{ success: boolean; me
   if (!res.ok) throw new Error(`Failed to delete employee: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

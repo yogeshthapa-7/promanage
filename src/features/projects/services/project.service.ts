@@ -1,4 +1,4 @@
-import { apiCall } from './api.service';
+import { apiCall } from '@/lib/api/api.service';
 import { convertAdToBs, convertBsToAd } from '@/shared/utils/nepali-date';
 import type { Project, ProjectStatus, ProjectFormData, ApiProject } from '@/features/projects/types/projects-types';
 import { Smartphone, Globe, Megaphone, Server, ShieldCheck, FolderKanban } from 'lucide-react';

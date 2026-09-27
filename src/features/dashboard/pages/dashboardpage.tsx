@@ -10,7 +10,7 @@ import { mapApiProjectToProject } from '@/features/projects/services/project.ser
 import { fetchAllProjectTaskCounts } from '@/features/tasks/services/task.service';
 import Topbar from '@/components/Topbar';
 import { useDashboardStats } from '../components/useDashboardStats';
-import { apiCall } from '@/features/projects/services/api.service';
+import { apiCall } from '@/lib/api/api.service';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -234,6 +234,7 @@ export default function DashboardPage() {
     </div>
   );
 }
+
 
 
 

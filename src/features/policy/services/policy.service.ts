@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Policy } from '@/features/policy/types/policy-types';
 
 interface ApiPolicyResponse {
@@ -125,6 +125,7 @@ export async function deletePolicy(id: number): Promise<{ success: boolean; mess
   if (!res.ok) throw new Error(`Failed to delete policy: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

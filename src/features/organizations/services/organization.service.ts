@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Organization } from '@/features/organizations/types/organizations-types';
 
 interface ApiOrganizationResponse {
@@ -147,6 +147,7 @@ export async function deleteOrganization(id: number): Promise<{ success: boolean
   if (!res.ok) throw new Error(`Failed to delete organization: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

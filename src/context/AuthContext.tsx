@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { apiCall } from '@/features/projects/services/api.service';
+import { apiCall } from '@/lib/api/api.service';
 import { clearTokenRefreshSubscribers, isTokenExpired } from '@/lib/api/interceptor';
 
 interface AuthContextType {
@@ -235,6 +235,7 @@ export function useAuth() {
   }
   return context;
 }
+
 
 
 

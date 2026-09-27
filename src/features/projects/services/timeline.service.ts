@@ -1,4 +1,4 @@
-import { apiCall } from './api.service';
+import { apiCall } from '@/lib/api/api.service';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const TIMELINE_API = `${API_BASE}/ProjectTimelineInfo/ServerSearch`;

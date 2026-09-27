@@ -1,4 +1,4 @@
-import { apiCall } from './api.service';
+import { apiCall } from '@/lib/api/api.service';
 import type { ApiProject } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');

@@ -1,4 +1,4 @@
-import { apiCall } from '@/features/projects/services/api.service';
+import { apiCall } from '@/lib/api/api.service';
 import type { TaskItem, SubTaskItem, TaskStats, ProjectTaskCounts } from '@/features/projects/types/tasks-types';
 import type { ApiProject } from '@/features/projects/types/projects-types';
 
@@ -515,3 +515,4 @@ export async function fetchProjectTasks(projectId: string | number, signal?: Abo
     signal
   );
 }
+

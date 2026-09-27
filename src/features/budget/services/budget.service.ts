@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Budget } from '@/features/budget/types/budget-types';
 
 interface ApiBudgetResponse {
@@ -125,6 +125,7 @@ export async function deleteBudget(id: number): Promise<{ success: boolean; mess
   if (!res.ok) throw new Error(`Failed to delete budget: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

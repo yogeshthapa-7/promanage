@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Department, DepartmentSelectOption } from '@/features/departments/types/departments-types';
 
 interface ApiDepartmentResponse {
@@ -197,6 +197,7 @@ export async function deleteDepartment(id: number): Promise<{ success: boolean; 
   if (!res.ok) throw new Error(`Failed to delete department: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

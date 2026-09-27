@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/features/projects/services/api.service';
+import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Ward } from '@/features/ward/types/ward-types';
 
 interface ApiWardResponse {
@@ -114,6 +114,7 @@ export async function deleteWard(id: number): Promise<{ success: boolean; messag
   if (!res.ok) throw new Error(`Failed to delete ward: ${res.statusText}`);
   return { success: json.Success !== false, message: json.Message };
 }
+
 
 
 

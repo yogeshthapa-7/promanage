@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import { apiCall } from '@/features/projects/services/api.service';
+import { apiCall } from '@/lib/api/api.service';
 import type { User, UserGroup, OrganizationSelect } from '@/features/users/types/users-types';
 import { fetchUserGroups, fetchOrganizations, saveUser } from '@/features/users/services/user.service';
 import Drawer from '@/components/drawer';
@@ -550,6 +550,7 @@ export default function UserFormModal({
     </Drawer>
   );
 }
+
 
 
 

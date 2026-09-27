@@ -14,7 +14,7 @@ import AppTable from '@/components/ui/AppTable';
 import Button from '@/components/ui/Button';
 import Drawer from '@/components/drawer';
 import CreateDepartmentDrawer from './Create';
-import { apiCall } from '@/features/projects/services/api.service';
+import { apiCall } from '@/lib/api/api.service';
 import { fetchDepartments, fetchDepartmentSelectList } from '@/features/departments/services/department.service';
 import type { Department, DepartmentSelectOption } from '@/features/departments/types/departments-types';
 import {
@@ -573,6 +573,7 @@ export default function DepartmentPage() {
     </div>
   );
 }
+
 
 
 

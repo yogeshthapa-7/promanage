@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Row, Col, message } from 'antd';
 import type { Employee } from '@/features/employee/types/employees-types';
 import { saveEmployee } from '@/features/employee/services/employee.service';
-import { apiCall } from '@/features/projects/services/api.service';
+import { apiCall } from '@/lib/api/api.service';
 import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import ProgressBar from '@/components/ui/ProgressBar';
@@ -419,7 +419,7 @@ export default function EmployeeSetupModal({
               </Form.Item>
 
               <Form.Item
-                label={<span className="text-slate-700 font-semibold text-[13px]">फोटो<span className="text-red-500 ml-0.5">*</span></span>}
+                label={<span className="text-slate-700 font-semibold text-[13px]">फाइल अपलोड गर्नुहोस्<span className="text-red-500 ml-0.5">*</span></span>}
                 name="Photo"
                 initialValue=""
               >
@@ -595,6 +595,7 @@ export default function EmployeeSetupModal({
     </Drawer>
   );
 }
+
 
 
 
