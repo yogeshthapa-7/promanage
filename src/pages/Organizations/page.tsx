@@ -105,13 +105,13 @@ export default function OrganizationPage() {
       title: 'Parent Organization',
       dataIndex: 'parentOrganizationName',
       key: 'parentOrganizationName',
-      render: (value: string) => <span className="text-slate-600">{value || '—'}</span>,
+      render: (value: string) => <span className="text-slate-600">{value || ''}</span>,
     },
     {
       title: 'Parent ID',
       dataIndex: 'parentOrganizationId',
       key: 'parentOrganizationId',
-      render: (value: number | string) => <span className="text-slate-600">{value || '—'}</span>,
+      render: (value: number | string) => <span className="text-slate-600">{value || ''}</span>,
     },
     {
       title: 'Actions',
@@ -224,12 +224,12 @@ export default function OrganizationPage() {
                   <div className="flex items-center justify-between text-sm gap-2 text-right">
                     <span className="text-slate-400 shrink-0">Parent Org</span>
                     <span className="font-semibold text-slate-700 break-words">
-                      {org.parentOrganizationName || '—'}
+                      {org.parentOrganizationName || ''}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm gap-2">
                     <span className="text-slate-400 shrink-0">Parent ID</span>
-                    <span className="font-semibold text-slate-700 truncate">{org.parentOrganizationId}</span>
+                    <span className="font-semibold text-slate-700 truncate">{org.parentOrganizationId || ''}</span>
                   </div>
                 </div>
 
