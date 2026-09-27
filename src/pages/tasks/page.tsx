@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Eye, Pencil, Trash2, Plus, LayoutList, LayoutGrid } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
 import { apiCall } from "@/services/apiservice";
 import type { ApiProject } from "@/types/projects-data";
 import type { TaskItem } from "@/types/tasks-data";
 import Pagination from "@/components/ui/Pagination";
+import ViewToggle from "@/components/ui/ViewToggle";
 import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
@@ -300,24 +301,7 @@ export default function TasksPage() {
           <Button type="primary" onClick={() => { setEditingTask(null); setShowFormModal(true); }} icon={<Plus className="w-4 h-4" />}>
             Add New Task
           </Button>
-          <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-              title="List view"
-            >
-              <LayoutList className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-              title="Grid view"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-          </div>
+          <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
       </div>
 

@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { Plus, Building2, LayoutGrid, List } from 'lucide-react';
+import { Plus, Building2 } from 'lucide-react';
 import { Modal, message, Button } from 'antd';
 import Pagination from '@/components/ui/Pagination';
 import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import AppTable from '@/components/ui/AppTable';
 import SearchInput from '@/components/ui/SearchInput';
+import ViewToggle from '@/components/ui/ViewToggle';
 import { fetchOrganizations, deleteOrganization } from '@/services/organizationservice';
 import { type Organization } from '@/types/organizations-types';
 import CreateOrganizationModal from './Create';
@@ -170,18 +171,7 @@ export default function OrganizationPage() {
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
-          <div className="flex items-center bg-white/70 border border-border rounded-xl p-0.5 shadow-xs">
-            <Button
-              type="text"
-              onClick={() => setViewMode('list')}
-              icon={<List className="w-4 h-4" />}
-            />
-            <Button
-              type="text"
-              onClick={() => setViewMode('grid')}
-              icon={<LayoutGrid className="w-4 h-4" />}
-            />
-          </div>
+          <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
 
         {loading ? (

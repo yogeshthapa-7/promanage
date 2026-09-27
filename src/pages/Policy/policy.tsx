@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, LayoutList, LayoutGrid, Eye, Download } from 'lucide-react';
+import { Plus, Eye, Download } from 'lucide-react';
 import { Modal, message, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useQueryClient } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import AppTable from '@/components/ui/AppTable';
 import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
 import Button from '@/components/ui/Button';
+import ViewToggle from '@/components/ui/ViewToggle';
 import Pagination from '@/components/ui/Pagination';
 import { fetchPolicies, deletePolicy } from '@/services/policyservice';
 import { type Policy } from '@/types/policy-types';
@@ -197,7 +198,7 @@ export default function PolicyPage() {
             Document
           </a>
         ) : (
-          '—'
+          ''
         ),
     },
     {
@@ -263,24 +264,7 @@ export default function PolicyPage() {
           <Button type="primary" onClick={handleAddNew} icon={<Plus className="h-4 w-4" />} className="no-print">
             Add Policy
           </Button>
-          <div className="flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-              title="List view"
-            >
-              <LayoutList className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-              title="Grid view"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-          </div>
+          <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
       </div>
       <hr className="border-slate-200 my-6" />

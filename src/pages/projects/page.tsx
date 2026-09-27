@@ -24,6 +24,7 @@ import Card from '@/components/ui/Card';
 import Pagination from '@/components/ui/Pagination';
 import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
+import ViewToggle from '@/components/ui/ViewToggle';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
@@ -863,10 +864,7 @@ const {
                 }))}
               />
             </div>
-            <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
-              <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
-              <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
-            </div>
+            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
           </div>
         </div>
       </div>

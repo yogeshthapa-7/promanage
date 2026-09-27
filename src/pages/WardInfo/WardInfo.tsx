@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { Plus, LayoutGrid, List } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Modal, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import AppTable from '@/components/ui/AppTable';
 import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
 import SearchInput from '@/components/ui/SearchInput';
+import ViewToggle from '@/components/ui/ViewToggle';
 import Button from '@/components/ui/Button';
 import Pagination from '@/components/ui/Pagination';
 import { fetchWards, deleteWard } from '@/services/wardservice';
@@ -169,18 +170,7 @@ export default function WardInfoPage() {
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
-          <div className="flex items-center bg-white/70 border border-border rounded-xl p-0.5 shadow-xs">
-            <Button
-              type="text"
-              onClick={() => setViewMode('list')}
-              icon={<List className="w-4 h-4" />}
-            />
-            <Button
-              type="text"
-              onClick={() => setViewMode('grid')}
-              icon={<LayoutGrid className="w-4 h-4" />}
-            />
-          </div>
+          <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
 
         {loading ? (
