@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, Filter, X, ChevronDown, ArrowUpDown, Menu } from 'lucide-react';
-import type { ProjectStatus } from '@/types/projects-types';
+import type { ProjectStatus } from '@/features/projects/types/projects-types';
 
 interface TopbarProps {
   pageTitle?: string;
@@ -202,4 +202,10 @@ export default function Topbar({
     </header>
   );
 }
+
+
+
+
+
+
 

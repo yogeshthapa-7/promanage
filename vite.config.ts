@@ -14,8 +14,12 @@ export default defineConfig({
     proxy: {
       '/kmc-api': {
         target: 'https://datacollection.kathmandu.gov.np:8080',
+        // target: 'https://projectmanagement.himalayankasturi.com.np',
         changeOrigin: true,
       },
     },
   },
 })
+
+
+

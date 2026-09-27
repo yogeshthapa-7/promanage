@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
-import DashboardBackground from '@/pages/dashboard/DashboardBackground';
+import DashboardBackground from '@/features/dashboard/pages/DashboardBackground';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -73,3 +73,9 @@ export default function AppLayout({
     </div>
   );
 }
+
+
+
+
+
+

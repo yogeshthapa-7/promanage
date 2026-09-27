@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FolderKanban, CheckSquare, ChevronLeft, ChevronRight, LogOut, Building, Building2, User, File, Wallet2, CreditCard, Handshake, UserCircle, Tag, MapPin, Calendar, X, } from 'lucide-react';
 import { Modal } from 'antd';
 import { useAuth } from '@/context/AuthContext';
-import UserProfileDrawer from '@/pages/profile/page';
+import UserProfileDrawer from '@/features/profile/pages/profilepage';
 
 interface NavItem { id: string; label: string; icon: React.ReactNode; href: string; badge?: number; section?: string; }
 interface SidebarProps { collapsed?: boolean; onToggle?: () => void; mobileOpen?: boolean; onMobileClose?: () => void; }
@@ -352,3 +352,9 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen, onMob
     </>
   );
 }
+
+
+
+
+
+

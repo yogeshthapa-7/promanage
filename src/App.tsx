@@ -2,26 +2,26 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, App } from 'antd';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/login/page';
-import DashboardPage from './pages/dashboard/page';
-import ProjectDetailsPage from './pages/projects/projectdetails';
-import ProjectsPage from './pages/projects/page';
-import TaskAndSubtasks from './pages/projects/TaskAndSubtasks';
-import KanbanBoardPage from './pages/projects/kanban/page';
-import DigitalBoardPage from './pages/projects/board/digital_board';
-import TasksPage from './pages/tasks/page';
-import EmployeePage from './pages/employee/page'
-import UsersPage from './pages/users/page';
-import NotFound from './pages/not-found';
-import DepartmentPage from './pages/departments/department/page';
-import OrganizationPage from './pages/Organizations/page';
-import PolicyPage from './pages/Policy/policy';
-import BudgetPage from './pages/Budget/budget';
-import ExpensePage from './pages/Expense/expense';
-import ClientPage from './pages/Client/client';
-import LabelPage from './pages/Label/label';
-import WardPage from './pages/WardInfo/WardInfo';
-import FiscalYearPage from './pages/fiscal_year/fiscal_year';
+import LoginPage from './features/auth/pages/loginpage';
+import DashboardPage from './features/dashboard/pages/dashboardpage';
+import ProjectDetailsPage from './features/projects/pages/projectdetails';
+import ProjectsPage from './features/projects/pages/projectspage';
+import TaskAndSubtasks from './features/projects/pages/TaskAndSubtasks';
+import KanbanBoardPage from './features/projects/pages/kanban/page';
+import DigitalBoardPage from './features/projects/pages/board/digital_board';
+import TasksPage from './features/tasks/pages/taskspage';
+import EmployeePage from './features/employee/pages/employeepage'
+import UsersPage from './features/users/pages/userspage';
+import NotFound from './features/not-found/pages/not-found';
+import DepartmentPage from './features/departments/pages/departmentspage';
+import OrganizationPage from './features/organizations/pages/organizationspage';
+import PolicyPage from './features/policy/pages/policypage';
+import BudgetPage from './features/budget/pages/budgetpage';
+import ExpensePage from './features/expense/pages/expensepage';
+import ClientPage from './features/client/pages/clientpage';
+import LabelPage from './features/label/pages/labelpage';
+import WardPage from './features/ward/pages/wardpage';
+import FiscalYearPage from './features/fiscal-year/pages/fiscalyearpage';
 
 function RootApp() {
   return (
@@ -119,11 +119,11 @@ function RootApp() {
              <AppLayout showTopbar={false}><ClientPage /></AppLayout>
            </ProtectedRoute>
          } />
-          <Route path="/Label" element={
-            <ProtectedRoute>
-              <AppLayout showTopbar={false}><LabelPage /></AppLayout>
-            </ProtectedRoute>
-          } />
+           <Route path="/Label" element={
+             <ProtectedRoute>
+               <AppLayout showTopbar={false}><LabelPage /></AppLayout>
+             </ProtectedRoute>
+           } />
            <Route path="/projects/:id/tasks"element={
             <ProtectedRoute>
               <AppLayout showTopbar={false}><TaskAndSubtasks /></AppLayout>
@@ -159,3 +159,6 @@ function RootApp() {
 }
 
 export default RootApp;
+
+
+
