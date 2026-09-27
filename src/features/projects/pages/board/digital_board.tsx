@@ -13,12 +13,10 @@ import {
   CircleCheck,
   BriefcaseBusiness,
 } from 'lucide-react';
-import { apiCall } from '@/features/projects/services/api.service';
+import { fetchProjectDetailData } from '@/features/projects/services/project.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
 import type { ApiProject } from '@/features/projects/types/projects-types';
 import nepallogo from '@/assets/images/nepal_logo.png';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 const projectTypeMap: Record<number, string> = {
   0: 'General',
@@ -82,7 +80,7 @@ const DigitalBoardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+   useEffect(() => {
     if (!id) return;
 
     let cancelled = false;
@@ -90,30 +88,12 @@ const DigitalBoardPage = () => {
     setLoading(true);
     setError(null);
 
-    apiCall(
-      `${API_BASE}/GetProjectDetailData?id=${encodeURIComponent(id)}`,
-      { method: 'GET' },
-      10000
-    )
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-
-        const json = await res.json();
-
-        const data = json?.Data ?? json?.data;
-        const p = data?.ProjectInfo ?? data?.projectInfo;
-
-        if (!p || !p.ProjectInfoID) {
-          throw new Error('Project details not found');
-        }
-
-        const clientInfo =
-          p?.ClientInfo ?? data?.ClientInfo ?? data?.clientInfo;
-
+    fetchProjectDetailData(id)
+      .then((project) => {
         if (!cancelled) {
           setProject({
-            ...p,
-            ClientInfo: clientInfo as ApiProject['ClientInfo'],
+            ...project,
+            ClientInfo: (project as any).ClientInfo,
           });
         }
       })

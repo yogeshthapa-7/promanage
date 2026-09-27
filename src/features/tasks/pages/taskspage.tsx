@@ -12,7 +12,7 @@ import SearchInput from "@/components/ui/SearchInput";
 import Badge from "@/components/ui/Badge";
 import AppTable from "@/components/ui/AppTable";
 import { usePaginatedList, type PaginatedListParams } from "@/shared/hooks/usePaginatedList";
-import { statusColor, priorityColor } from "@/features/projects/services/task.service";
+import { statusColor, priorityColor } from "@/features/tasks/services/task.service";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from '@/components/projects/viewtaskdrawer';
 

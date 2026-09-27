@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/features/projects/services/api.service';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
+import { saveDiscussion } from '@/features/projects/services/discussion.service';
 
 interface DiscussionCreateProps {
   open: boolean;
@@ -20,8 +20,6 @@ interface DiscussionCreateProps {
   } | null;
   modal?: boolean;
 }
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 const PRIORITY_OPTIONS = [
   { label: 'Urgent', value: 1 },
@@ -77,12 +75,7 @@ export default function DiscussionCreate({
         CreatedDate: createdDate || '',
       };
 
-      const res = await apiCall(`${API_BASE}/SaveProjectDiscussion`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      await saveDiscussion(body);
 
       message.success(isEditing ? 'Discussion updated successfully' : 'Discussion created successfully');
       form.resetFields();

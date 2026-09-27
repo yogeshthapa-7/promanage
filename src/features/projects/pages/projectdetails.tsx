@@ -12,7 +12,7 @@ import {
 import { BlockSkeleton } from '@/components/ui/Loaders';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { apiCall } from '@/features/projects/services/api.service';
+import { fetchProjectDetailData } from '@/features/projects/services/project.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
 import type { ApiProject } from '@/features/projects/types/projects-types';
 import * as XLSX from 'xlsx';
@@ -98,24 +98,6 @@ const formatDate = (dateStr?: string | null) => {
 };
 const formatCurrency = (amount?: number) => `Rs. ${(amount ?? 0).toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-// --- API Fetcher (ProjectInfo only) ---
-const fetchProjectInfo = async (projectId: string, signal?: AbortSignal): Promise<ApiProject> => {
-  const base = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-  const sanitizedId = encodeURIComponent(projectId);
-
-  const res = await apiCall(`${base}/GetProjectDetailData?id=${sanitizedId}`, { method: 'GET', signal }, 10000);
-  if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
-
-  const json = await res.json();
-  const data = json?.Data ?? json?.data;
-  const project = data?.ProjectInfo ?? data?.projectInfo;
-  if (!project || !project.ProjectInfoID) throw new Error('Project details not found');
-  if (import.meta.env.DEV) {
-    console.log('Project detail raw response:', json);
-  }
-  return project;
-};
-
 // --- Reusable Micro-Components ---
 const DetailItem = ({ label, value, badgeClass }: { label: string; value?: React.ReactNode; badgeClass?: string }) => (
   <div>
@@ -148,7 +130,7 @@ export default function ProjectDetailsPage() {
 
   const { data: project, isLoading, isError, error } = useQuery({
     queryKey: ['project-detail', id],
-    queryFn: ({ signal }) => fetchProjectInfo(id!, signal),
+    queryFn: ({ signal }) => fetchProjectDetailData(id!, signal),
     enabled: Boolean(id),
     staleTime: 5 * 60 * 1000, // 5 min cache
     retry: 1,

@@ -5,8 +5,8 @@ import Drawer from '@/components/drawer';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import DocumentUploadField from '@/components/DocumentUploadField';
 import type { ApiProject } from '@/features/projects/types/projects-types';
-import { apiCall } from '@/features/projects/services/api.service';
-import { saveProject } from '@/features/projects/services/project.service';
+import type { SelectListItem } from '@/features/projects/services/project.service';
+import { saveProject, fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions, API_BASE } from '@/features/projects/services/project.service';
 
 interface ProjectFormModalProps {
   open: boolean;
@@ -14,69 +14,6 @@ interface ProjectFormModalProps {
   onSuccess: () => void;
   editingProject?: ApiProject | null;
 }
-
-interface SelectListItem {
-  id: number | string;
-  name: string;
-}
-
-const getApiBaseUrl = (): string => {
-  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BASE_API_URL) {
-    return String(import.meta.env.VITE_BASE_API_URL);
-  }
-  return '';
-};
-
-const API_BASE = getApiBaseUrl().replace(/\/$/, '');
-
-const SELECT_LIST_ENDPOINTS = {
-  projectHead: `${API_BASE}/EmployeeInfo/SelectList`,
-  status: `${API_BASE}/WorkStatus/SelectList`,
-  policyProgram: `${API_BASE}/PolicyProgram/SelectList`,
-  budget: `${API_BASE}/BudgetInfo/SelectList`,
-  client: `${API_BASE}/ClientInfo/SelectList`,
-  projectType: `${API_BASE}/ProjectInfo/ProjectTypeList`,
-  department: `${API_BASE}/Department/SelectList`,
-  expenseInfo: `${API_BASE}/ExpenseInfo/SelectList`,
-  ward: `${API_BASE}/WardInfo/SelectList`,
-};
-
-const mapToSelectOptions = (items: SelectListItem[]): { value: string; label: string }[] => {
-  return items.map((item) => ({
-    value: String(item.id),
-    label: item.name,
-  }));
-};
-
-const extractIdAndName = (obj: Record<string, unknown>): SelectListItem | null => {
-  // Handle standard Value/Name format
-  if (obj.Value !== undefined && obj.Name !== undefined) {
-    return { id: Number(obj.Value), name: String(obj.Name) };
-  }
-
-  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label', 'Number', 'number'];
-
-  let id: number | string | undefined;
-  let name: string | undefined;
-
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null || value === undefined) continue;
-    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
-      id = value as number | string;
-    }
-    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
-      name = String(value);
-    }
-    if (id !== undefined && name !== undefined) break;
-  }
-
-  if (id !== undefined && name !== undefined) {
-    return { id: id as number | string, name };
-  }
-
-  return null;
-};
 
 const PRIORITY_OPTIONS = [
   {value: 1, label: 'Urgent'},
@@ -109,16 +46,15 @@ const DrawerContent = memo(
           let cancelled = false;
           const fetchAndAddClient = async () => {
             try {
-              const res = await apiCall(`${API_BASE}/ClientInfo/SelectList`);
-              if (!res.ok) return;
-              const data = await res.json();
-              const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
-              const client = list.find((item: any) => String(item.Value || item.ClientInfoID) === clientId);
-              if (!cancelled && client) {
-                setClientOptions(prev => [...prev, { 
-                  value: String(client.Value || client.ClientInfoID), 
-                  label: String(client.Name || '') 
-                }]);
+              const items = await fetchSelectList(SELECT_LIST_URLS.client);
+              if (!cancelled) {
+                const client = items.find((item) => String(item.id) === clientId);
+                if (client) {
+                  setClientOptions(prev => [...prev, { 
+                    value: String(client.id), 
+                    label: client.name 
+                  }]);
+                }
               }
             } catch (err) {
               console.error('Failed to fetch client:', err);
@@ -148,39 +84,31 @@ const DrawerContent = memo(
       setOptionsError(null);
       try {
         const results = await Promise.allSettled([
-          apiCall(SELECT_LIST_ENDPOINTS.projectHead),
-          apiCall(SELECT_LIST_ENDPOINTS.status),
-          apiCall(SELECT_LIST_ENDPOINTS.policyProgram),
-          apiCall(SELECT_LIST_ENDPOINTS.budget),
-          apiCall(SELECT_LIST_ENDPOINTS.client),
-          apiCall(SELECT_LIST_ENDPOINTS.projectType),
-          apiCall(SELECT_LIST_ENDPOINTS.department),
-          apiCall(SELECT_LIST_ENDPOINTS.expenseInfo),
-          apiCall(SELECT_LIST_ENDPOINTS.ward),
+          fetchSelectList(SELECT_LIST_URLS.projectHead, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.status, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.policyProgram, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.budget, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.client, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.projectType, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.department, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.expenseInfo, controller.signal),
+          fetchSelectList(SELECT_LIST_URLS.ward, controller.signal),
         ]);
 
-        const parseJson = async (_label: string, result: PromiseSettledResult<Response>) => {
-          if (result.status !== 'fulfilled' || !result.value.ok) {
-            return [];
-          }
-          const data = await result.value.json();
-          const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
-          return list.map(extractIdAndName).filter((item): item is SelectListItem => item !== null);
-        };
+        const pick = (result: PromiseSettledResult<SelectListItem[]>) =>
+          result.status === 'fulfilled' ? result.value : [];
 
-        const [projectHeadResult, statusResult, policyProgramResult, budgetResult, clientResult, projectTypeResult, departmentResult, expenseInfoResult, wardResult] = results;
-        const [projectHeadData, statusData, policyProgramData, budgetData, clientData, projectTypeData, departmentData, expenseInfoData, wardData] =
-          await Promise.all([
-            parseJson('projectHead', projectHeadResult),
-            parseJson('status', statusResult),
-            parseJson('policyProgram', policyProgramResult),
-            parseJson('budget', budgetResult),
-            parseJson('client', clientResult),
-            parseJson('projectType', projectTypeResult),
-            parseJson('department', departmentResult),
-            parseJson('expenseInfo', expenseInfoResult),
-            parseJson('ward', wardResult),
-          ]);
+        const [
+          projectHeadData,
+          statusData,
+          policyProgramData,
+          budgetData,
+          clientData,
+          projectTypeData,
+          departmentData,
+          expenseInfoData,
+          wardData,
+        ] = results.map(pick);
 
         setProjectHeadOptions(mapToSelectOptions(projectHeadData));
         setStatusOptions(mapToSelectOptions(statusData));
@@ -244,7 +172,7 @@ const DrawerContent = memo(
         form.resetFields();
         setDocumentUrl('');
       }
-    }, [open, editingProject, form, projectHeadOptions, statusOptions, clientOptions, projectTypeOptions]);
+    }, [open, editingProject, form, projectHeadOptions, statusOptions, clientOptions, projectTypeOptions, departmentOptions, expenseInfoOptions, wardOptions, policyProgramOptions, budgetOptions]);
 
     const handleSubmit = async () => {
        try {

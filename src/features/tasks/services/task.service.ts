@@ -1,11 +1,14 @@
 import { apiCall } from '@/features/projects/services/api.service';
 import type { TaskItem, SubTaskItem, TaskStats, ProjectTaskCounts } from '@/features/projects/types/tasks-types';
+import type { ApiProject } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
-const SUBTASKS_API = `${API_BASE}/SubTaskInfo/ServerSearch`;
-
-export { TASKS_API, SUBTASKS_API };
+export const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
+export const SUBTASKS_API = `${API_BASE}/SubTaskInfo/ServerSearch`;
+export const TASK_STATUS_CHANGE_URL = `${API_BASE}/TaskInfo/ChangeWorkStatus`;
+export const DELETE_SUBTASK_URL = `${API_BASE}/DeleteSubTaskInfo`;
+export const PROJECT_DETAIL_URL = `${API_BASE}/GetProjectDetailData`;
+export const WORK_STATUS_SELECT_LIST_URL = `${API_BASE}/WorkStatus/SelectList`;
 
 export const statusColor: Record<string, string> = {
   "In Progress": "!bg-blue-100 !text-blue-700",
@@ -398,9 +401,117 @@ export async function deleteTask(id: number): Promise<{ success: boolean; messag
   return { success: json.Success !== false, message: json.Message };
 }
 
+export async function deleteSubTask(id: number): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${DELETE_SUBTASK_URL}?id=${id}`, { method: 'GET' });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to delete subtask: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
+}
 
+export async function saveSubTask(body: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
+  const res = await apiCall(`${API_BASE}/SaveSubTaskInfo`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Failed to save subtask: ${res.statusText}`);
+  return { success: json.Success !== false, message: json.Message };
+}
 
+export async function fetchWorkStatuses(signal?: AbortSignal): Promise<
+  Array<{
+    WorkStatusInfoID: number;
+    StatusName: string;
+    StatusCode: string;
+    Color?: string;
+    IconName?: string;
+  }>
+> {
+  const res = await apiCall(WORK_STATUS_SELECT_LIST_URL, { signal });
+  if (!res.ok) return [];
+  const data = await res.json();
+  const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
+  return list.map((item) => ({
+    WorkStatusInfoID: Number(item.WorkStatusInfoID ?? item.Value ?? 0),
+    StatusName: String(item.StatusName ?? item.Name ?? ''),
+    StatusCode: String(item.StatusCode ?? ''),
+    Color: item.Color as string | undefined,
+    IconName: item.IconName as string | undefined,
+  }));
+}
 
+export async function changeTaskStatus(taskId: number, workStatusId: number): Promise<void> {
+  const res = await apiCall(TASK_STATUS_CHANGE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      TaskInfoID: taskId,
+      WorkStatusID: workStatusId,
+    }),
+  });
+  if (!res.ok) throw new Error(`Failed to update task status: ${res.statusText}`);
+}
 
+export async function postServerSearch<T>(
+  endpoint: string,
+  param: Record<string, any>,
+  signal?: AbortSignal
+): Promise<T[]> {
+  const payload = {
+    model: {
+      columns: Object.keys(param).map((key) => ({
+        data: key,
+        name: key,
+        searchable: true,
+        orderable: true,
+      })),
+      draw: 1,
+      start: 0,
+      length: 200,
+      order: [{ column: 1, dir: 'desc' }],
+      search: { value: '', regex: '' },
+    },
+    param,
+  };
 
+  const res = await apiCall(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    signal,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }, 10000);
 
+  if (!res.ok) throw new Error(`Request to ${endpoint} failed: ${res.statusText}`);
+  const json = await res.json();
+  return json?.data || [];
+}
+
+export async function fetchProjectInfo(projectId: string | number, signal?: AbortSignal): Promise<ApiProject> {
+  const sanitizedId = encodeURIComponent(String(projectId));
+  const res = await apiCall(`${PROJECT_DETAIL_URL}?id=${sanitizedId}`, {
+    method: 'GET',
+    signal,
+  }, 10000);
+
+  if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+  const json = await res.json();
+  const data = json?.Data ?? json?.data;
+  const project = data?.ProjectInfo ?? data?.projectInfo;
+  if (!project || !project.ProjectInfoID) throw new Error('Project details not found');
+
+  return project as ApiProject;
+}
+
+export async function fetchProjectTasks(projectId: string | number, signal?: AbortSignal): Promise<any[]> {
+  return postServerSearch<any>(
+    '/TaskInfo/ServerSearch',
+    {
+      TaskInfoID: 0,
+      ProjectInfoID: Number(projectId),
+      TaskTitle: '',
+      TaskName: '',
+      TaskManagerName: '',
+    },
+    signal
+  );
+}

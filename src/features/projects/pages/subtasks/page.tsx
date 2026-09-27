@@ -9,10 +9,9 @@ import Card from '@/components/ui/Card';
 import AppTable from '@/components/ui/AppTable';
 import SearchInput from '@/components/ui/SearchInput';
 import { Avatar } from '@/components/ui/Avatar';
-import { apiCall } from '@/features/projects/services/api.service';
 import type { ApiProject } from '@/features/projects/types/projects-types';
 import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-types';
-import { fetchSubTasks, statusColor, priorityColor } from '@/features/projects/services/task.service';
+import { fetchSubTasks, deleteSubTask, statusColor, priorityColor } from '@/features/tasks/services/task.service';
 import SubTaskCreate from './Create';
 
 interface SubtaskDrawerProps {
@@ -158,10 +157,8 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
       zIndex: 12000,
       onOk: async () => {
         try {
-          const res = await apiCall(`${import.meta.env.VITE_BASE_API_URL}/DeleteSubTaskInfo?id=${subtask.SubTaskInfoID}`, {
-            method: 'GET',
-          });
-          if (!res.ok) throw new Error('Failed');
+          const result = await deleteSubTask(subtask.SubTaskInfoID);
+          if (!result.success) throw new Error(result.message || 'Failed');
           message.success('Subtask deleted successfully');
           refetch();
         } catch {

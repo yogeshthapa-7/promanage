@@ -24,8 +24,11 @@ import AppTable from '@/components/ui/AppTable';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { apiCall } from '@/features/projects/services/api.service';
-import type { ApiProject } from '@/features/projects/types/projects-types';
+import {
+  fetchProjectInfo,
+  fetchProjectTasks,
+  deleteTask,
+} from '@/features/tasks/services/task.service';
 import type { TaskItem } from '@/features/projects/types/tasks-types';
 import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
 import ViewTaskDrawer from '@/components/projects/viewtaskdrawer';
@@ -128,65 +131,7 @@ const TASK_KEYS: EntityKeyMap = {
   photoKeys: ['TaskManagerPhoto'],
 };
 
-const getBase = () => (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
-async function postServerSearch<T>(endpoint: string, param: Record<string, any>, signal?: AbortSignal): Promise<T[]> {
-  const payload = {
-    model: {
-      columns: Object.keys(param).map((key) => ({
-        data: key,
-        name: key,
-        searchable: true,
-        orderable: true,
-      })),
-      draw: 1,
-      start: 0,
-      length: 200,
-      order: [{ column: 1, dir: 'desc' }],
-      search: { value: '', regex: '' },
-    },
-    param,
-  };
-
-  const res = await apiCall(`${getBase()}${endpoint}`, {
-    method: 'POST',
-    signal,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }, 10000);
-
-  if (!res.ok) throw new Error(`Request to ${endpoint} failed: ${res.statusText}`);
-  const json = await res.json();
-  return json?.data || [];
-}
-
-const fetchProjectInfo = async (projectId: string, signal?: AbortSignal): Promise<ApiProject> => {
-  const sanitizedId = encodeURIComponent(projectId);
-  const res = await apiCall(`${getBase()}/GetProjectDetailData?id=${sanitizedId}`, {
-    method: 'GET',
-    signal,
-  }, 10000);
-
-  if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
-  const json = await res.json();
-  const data = json?.Data ?? json?.data;
-  const project = data?.ProjectInfo ?? data?.projectInfo;
-  if (!project || !project.ProjectInfoID) throw new Error('Project details not found');
-  return project;
-};
-
-const fetchProjectTasks = (projectId: string, signal?: AbortSignal) =>
-  postServerSearch<RawEntity>(
-    '/TaskInfo/ServerSearch',
-    {
-      TaskInfoID: 0,
-      ProjectInfoID: Number(projectId),
-      TaskTitle: '',
-      TaskName: '',
-      TaskManagerName: '',
-    },
-    signal
-  );
 
 const LoadingSkeleton = () => (
   <BlockSkeleton lines={3} className="max-w-screen-2xl mx-auto space-y-4" message="Loading tasks..." />
@@ -329,8 +274,8 @@ export default function ProjectTasksPage() {
       zIndex: 12000,
       onOk: async () => {
         try {
-          const res = await apiCall(`${getBase()}/DeleteTaskInfo?id=${taskId}`, { method: 'GET' });
-          if (!res.ok) throw new Error('Failed');
+          const result = await deleteTask(taskId);
+          if (!result.success) throw new Error(result.message || 'Failed');
           message.success('Task deleted successfully');
           refetch();
         } catch (err) {

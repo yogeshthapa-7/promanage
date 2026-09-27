@@ -1,22 +1,8 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/features/projects/types/projects-data";
+import type { ApiProject } from "@/features/projects/types/projects-types";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
-import { apiCall } from "@/features/projects/services/api.service";
 import Card from "@/components/ui/Card";
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
-const TIMELINE_API = `${API_BASE}/ProjectTimelineInfo/ServerSearch`;
-
-interface TimelineItem {
-  ProjectInfoID: number;
-  Remarks: string;
-  TraceKey: number;
-  TraceID: number;
-  TraceKeyName: string;
-  CreatedDate: string;
-  CreatedTime: string;
-  CreateDateTime: string;
-}
+import { fetchTimeline, type TimelineItem } from "@/features/projects/services/timeline.service";
 
 interface TimelineTabProps {
   project?: ApiProject | null;
@@ -45,31 +31,14 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
 
   useEffect(() => {
     if (!activeProjectId) return;
-    const controller = new AbortController();
     let cancelled = false;
     setTimelinesLoading(true);
     setTimelines([]);
 
-    apiCall(TIMELINE_API, {
-      method: "POST",
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start: 0,
-          length: 20,
-          columns: [{ data: "ProjectInfoID", name: "ProjectInfoID", searchable: true, orderable: true, search: { value: "", regex: "" } }],
-          search: { value: "", regex: "" },
-          order: [{ column: 0, dir: "desc" }],
-        },
-        param: { ProjectInfoID: activeProjectId },
-      }),
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-        const json = await res.json();
+    fetchTimeline(activeProjectId)
+      .then((data) => {
         if (!cancelled) {
-          setTimelines(Array.isArray(json?.data) ? json.data : []);
+          setTimelines(data);
         }
       })
       .catch((err) => {
@@ -81,7 +50,6 @@ export default function TimelineTab({ project, projectId }: TimelineTabProps) {
 
     return () => {
       cancelled = true;
-      controller.abort();
     };
   }, [activeProjectId]);
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal, message, Button } from "antd";
-import type { ApiProject } from "@/features/projects/types/projects-data";
-import { apiCall } from "@/features/projects/services/api.service";
+import type { ApiProject } from "@/features/projects/types/projects-types";
 import { calculateProgressFromDates, convertAdToBs } from "@/shared/utils/nepali-date";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -9,22 +8,7 @@ import { LayoutGrid, List, Plus, Search, RotateCcw } from "lucide-react";
 import AppTable from "@/components/ui/AppTable";
 import MilestoneCreate from "./Create";
 import MilestoneSearch from "./Search";
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
-const MILESTONE_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
-
-interface MilestoneItem {
-  ProjectMilestoneID: number;
-  ProjectInfoID: number;
-  MilestoneTitle: string;
-  WorkStatusID: number;
-  WorkStatusName: string;
-  MilestoneCost: number;
-  StartDate: string;
-  EndDate: string;
-  Summary: string;
-  Progress: number;
-}
+import { fetchMilestones, deleteMilestone, type MilestoneItem } from "@/features/projects/services/milestone.service";
 
 interface MilestoneTabProps {
   project: ApiProject;
@@ -41,65 +25,23 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [allMilestones, setAllMilestones] = useState<MilestoneItem[]>([]);
 
-  const loadMilestones = () => {
-    const controller = new AbortController();
-    let cancelled = false;
+  const loadMilestones = async () => {
     setMilestonesLoading(true);
     setMilestones([]);
 
-    apiCall(MILESTONE_API, {
-      method: "POST",
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start: 0,
-          length: 20,
-          columns: [
-            { data: "ProjectMilestoneID", name: "ProjectMilestoneID", searchable: true, orderable: true, search: { value: "", regex: "" } },
-          ],
-          search: { value: "", regex: "" },
-          order: [{ column: 0, dir: "desc" }],
-        },
-        param: {
-          ProjectMilestoneID: 0,
-           ProjectInfoID: project.ProjectInfoID ?? Number(project.ProjectInfoID),
-          MilestoneTitle: "",
-          WorkStatusID: 0,
-          MilestoneCost: 0,
-          StartDate: "",
-          EndDate: "",
-          Summary: "",
-          Progress: 0,
-        },
-      }),
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-        const json = await res.json();
-        if (!cancelled) {
-          const data = Array.isArray(json?.data) ? json.data : [];
-          setMilestones(data);
-          setAllMilestones(data);
-        }
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') console.error(err);
-      })
-      .finally(() => {
-        if (!cancelled) setMilestonesLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
+    try {
+      const data = await fetchMilestones(project);
+      setMilestones(data);
+      setAllMilestones(data);
+    } catch {
+      console.error('Failed to fetch milestones');
+    } finally {
+      setMilestonesLoading(false);
+    }
   };
 
   useEffect(() => {
-    const cleanup = loadMilestones();
-    return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadMilestones();
   }, [project]);
 
   const handleEdit = (milestone: MilestoneItem) => {
@@ -120,12 +62,11 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
       zIndex: 10000,
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteProjectMilestone?id=${milestone.ProjectMilestoneID}`, { method: "GET" });
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          await deleteMilestone(milestone.ProjectMilestoneID);
           message.success("Milestone deleted successfully");
           setMilestones((prev) => prev.filter((m) => m.ProjectMilestoneID !== milestone.ProjectMilestoneID));
-        } catch (err) {
-          message.error(err instanceof Error ? err.message : "Failed to delete milestone");
+        } catch {
+          message.error("Failed to delete milestone");
         }
       },
     });

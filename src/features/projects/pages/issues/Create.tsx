@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/features/projects/services/api.service';
 import { useAuth } from '@/context/AuthContext';
 import { fetchEmployees } from '@/features/employee/services/employee.service';
+import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
+import { saveIssue } from '@/features/projects/services/issue.service';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
 
@@ -27,43 +28,8 @@ interface IssueCreateProps {
   modal?: boolean;
 }
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-const STATUS_API = `${API_BASE}/WorkStatus/SelectList`;
-const LABEL_INFO_API = `${API_BASE}/LabelInfo/SelectList`;
-
-interface SelectListItem {
-  id: number | string;
-  name: string;
-}
-
-const extractIdAndName = (obj: Record<string, unknown>): SelectListItem | null => {
-  if (obj.Value !== undefined && obj.Name !== undefined) {
-    return { id: Number(obj.Value), name: String(obj.Name) };
-  }
-
-  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
-
-  let id: number | string | undefined;
-  let name: string | undefined;
-
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null || value === undefined) continue;
-    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
-      id = value as number | string;
-    }
-    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
-      name = String(value);
-    }
-    if (id !== undefined && name !== undefined) break;
-  }
-
-  if (id !== undefined && name !== undefined) {
-    return { id: id as number | string, name };
-  }
-
-  return null;
-};
+const STATUS_API = SELECT_LIST_URLS.status;
+const LABEL_INFO_API = SELECT_LIST_URLS.labelInfo;
 
 export default function IssueCreate({
   open,
@@ -101,12 +67,8 @@ export default function IssueCreate({
 
     setStatusLoading(true);
     try {
-      const res = await apiCall(STATUS_API, { signal: controller.signal });
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-      const data = await res.json();
-      const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
-      const parsed = list.map(extractIdAndName).filter((item): item is SelectListItem => item !== null);
-      setStatusOptions(parsed.map((item) => ({ value: String(item.id), label: item.name })));
+      const items = await fetchSelectList(STATUS_API, controller.signal);
+      setStatusOptions(mapToSelectOptions(items));
     } catch (err) {
       if (err instanceof Error && err.name !== 'AbortError') {
         message.error('Failed to load status options');
@@ -125,12 +87,8 @@ export default function IssueCreate({
 
     setLabelLoading(true);
     try {
-      const res = await apiCall(LABEL_INFO_API, { signal: controller.signal });
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-      const data = await res.json();
-      const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
-      const parsed = list.map(extractIdAndName).filter((item): item is SelectListItem => item !== null);
-      setLabelOptions(parsed.map((item) => ({ value: String(item.id), label: item.name })));
+      const items = await fetchSelectList(LABEL_INFO_API, controller.signal);
+      setLabelOptions(mapToSelectOptions(items));
     } catch {
       setLabelOptions([{ value: '0', label: 'Default' }]);
     } finally {
@@ -224,12 +182,7 @@ export default function IssueCreate({
         CanDelete: true,
       };
 
-      const res = await apiCall(`${API_BASE}/SaveIssues`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      await saveIssue(body);
 
       message.success(isEditing ? 'Issue updated successfully' : 'Issue created successfully');
       form.resetFields();

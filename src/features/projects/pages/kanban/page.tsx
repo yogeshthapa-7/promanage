@@ -12,7 +12,7 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { apiCall } from '@/features/projects/services/api.service';
-import { deleteTask } from '@/features/projects/services/task.service';
+import { deleteTask } from '@/features/tasks/services/task.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';

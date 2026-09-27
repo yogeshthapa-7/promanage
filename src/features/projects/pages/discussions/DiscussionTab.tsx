@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ApiProject } from "@/features/projects/types/projects-data";
-import { apiCall } from "@/features/projects/services/api.service";
+import type { ApiProject } from "@/features/projects/types/projects-types";
 import { Modal, message, Button } from "antd";
 import { LayoutGrid, List, Search, Pencil, Trash2, RotateCcw } from "lucide-react";
 import AppTable from "@/components/ui/AppTable";
@@ -8,22 +7,7 @@ import Card from "@/components/ui/Card";
 import DiscussionCreate from "./Create";
 import DiscussionSearch from "./Search";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
-const DISCUSSION_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
-
-interface ProjectDiscussionItem {
-  SN: number;
-  ProjectDiscussionID: number;
-  DiscussionTitle: string;
-  ProjectInfoID: number;
-  Priority: number;
-  PriorityName: string;
-  Status: number;
-  HasUserRightToEdit: boolean;
-  HasUserRightToDelete: boolean;
-  CreatedDate: string;
-}
+import { fetchDiscussions, deleteDiscussion, type ProjectDiscussionItem } from "@/features/projects/services/discussion.service";
 
 interface DiscussionTabProps {
   project: ApiProject;
@@ -39,69 +23,19 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
-  const discussionsRefetch = () => {
-    const controller = new AbortController();
-    let cancelled = false;
+  const discussionsRefetch = async () => {
     setDiscussionsLoading(true);
     setDiscussions([]);
 
-    apiCall(DISCUSSION_API, {
-      method: "POST",
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start: 0,
-          length: 20,
-          columns: [
-            { data: "ProjectDiscussionID", name: "ProjectDiscussionID", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "DiscussionTitle", name: "DiscussionTitle", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "Priority", name: "Priority", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "PriorityName", name: "PriorityName", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "CreatedDate", name: "CreatedDate", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "RaisedBy", name: "RaisedBy", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "Comments", name: "Comments", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "Attachments", name: "Attachments", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "HasUserRightToEdit", name: "HasUserRightToEdit", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "HasUserRightToDelete", name: "HasUserRightToDelete", searchable: true, orderable: true, search: { value: "", regex: "" } },
-          ],
-          search: { value: "", regex: "" },
-          order: [{ column: 0, dir: "desc" }],
-        },
-        param: {
-          ProjectDiscussionID: 0,
-          DiscussionTitle: "",
-          ProjectInfoID: project.ProjectInfoID ?? 0,
-          Priority: 0,
-          PriorityName: "",
-          RaisedBy: "",
-          CreatedDate: "",
-          CanChangeStatus: true,
-          CanEdit: true,
-          CanDelete: true,
-        },
-      }),
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-        const json = await res.json();
-        if (!cancelled) {
-          const data = Array.isArray(json?.data) ? json.data : [];
-          setDiscussions(data);
-          setAllDiscussions(data);
-        }
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') console.error(err);
-      })
-      .finally(() => {
-        if (!cancelled) setDiscussionsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
+    try {
+      const data = await fetchDiscussions(project);
+      setDiscussions(data);
+      setAllDiscussions(data);
+    } catch {
+      console.error('Failed to fetch discussions');
+    } finally {
+      setDiscussionsLoading(false);
+    }
   };
 
   const handleClearDiscussionSearch = () => {
@@ -124,12 +58,11 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
       zIndex: 10000,
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteProjectDiscussion?id=${discussion.ProjectDiscussionID}`, { method: 'GET' });
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          await deleteDiscussion(discussion.ProjectDiscussionID);
           message.success('Discussion deleted successfully');
           setDiscussions((prev) => prev.filter((d) => d.ProjectDiscussionID !== discussion.ProjectDiscussionID));
-        } catch (err) {
-          message.error(err instanceof Error ? err.message : 'Failed to delete discussion');
+        } catch {
+          message.error('Failed to delete discussion');
         }
       },
     });

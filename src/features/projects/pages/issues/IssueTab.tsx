@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/features/projects/types/projects-data";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
-import { apiCall } from "@/features/projects/services/api.service";
+import { fetchIssues, deleteIssue } from "@/features/projects/services/issue.service";
 import { Modal, message, Button } from "antd";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -10,9 +10,6 @@ import IssueCreate from "./Create";
 import IssueSearch from "./Search";
 import AppTable from '@/components/ui/AppTable';
 import { TableSkeleton } from '@/components/ui/Loaders';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
-const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
 
 interface IssueItem {
   IssuesID: number;
@@ -56,8 +53,7 @@ export default function IssueTab({ project }: IssueTabProps) {
       okType: 'danger',
       onOk: async () => {
         try {
-          const res = await apiCall(`${API_BASE}/DeleteIssues?id=${issue.IssuesID}`, { method: 'GET' });
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+          await deleteIssue(issue.IssuesID);
           message.success('Issue deleted successfully');
           setIssues((prev) => prev.filter((i) => i.IssuesID !== issue.IssuesID));
         } catch (err) {
@@ -67,83 +63,30 @@ export default function IssueTab({ project }: IssueTabProps) {
     });
   };
 
-  const loadIssues = () => {
-    const controller = new AbortController();
-    let cancelled = false;
+  const loadIssues = async (signal?: AbortSignal) => {
     setIssuesLoading(true);
     setIssues([]);
 
-    apiCall(ISSUES_API, {
-      method: "POST",
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start: 0,
-          length: 20,
-          columns: [
-            { data: "IssuesID", name: "IssuesID", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "IssuesTitle", name: "IssuesTitle", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "Comments", name: "Comments", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "RaisedBy", name: "RaisedBy", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "CreatedDate", name: "CreatedDate", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "WorkStatusName", name: "WorkStatusName", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "LabelInfoName", name: "LabelInfoName", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "LabelColor", name: "LabelColor", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "Priority", name: "Priority", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "PriorityName", name: "PriorityName", searchable: true, orderable: true, search: { value: "", regex: "" } },
-            { data: "WorkStatusColor", name: "WorkStatusColor", searchable: true, orderable: true, search: { value: "", regex: "" } },
-          ],
-          search: { value: "", regex: "" },
-          order: [{ column: 0, dir: "desc" }],
-        },
-        param: {
-          IssuesID: 0,
-          IssuesTitle: "",
-          LabelInfoID: 0,
-          Comments: "",
-          Attachments: "",
-           ProjectInfoID: project.ProjectInfoID ?? Number(project.ProjectInfoID),
-          WorkStatusID: 0,
-          ProjectInfoName: "",
-          WorkStatusName: "",
-          LabelInfoName: "",
-          LabelColor: "",
-          CreatedDate: "",
-          RaisedBy: "",
-          WorkStatusColor: "",
-          CanChangeStatus: true,
-          CanEdit: true,
-          CanDelete: true,
-        },
-      }),
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-        const json = await res.json();
-        if (!cancelled) {
-          const data = Array.isArray(json?.data) ? json.data : [];
-          setIssues(data);
-          setAllIssues(data);
-        }
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') console.error(err);
-      })
-      .finally(() => {
-        if (!cancelled) setIssuesLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
+    try {
+      const data = await fetchIssues(project, signal);
+      setIssues(data);
+      setAllIssues(data);
+    } catch (err) {
+      if (!(err instanceof Error && err.name === 'AbortError')) {
+        console.error(err);
+      }
+    } finally {
+      setIssuesLoading(false);
+    }
   };
 
   useEffect(() => {
-    const cleanup = loadIssues();
-    return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const controller = new AbortController();
+    loadIssues(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
   }, [project]);
 
   const handleClearIssueSearch = () => {

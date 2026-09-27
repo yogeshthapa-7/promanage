@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import { apiCall } from '@/features/projects/services/api.service';
 import { fetchEmployees } from '@/features/employee/services/employee.service';
-import { type Employee } from '@/features/employee/types/employees-types';
+import type { Employee } from '@/features/employee/types/employees-types';
 import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-types';
+import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
+import { saveSubTask } from '@/features/tasks/services/task.service';
 import Drawer from '@/components/drawer';
 
 interface SubTaskCreateProps {
@@ -19,13 +20,6 @@ interface SubTaskCreateProps {
   modal?: boolean;
 }
 
-interface SelectListItem {
-  id: number | string;
-  name: string;
-}
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-const STATUS_API = `${API_BASE}/WorkStatus/SelectList`;
 
 const PRIORITY_OPTIONS = [
   { label: 'Urgent', value: 1 },
@@ -33,35 +27,6 @@ const PRIORITY_OPTIONS = [
   { label: 'Medium', value: 3 },
   { label: 'Low', value: 4 },
 ];
-
-const extractIdAndName = (obj: Record<string, unknown>): SelectListItem | null => {
-  if (obj.Value !== undefined && obj.Name !== undefined) {
-    return { id: Number(obj.Value), name: String(obj.Name) };
-  }
-
-  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
-
-  let id: number | string | undefined;
-  let name: string | undefined;
-
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null || value === undefined) continue;
-    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
-      id = value as number | string;
-    }
-    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
-      name = String(value);
-    }
-    if (id !== undefined && name !== undefined) break;
-  }
-
-  if (id !== undefined && name !== undefined) {
-    return { id: id as number | string, name };
-  }
-
-  return null;
-};
 
 export default function SubTaskCreate({
   open,
@@ -78,7 +43,6 @@ export default function SubTaskCreate({
   const [employeesLoading, setEmployeesLoading] = useState(false);
   const [statusOptions, setStatusOptions] = useState<{ value: string; label: string }[]>([]);
   const [statusLoading, setStatusLoading] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   const projectId = project?.ProjectInfoID ?? (project?.ProjectInfoID ? Number(project.ProjectInfoID) : null) ?? selectedTask?.ProjectInfoID;
   const taskInfoId = selectedTask?.TaskInfoID;
@@ -105,32 +69,15 @@ export default function SubTaskCreate({
         });
       }
     }
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
   }, [open, form, editingSubTask]);
 
   const fetchStatusOptions = async () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
     setStatusLoading(true);
     try {
-      const res = await apiCall(STATUS_API, { signal: controller.signal });
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-      const data = await res.json();
-      const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
-      const parsed = list.map(extractIdAndName).filter((item): item is SelectListItem => item !== null);
-      setStatusOptions(parsed.map((item) => ({ value: String(item.id), label: item.name })));
-    } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-        message.error('Failed to load status options');
-      }
+      const items = await fetchSelectList(SELECT_LIST_URLS.status);
+      setStatusOptions(mapToSelectOptions(items));
+    } catch {
+      message.error('Failed to load status options');
     } finally {
       setStatusLoading(false);
     }
@@ -186,12 +133,8 @@ export default function SubTaskCreate({
         ProjectInfoID: projectId,
       };
 
-      const res = await apiCall(`${API_BASE}/SaveSubTaskInfo`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const result = await saveSubTask(body);
+      if (!result.success) throw new Error(result.message || 'Failed');
 
       message.success(editingSubTask ? 'Subtask updated successfully' : 'Subtask created successfully');
       form.resetFields();
