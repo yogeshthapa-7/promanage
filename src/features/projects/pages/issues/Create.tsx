@@ -6,6 +6,7 @@ import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/feature
 import { saveIssue } from '@/features/projects/services/issue.service';
 import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
 import Drawer from '@/components/drawer';
+import DocumentUploadField from '@/components/DocumentUploadField';
 
 interface IssueCreateProps {
   open: boolean;
@@ -48,6 +49,8 @@ export default function IssueCreate({
   const [createdDate, setCreatedDate] = useState('');
   const [raisedByOptions, setRaisedByOptions] = useState<{ value: string; label: string }[]>([]);
   const [raisedByLoading, setRaisedByLoading] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
   const statusAbortControllerRef = useRef<AbortController | null>(null);
   const labelAbortControllerRef = useRef<AbortController | null>(null);
   const raisedByAbortControllerRef = useRef<AbortController | null>(null);
@@ -127,6 +130,7 @@ export default function IssueCreate({
     if (open) {
       form.resetFields();
       setCreatedDate('');
+      setDocumentUrl('');
       fetchStatusOptions();
       fetchLabelOptions();
       fetchRaisedByOptions();
@@ -138,9 +142,9 @@ export default function IssueCreate({
           WorkStatusID: String(editingIssue.WorkStatusID),
           LabelInfoID: String(editingIssue.LabelInfoID),
           RaisedBy: editingIssue.RaisedBy,
-          Attachments: editingIssue.Attachments,
         });
         setCreatedDate(editingIssue.CreatedDate || '');
+        setDocumentUrl(editingIssue.Attachments || '');
       }
     }
     return () => {
@@ -169,7 +173,7 @@ export default function IssueCreate({
         WorkStatusID: Number(values.WorkStatusID),
         ProjectInfoID: projectId,
         LabelInfoID: Number(values.LabelInfoID),
-        Attachments: values.Attachments || '',
+        Attachments: documentUrl || '',
         ProjectInfoName: project.ProjectName || '',
         WorkStatusName: statusOption?.label || '',
         LabelInfoName: labelOption?.label || '',
@@ -187,6 +191,7 @@ export default function IssueCreate({
       message.success(isEditing ? 'Issue updated successfully' : 'Issue created successfully');
       form.resetFields();
       setCreatedDate('');
+      setDocumentUrl('');
       onClose();
       onSuccess();
     } catch (err) {
@@ -306,9 +311,14 @@ export default function IssueCreate({
           label={
             <span className="text-slate-600 font-medium text-sm">Attachments</span>
           }
-          name="Attachments"
         >
-          <Input placeholder="https://example.com/file.pdf" className="rounded-md" />
+          <DocumentUploadField
+            value={documentUrl}
+            onChange={setDocumentUrl}
+            uploading={uploading}
+            onUploadingChange={setUploading}
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp"
+          />
         </Form.Item>
       </div>
 
