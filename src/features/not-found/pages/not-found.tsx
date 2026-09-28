@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import Icon from '@/components/ui/AppIcon';
+import Icon from '@/shared/components/ui/AppIcon';
 
 export default function NotFound() {
     const navigate = useNavigate();

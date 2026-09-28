@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { saveOrganization, fetchOrganizationSelectList } from '@/features/organizations/services/organization.service';
 
 export interface Organization {

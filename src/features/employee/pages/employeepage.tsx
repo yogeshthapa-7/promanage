@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Printer } from 'lucide-react';
 import { Modal, message, Button } from 'antd';
-import Pagination from '@/components/ui/Pagination';
-import { TableSkeleton } from '@/components/ui/Loaders';
-import AppTable from '@/components/ui/AppTable';
-import SearchInput from '@/components/ui/SearchInput';
+import Pagination from '@/shared/components/ui/Pagination';
+import { TableSkeleton } from '@/shared/components/ui/Loaders';
+import AppTable from '@/shared/components/ui/AppTable';
+import SearchInput from '@/shared/components/ui/SearchInput';
 import { fetchEmployees, deleteEmployee } from '@/features/employee/services/employee.service';
 import { type Employee } from '@/features/employee/types/employees-types';
 import EmployeeSetupModal from './Create';

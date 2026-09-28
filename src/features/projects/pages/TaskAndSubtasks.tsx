@@ -19,11 +19,11 @@ import {
   Flag,
 } from 'lucide-react';
 
-import { BlockSkeleton } from '@/components/ui/Loaders';
-import AppTable from '@/components/ui/AppTable';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
+import { BlockSkeleton } from '@/shared/components/ui/Loaders';
+import AppTable from '@/shared/components/ui/AppTable';
+import Card from '@/shared/components/ui/Card';
+import Button from '@/shared/components/ui/Button';
+import Badge from '@/shared/components/ui/Badge';
 import {
   fetchProjectInfo,
   fetchProjectTasks,
@@ -31,7 +31,7 @@ import {
 } from '@/features/tasks/services/task.service';
 import type { TaskItem } from '@/features/projects/types/tasks-types';
 import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
-import ViewTaskDrawer from '@/components/projects/viewtaskdrawer';
+import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
 import SubtaskDrawer from '@/features/projects/pages/subtasks/page';
 
 const IssuesPanel = lazy(() => import('./issues/IssueTab'));

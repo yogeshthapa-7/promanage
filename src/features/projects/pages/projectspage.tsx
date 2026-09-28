@@ -18,16 +18,16 @@ import {
   Monitor,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import Card from '@/components/ui/Card';
-import Pagination from '@/components/ui/Pagination';
-import { CardGridSkeleton } from '@/components/ui/Loaders';
-import SearchInput from '@/components/ui/SearchInput';
-import ViewToggle from '@/components/ui/ViewToggle';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import ProgressBar from '@/components/ui/ProgressBar';
-import DropdownMenu from '@/components/ui/DropdownMenu';
-import AppTable from '@/components/ui/AppTable';
+import Card from '@/shared/components/ui/Card';
+import Pagination from '@/shared/components/ui/Pagination';
+import { CardGridSkeleton } from '@/shared/components/ui/Loaders';
+import SearchInput from '@/shared/components/ui/SearchInput';
+import ViewToggle from '@/shared/components/ui/ViewToggle';
+import Button from '@/shared/components/ui/Button';
+import Badge from '@/shared/components/ui/Badge';
+import ProgressBar from '@/shared/components/ui/ProgressBar';
+import DropdownMenu from '@/shared/components/ui/DropdownMenu';
+import AppTable from '@/shared/components/ui/AppTable';
 import {
   deleteProject,
   fetchProjects,

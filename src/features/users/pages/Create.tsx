@@ -4,8 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/lib/api/api.service';
 import type { User, UserGroup, OrganizationSelect } from '@/features/users/types/users-types';
 import { fetchUserGroups, fetchOrganizations, saveUser } from '@/features/users/services/user.service';
-import Drawer from '@/components/drawer';
-import ProgressBar from '@/components/ui/ProgressBar';
+import Drawer from '@/shared/components/drawer';
+import ProgressBar from '@/shared/components/ui/ProgressBar';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 

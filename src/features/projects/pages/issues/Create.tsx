@@ -4,9 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { fetchEmployees } from '@/features/employee/services/employee.service';
 import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
 import { saveIssue } from '@/features/projects/services/issue.service';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import Drawer from '@/components/drawer';
-import DocumentUploadField from '@/components/DocumentUploadField';
+import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
+import Drawer from '@/shared/components/drawer';
+import DocumentUploadField from '@/shared/components/DocumentUploadField';
 
 interface IssueCreateProps {
   open: boolean;

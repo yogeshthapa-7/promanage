@@ -200,7 +200,7 @@ export function buildHeaders(
   options: RequestInit,
   token: string | null
 ): Headers {
-  debugger;
+  // debugger;
   const headers = new Headers(options.headers);
 
   if (!headers.has('Content-Type')) {

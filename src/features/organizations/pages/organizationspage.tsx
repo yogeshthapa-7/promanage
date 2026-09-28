@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import { Plus, Building2 } from 'lucide-react';
 import { Modal, message, Button } from 'antd';
-import Pagination from '@/components/ui/Pagination';
-import { CardGridSkeleton, TableSkeleton } from '@/components/ui/Loaders';
-import Card from '@/components/ui/Card';
-import AppTable from '@/components/ui/AppTable';
-import SearchInput from '@/components/ui/SearchInput';
-import ViewToggle from '@/components/ui/ViewToggle';
+import Pagination from '@/shared/components/ui/Pagination';
+import { CardGridSkeleton, TableSkeleton } from '@/shared/components/ui/Loaders';
+import Card from '@/shared/components/ui/Card';
+import AppTable from '@/shared/components/ui/AppTable';
+import SearchInput from '@/shared/components/ui/SearchInput';
+import ViewToggle from '@/shared/components/ui/ViewToggle';
 import { fetchOrganizations, deleteOrganization } from '@/features/organizations/services/organization.service';
 import { type Organization } from '@/features/organizations/types/organizations-types';
 import CreateOrganizationModal from './Create';

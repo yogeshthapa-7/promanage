@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import Drawer from '@/components/drawer';
+import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
+import Drawer from '@/shared/components/drawer';
 import { saveDiscussion } from '@/features/projects/services/discussion.service';
 
 interface DiscussionCreateProps {

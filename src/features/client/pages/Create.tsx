@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { saveClient } from '@/features/client/services/client.service';
 import { useQueryClient } from '@tanstack/react-query';
 

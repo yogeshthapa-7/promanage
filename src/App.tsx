@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, App } from 'antd';
-import AppLayout from './components/AppLayout';
-import ProtectedRoute from './components/ProtectedRoute';
+import AppLayout from './shared/components/AppLayout';
+import ProtectedRoute from './shared/components/ProtectedRoute';
 import LoginPage from './features/auth/pages/loginpage';
 import DashboardPage from './features/dashboard/pages/dashboardpage';
 import ProjectDetailsPage from './features/projects/pages/projectdetails';

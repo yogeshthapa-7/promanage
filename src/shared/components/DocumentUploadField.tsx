@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import Icon from '@/components/ui/AppIcon';
+import Icon from '@/shared/components/ui/AppIcon';
 import { apiCall } from '@/lib/api/api.service';
 import { message } from 'antd';
 

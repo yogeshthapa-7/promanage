@@ -14,12 +14,12 @@ import {
 import { apiCall } from '@/lib/api/api.service';
 import { deleteTask } from '@/features/tasks/services/task.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import { BlockSkeleton } from '@/components/ui/Loaders';
+import Card from '@/shared/components/ui/Card';
+import Button from '@/shared/components/ui/Button';
+import Badge from '@/shared/components/ui/Badge';
+import { BlockSkeleton } from '@/shared/components/ui/Loaders';
 import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
-import ViewTaskDrawer from '@/components/projects/viewtaskdrawer';
+import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 

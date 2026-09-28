@@ -9,9 +9,9 @@ import {
   FileText,
   Download,
 } from 'lucide-react';
-import { BlockSkeleton } from '@/components/ui/Loaders';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { BlockSkeleton } from '@/shared/components/ui/Loaders';
+import Card from '@/shared/components/ui/Card';
+import Button from '@/shared/components/ui/Button';
 import { fetchProjectDetailData } from '@/features/projects/services/project.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
 import type { ApiProject } from '@/features/projects/types/projects-types';

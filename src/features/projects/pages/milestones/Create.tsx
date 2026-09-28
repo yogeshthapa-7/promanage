@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Button, message } from 'antd';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import Drawer from '@/components/drawer';
+import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
+import Drawer from '@/shared/components/drawer';
 import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
 import { saveMilestone } from '@/features/projects/services/milestone.service';
 

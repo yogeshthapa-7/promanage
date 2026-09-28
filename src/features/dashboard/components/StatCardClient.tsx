@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import StatCard from '@/components/ui/StatCard';
+import StatCard from '@/shared/components/ui/StatCard';
 
 interface StatCardClientProps {
   title: string;

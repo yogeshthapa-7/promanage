@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { fetchMainBranchSelectList } from '@/features/main-branches/services/main-branch.service';
 import { fetchDepartmentSelectList } from '@/features/departments/services/department.service';
 import { saveBranch } from '@/features/branches/services/branch.service';

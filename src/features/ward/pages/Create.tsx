@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { saveWard } from '@/features/ward/services/ward.service';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Ward } from '@/features/ward/types/ward-types';

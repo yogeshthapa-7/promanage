@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ApiProject } from "@/features/projects/types/projects-types";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
-import Card from "@/components/ui/Card";
+import Card from "@/shared/components/ui/Card";
 import { fetchTimeline, type TimelineItem } from "@/features/projects/services/timeline.service";
 
 interface TimelineTabProps {

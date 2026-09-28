@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import {
   fetchDepartmentSelectList,
 } from '@/features/departments/services/department.service';

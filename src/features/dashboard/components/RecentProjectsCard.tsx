@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
+import Card from '@/shared/components/ui/Card';
+import Button from '@/shared/components/ui/Button';
+import Badge from '@/shared/components/ui/Badge';
 import type { Project } from '@/features/projects/types/projects-types';
 
 interface RecentProjectsCardProps {

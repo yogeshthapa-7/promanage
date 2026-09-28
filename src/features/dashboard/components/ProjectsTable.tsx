@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, ArrowRight } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import { AvatarStack } from '@/components/ui/Avatar';
-import Card from '@/components/ui/Card';
-import ProgressBar from '@/components/ui/ProgressBar';
+import Button from '@/shared/components/ui/Button';
+import Badge from '@/shared/components/ui/Badge';
+import { AvatarStack } from '@/shared/components/ui/Avatar';
+import Card from '@/shared/components/ui/Card';
+import ProgressBar from '@/shared/components/ui/ProgressBar';
 import type { Project, ProjectStatus, ProjectPriority } from '@/features/projects/types/projects-types';
 
 interface ProjectsTableProps {

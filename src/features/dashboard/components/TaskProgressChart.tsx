@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Highcharts from 'highcharts';
-import Card from '@/components/ui/Card';
+import Card from '@/shared/components/ui/Card';
 import type { Project } from '@/features/projects/types/projects-types';
 
 interface TaskProgressChartProps {

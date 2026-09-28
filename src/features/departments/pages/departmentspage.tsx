@@ -9,10 +9,10 @@ import {
   Download
 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
-import Pagination from '@/components/ui/Pagination';
-import AppTable from '@/components/ui/AppTable';
-import Button from '@/components/ui/Button';
-import Drawer from '@/components/drawer';
+import Pagination from '@/shared/components/ui/Pagination';
+import AppTable from '@/shared/components/ui/AppTable';
+import Button from '@/shared/components/ui/Button';
+import Drawer from '@/shared/components/drawer';
 import CreateDepartmentDrawer from './Create';
 import { apiCall } from '@/lib/api/api.service';
 import { fetchDepartments, fetchDepartmentSelectList } from '@/features/departments/services/department.service';

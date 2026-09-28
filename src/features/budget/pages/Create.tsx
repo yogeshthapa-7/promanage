@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Select } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { saveBudget } from '@/features/budget/services/budget.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList } from '@/features/fiscal-year/services/fiscal-year.service';
 import { type FiscalYearSelectOption } from '@/features/fiscal-year/types/fiscal-year-types';
-import DocumentUploadField from '@/components/DocumentUploadField';
+import DocumentUploadField from '@/shared/components/DocumentUploadField';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 

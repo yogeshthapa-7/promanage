@@ -3,9 +3,9 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { Button, Input, Select } from 'antd';
-import Pagination from '@/components/ui/Pagination';
-import { TableSkeleton } from '@/components/ui/Loaders';
-import AppTable from '@/components/ui/AppTable';
+import Pagination from '@/shared/components/ui/Pagination';
+import { TableSkeleton } from '@/shared/components/ui/Loaders';
+import AppTable from '@/shared/components/ui/AppTable';
 import { useQueryClient } from '@tanstack/react-query';
 import { deleteUser, fetchUsers, ROLE_STYLE, fetchUserGroups } from '@/features/users/services/user.service';
 import type { User } from '@/features/users/types/users-types';

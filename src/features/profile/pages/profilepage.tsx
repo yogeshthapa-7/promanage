@@ -1,6 +1,6 @@
 import { useAuth } from '@/context/AuthContext';
-import Drawer from '@/components/drawer';
-import Button from '@/components/ui/Button';
+import Drawer from '@/shared/components/drawer';
+import Button from '@/shared/components/ui/Button';
 import { LogOut, Mail, User, Hash, Building2, Shield } from 'lucide-react';
 import { Modal } from 'antd';
 

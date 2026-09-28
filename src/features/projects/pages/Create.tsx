@@ -1,9 +1,9 @@
 import { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { Form, Input, Select, InputNumber, Row, Col, Button, message } from 'antd';
 import { Save } from 'lucide-react';
-import Drawer from '@/components/drawer';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import DocumentUploadField from '@/components/DocumentUploadField';
+import Drawer from '@/shared/components/drawer';
+import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
+import DocumentUploadField from '@/shared/components/DocumentUploadField';
 import type { ApiProject } from '@/features/projects/types/projects-types';
 import type { SelectListItem } from '@/features/projects/services/project.service';
 import { saveProject, fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions, API_BASE } from '@/features/projects/services/project.service';

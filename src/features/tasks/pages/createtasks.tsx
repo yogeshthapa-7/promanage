@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
-import Drawer from '@/components/drawer';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import Drawer from '@/shared/components/drawer';
+import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import { apiCall } from '@/lib/api/api.service';
 import { saveTask } from '@/features/tasks/services/task.service';
 import type { TaskItem } from '@/features/projects/types/tasks-types';

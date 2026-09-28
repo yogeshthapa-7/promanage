@@ -5,7 +5,7 @@ import type { Employee } from '@/features/employee/types/employees-types';
 import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-types';
 import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
 import { saveSubTask } from '@/features/tasks/services/task.service';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 
 interface SubTaskCreateProps {
   open: boolean;

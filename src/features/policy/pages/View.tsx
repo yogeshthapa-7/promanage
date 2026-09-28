@@ -1,4 +1,4 @@
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { type FiscalYearSelectOption } from '@/features/fiscal-year/types/fiscal-year-types';
 
 interface Policy {

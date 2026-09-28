@@ -8,7 +8,7 @@ import ProjectsTable from '../components/ProjectsTable';
 import { type Project, type ProjectStatus, type ApiProject } from '@/features/projects/types/projects-types';
 import { mapApiProjectToProject } from '@/features/projects/services/project.service';
 import { fetchAllProjectTaskCounts } from '@/features/tasks/services/task.service';
-import Topbar from '@/components/Topbar';
+import Topbar from '@/shared/components/Topbar';
 import { useDashboardStats } from '../components/useDashboardStats';
 import { apiCall } from '@/lib/api/api.service';
 

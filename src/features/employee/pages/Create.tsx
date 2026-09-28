@@ -3,10 +3,10 @@ import { Form, Input, Select, Button, Row, Col, message } from 'antd';
 import type { Employee } from '@/features/employee/types/employees-types';
 import { saveEmployee } from '@/features/employee/services/employee.service';
 import { apiCall } from '@/lib/api/api.service';
-import Drawer from '@/components/drawer';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
-import ProgressBar from '@/components/ui/ProgressBar';
-import DocumentUploadField from '@/components/DocumentUploadField';
+import Drawer from '@/shared/components/drawer';
+import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
+import ProgressBar from '@/shared/components/ui/ProgressBar';
+import DocumentUploadField from '@/shared/components/DocumentUploadField';
 
 interface EmployeeSetupModalProps {
   open: boolean;

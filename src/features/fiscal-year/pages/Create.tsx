@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Checkbox } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { saveFiscalYear } from '@/features/fiscal-year/services/fiscal-year.service';
-import AntdNepaliDatePicker from '@/components/AntdNepaliDatePicker';
+import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import { type FiscalYearItem } from '@/features/fiscal-year/types/fiscal-year-types';
 
 interface CreateFiscalYearDrawerProps {

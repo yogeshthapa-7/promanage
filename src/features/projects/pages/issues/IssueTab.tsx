@@ -3,13 +3,13 @@ import type { ApiProject } from "@/features/projects/types/projects-data";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
 import { fetchIssues, deleteIssue } from "@/features/projects/services/issue.service";
 import { Modal, message, Button } from "antd";
-import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
+import Card from "@/shared/components/ui/Card";
+import Badge from "@/shared/components/ui/Badge";
 import { LayoutGrid, List, Pencil, Trash2, Plus, Search, RotateCcw } from "lucide-react";
 import IssueCreate from "./Create";
 import IssueSearch from "./Search";
-import AppTable from '@/components/ui/AppTable';
-import { TableSkeleton } from '@/components/ui/Loaders';
+import AppTable from '@/shared/components/ui/AppTable';
+import { TableSkeleton } from '@/shared/components/ui/Loaders';
 
 interface IssueItem {
   IssuesID: number;

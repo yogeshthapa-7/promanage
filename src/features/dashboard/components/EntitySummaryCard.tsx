@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import Card from '@/shared/components/ui/Card';
+import Button from '@/shared/components/ui/Button';
 
 interface EntitySummaryCardProps {
   title: string;

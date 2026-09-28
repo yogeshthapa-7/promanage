@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { apiCall } from '@/lib/api/api.service';
 import type { TaskItem } from '@/features/projects/types/tasks-types';
-import Badge from '@/components/ui/Badge';
-import { Avatar } from '@/components/ui/Avatar';
+import Badge from '@/shared/components/ui/Badge';
+import { Avatar } from '@/shared/components/ui/Avatar';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;

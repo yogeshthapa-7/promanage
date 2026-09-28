@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
-import Pagination from '@/components/ui/Pagination';
-import AppTable from '@/components/ui/AppTable';
-import Button from '@/components/ui/Button';
+import Pagination from '@/shared/components/ui/Pagination';
+import AppTable from '@/shared/components/ui/AppTable';
+import Button from '@/shared/components/ui/Button';
 import {
   fetchMainBranches,
   fetchMainBranchSelectList,

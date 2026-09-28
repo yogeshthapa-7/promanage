@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
-import Drawer from '@/components/drawer';
+import Drawer from '@/shared/components/drawer';
 import { saveLabel } from '@/features/label/services/label.service';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Label } from '@/features/label/types/label-types';
