@@ -6,24 +6,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList } from '@/features/fiscal-year/services/fiscal-year.service';
 import { type FiscalYearSelectOption } from '@/features/fiscal-year/types/fiscal-year-types';
 import DocumentUploadField from '@/shared/components/DocumentUploadField';
+import type { Expense, CreateExpenseDrawerProps } from '@/features/expense/types/expense-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
-interface Expense {
-  id: number;
-  title: string;
-  code: string;
-  fiscal_year?: string;
-  fiscal_year_id?: number;
-  document_url?: string;
-}
-
-interface CreateExpenseDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess?: (savedData?: { id?: number; document_url?: string; isNew?: boolean }) => void;
-  editingExpense?: Expense | null;
-}
 
 export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingExpense }: CreateExpenseDrawerProps) {
   const [form] = Form.useForm();

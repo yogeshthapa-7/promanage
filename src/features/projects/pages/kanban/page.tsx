@@ -20,49 +20,9 @@ import Badge from '@/shared/components/ui/Badge';
 import { BlockSkeleton } from '@/shared/components/ui/Loaders';
 import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
+import type { WorkStatus, Task, Project, TaskByStatus } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
-interface WorkStatus {
-  WorkStatusInfoID: number;
-  StatusName: string;
-  StatusCode: string;
-  Color?: string;
-  IconName?: string;
-}
-
-interface Task {
-  TaskInfoID: number;
-  TaskName: string;
-  Description: string;
-  WorkStatusID: number;
-  Priority: string | number;
-  DueDate: string;
-  ProjectInfoID: number;
-  ProjectName?: string;
-  AssignedTo?: string;
-  Progress?: number;
-}
-
-interface Project {
-  ProjectInfoID: number;
-  ProjectName: string;
-  ProjectCode?: string;
-  Description?: string;
-  WorkStatusName?: string;
-  WorkStatusColor?: string;
-  Priority?: number;
-  PriorityName?: string;
-  ProjectType?: number;
-  ProjectTypeName?: string;
-  TotalBudget?: number;
-  StartDate?: string;
-  EndDate?: string;
-}
-
-interface TasksByStatus {
-  [key: number]: Task[];
-}
 
 const priorityLabelMap: Record<number, string> = {
   1: 'Urgent',

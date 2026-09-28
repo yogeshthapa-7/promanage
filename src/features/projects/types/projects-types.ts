@@ -1,3 +1,4 @@
+//Projects export
 export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue' | 'Started' | 'In Progress Final';
 export type ProjectPriority = 'Urgent' | 'High' | 'Medium' | 'Low';
 
@@ -118,8 +119,207 @@ export interface ApiProject {
   };
 }
 
+export interface ProjectFormModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  editingProject?: ApiProject | null;
+}
 
+//Discussion page export
+export interface DiscussionCreateProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  project: {
+    ProjectInfoID: number;
+    ProjectName?: string;
+  };
+  editingDiscussion?: {
+    ProjectDiscussionID: number;
+    DiscussionTitle: string;
+    Priority: number;
+    CreatedDate: string;
+  } | null;
+  modal?: boolean;
+}
 
+export interface DiscussionTabProps {
+  project: ApiProject;
+}
 
+export interface DiscussionSearchProps {
+  open: boolean;
+  onClose: () => void;
+  onSearch: (values: Record<string, unknown>) => void;
+  onClear?: () => void;
+  project: {
+    ProjectInfoID: number;
+    ProjectName?: string;
+  };
+  modal?: boolean;
+}
 
+//Issue page export
+export interface IssueCreateProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  project: {
+    ProjectInfoID: number;
+    ProjectName?: string;
+  };
+  editingIssue?: {
+    IssuesID: number;
+    IssuesTitle: string;
+    Comments: string;
+    WorkStatusID: number;
+    LabelInfoID: number;
+    Attachments: string;
+    CreatedDate: string;
+    RaisedBy: string;
+  } | null;
+  modal?: boolean;
+}
+
+export interface IssueItem {
+  IssuesID: number;
+  IssuesTitle: string;
+  LabelInfoID: number;
+  Comments: string;
+  Attachments: string;
+  ProjectInfoID: number;
+  WorkStatusID: number;
+  ProjectInfoName: string;
+  WorkStatusName: string;
+  LabelInfoName: string;
+  LabelColor: string;
+  CreatedDate: string;
+  RaisedBy: string;
+  WorkStatusColor: string;
+  CanChangeStatus: boolean;
+  HasUserRightToEdit: boolean;
+  HasUserRightToDelete: boolean;
+}
+
+export interface IssueTabProps {
+  project: ApiProject;
+}
+
+export interface IssueSearchProps {
+  open: boolean;
+  onClose: () => void;
+  onSearch: (values: Record<string, unknown>) => void;
+  onClear?: () => void;
+  project: {
+    ProjectInfoID: number;
+    ProjectName?: string;
+  };
+  modal?: boolean;
+}
+
+export interface WorkStatus {
+  WorkStatusInfoID: number;
+  StatusName: string;
+  StatusCode: string;
+  Color?: string;
+  IconName?: string;
+}
+
+export interface Task {
+  TaskInfoID: number;
+  TaskName: string;
+  Description: string;
+  WorkStatusID: number;
+  Priority: string | number;
+  DueDate: string;
+  ProjectInfoID: number;
+  ProjectName?: string;
+  AssignedTo?: string;
+  Progress?: number;
+}
+
+export interface Project {
+  ProjectInfoID: number;
+  ProjectName: string;
+  ProjectCode?: string;
+  Description?: string;
+  WorkStatusName?: string;
+  WorkStatusColor?: string;
+  Priority?: number;
+  PriorityName?: string;
+  ProjectType?: number;
+  ProjectTypeName?: string;
+  TotalBudget?: number;
+  StartDate?: string;
+  EndDate?: string;
+}
+
+export interface TasksByStatus {
+  [key: number]: Task[];
+}
+
+//Milestone page export
+export interface MilestoneCreateProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  project: {
+    ProjectInfoID: number;
+    ProjectName?: string;
+  };
+  editingMilestone?: {
+    ProjectMilestoneID: number;
+    MilestoneTitle: string;
+    WorkStatusID: number;
+    MilestoneCost: number;
+    StartDate: string;
+    EndDate: string;
+    Summary: string;
+  } | null;
+  modal?: boolean;
+}
+
+export interface MilestoneTabProps {
+  project: ApiProject;
+  onEdit?: (milestone: MilestoneItem) => void;
+}
+
+export interface MilestoneSearchProps {
+  open: boolean;
+  onClose: () => void;
+  onSearch: (values: Record<string, unknown>) => void;
+  project: {
+    ProjectInfoID: number;
+    ProjectName?: string;
+  };
+  modal?: boolean;
+}
+
+//subtask page exports
+export interface SubTaskCreateProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  project: {
+    ProjectInfoID: number;
+    ProjectName?: string;
+  };
+  selectedTask: TaskItem;
+  editingSubTask?: SubTaskItem | null;
+  modal?: boolean;
+}
+
+export interface SubtaskDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  project: ApiProject;
+  task: TaskItem | null;
+}
+
+//Timeline page exports
+export interface TimelineTabProps {
+  project?: ApiProject | null;
+  projectId?: number | null;
+}
 

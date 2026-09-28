@@ -7,27 +7,7 @@ import { saveIssue } from '@/features/projects/services/issue.service';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import Drawer from '@/shared/components/drawer';
 import DocumentUploadField from '@/shared/components/DocumentUploadField';
-
-interface IssueCreateProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  project: {
-    ProjectInfoID: number;
-    ProjectName?: string;
-  };
-  editingIssue?: {
-    IssuesID: number;
-    IssuesTitle: string;
-    Comments: string;
-    WorkStatusID: number;
-    LabelInfoID: number;
-    Attachments: string;
-    CreatedDate: string;
-    RaisedBy: string;
-  } | null;
-  modal?: boolean;
-}
+import type { IssueCreateProps } from '@/features/projects/types/projects-types';
 
 const STATUS_API = SELECT_LIST_URLS.status;
 const LABEL_INFO_API = SELECT_LIST_URLS.labelInfo;

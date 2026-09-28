@@ -1,17 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
-
-interface DiscussionSearchProps {
-  open: boolean;
-  onClose: () => void;
-  onSearch: (values: Record<string, unknown>) => void;
-  onClear?: () => void;
-  project: {
-    ProjectInfoID: number;
-    ProjectName?: string;
-  };
-  modal?: boolean;
-}
+import type { DiscussionSearchProps } from '@/features/projects/types/projects-types';
 
 const PRIORITY_OPTIONS = [
   { label: 'Urgent', value: 1 },

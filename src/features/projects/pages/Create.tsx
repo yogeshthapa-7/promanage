@@ -4,16 +4,9 @@ import { Save } from 'lucide-react';
 import Drawer from '@/shared/components/drawer';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import DocumentUploadField from '@/shared/components/DocumentUploadField';
-import type { ApiProject } from '@/features/projects/types/projects-types';
+import type { ApiProject, ProjectFormModalProps } from '@/features/projects/types/projects-types';
 import type { SelectListItem } from '@/features/projects/services/project.service';
 import { saveProject, fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions, API_BASE } from '@/features/projects/services/project.service';
-
-interface ProjectFormModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingProject?: ApiProject | null;
-}
 
 const PRIORITY_OPTIONS = [
   {value: 1, label: 'Urgent'},

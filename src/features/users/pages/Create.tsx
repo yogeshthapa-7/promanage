@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Form, Input, Select, Row, Col, Button, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '@/lib/api/api.service';
-import type { User, UserGroup, OrganizationSelect } from '@/features/users/types/users-types';
+import type { User, UserGroup, OrganizationSelect, UserFormModalProps } from '@/features/users/types/users-types';
 import { fetchUserGroups, fetchOrganizations, saveUser } from '@/features/users/services/user.service';
 import Drawer from '@/shared/components/drawer';
 import ProgressBar from '@/shared/components/ui/ProgressBar';
@@ -46,13 +46,6 @@ async function checkUserExists(userName: string, excludeUserId?: number): Promis
   } catch {
     return false;
   }
-}
-
-interface UserFormModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingUser?: User | null;
 }
 
 export default function UserFormModal({

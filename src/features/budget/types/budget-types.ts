@@ -8,6 +8,20 @@ export interface Budget {
   document_name?: string;
 }
 
+export interface CreateBudgetDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: (savedData?: { id?: number; document_url?: string; isNew?: boolean }) => void;
+  editingBudget?: Budget | null;
+}
+
+export interface ViewBudgetDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  budget: Budget | null;
+  fiscalYearOptions?: FiscalYearSelectOption[];
+}
+
 
 
 

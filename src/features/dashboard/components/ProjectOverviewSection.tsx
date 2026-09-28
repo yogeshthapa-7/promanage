@@ -2,11 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/shared/components/ui/Card';
 import type { Project } from '@/features/projects/types/projects-types';
-
-interface ProjectOverviewSectionProps {
-  projects: Project[];
-  loading?: boolean;
-}
+import type { ProjectOverviewSectionProps } from '@/features/dashboard/types/dashboard-types';
 
 const STATUS_COLORS: Record<string, string> = {
   'In Progress': '#3B82F6',

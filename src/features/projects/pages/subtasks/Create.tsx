@@ -6,19 +6,7 @@ import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-type
 import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
 import { saveSubTask } from '@/features/tasks/services/task.service';
 import Drawer from '@/shared/components/drawer';
-
-interface SubTaskCreateProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  project: {
-    ProjectInfoID: number;
-    ProjectName?: string;
-  };
-  selectedTask: TaskItem;
-  editingSubTask?: SubTaskItem | null;
-  modal?: boolean;
-}
+import type { SubTaskCreateProps } from '@/features/projects/types/projects-types';
 
 
 const PRIORITY_OPTIONS = [

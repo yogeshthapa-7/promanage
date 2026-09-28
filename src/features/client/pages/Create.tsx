@@ -3,27 +3,7 @@ import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import { saveClient } from '@/features/client/services/client.service';
 import { useQueryClient } from '@tanstack/react-query';
-
-
-
-interface Client {
-  id: number;
-  clientName: string;
-  clientCode: string;
-  contactPerson: string;
-  contactNo: string;
-  email: string;
-  address: string;
-  logo: string;
-  clientStatus: number;
-}
-
-interface CreateClientDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingClient?: Client | null;
-}
+import type { CLient, CreateClientDrawerProps } from '@/features/client/types/client-types';
 
 export default function CreateClientDrawer({ open, onClose, onSuccess, editingClient }: CreateClientDrawerProps) {
   const [form] = Form.useForm();

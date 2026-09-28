@@ -14,6 +14,12 @@ export interface DepartmentSelectOption {
   label: string;
 }
 
+export interface CreateDepartmentDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
 
 
 

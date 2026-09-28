@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
 import { apiCall } from "@/lib/api/api.service";
 import type { ApiProject } from "@/features/projects/types/projects-data";
-import type { TaskItem } from "@/features/projects/types/tasks-data";
+import type { TaskItem } from "@/features/tasks/types/tasks-types";
 import Pagination from "@/shared/components/ui/Pagination";
 import ViewToggle from "@/shared/components/ui/ViewToggle";
 import Card from "@/shared/components/ui/Card";

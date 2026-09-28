@@ -2,25 +2,8 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import { saveOrganization, fetchOrganizationSelectList } from '@/features/organizations/services/organization.service';
+import type { Organization, OrganizationModalProps, ParentOrgOption } from '@/features/organizations/types/organizations-types';
 
-export interface Organization {
-  id?: number;
-  title: string;
-  parentOrganizationId?: number | string | null;
-  parentOrganizationName?: string;
-}
-
-interface OrganizationModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingOrganization?: Organization | null;
-}
-
-interface ParentOrgOption {
-  OrganizationID: number;
-  Title: string;
-}
 
 export default function CreateOrganizationModal({
   open,

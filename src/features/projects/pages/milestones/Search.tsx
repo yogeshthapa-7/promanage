@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, message, Select } from 'antd';
 import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
-
-interface MilestoneSearchProps {
-  open: boolean;
-  onClose: () => void;
-  onSearch: (values: Record<string, unknown>) => void;
-  project: {
-    ProjectInfoID: number;
-    ProjectName?: string;
-  };
-  modal?: boolean;
-}
+import type { MilestoneSearchProps } from '@/features/projects/types/projects-types';
 
 export default function MilestoneSearch({ open, onClose, onSearch, project, modal = true }: MilestoneSearchProps) {
   const [form] = Form.useForm();

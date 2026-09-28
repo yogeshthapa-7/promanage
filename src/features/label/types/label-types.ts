@@ -5,6 +5,13 @@ export interface Label {
   code: string;
 }
 
+export interface CreateLabelDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  editingLabel?: Label | null;
+}
+
 
 
 

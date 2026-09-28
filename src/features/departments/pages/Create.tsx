@@ -3,13 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import { fetchDepartmentSelectList, saveDepartment } from '@/features/departments/services/department.service';
-import type { DepartmentSelectOption } from '@/features/departments/types/departments-types';
-
-interface CreateDepartmentDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-}
+import type { DepartmentSelectOption, CreateDepartmentDrawerProps } from '@/features/departments/types/departments-types';
 
 export default function CreateDepartmentDrawer({
   open,

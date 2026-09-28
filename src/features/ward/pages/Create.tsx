@@ -3,14 +3,7 @@ import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import { saveWard } from '@/features/ward/services/ward.service';
 import { useQueryClient } from '@tanstack/react-query';
-import type { Ward } from '@/features/ward/types/ward-types';
-
-interface CreateWardDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingWard?: Ward | null;
-}
+import type { Ward, CreateWardDrawerProps } from '@/features/ward/types/ward-types';
 
 export default function CreateWardDrawer({ open, onClose, onSuccess, editingWard }: CreateWardDrawerProps) {
   const [form] = Form.useForm();

@@ -9,7 +9,7 @@ import {
   fetchMainBranches,
   fetchMainBranchSelectList,
 } from '@/features/main-branches/services/main-branch.service';
-import type { MainBranch, MainBranchSelectOption } from '@/features/main-branches/types/main-branches-types';
+import type { MainBranch, MainBranchSelectOption, MainBranchPageProps } from '@/features/main-branches/types/main-branches-types';
 import {
   fetchDepartmentSelectList,
 } from '@/features/departments/services/department.service';
@@ -46,11 +46,6 @@ function fetchMainBranchesPage(params: PaginatedListParams): Promise<{ items: Ma
   }));
 }
 
-//localbodyleve:
- interface MainBranchPageProps {
-  disabledDepartment?: boolean;
-  defaultDepartmentId?: string | number;
-} 
 
 export default function MainBranchPage({ disabledDepartment, defaultDepartmentId }: MainBranchPageProps) {
   const queryClient = useQueryClient();

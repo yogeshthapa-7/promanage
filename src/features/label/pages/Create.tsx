@@ -3,14 +3,7 @@ import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import { saveLabel } from '@/features/label/services/label.service';
 import { useQueryClient } from '@tanstack/react-query';
-import type { Label } from '@/features/label/types/label-types';
-
-interface CreateLabelDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingLabel?: Label | null;
-}
+import type { Label, CreateLabelDrawerProps } from '@/features/label/types/label-types';
 
 export default function CreateLabelDrawer({ open, onClose, onSuccess, editingLabel }: CreateLabelDrawerProps) {
   const [form] = Form.useForm();

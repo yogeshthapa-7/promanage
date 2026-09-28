@@ -3,11 +3,7 @@ import type { ApiProject } from "@/features/projects/types/projects-types";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
 import Card from "@/shared/components/ui/Card";
 import { fetchTimeline, type TimelineItem } from "@/features/projects/services/timeline.service";
-
-interface TimelineTabProps {
-  project?: ApiProject | null;
-  projectId?: number | null;
-}
+import type { TimelineTabProps } from '@/features/projects/types/projects-types';
 
 const TIMELINE_COLORS = [
   { text: "text-indigo-600", bg: "bg-indigo-600", dot: "border-indigo-600", accent: "bg-indigo-50" },

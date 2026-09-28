@@ -16,6 +16,13 @@ export interface FiscalYearItem {
   isRunning?: number;
 }
 
+export interface CreateFiscalYearDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  editingYear?: FiscalYearItem | null;
+}
+
 
 
 

@@ -6,6 +6,18 @@ export interface Organization {
   parentOrganizationName: string;
 }
 
+export interface OrganizationModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  editingOrganization?: Organization | null;
+}
+
+export interface ParentOrgOption {
+  OrganizationID: number;
+  Title: string;
+}
+
 
 
 

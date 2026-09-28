@@ -1,19 +1,7 @@
 import StatCardClient from './StatCardClient';
 import { getStatCards } from './statCardsData';
 import { type Project } from '@/features/projects/types/projects-types';
-
-interface StatCardsRowProps {
-  projects?: Project[];
-  stats?: {
-    projects: number;
-    users: number;
-    employees: number;
-    departments: number;
-    organizations: number;
-    tasks: number;
-  };
-  loading?: boolean;
-}
+import type { StatCardRowProps } from '@/features/dashboard/types/dashboard-types';
 
 export default function StatCardsRow({ projects, stats, loading = false }: StatCardsRowProps) {
   const cards = stats

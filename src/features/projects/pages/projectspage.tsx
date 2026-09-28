@@ -40,7 +40,7 @@ import {
   type ExcelImportCaches,
 } from '@/features/projects/services/project.service';
 import type { ProjectStatus, Project, ApiProject } from '@/features/projects/types/projects-types';
-import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/features/stats/services/stat.service';
+import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/features/projects/services/projectstat.service';
 import ProjectFormModal from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
 

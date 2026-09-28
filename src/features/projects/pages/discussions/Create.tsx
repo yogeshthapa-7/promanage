@@ -3,23 +3,7 @@ import { Modal, Form, Input, Select, Button, message } from 'antd';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import Drawer from '@/shared/components/drawer';
 import { saveDiscussion } from '@/features/projects/services/discussion.service';
-
-interface DiscussionCreateProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  project: {
-    ProjectInfoID: number;
-    ProjectName?: string;
-  };
-  editingDiscussion?: {
-    ProjectDiscussionID: number;
-    DiscussionTitle: string;
-    Priority: number;
-    CreatedDate: string;
-  } | null;
-  modal?: boolean;
-}
+import type { DiscussionCreateProps } from '@/features/projects/types/projects-types'
 
 const PRIORITY_OPTIONS = [
   { label: 'Urgent', value: 1 },

@@ -2,17 +2,7 @@ import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '@/shared/components/ui/Card';
 import Button from '@/shared/components/ui/Button';
-
-interface EntitySummaryCardProps {
-  title: string;
-  count: number;
-  description: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  href: string;
-  loading?: boolean;
-}
+import type { EntitySummaryCardProps } from '@/features/dashboard/types/dashboard-types';
 
 const EntitySummaryCard = memo(function EntitySummaryCard({
   title,

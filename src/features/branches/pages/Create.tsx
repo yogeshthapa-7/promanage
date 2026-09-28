@@ -7,17 +7,7 @@ import { fetchDepartmentSelectList } from '@/features/departments/services/depar
 import { saveBranch } from '@/features/branches/services/branch.service';
 import type { MainBranchSelectOption } from '@/features/main-branches/types/main-branches-types';
 import type { DepartmentSelectOption } from '@/features/departments/types/departments-types';
-
-interface CreateBranchDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingBranch?: { id: string; name: string; branchCode: string; mainBranchId: number; departmentId: number } | null;
-  disabledMainBranch?: boolean;
-  defaultMainBranchId?: string | number;
-  disabledDepartment?: boolean;
-  defaultDepartmentId?: string | number;
-}
+import type { CreateBranchDrawerProps } from '@/features/branches/types/branches-types';
 
 export default function CreateBranchDrawer({
   open,

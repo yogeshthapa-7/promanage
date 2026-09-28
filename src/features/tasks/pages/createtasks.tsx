@@ -4,7 +4,7 @@ import Drawer from '@/shared/components/drawer';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import { apiCall } from '@/lib/api/api.service';
 import { saveTask } from '@/features/tasks/services/task.service';
-import type { TaskItem } from '@/features/projects/types/tasks-types';
+import type { TaskItem } from '@/features/tasks/types/tasks-types';
 import type { ApiProject } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');

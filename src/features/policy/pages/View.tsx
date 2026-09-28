@@ -1,21 +1,6 @@
 import Drawer from '@/shared/components/drawer';
 import { type FiscalYearSelectOption } from '@/features/fiscal-year/types/fiscal-year-types';
-
-interface Policy {
-  id: number;
-  name: string;
-  fiscal_year?: string;
-  fiscal_year_id?: number;
-  document_url?: string;
-  document_name?: string;
-}
-
-interface ViewPolicyDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  policy: Policy | null;
-  fiscalYearOptions?: FiscalYearSelectOption[];
-}
+import type { Policy, ViewPolicyDrawerProps } from '@/features/policy/types/policy-types';
 
 function getFiscalYearName(policy: Policy, options: FiscalYearSelectOption[]): string {
   const raw = policy.fiscal_year_id ?? policy.fiscal_year;

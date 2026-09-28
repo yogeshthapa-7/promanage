@@ -9,17 +9,10 @@ import Card from '@/shared/components/ui/Card';
 import AppTable from '@/shared/components/ui/AppTable';
 import SearchInput from '@/shared/components/ui/SearchInput';
 import { Avatar } from '@/shared/components/ui/Avatar';
-import type { ApiProject } from '@/features/projects/types/projects-types';
+import type { ApiProject, SubtaskDrawerProps } from '@/features/projects/types/projects-types';
 import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-types';
 import { fetchSubTasks, deleteSubTask, statusColor, priorityColor } from '@/features/tasks/services/task.service';
 import SubTaskCreate from './Create';
-
-interface SubtaskDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  project: ApiProject;
-  task: TaskItem | null;
-}
 
 const PAGE_SIZE = 20;
 

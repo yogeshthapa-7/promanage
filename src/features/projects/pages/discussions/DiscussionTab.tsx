@@ -8,10 +8,7 @@ import DiscussionCreate from "./Create";
 import DiscussionSearch from "./Search";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
 import { fetchDiscussions, deleteDiscussion, type ProjectDiscussionItem } from "@/features/projects/services/discussion.service";
-
-interface DiscussionTabProps {
-  project: ApiProject;
-}
+import type { DiscussionTabProps } from '@/features/projects/types/projects-types'
 
 export default function DiscussionTab({ project }: DiscussionTabProps) {
   const [discussions, setDiscussions] = useState<ProjectDiscussionItem[]>([]);

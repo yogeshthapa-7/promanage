@@ -5,6 +5,13 @@ export interface Ward {
   wardCode: string;
 }
 
+export interface CreateWardDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  editingWard?: Ward | null;
+}
+
 
 
 

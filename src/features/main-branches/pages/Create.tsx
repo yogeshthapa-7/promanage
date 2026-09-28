@@ -9,15 +9,8 @@ import {
   saveMainBranch,
 } from '@/features/main-branches/services/main-branch.service';
 import type { DepartmentSelectOption } from '@/features/departments/types/departments-types';
+import type { CreateMainBranchDrawerProps } from '@/features/main-branches/types/main-branches-types';
 
-interface CreateMainBranchDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  editingBranch?: { id: string; name: string; mainBranchCode: string; departmentId: number } | null;
-  disabledDepartment?: boolean;
-  defaultDepartmentId?: string | number;
-}
 
 export default function CreateMainBranchDrawer({
   open,

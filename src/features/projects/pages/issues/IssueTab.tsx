@@ -10,30 +10,7 @@ import IssueCreate from "./Create";
 import IssueSearch from "./Search";
 import AppTable from '@/shared/components/ui/AppTable';
 import { TableSkeleton } from '@/shared/components/ui/Loaders';
-
-interface IssueItem {
-  IssuesID: number;
-  IssuesTitle: string;
-  LabelInfoID: number;
-  Comments: string;
-  Attachments: string;
-  ProjectInfoID: number;
-  WorkStatusID: number;
-  ProjectInfoName: string;
-  WorkStatusName: string;
-  LabelInfoName: string;
-  LabelColor: string;
-  CreatedDate: string;
-  RaisedBy: string;
-  WorkStatusColor: string;
-  CanChangeStatus: boolean;
-  HasUserRightToEdit: boolean;
-  HasUserRightToDelete: boolean;
-}
-
-interface IssueTabProps {
-  project: ApiProject;
-}
+import type { IssueItem,IssueTabProps } from '@/features/projects/types/projects-types';
 
 export default function IssueTab({ project }: IssueTabProps) {
   const [issues, setIssues] = useState<IssueItem[]>([]);

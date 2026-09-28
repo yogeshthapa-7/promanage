@@ -3,11 +3,7 @@ import Drawer from '@/shared/components/drawer';
 import Button from '@/shared/components/ui/Button';
 import { LogOut, Mail, User, Hash, Building2, Shield } from 'lucide-react';
 import { Modal } from 'antd';
-
-interface UserProfileDrawerProps {
-  open: boolean;
-  onClose: () => void;
-}
+import type { UserProfileDrawerProps } from '@/features/profile/types/profile-types';
 
 export default function UserProfileDrawer({ open, onClose }: UserProfileDrawerProps) {
   const { user, logout } = useAuth();

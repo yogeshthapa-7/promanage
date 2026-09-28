@@ -12,6 +12,13 @@ export interface Client {
   status: number;
 }
 
+export interface CreateClientDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  editingClient?: Client | null;
+}
+
 
 
 

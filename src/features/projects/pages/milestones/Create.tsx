@@ -4,26 +4,7 @@ import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import Drawer from '@/shared/components/drawer';
 import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
 import { saveMilestone } from '@/features/projects/services/milestone.service';
-
-interface MilestoneCreateProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  project: {
-    ProjectInfoID: number;
-    ProjectName?: string;
-  };
-  editingMilestone?: {
-    ProjectMilestoneID: number;
-    MilestoneTitle: string;
-    WorkStatusID: number;
-    MilestoneCost: number;
-    StartDate: string;
-    EndDate: string;
-    Summary: string;
-  } | null;
-  modal?: boolean;
-}
+import type { MilestoneCreateProps } from '@/features/projects/types/projects-types';
 
 export default function MilestoneCreate({
   open,

@@ -7,7 +7,7 @@ import AppTable from '@/shared/components/ui/AppTable';
 import Button from '@/shared/components/ui/Button';
 import { apiCall } from '@/lib/api/api.service';
 import { fetchBranches, fetchBranchSelectList } from '@/features/branches/services/branch.service';
-import type { Branch, BranchSelectOption } from '@/features/branches/types/branches-types';
+import type { Branch, BranchSelectOption, BranchPageProps } from '@/features/branches/types/branches-types';
 import {
   fetchMainBranchSelectList,
 } from '@/features/main-branches/services/main-branch.service';
@@ -32,11 +32,11 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const mockBranches: Branch[] = [
-  { id: '1', sn: 1, name: 'शाखा - प्रशासन', branchCode: 'B-001', mainBranchId: 1, mainBranchName: 'मुख्य शाखा - प्रशासन', departmentId: 19, departmentName: 'प्रशासन विभाग', orderKey: 1 },
-  { id: '2', sn: 2, name: 'शाखा - वित्त', branchCode: 'B-002', mainBranchId: 2, mainBranchName: 'मुख्य शाखा - वित्त', departmentId: 27, departmentName: 'वित्त विभाग', orderKey: 2 },
-  { id: '3', sn: 3, name: 'शाखा - सामाजिक विकास', branchCode: 'B-003', mainBranchId: 3, mainBranchName: 'मुख्य शाखा - सामाजिक विकास', departmentId: 26, departmentName: 'सामाजिक विकास विभाग', orderKey: 3 },
-];
+// const mockBranches: Branch[] = [
+//   { id: '1', sn: 1, name: 'शाखा - प्रशासन', branchCode: 'B-001', mainBranchId: 1, mainBranchName: 'मुख्य शाखा - प्रशासन', departmentId: 19, departmentName: 'प्रशासन विभाग', orderKey: 1 },
+//   { id: '2', sn: 2, name: 'शाखा - वित्त', branchCode: 'B-002', mainBranchId: 2, mainBranchName: 'मुख्य शाखा - वित्त', departmentId: 27, departmentName: 'वित्त विभाग', orderKey: 2 },
+//   { id: '3', sn: 3, name: 'शाखा - सामाजिक विकास', branchCode: 'B-003', mainBranchId: 3, mainBranchName: 'मुख्य शाखा - सामाजिक विकास', departmentId: 26, departmentName: 'सामाजिक विकास विभाग', orderKey: 3 },
+// ];
 
 function fetchBranchesPage(params: PaginatedListParams): Promise<{ items: Branch[]; total: number }> {
   return fetchBranches({
@@ -54,18 +54,10 @@ function fetchBranchesPage(params: PaginatedListParams): Promise<{ items: Branch
     items: result.branches,
     total: result.filtered,
   })).catch(() => ({
-    items: mockBranches,
-    total: mockBranches.length,
+    // items: mockBranches,
+    // total: mockBranches.length,
   }));
 }
-
-//localbodylevel:
- interface BranchPageProps {
-  disabledMainBranch?: boolean;
-  defaultMainBranchId?: string | number;
-  disabledDepartment?: boolean;
-  defaultDepartmentId?: string | number;
-} 
 
 export default function BranchPage( { disabledMainBranch, defaultMainBranchId, disabledDepartment, defaultDepartmentId }: BranchPageProps ) {
   const queryClient = useQueryClient();

@@ -9,6 +9,20 @@ export interface Expense {
   document_name?: string;
 }
 
+export interface CreateExpenseDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: (savedData?: { id?: number; document_url?: string; isNew?: boolean }) => void;
+  editingExpense?: Expense | null;
+}
+
+export interface ViewExpenseDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  expense: Expense | null;
+  fiscalYearOptions?: FiscalYearSelectOption[];
+}
+
 
 
 

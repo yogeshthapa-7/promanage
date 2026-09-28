@@ -1,21 +1,6 @@
 import Drawer from '@/shared/components/drawer';
 import { type FiscalYearSelectOption } from '@/features/fiscal-year/types/fiscal-year-types';
-
-interface Budget {
-  id: number;
-  name: string;
-  fiscal_year?: string;
-  fiscal_year_id?: number;
-  document_url?: string;
-  document_name?: string;
-}
-
-interface ViewBudgetDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  budget: Budget | null;
-  fiscalYearOptions?: FiscalYearSelectOption[];
-}
+import type { Budget, ViewBudgetDrawerProps } from '@/features/budget/types/budget-types'
 
 function getFiscalYearName(budget: Budget, options: FiscalYearSelectOption[]): string {
   const raw = budget.fiscal_year_id ?? budget.fiscal_year;

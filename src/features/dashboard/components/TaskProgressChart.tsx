@@ -2,11 +2,7 @@ import { useEffect, useRef } from 'react';
 import Highcharts from 'highcharts';
 import Card from '@/shared/components/ui/Card';
 import type { Project } from '@/features/projects/types/projects-types';
-
-interface TaskProgressChartProps {
-  projects?: Project[];
-  loading?: boolean;
-}
+import type { TaskProgressChartProps } from '@/features/dashboard/types/dashboard-types';
 
 function computeTaskStatusData(projects: Project[]): { name: string; count: number; color: string }[] {
   const totals: Record<string, number> = {};

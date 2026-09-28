@@ -1,19 +1,6 @@
 import { memo } from 'react';
 import StatCard from '@/shared/components/ui/StatCard';
-
-interface StatCardClientProps {
-  title: string;
-  value: number;
-  trend: string;
-  trendUp: boolean;
-  iconBg?: string;
-  iconColor?: string;
-  iconType?: 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
-  sparklineData?: number[];
-  sparklineColor?: string;
-  icon?: React.ReactNode;
-  loading?: boolean;
-}
+import type { StatCardCLientProps } from '@/features/dashboard/types/dashboard-types';
 
 const StatCardClient = memo(function StatCardClient({
   title,

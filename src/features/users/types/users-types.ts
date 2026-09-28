@@ -30,6 +30,13 @@ export interface OrganizationSelect {
   Title: string;
 }
 
+export interface UserFormModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  editingUser?: User | null;
+}
+
 
 
 

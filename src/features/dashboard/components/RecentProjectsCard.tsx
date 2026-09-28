@@ -4,11 +4,7 @@ import Card from '@/shared/components/ui/Card';
 import Button from '@/shared/components/ui/Button';
 import Badge from '@/shared/components/ui/Badge';
 import type { Project } from '@/features/projects/types/projects-types';
-
-interface RecentProjectsCardProps {
-  projects: Project[];
-  loading?: boolean;
-}
+import type { RecentProjectsCardProps } from '@/features/dashboard/types/dashboard-types';
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '—';

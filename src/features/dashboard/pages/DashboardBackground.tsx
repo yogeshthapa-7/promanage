@@ -1,6 +1,4 @@
-interface BackgroundProps {
-  className?: string;
-}
+import type { BackgroundProps } from '@/features/dashboard/types/dashboard-types';
 
 export default function DashboardBackground({ className = '' }: BackgroundProps) {
   return (

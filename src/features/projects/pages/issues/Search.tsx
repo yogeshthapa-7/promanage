@@ -1,17 +1,6 @@
 import { useState } from 'react';
 import { Modal, Form, Input, Button, message } from 'antd';
-
-interface IssueSearchProps {
-  open: boolean;
-  onClose: () => void;
-  onSearch: (values: Record<string, unknown>) => void;
-  onClear?: () => void;
-  project: {
-    ProjectInfoID: number;
-    ProjectName?: string;
-  };
-  modal?: boolean;
-}
+import type { IssueSearchProps } from '@/features/projects/types/projects-types';
 
 export default function IssueSearch({ open, onClose, onSearch, project, modal = true }: IssueSearchProps) {
   const [form] = Form.useForm();

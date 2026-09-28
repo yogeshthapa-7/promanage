@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal, message, Button } from "antd";
-import type { ApiProject } from "@/features/projects/types/projects-types";
+import type { ApiProject, MilestoneTabProps } from "@/features/projects/types/projects-types";
 import { calculateProgressFromDates, convertAdToBs } from "@/shared/utils/nepali-date";
 import Card from "@/shared/components/ui/Card";
 import ProgressBar from "@/shared/components/ui/ProgressBar";
@@ -10,10 +10,6 @@ import MilestoneCreate from "./Create";
 import MilestoneSearch from "./Search";
 import { fetchMilestones, deleteMilestone, type MilestoneItem } from "@/features/projects/services/milestone.service";
 
-interface MilestoneTabProps {
-  project: ApiProject;
-  onEdit?: (milestone: MilestoneItem) => void;
-}
 
 export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);

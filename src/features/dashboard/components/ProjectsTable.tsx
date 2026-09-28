@@ -7,16 +7,8 @@ import { AvatarStack } from '@/shared/components/ui/Avatar';
 import Card from '@/shared/components/ui/Card';
 import ProgressBar from '@/shared/components/ui/ProgressBar';
 import type { Project, ProjectStatus, ProjectPriority } from '@/features/projects/types/projects-types';
+import type { ProjectsTableProps } from '@/features/dashboard/types/dashboard-types';
 
-interface ProjectsTableProps {
-  projects?: Project[];
-  sortField?: string;
-  sortDir?: 'asc' | 'desc';
-  onSortChange?: (field: string) => void;
-  filterStatus?: ProjectStatus | 'All';
-  onFilterChange?: (status: ProjectStatus | 'All') => void;
-  loading?: boolean;
-}
 const statusConfig: Record<ProjectStatus, { label: string; bg: string; color: string }> = {
   'In Progress': { label: 'In Progress', bg: '#EFF6FF', color: '#3B82F6' },
   'Completed': { label: 'Completed', bg: '#ECFDF5', color: '#10B981' },

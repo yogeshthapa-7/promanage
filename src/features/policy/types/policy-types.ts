@@ -8,6 +8,20 @@ export interface Policy {
   document_name?: string;
 }
 
+export interface CreatePolicyDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: (savedData?: { id?: number; document_url?: string; isNew?: boolean }) => void;
+  editingPolicy?: Policy | null;
+}
+
+export interface ViewPolicyDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  policy: Policy | null;
+  fiscalYearOptions?: FiscalYearSelectOption[];
+}
+
 
 
 

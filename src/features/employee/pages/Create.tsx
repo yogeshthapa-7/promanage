@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Row, Col, message } from 'antd';
-import type { Employee } from '@/features/employee/types/employees-types';
+import type { Employee, EmployeeSetupModalProps, OrgOfficeItem, DepartmentItem, MainBranchItem, BranchItem } from '@/features/employee/types/employees-types';
 import { saveEmployee } from '@/features/employee/services/employee.service';
 import { apiCall } from '@/lib/api/api.service';
 import Drawer from '@/shared/components/drawer';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import ProgressBar from '@/shared/components/ui/ProgressBar';
 import DocumentUploadField from '@/shared/components/DocumentUploadField';
-
-interface EmployeeSetupModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: (employee?: Employee) => void;
-  editingEmployee?: Employee | null;
-}
 
 const GENDER_OPTIONS = [
   { value: 1, label: 'Male' },
@@ -26,29 +19,6 @@ const STATUS_OPTIONS = [
   { value: 2, label: 'निलम्बित (Suspend)' },
   { value: 3, label: 'पेन्डिङ (Pending)' },
 ];
-
-interface OrgOfficeItem {
-  OrganizationOfficeID: number;
-  OrganizationOfficeName: string;
-}
-
-interface DepartmentItem {
-  DepartmentInfoID: number;
-  DepartmentName: string;
-}
-
-interface MainBranchItem {
-  MainBranchID: number;
-  MainBranchName: string;
-  DepartmentID: number;
-}
-
-interface BranchItem {
-  BranchID: number;
-  BranchName: string;
-  MainBranchID: number;
-  DepartmentID: number;
-}
 
 export default function EmployeeSetupModal({
   open,
