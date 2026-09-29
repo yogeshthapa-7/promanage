@@ -3,14 +3,7 @@ import { Menu, X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import DashboardBackground from '@/features/dashboard/pages/DashboardBackground';
-
-interface AppLayoutProps {
-  children: React.ReactNode;
-  pageTitle?: string;
-  pageSubtitle?: string;
-  background?: React.ReactNode;
-  showTopbar?: boolean;
-}
+import type { AppLayoutProps } from '@/shared/components/types/generic-components-types';
 
 export default function AppLayout({
   children,

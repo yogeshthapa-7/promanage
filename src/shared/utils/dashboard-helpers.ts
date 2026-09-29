@@ -1,4 +1,4 @@
-import type { DashboardStatCardData } from '@/shared/utils/types/dashboard-helper-type'
+import type { DashboardStatCardData } from '@/shared/utils/types/generic-utils-types'
 
 export function sparkLine(end: number, len = 7): number[] {
   const arr: number[] = [];

@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-
-interface DrawerProps {
-  open: boolean;
-  onClose: () => void;
-  title?: string;
-  subtitle?: string;
-  children: React.ReactNode;
-  width?: number;
-  zIndex?: number;
-}
+import type { DrawerProps } from '@/shared/components/types/generic-components-types';
 
 export default function Drawer({
   open,

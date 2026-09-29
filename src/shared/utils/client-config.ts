@@ -1,13 +1,4 @@
-export interface ClientConfig {
-  clientCode: string;
-  appType: string;
-  localBodyLevel: number;
-}
-
-export interface ParsedClientConfig {
-  currentClientCode: string;
-  localBodyLevel: number;
-}
+import type { ClientConfig, ParsedClientConfig } from '@/shared/utils/types/generic-utils-types';
 
 function parseClientConfigs(raw: string): ClientConfig[] {
   const trimmed = raw.trim();

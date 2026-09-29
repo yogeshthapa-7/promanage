@@ -1,21 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, Filter, X, ChevronDown, ArrowUpDown, Menu } from 'lucide-react';
 import type { ProjectStatus } from '@/features/projects/types/projects-types';
-
-interface TopbarProps {
-  pageTitle?: string;
-  pageSubtitle?: string;
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
-  showSearch?: boolean;
-  showFilters?: boolean;
-  filterStatus?: ProjectStatus | 'All';
-  onFilterChange?: (status: ProjectStatus | 'All') => void;
-  sortField?: string;
-  sortDir?: 'asc' | 'desc';
-  onSortChange?: (field: string) => void;
-  onMenuToggle?: () => void;
-}
+import type { TopbarProps } from '@/shared/components/types/generic-components-types';
 
 const SORT_OPTIONS = [
   { label: 'Name', value: 'name' },

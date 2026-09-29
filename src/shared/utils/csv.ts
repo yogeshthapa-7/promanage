@@ -1,3 +1,4 @@
+import type { CsvColumn } from '@/shared/utils/types/generic-utils-types';
 /**
  * Build a single CSV cell value following RFC 4180:
  * - wrap in double quotes if the value contains a comma, quote, newline or CR
@@ -9,13 +10,6 @@ function escapeCsvCell(value: unknown): string {
   const padded = `   ${str}   `;
   // Always wrap in quotes to preserve leading/trailing spaces in Excel
   return `"${padded.replace(/"/g, '""')}"`;
-}
-
-export interface CsvColumn<T> {
-  /** Header label written in the first row. */
-  header: string;
-  /** Extract the raw cell value for a given row. */
-  value: (row: T) => unknown;
 }
 
 /**

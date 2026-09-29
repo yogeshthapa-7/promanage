@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Popover, Input } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import NepaliFunctions from '@sajanm/nepali-functions';
+import type { AntdNepaliDatePicker } from '@/shared/components/types/generic-components-types';
 
 const NEPALI_CALENDAR_STYLE_ID = 'nepali-calendar-dark-override';
 
@@ -53,16 +54,6 @@ const toNepaliNumerals = (num: number | string): string =>
 const padZero = (num: number): string => String(num).padStart(2, '0');
 
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-interface AntdNepaliDatePickerProps {
-  value?: string;
-  onChange?: (dateStr: string) => void;
-  placeholder?: string;
-  className?: string;
-  returnEnglishDate?: boolean;
-  style?: React.CSSProperties;
-  disabled?: boolean;
-}
 
 export default function AntdNepaliDatePicker({
   value,

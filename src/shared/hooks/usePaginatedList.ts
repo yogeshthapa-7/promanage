@@ -1,34 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-
-export interface PaginatedListParams {
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-  [key: string]: unknown;
-}
-
-export interface PaginatedListResult<T> {
-  items: T[];
-  total: number;
-}
-
-export interface UsePaginatedListOptions<T> {
-  fetcher: (params: PaginatedListParams) => Promise<PaginatedListResult<T>>;
-  initialPageSize?: number;
-  extraDeps?: unknown[];
-  extraParams?: Record<string, unknown>;
-}
-
-export interface UsePaginatedListReturn<T> {
-  data: T[];
-  total: number;
-  loading: boolean;
-  currentPage: number;
-  pageSize: number;
-  setCurrentPage: (page: number) => void;
-  setPageSize: (size: number) => void;
-  refetch: () => void;
-}
+import type { PaginatedListParams, PaginatedListResult, UsePaginatedListOptions, 
+  UsePaginatedListReturn } from '@/shared/components/types/generic-components-types';
 
 export function usePaginatedList<T>({
   fetcher,

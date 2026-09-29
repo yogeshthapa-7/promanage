@@ -4,15 +4,10 @@ import { apiCall } from '@/lib/api/api.service';
 import type { TaskItem } from '@/features/projects/types/tasks-types';
 import Badge from '@/shared/components/ui/Badge';
 import { Avatar } from '@/shared/components/ui/Avatar';
+import type { ViewTaskDrawerProps } from '@/shared/components/types/generic-components-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
-
-interface ViewTaskDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  taskId: number | null;
-}
 
 function buildTaskSearchBody(taskInfoId: number) {
   return {

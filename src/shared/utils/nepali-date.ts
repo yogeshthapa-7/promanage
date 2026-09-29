@@ -1,10 +1,6 @@
 import NepaliFunctions from '@sajanm/nepali-functions';
+import type { BSDate } from '@/shared/utils/types/generic-utils-types';
 
-export interface BSDate {
-  year: number;   // e.g. 2081
-  month: number;  // 1 to 12
-  day: number;    // 1 to 32
-}
 
 export const NEPALI_MONTHS_EN = [
   'Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 'Ashwin',

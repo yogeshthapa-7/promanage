@@ -2,25 +2,9 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '@/shared/components/ui/AppIcon';
 import { apiCall } from '@/lib/api/api.service';
 import { message } from 'antd';
+import type { DocumentUploadFieldProps, FileTypeConfig } from '@/shared/components/types/generic-components-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
-interface DocumentUploadFieldProps {
-  value?: string;
-  onChange?: (url: string) => void;
-  uploading?: boolean;
-  onUploadingChange?: (uploading: boolean) => void;
-  disabled?: boolean;
-  accept?: string;
-}
-
-interface FileTypeConfig {
-  extension: string[];
-  color: string;
-  bgColor: string;
-  icon: string;
-  label: string;
-}
 
 const FILE_TYPE_CONFIGS: FileTypeConfig[] = [
   {
