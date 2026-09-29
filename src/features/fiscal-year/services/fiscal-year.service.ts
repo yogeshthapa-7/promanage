@@ -17,7 +17,7 @@ function mapSelectItem(item: ApiSelectItem): FiscalYearSelectOption {
   const value = String(
     item.FiscalYearID ?? item.FiscalYear ?? item.FiscalYearName ?? item.name ?? item.Text ?? label
   );
-  return { value, label };
+  return { value, label, isRunning: item.IsRunning };
 }
 
 export async function fetchFiscalYearSelectList(

@@ -32,7 +32,8 @@ export default function CreateExpenseDrawer({ open, onClose, onSuccess, editingE
         setDocumentUrl(editingExpense.document_url || '');
       } else {
         form.resetFields();
-        form.setFieldsValue({ fiscal_year: options[0]?.value });
+        const runningYear = options.find(opt => opt.isRunning === 1);
+        form.setFieldsValue({ fiscal_year: runningYear?.value || options[0]?.value });
         setDocumentUrl('');
       }
     });

@@ -1,6 +1,7 @@
 export interface FiscalYearSelectOption {
   value: string;
   label: string;
+  isRunning: number;
 }
 
 export interface FiscalYearItem {

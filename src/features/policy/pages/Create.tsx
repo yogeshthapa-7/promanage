@@ -31,7 +31,8 @@ export default function CreatePolicyDrawer({ open, onClose, onSuccess, editingPo
         setDocumentUrl(editingPolicy.document_url || '');
       } else {
         form.resetFields();
-        form.setFieldsValue({ fiscal_year: options[0]?.value });
+        const isRunning = options.find(opt => opt.isRunning === 1);
+        form.setFieldsValue({ fiscal_year: isRunning?.value || options[0]?.value });
         setDocumentUrl('');
       }
     });
