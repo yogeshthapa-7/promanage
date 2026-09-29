@@ -85,6 +85,51 @@ export async function deleteEmployee(id: number): Promise<{ success: boolean; me
   return { success: json.Success !== false, message: json.Message };
 }
 
+export async function fetchOrganizationOffices(signal?: AbortSignal): Promise<{ id: number | string; name: string }[]> {
+  const res = await apiCall(`${API_BASE}/OrganizationOffice/SelectList`, { method: 'GET', signal }, 30000);
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows: Record<string, unknown>[] = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : Array.isArray(json?.Data) ? json.Data : [];
+  return rows.map((item) => ({
+    id: Number(item.OrganizationOfficeID ?? item.Value ?? item.id ?? 0),
+    name: String(item.OrganizationOfficeName ?? item.Name ?? item.name ?? item.Text ?? ''),
+  }));
+}
+
+export async function fetchDepartmentsSelect(signal?: AbortSignal): Promise<{ id: number | string; name: string }[]> {
+  const res = await apiCall(`${API_BASE}/Department/SelectList`, { method: 'GET', signal }, 30000);
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows: Record<string, unknown>[] = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : Array.isArray(json?.Data) ? json.Data : [];
+  return rows.map((item) => ({
+    id: Number(item.DepartmentInfoID ?? item.DepartmentID ?? item.Value ?? item.id ?? 0),
+    name: String(item.DepartmentName ?? item.Name ?? item.name ?? item.Text ?? ''),
+  }));
+}
+
+export async function fetchMainBranchesSelect(signal?: AbortSignal): Promise<{ id: number | string; name: string; departmentId: number | string }[]> {
+  const res = await apiCall(`${API_BASE}/MainBranch/SelectList`, { method: 'GET', signal }, 30000);
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows: Record<string, unknown>[] = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : Array.isArray(json?.Data) ? json.Data : [];
+  return rows.map((item) => ({
+    id: Number(item.MainBranchID ?? item.Value ?? item.id ?? 0),
+    name: String(item.MainBranchName ?? item.Name ?? item.name ?? item.Text ?? ''),
+    departmentId: Number(item.DepartmentID ?? 0),
+  }));
+}
+
+export async function fetchBranchesSelect(signal?: AbortSignal): Promise<{ id: number | string; name: string; mainBranchId: number | string }[]> {
+  const res = await apiCall(`${API_BASE}/Branch/SelectList`, { method: 'GET', signal }, 30000);
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows: Record<string, unknown>[] = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : Array.isArray(json?.Data) ? json.Data : [];
+  return rows.map((item) => ({
+    id: Number(item.BranchID ?? item.Value ?? item.id ?? 0),
+    name: String(item.BranchName ?? item.Name ?? item.name ?? item.Text ?? ''),
+    mainBranchId: Number(item.MainBranchID ?? 0),
+  }));
+}
 
 
 

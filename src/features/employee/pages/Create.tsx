@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Row, Col, message } from 'antd';
 import type { Employee, EmployeeSetupModalProps, OrgOfficeItem, DepartmentItem, MainBranchItem, BranchItem } from '@/features/employee/types/employees-types';
-import { saveEmployee } from '@/features/employee/services/employee.service';
-import { apiCall } from '@/lib/api/api.service';
+import { saveEmployee, fetchOrganizationOffices, fetchDepartmentsSelect, fetchMainBranchesSelect,
+  fetchBranchesSelect
+ } from '@/features/employee/services/employee.service';
 import Drawer from '@/shared/components/drawer';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import ProgressBar from '@/shared/components/ui/ProgressBar';
@@ -68,17 +69,23 @@ export default function EmployeeSetupModal({
      const initializeModal = async () => {
        setFetchingData(true);
        try {
-        const [resOrg, resDept, resMB, resBranch] = await Promise.all([
-          apiCall(`${API_BASE}/OrganizationOffice/SelectList`),
-          apiCall(`${API_BASE}/Department/SelectList`),
-          apiCall(`${API_BASE}/MainBranch/SelectList`),
-          apiCall(`${API_BASE}/Branch/SelectList`),
+        // const [resOrg, resDept, resMB, resBranch] = await Promise.all([
+        //   apiCall(`${API_BASE}/OrganizationOffice/SelectList`),
+        //   apiCall(`${API_BASE}/Department/SelectList`),
+        //   apiCall(`${API_BASE}/MainBranch/SelectList`),
+        //   apiCall(`${API_BASE}/Branch/SelectList`),
+        // ]);
+        const [orgData, deptData, mbData, branchData] = await Promise.all([
+          fetchOrganizationOffices(),
+          fetchDepartmentsSelect(),
+          fetchMainBranchesSelect(),
+          fetchBranchesSelect(),
         ]);
 
-        const orgData = resOrg.ok ? await resOrg.json() : [];
-        const deptData = resDept.ok ? await resDept.json() : [];
-        const mbData = resMB.ok ? await resMB.json() : [];
-        const branchData = resBranch.ok ? await resBranch.json() : [];
+        // const orgData = orgRes.ok ? await orgRes.json() : [];
+        // const deptData = deptRes.ok ? await deptRes.json() : [];
+        // const mbData = mbRes.ok ? await mbRes.json() : [];
+        // const branchData = branchRes.ok ? await branchRes.json() : [];
 
         if (!isMounted) return;
 
@@ -103,21 +110,21 @@ export default function EmployeeSetupModal({
           setSelectedMainBranchId(mainBranchId ?? null);
 
           form.setFieldsValue({
-            Fullname: editingEmployee.Fullname || '',
-            Address: editingEmployee.Address || '',
-            Phone: editingEmployee.Phone || '',
-            Email: editingEmployee.Email || '',
-            Gender: parseValidId(editingEmployee.Gender) ?? 1,
-            DOB: editingEmployee.DOB || undefined,
-            OrganizationOfficeID: orgOfficeId,
-            DepartmentID: deptId,
-            MainBranchID: mainBranchId,
-            BranchID: branchId,
-            EmployeeStatus: parseValidId(editingEmployee.EmpStatus) ?? 1,
-            Username: '',
-            Password: '',
-            confirmPassword: '',
-          });
+  Fullname: editingEmployee.Fullname || '',
+  Address: editingEmployee.Address || '',
+  Phone: editingEmployee.Phone || '',
+  Email: editingEmployee.Email || '',
+  Gender: parseValidId(editingEmployee.Gender) ?? 1,
+  DOB: editingEmployee.DOB || undefined,
+  OrganizationOfficeID: orgOfficeId !== undefined ? String(orgOfficeId) : undefined,
+  DepartmentID: deptId !== undefined ? String(deptId) : undefined,
+  MainBranchID: mainBranchId !== undefined ? String(mainBranchId) : undefined,
+  BranchID: branchId !== undefined ? String(branchId) : undefined,
+  EmployeeStatus: parseValidId(editingEmployee.EmpStatus) ?? 1,
+  Username: '',
+  Password: '',
+  confirmPassword: '',
+});
         } else {
           form.resetFields();
           setSelectedDepartmentId(null);
@@ -138,15 +145,15 @@ export default function EmployeeSetupModal({
     };
   }, [open, editingEmployee, form]);
 
-  const orgOfficeOptions = orgOffices.map((item) => ({
-    value: Number(item.OrganizationOfficeID),
-    label: item.OrganizationOfficeName,
-  }));
+const orgOfficeOptions = orgOffices.map((item) => ({
+   value: String(item.id),
+   label: item.name,
+ }));
 
-  const departmentOptions = departments.map((item) => ({
-    value: Number(item.DepartmentInfoID),
-    label: item.DepartmentName,
-  }));
+ const departmentOptions = departments.map((item) => ({
+   value: String(item.id),
+   label: item.name,
+ }));
 
   if (
     editingEmployee?.DepartmentID &&
@@ -162,15 +169,15 @@ export default function EmployeeSetupModal({
   const filteredMainBranchOptions = mainBranches
     .filter((item) => {
       if (!selectedDepartmentId) return true;
-      if (Number(item.DepartmentID) === Number(selectedDepartmentId)) return true;
+      if (Number(item.departmentId) === Number(selectedDepartmentId)) return true;
       if (editingEmployee && Number(item.MainBranchID) === Number(editingEmployee.MainBranchID)) {
         return true;
       }
       return false;
     })
     .map((item) => ({
-      value: Number(item.MainBranchID),
-      label: item.MainBranchName,
+      value: String(item.id),
+      label: item.name,
     }));
 
   if (
@@ -187,15 +194,15 @@ export default function EmployeeSetupModal({
   const filteredBranchOptions = branches
     .filter((item) => {
       if (!selectedMainBranchId) return true;
-      if (Number(item.MainBranchID) === Number(selectedMainBranchId)) return true;
+      if (Number(item.mainBranchId) === Number(selectedMainBranchId)) return true;
       if (editingEmployee && Number(item.BranchID) === Number(editingEmployee.BranchID)) {
         return true;
       }
       return false;
     })
     .map((item) => ({
-      value: Number(item.BranchID),
-      label: item.BranchName,
+      value: String(item.id),
+      label: item.name,
     }));
 
   if (
@@ -234,33 +241,33 @@ export default function EmployeeSetupModal({
 
          const employeeId = isEdit ? Number(editingEmployee?.EmployeeInfoID) : 0;
 
-         const selectedDept = departments.find((d) => Number(d.DepartmentInfoID) === Number(values.DepartmentID));
-         const selectedMainBranch = mainBranches.find((mb) => Number(mb.MainBranchID) === Number(values.MainBranchID));
-         const selectedBranch = branches.find((b) => Number(b.BranchID) === Number(values.BranchID));
+          const selectedDept = departments.find((d) => Number(d.id) === Number(values.DepartmentID));
+          const selectedMainBranch = mainBranches.find((mb) => Number(mb.id) === Number(values.MainBranchID));
+          const selectedBranch = branches.find((b) => Number(b.id) === Number(values.BranchID));
 
           let photoPath = documentUrl || '';
           if (photoPath.startsWith(API_BASE + '/')) {
             photoPath = photoPath.replace(API_BASE + '/', '');
           }
 
-          const body: Record<string, unknown> = {
-            EmployeeInfoID: employeeId,
-            Fullname: values.Fullname,
-            Address: values.Address || '',
-            Phone: values.Phone || '',
-            Email: values.Email || '',
-            Gender: values.Gender || 1,
-             DOB: values.DOB ? values.DOB.replace(/\//g, '-') : '',
-            OrganizationOfficeID: values.OrganizationOfficeID || 1,
-            DepartmentID: values.DepartmentID || 0,
-            DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
-            BranchID: values.BranchID || 0,
-            BranchName: selectedBranch ? selectedBranch.BranchName : '',
-            MainBranchID: values.MainBranchID || 0,
-            MainBranchName: selectedMainBranch ? selectedMainBranch.MainBranchName : '',
-            Photo: photoPath,
-            EmpStatus: values.EmployeeStatus || 1,
-          };
+         const body: Record<string, unknown> = {
+  EmployeeInfoID: employeeId,
+  Fullname: values.Fullname,
+  Address: values.Address || '',
+  Phone: values.Phone || '',
+  Email: values.Email || '',
+  Gender: values.Gender || 1,
+  DOB: values.DOB ? values.DOB.replace(/\//g, '-') : '',
+  OrganizationOfficeID: Number(values.OrganizationOfficeID),
+  DepartmentID: Number(values.DepartmentID) || 0,
+  DepartmentName: selectedDept ? selectedDept.name : '',
+  BranchID: Number(values.BranchID) || 0,
+  BranchName: selectedBranch ? selectedBranch.name : '',
+  MainBranchID: Number(values.MainBranchID) || 0,
+  MainBranchName: selectedMainBranch ? selectedMainBranch.name : '',
+  Photo: photoPath,
+  EmpStatus: values.EmployeeStatus || 1,
+};
 
          if (isEdit) {
            if (values.Username) body.Username = values.Username;
