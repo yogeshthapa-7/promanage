@@ -1,20 +1,7 @@
 import { memo, forwardRef, type ReactNode } from 'react';
 import { Button as AntButton } from 'antd';
+import type { ButtonProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface ButtonProps {
-  variant?: 'primary' | 'ghost' | 'outline' | 'icon';
-  size?: 'sm' | 'md' | 'lg' | 'small' | 'large';
-  icon?: ReactNode;
-  children?: ReactNode;
-  className?: string;
-  onClick?: (e?: any) => void;
-  type?: 'primary' | 'default' | 'dashed' | 'text' | 'link';
-  danger?: boolean;
-  loading?: boolean;
-  style?: React.CSSProperties;
-  disabled?: boolean;
-  htmlType?: 'button' | 'submit' | 'reset';
-}
 
 const variantStyles: Record<string, { type?: 'primary' | 'default' | 'dashed' | 'text' | 'link' | undefined; shape?: 'circle' | 'round' | undefined }> = {
   primary: {},

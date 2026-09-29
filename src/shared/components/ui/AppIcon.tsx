@@ -1,16 +1,8 @@
 import * as HeroIcons from '@heroicons/react/24/outline';
 import * as HeroIconsSolid from '@heroicons/react/24/solid';
+import type { IconProps } from '@/shared/components/ui/types/generic-ui-types'
 
 type IconVariant = 'outline' | 'solid';
-
-interface IconProps {
-    name: string;
-    variant?: IconVariant;
-    size?: number;
-    className?: string;
-    onClick?: () => void;
-    disabled?: boolean;
-}
 
 function Icon({
     name,

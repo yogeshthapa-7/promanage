@@ -1,12 +1,8 @@
 import type { ReactNode } from 'react';
 import { Dropdown as AntDropdown } from 'antd';
 import type { MenuProps } from 'antd';
+import type { DropdownMenuProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface DropdownMenuProps {
-  trigger: ReactNode;
-  items: { label: string; onClick?: () => void; danger?: boolean }[];
-  className?: string;
-}
 
 export default function DropdownMenu({ trigger, items, className }: DropdownMenuProps) {
   const menuItems: MenuProps['items'] = items.map((item, index) => ({

@@ -1,10 +1,6 @@
 import { Progress as AntProgress } from 'antd';
+import type { ProgressBarProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface ProgressBarProps {
-  value: number;
-  color?: string;
-  height?: number;
-}
 
 export default function ProgressBar({
   value,

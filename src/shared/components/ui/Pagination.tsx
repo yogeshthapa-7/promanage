@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import { Pagination as AntPagination, Select } from 'antd';
+import type { PaginationProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface PaginationProps {
-  total: number;
-  currentPage: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange?: (size: number) => void;
-  pageSizeOptions?: number[];
-}
 
 export default function Pagination({
   total,

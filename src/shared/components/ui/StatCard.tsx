@@ -2,21 +2,10 @@ import { memo, useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from 'antd';
 import Highcharts from 'highcharts';
+import type { StatCardProps } from '@/shared/components/ui/types/generic-ui-types';
 
 type IconType = 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
 
-interface StatCardProps {
-  title: string;
-  value: number | string;
-  trend: string;
-  trendUp: boolean;
-  iconBg?: string;
-  iconColor?: string;
-  iconType?: IconType;
-  icon?: React.ReactNode;
-  sparklineData?: number[];
-  sparklineColor?: string;
-}
 
 const iconMap: Record<IconType, React.ReactNode> = {
   folder: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>,

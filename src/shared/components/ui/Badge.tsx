@@ -1,12 +1,7 @@
 import type { ReactNode } from 'react';
 import { Tag as AntTag } from 'antd';
+import type { BadgeProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface BadgeProps {
-  children: ReactNode;
-  variant?: 'default' | 'status' | 'priority' | 'outline';
-  className?: string;
-  style?: React.CSSProperties;
-}
 
 export default function Badge({
   children,

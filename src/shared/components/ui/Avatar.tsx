@@ -1,12 +1,7 @@
 import { Avatar as AntAvatar } from 'antd';
 import type { AvatarProps as AntAvatarProps } from 'antd';
+import type { AvatarProps, AvatarStackProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface AvatarProps {
-  src: string;
-  alt: string;
-  size?: number;
-  className?: string;
-}
 
 export function Avatar({ src, alt, size = 32, className = '' }: AvatarProps) {
   return (
@@ -18,13 +13,6 @@ export function Avatar({ src, alt, size = 32, className = '' }: AvatarProps) {
       style={{ marginLeft: size > 32 ? '-8px' : undefined }}
     />
   );
-}
-
-interface AvatarStackProps {
-  items: { src: string; alt: string; id: string }[];
-  size?: number;
-  extra?: number;
-  extraLabel?: string;
 }
 
 export function AvatarStack({ items, size = 28, extra, extraLabel }: AvatarStackProps) {

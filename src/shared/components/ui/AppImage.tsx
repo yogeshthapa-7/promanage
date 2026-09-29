@@ -1,18 +1,6 @@
 import React, { useState, useCallback, useMemo, memo } from 'react';
+import type { AppImageProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface AppImageProps {
-    src: string;
-    alt: string;
-    width?: number;
-    height?: number;
-    className?: string;
-    priority?: boolean;
-    fill?: boolean;
-    sizes?: string;
-    onClick?: () => void;
-    fallbackSrc?: string;
-    loading?: 'lazy' | 'eager';
-}
 
 const AppImage = memo(function AppImage({
     src,

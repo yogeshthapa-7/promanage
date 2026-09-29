@@ -1,12 +1,7 @@
 import type { ReactNode, HTMLAttributes } from 'react';
 import { Card as AntCard } from 'antd';
+import type { CardProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  children: ReactNode;
-  className?: string;
-  hover?: boolean;
-  padding?: string;
-}
 
 export default function Card({
   children,

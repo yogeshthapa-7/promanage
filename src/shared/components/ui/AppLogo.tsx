@@ -1,14 +1,8 @@
 import { memo, useMemo } from 'react';
 import AppIcon from './AppIcon';
 import AppImage from './AppImage';
+import type { AppLogoProps } from '@/shared/components/ui/types/generic-ui-types';
 
-interface AppLogoProps {
-  src?: string;
-  iconName?: string;
-  size?: number;
-  className?: string;
-  onClick?: () => void;
-}
 
 const AppLogo = memo(function AppLogo({
   src = '/assets/images/app_logo.png',
