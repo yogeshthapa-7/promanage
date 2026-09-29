@@ -7,14 +7,13 @@ import AppTable from '@/shared/components/ui/AppTable';
 import Button from '@/shared/components/ui/Button';
 import {
   fetchMainBranches,
-  fetchMainBranchSelectList,
+  fetchMainBranchSelectList, deleteMainBranch
 } from '@/features/main-branches/services/main-branch.service';
 import type { MainBranch, MainBranchSelectOption, MainBranchPageProps } from '@/features/main-branches/types/main-branches-types';
 import {
   fetchDepartmentSelectList,
 } from '@/features/departments/services/department.service';
 import type { DepartmentSelectOption } from '@/features/departments/types/departments-types';
-import { apiCall } from '@/lib/api/api.service';
 import CreateMainBranchDrawer from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
 import { exportCsv } from '@/shared/utils/csv';
@@ -135,11 +134,7 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
       okType: 'danger',
       onOk: async () => {
         try {
-          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-          await apiCall(
-            `${API_BASE}/DeleteMainBranch?id=${branch.id}`,
-            { method: 'GET' }
-          );
+          await deleteMainBranch(branch.id);
           message.success('Deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['mainBranches', 'search'] });
           refetch();
