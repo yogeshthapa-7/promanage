@@ -49,6 +49,28 @@ export interface BranchItem {
   DepartmentID: number;
 }
 
+export interface ApiEmployeeResponse {
+  draw: number;
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: Employee[];
+}
+
+export interface FetchEmployeesParams {
+  search: string;
+  start: number;
+  length: number;
+  fullname?: string;
+  address?: string;
+  phone?: string;
+  signal?: AbortSignal;
+}
+
+export interface FetchEmployeesResult {
+  employees: Employee[];
+  total: number;
+  filtered: number;
+}
 
 
 

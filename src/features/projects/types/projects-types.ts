@@ -323,3 +323,93 @@ export interface TimelineTabProps {
   projectId?: number | null;
 }
 
+//Discussion Page
+export interface ProjectDiscussionItem {
+  SN: number;
+  ProjectDiscussionID: number;
+  DiscussionTitle: string;
+  ProjectInfoID: number;
+  Priority: number;
+  PriorityName: string;
+  Status: number;
+  HasUserRightToEdit: boolean;
+  HasUserRightToDelete: boolean;
+  CreatedDate: string;
+}
+
+//Issue Page
+// export interface IssueItem {
+//   IssuesID: number;
+//   IssuesTitle: string;
+//   LabelInfoID: number;
+//   Comments: string;
+//   Attachments: string;
+//   ProjectInfoID: number;
+//   WorkStatusID: number;
+//   ProjectInfoName: string;
+//   WorkStatusName: string;
+//   LabelInfoName: string;
+//   LabelColor: string;
+//   CreatedDate: string;
+//   RaisedBy: string;
+//   WorkStatusColor: string;
+//   CanChangeStatus: boolean;
+//   HasUserRightToEdit: boolean;
+//   HasUserRightToDelete: boolean;
+// }
+
+//milestone page
+export interface MilestoneItem {
+  ProjectMilestoneID: number;
+  ProjectInfoID: number;
+  MilestoneTitle: string;
+  WorkStatusID: number;
+  WorkStatusName: string;
+  MilestoneCost: number;
+  StartDate: string;
+  EndDate: string;
+  Summary: string;
+  Progress: number;
+}
+
+//projects service page
+export interface SelectListItem {
+  id: number | string;
+  name: string;
+}
+
+export interface ExcelImportCaches {
+  status: SelectListItem[];
+  client: SelectListItem[];
+  projectType: SelectListItem[];
+  department: SelectListItem[];
+  expenseInfo: SelectListItem[];
+  ward: SelectListItem[];
+  policyProgram: SelectListItem[];
+  budget: SelectListItem[];
+  employee: SelectListItem[];
+}
+
+export interface ServerSearchResponse {
+  data?: unknown[];
+  recordsTotal?: number;
+  recordsFiltered?: number;
+}
+
+export interface FetchResult<T> {
+  items: T[];
+  total: number;
+  filtered: number;
+}
+
+//Timeline service
+export interface TimelineItem {
+  ProjectInfoID: number;
+  Remarks: string;
+  TraceKey: number;
+  TraceID: number;
+  TraceKeyName: string;
+  CreatedDate: string;
+  CreatedTime: string;
+  CreateDateTime: string;
+}

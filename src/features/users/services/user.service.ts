@@ -1,44 +1,12 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { User, UserGroup, OrganizationSelect, UserRole, UserStatus } from '@/features/users/types/users-types';
+import type { User, UserGroup, OrganizationSelect, UserRole, UserStatus,ApiUser, ApiUserResponse,
+  FetchUsersParams, FetchUsersResult
+ } from '@/features/users/types/users-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/Users/ServerSearch`;
 export const USER_GROUP_API_URL = `${API_BASE}/UserGroup/SelectList`;
 export const ORGANIZATION_API_URL = `${API_BASE}/Organization/SelectList`;
-
-interface ApiUser {
-  UserId: number;
-  UserName: string;
-  FullName: string;
-  UserGroupId: number;
-  UserGroupCode: string;
-  UserGroupName: string;
-  Theme: string;
-  OrganizationID: number;
-  [key: string]: unknown;
-}
-
-interface ApiUserResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiUser[];
-}
-
-interface FetchUsersParams {
-  search: string;
-  start: number;
-  length: number;
-  theme?: string;
-  role?: string;
-  signal?: AbortSignal;
-}
-
-interface FetchUsersResult {
-  users: User[];
-  total: number;
-  filtered: number;
-}
 
 function buildSearchBody(params: FetchUsersParams) {
   return {

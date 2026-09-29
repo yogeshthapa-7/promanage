@@ -1,23 +1,11 @@
 import { apiCall } from '@/lib/api/api.service';
-import type { ApiProject } from '@/features/projects/types/projects-types';
+import type { ApiProject, MilestoneItem } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const MILESTONES_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
 export const SAVE_MILESTONE_URL = `${API_BASE}/SaveProjectMilestone`;
 export const DELETE_MILESTONE_URL = `${API_BASE}/DeleteProjectMilestone`;
 
-export interface MilestoneItem {
-  ProjectMilestoneID: number;
-  ProjectInfoID: number;
-  MilestoneTitle: string;
-  WorkStatusID: number;
-  WorkStatusName: string;
-  MilestoneCost: number;
-  StartDate: string;
-  EndDate: string;
-  Summary: string;
-  Progress: number;
-}
 
 
 export async function fetchMilestones(project: ApiProject, signal?: AbortSignal): Promise<MilestoneItem[]> {

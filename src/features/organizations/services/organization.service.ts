@@ -1,29 +1,9 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Organization } from '@/features/organizations/types/organizations-types';
+import type { Organization, ApiOrganizationResponse, ApiOrganizationRow, ApiSelectItem,
+  FetchOrganizationsParams, FetchOrganizationsResult
+ } from '@/features/organizations/types/organizations-types';
 
-interface ApiOrganizationResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiOrganizationRow[];
-}
 
-interface ApiOrganizationRow {
-  SN: number;
-  OrganizationID: number;
-  ParentOrganizationID: number;
-  ParentOrganizationName: string;
-  Title: string;
-}
-
-interface ApiSelectItem {
-  OrganizationID?: number | string;
-  Title?: string;
-  name?: string;
-  id?: number | string;
-  Value?: number | string;
-  Text?: string;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/Organization/ServerSearch`;
@@ -53,18 +33,7 @@ export async function fetchOrganizationSelectList(signal?: AbortSignal): Promise
   }
 }
 
-interface FetchOrganizationsParams {
-  search: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
 
-interface FetchOrganizationsResult {
-  organizations: Organization[];
-  total: number;
-  filtered: number;
-}
 
 function buildSearchBody(params: FetchOrganizationsParams) {
   return {

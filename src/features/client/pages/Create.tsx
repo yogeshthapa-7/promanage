@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
-import { saveClient } from '@/features/client/services/client.service';
+import { saveClient, API_BASE } from '@/features/client/services/client.service';
 import { useQueryClient } from '@tanstack/react-query';
 import type { CLient, CreateClientDrawerProps } from '@/features/client/types/client-types';
+import DocumentUploadField from '@/shared/components/DocumentUploadField';
 
 export default function CreateClientDrawer({ open, onClose, onSuccess, editingClient }: CreateClientDrawerProps) {
+  const [documentUrl, setDocumentUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -20,10 +23,12 @@ export default function CreateClientDrawer({ open, onClose, onSuccess, editingCl
           contactNo: editingClient.contactNo,
           email: editingClient.email,
           address: editingClient.address,
-          logo: editingClient.logo,
+          logo: documentUrl || editingClient?.logo || '',
         });
+        setDocumentUrl(editingClient.logo || '');
       } else {
         form.resetFields();
+        setDocumentUrl('');
       }
     }
   }, [open, form, editingClient]);
@@ -43,16 +48,21 @@ export default function CreateClientDrawer({ open, onClose, onSuccess, editingCl
         Email: values.email,
         Address: values.address,
         ClientStatus: isEdit ? editingClient?.clientStatus : 0,
-        Logo: values.logo || '',
+        Logo: documentUrl || '',
       };
 
       const result = await saveClient(body);
       if (!result.success) {
         throw new Error(result.message || 'Failed to save client');
       }
+      let photoPath = documentUrl || '';
+          if (photoPath.startsWith(API_BASE + '/')) {
+            photoPath = photoPath.replace(API_BASE + '/', '');
+          }
 
       message.success(isEdit ? 'Client updated successfully' : 'Client created successfully');
       form.resetFields();
+      setDocumentUrl('');
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       onClose();
       onSuccess();
@@ -172,19 +182,13 @@ export default function CreateClientDrawer({ open, onClose, onSuccess, editingCl
             />
           </Form.Item>
 
-          <Form.Item
-            label={
-              <span className="text-sm font-semibold text-foreground">
-                Logo URL
-              </span>
-            }
-            name="logo"
-          >
-            <Input
-              placeholder="Enter logo URL"
-              className="rounded-lg border-border bg-slate-50/50 focus:bg-white focus:border-purple-500"
-            />
-          </Form.Item>
+          <DocumentUploadField
+            value={documentUrl}
+                onChange={setDocumentUrl}
+                uploading={uploading}
+                onUploadingChange={setUploading}
+                accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.pdf,.doc,.docx"
+          />
         </div>
       </Form>
 

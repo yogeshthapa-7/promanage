@@ -1,5 +1,5 @@
 import { apiCall } from '@/lib/api/api.service';
-import type { ApiProject } from '@/features/projects/types/projects-types';
+import type { ApiProject, IssueItem } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
@@ -7,26 +7,6 @@ export const SAVE_ISSUE_URL = `${API_BASE}/SaveIssues`;
 export const DELETE_ISSUE_URL = `${API_BASE}/DeleteIssues`;
 export const STATUS_SELECT_LIST_URL = `${API_BASE}/WorkStatus/SelectList`;
 export const LABEL_INFO_SELECT_LIST_URL = `${API_BASE}/LabelInfo/SelectList`;
-
-export interface IssueItem {
-  IssuesID: number;
-  IssuesTitle: string;
-  LabelInfoID: number;
-  Comments: string;
-  Attachments: string;
-  ProjectInfoID: number;
-  WorkStatusID: number;
-  ProjectInfoName: string;
-  WorkStatusName: string;
-  LabelInfoName: string;
-  LabelColor: string;
-  CreatedDate: string;
-  RaisedBy: string;
-  WorkStatusColor: string;
-  CanChangeStatus: boolean;
-  HasUserRightToEdit: boolean;
-  HasUserRightToDelete: boolean;
-}
 
 
 export async function fetchIssues(project: ApiProject, signal?: AbortSignal): Promise<IssueItem[]> {

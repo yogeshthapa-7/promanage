@@ -193,11 +193,11 @@ export default function ExpensePage() {
         <div className="font-semibold text-slate-900">{text || 'Untitled'}</div>
       ),
     },
-    {
-      title: 'Expense Code',
-      dataIndex: 'code',
-      key: 'code',
-    },
+    // {
+    //   title: 'Expense Code',
+    //   dataIndex: 'code',
+    //   key: 'code',
+    // },
     {
       title: 'Fiscal Year',
       dataIndex: 'fiscal_year_id',

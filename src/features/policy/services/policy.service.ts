@@ -1,37 +1,7 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Policy } from '@/features/policy/types/policy-types';
+import type { Policy, ApiPolicyResponse, ApiPolicyRow, FetchPoliciesParams, FetchPoliciesResult } from '@/features/policy/types/policy-types';
 
-interface ApiPolicyResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiPolicyRow[];
-}
 
-interface ApiPolicyRow {
-  SN: number;
-  PolicyProgramID: number;
-  PolicyProgramName: string;
-  FiscalYear?: string;
-  FiscalYearID?: number;
-  FiscalYearName?: string;
-  FileUpload?: string;
-  DocumentUrl?: string;
-}
-
-interface FetchPoliciesParams {
-  search: string;
-  fiscalYear: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
-
-interface FetchPoliciesResult {
-  policies: Policy[];
-  total: number;
-  filtered: number;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/PolicyProgram/ServerSearch`;

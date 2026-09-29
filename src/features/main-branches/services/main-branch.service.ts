@@ -1,32 +1,9 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { MainBranch, MainBranchSelectOption } from '@/features/main-branches/types/main-branches-types';
+import type { MainBranch, MainBranchSelectOption,ApiMainBranchResponse, ApiMainBranchRow,
+  ApiSelectItem, FetchMainBranchesParams, FetchMainBranchesResult
+ } from '@/features/main-branches/types/main-branches-types';
 
-interface ApiMainBranchResponse {
-  data: ApiMainBranchRow[];
-  recordsTotal: number;
-  recordsFiltered: number;
-}
 
-interface ApiMainBranchRow {
-  SN: number;
-  MainBranchID: number;
-  MainBranchCode: string;
-  MainBranchName: string;
-  DepartmentID: number;
-  DepartmentName: string;
-  OrderKey: number;
-}
-
-interface ApiSelectItem {
-  MainBranchID?: number | string;
-  MainBranchName?: string;
-  DepartmentID?: number | string;
-  DepartmentName?: string;
-  id?: number | string;
-  name?: string;
-  Value?: number | string;
-  Text?: string;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/MainBranch/ServerSearch`;
@@ -72,24 +49,7 @@ export async function fetchMainBranchSelectList(
   }
 }
 
-interface FetchMainBranchesParams {
-  search: string;
-  start: number;
-  length: number;
-  name?: string;
-  code?: string;
-  mainBranchId?: number;
-  departmentId?: number;
-  departmentName?: string;
-  orderKey?: number;
-  signal?: AbortSignal;
-}
 
-interface FetchMainBranchesResult {
-  mainBranches: MainBranch[];
-  total: number;
-  filtered: number;
-}
 
 function buildSearchBody(params: FetchMainBranchesParams) {
   return {

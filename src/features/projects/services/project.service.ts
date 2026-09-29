@@ -1,6 +1,8 @@
 import { apiCall } from '@/lib/api/api.service';
 import { convertAdToBs, convertBsToAd } from '@/shared/utils/nepali-date';
-import type { Project, ProjectStatus, ProjectFormData, ApiProject } from '@/features/projects/types/projects-types';
+import type { Project, ProjectStatus, ProjectFormData, ApiProject, SelectListItem,
+  ExcelImportCaches, ServerSearchResponse, FetchResult
+ } from '@/features/projects/types/projects-types';
 import { Smartphone, Globe, Megaphone, Server, ShieldCheck, FolderKanban } from 'lucide-react';
 
 export const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
@@ -22,10 +24,6 @@ export const SELECT_LIST_URLS = {
   labelInfo: `${API_BASE}/LabelInfo/SelectList`,
 };
 
-export interface SelectListItem {
-  id: number | string;
-  name: string;
-}
 
 export function extractIdAndName(obj: Record<string, unknown>): SelectListItem | null {
   if (obj.Value !== undefined && obj.Name !== undefined) {
@@ -109,18 +107,6 @@ export function normalizeDate(value: unknown): string {
     return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
   }
   return str;
-}
-
-export interface ExcelImportCaches {
-  status: SelectListItem[];
-  client: SelectListItem[];
-  projectType: SelectListItem[];
-  department: SelectListItem[];
-  expenseInfo: SelectListItem[];
-  ward: SelectListItem[];
-  policyProgram: SelectListItem[];
-  budget: SelectListItem[];
-  employee: SelectListItem[];
 }
 
 const PRIORITY_MAP: Record<string, number> = {
@@ -507,18 +493,6 @@ export function toProjectFormData(project: Project): ProjectFormData {
 }
 
 export { statusProgressColor };
-
-interface ServerSearchResponse {
-  data?: unknown[];
-  recordsTotal?: number;
-  recordsFiltered?: number;
-}
-
-interface FetchResult<T> {
-  items: T[];
-  total: number;
-  filtered: number;
-}
 
 export async function fetchProjectById(id: number | string): Promise<ApiProject | null> {
   try {

@@ -37,6 +37,40 @@ export interface UserFormModalProps {
   editingUser?: User | null;
 }
 
+export interface ApiUser {
+  UserId: number;
+  UserName: string;
+  FullName: string;
+  UserGroupId: number;
+  UserGroupCode: string;
+  UserGroupName: string;
+  Theme: string;
+  OrganizationID: number;
+  [key: string]: unknown;
+}
+
+export interface ApiUserResponse {
+  draw: number;
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: ApiUser[];
+}
+
+export interface FetchUsersParams {
+  search: string;
+  start: number;
+  length: number;
+  theme?: string;
+  role?: string;
+  signal?: AbortSignal;
+}
+
+export interface FetchUsersResult {
+  users: User[];
+  total: number;
+  filtered: number;
+}
+
 
 
 

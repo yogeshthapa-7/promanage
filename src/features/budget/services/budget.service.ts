@@ -1,37 +1,5 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Budget } from '@/features/budget/types/budget-types';
-
-interface ApiBudgetResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiBudgetRow[];
-}
-
-interface ApiBudgetRow {
-  SN: number;
-  BudgetInfoID: number;
-  BudgetInfoName: string;
-  FiscalYear?: string;
-  FiscalYearID?: number;
-  FiscalYearName?: string;
-  FileUpload?: string;
-  DocumentUrl?: string;
-}
-
-interface FetchBudgetsParams {
-  search: string;
-  fiscalYear: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
-
-interface FetchBudgetsResult {
-  budgets: Budget[];
-  total: number;
-  filtered: number;
-}
+import type { Budget, ApiBudgetResponse, ApiBudgetRow, FetchBudgetsParams, FetchBudgetsResult } from '@/features/budget/types/budget-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/BudgetInfo/ServerSearch`;

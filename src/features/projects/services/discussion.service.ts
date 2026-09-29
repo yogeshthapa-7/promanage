@@ -1,23 +1,10 @@
 import { apiCall } from '@/lib/api/api.service';
-import type { ApiProject } from '@/features/projects/types/projects-types';
+import type { ApiProject, ProjectDiscussionItem } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const DISCUSSIONS_API = `${API_BASE}/ProjectDiscussion/ServerSearch`;
 export const SAVE_DISCUSSION_URL = `${API_BASE}/SaveProjectDiscussion`;
 export const DELETE_DISCUSSION_URL = `${API_BASE}/DeleteProjectDiscussion`;
-
-export interface ProjectDiscussionItem {
-  SN: number;
-  ProjectDiscussionID: number;
-  DiscussionTitle: string;
-  ProjectInfoID: number;
-  Priority: number;
-  PriorityName: string;
-  Status: number;
-  HasUserRightToEdit: boolean;
-  HasUserRightToDelete: boolean;
-  CreatedDate: string;
-}
 
 
 export async function fetchDiscussions(project: ApiProject, signal?: AbortSignal): Promise<ProjectDiscussionItem[]> {

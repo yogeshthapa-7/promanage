@@ -1,35 +1,10 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
-import type { FiscalYearSelectOption, FiscalYearItem } from '@/features/fiscal-year/types/fiscal-year-types';
+import type { FiscalYearSelectOption, FiscalYearItem, ApiFiscalYearResponse, ApiFiscalYearRow,
+  ApiSelectItem, FetchFIscalYearsParams, FetchFiscalYearResult
+ } from '@/features/fiscal-year/types/fiscal-year-types';
 
-interface ApiFiscalYearResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiFiscalYearRow[];
-}
 
-interface ApiFiscalYearRow {
-  FiscalYearID: number;
-  FiscalYearName: string;
-  FiscalYearCode: string;
-  StartDate: string;
-  EndDate: string;
-  Status: number;
-  IsCurrent: number;
-  IsRunning: number;
-  YearOrder?: number;
-}
-
-interface ApiSelectItem {
-  FiscalYearID?: number | string;
-  FiscalYearName?: string;
-  FiscalYear?: string;
-  name?: string;
-  id?: number | string;
-  Value?: number | string;
-  Text?: string;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const SELECT_LIST_URL = `${API_BASE}/FiscalYear/SelectList`;
@@ -72,20 +47,6 @@ export async function fetchFiscalYearSelectList(
   } catch {
     return [];
   }
-}
-
-interface FetchFiscalYearsParams {
-  search: string;
-  status: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
-
-interface FetchFiscalYearsResult {
-  fiscalYears: FiscalYearItem[];
-  total: number;
-  filtered: number;
 }
 
 function buildSearchBody(params: FetchFiscalYearsParams) {

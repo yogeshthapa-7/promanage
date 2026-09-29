@@ -1,32 +1,6 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Label } from '@/features/label/types/label-types';
+import type { Label, ApiLabelResponse, ApiLabelRow, FetchLabelsParams, FetchLabelsResult } from '@/features/label/types/label-types';
 
-interface ApiLabelResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiLabelRow[];
-}
-
-interface ApiLabelRow {
-  SN: number;
-  LabelInfoID: number;
-  LabelName: string;
-  LabelCode: string;
-}
-
-interface FetchLabelsParams {
-  search: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
-
-interface FetchLabelsResult {
-  labels: Label[];
-  total: number;
-  filtered: number;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/LabelInfo/ServerSearch`;

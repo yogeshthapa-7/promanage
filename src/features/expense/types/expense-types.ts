@@ -23,6 +23,40 @@ export interface ViewExpenseDrawerProps {
   fiscalYearOptions?: FiscalYearSelectOption[];
 }
 
+export interface ApiExpenseResponse {
+  draw: number;
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: ApiExpenseRow[];
+}
+
+export interface ApiExpenseRow {
+  SN: number;
+  ExpenseInfoID: number;
+  ExpenseTitle: string;
+  ExpenseCode: string;
+  FiscalYear?: string;
+  FiscalYearID?: number;
+  FiscalYearName?: string;
+  FileUpload?: string;
+  DocumentUrl?: string;
+}
+
+export interface FetchExpensesParams {
+  search: string;
+  fiscalYear: string;
+  expenseCode: string;
+  start: number;
+  length: number;
+  signal?: AbortSignal;
+}
+
+export interface FetchExpensesResult {
+  expenses: Expense[];
+  total: number;
+  filtered: number;
+}
+
 
 
 

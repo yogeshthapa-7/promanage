@@ -22,6 +22,38 @@ export interface ViewPolicyDrawerProps {
   fiscalYearOptions?: FiscalYearSelectOption[];
 }
 
+export interface ApiPolicyResponse {
+  draw: number;
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: ApiPolicyRow[];
+}
+
+export interface ApiPolicyRow {
+  SN: number;
+  PolicyProgramID: number;
+  PolicyProgramName: string;
+  FiscalYear?: string;
+  FiscalYearID?: number;
+  FiscalYearName?: string;
+  FileUpload?: string;
+  DocumentUrl?: string;
+}
+
+export interface FetchPoliciesParams {
+  search: string;
+  fiscalYear: string;
+  start: number;
+  length: number;
+  signal?: AbortSignal;
+}
+
+export interface FetchPoliciesResult {
+  policies: Policy[];
+  total: number;
+  filtered: number;
+}
+
 
 
 

@@ -84,6 +84,18 @@ export interface ProjectTaskCounts {
   byStatus: Record<string, number>;
 }
 
+export interface ServerSearchResponse {
+  data?: unknown[];
+  recordsTotal?: number;
+  recordsFiltered?: number;
+}
+
+export interface FetchResult<T> {
+  items: T[];
+  total: number;
+  filtered: number;
+}
+
 
 
 

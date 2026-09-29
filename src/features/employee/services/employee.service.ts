@@ -1,28 +1,7 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Employee } from '@/features/employee/types/employees-types';
+import type { Employee, ApiEmployeeResponse, FetchEmployeesParams, FetchEmployeesResult } from '@/features/employee/types/employees-types';
 
-interface ApiEmployeeResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: Employee[];
-}
 
-interface FetchEmployeesParams {
-  search: string;
-  start: number;
-  length: number;
-  fullname?: string;
-  address?: string;
-  phone?: string;
-  signal?: AbortSignal;
-}
-
-interface FetchEmployeesResult {
-  employees: Employee[];
-  total: number;
-  filtered: number;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/EmployeeInfo/ServerSearch`;

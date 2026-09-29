@@ -1,32 +1,5 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Ward } from '@/features/ward/types/ward-types';
-
-interface ApiWardResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiWardRow[];
-}
-
-interface ApiWardRow {
-  SN: number;
-  WardInfoID: number;
-  WardNumber: string;
-  WardCode: string;
-}
-
-interface FetchWardsParams {
-  search: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
-
-interface FetchWardsResult {
-  wards: Ward[];
-  total: number;
-  filtered: number;
-}
+import type { Ward, ApiWardResponse, ApiWardRow, FetchWardsParams, FetchWardsResult } from '@/features/ward/types/ward-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/WardInfo/ServerSearch`;

@@ -1,6 +1,6 @@
 import { apiCall } from '@/lib/api/api.service';
 import type { TaskItem, SubTaskItem, TaskStats, ProjectTaskCounts } from '@/features/projects/types/tasks-types';
-import type { ApiProject } from '@/features/projects/types/projects-types';
+import type { ApiProject, ServerSearchResponse, FetchResult,  } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
@@ -24,18 +24,6 @@ export const priorityColor: Record<string, string> = {
   Medium: "!bg-blue-100 !text-blue-700",
   Low: "!bg-gray-100 !text-gray-700",
 };
-
-interface ServerSearchResponse {
-  data?: unknown[];
-  recordsTotal?: number;
-  recordsFiltered?: number;
-}
-
-interface FetchResult<T> {
-  items: T[];
-  total: number;
-  filtered: number;
-}
 
 export async function fetchTasks(params: {
   projectId: number;

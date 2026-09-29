@@ -22,6 +22,38 @@ export interface ViewBudgetDrawerProps {
   fiscalYearOptions?: FiscalYearSelectOption[];
 }
 
+export interface ApiBudgetResponse {
+  draw: number;
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: ApiBudgetRow[];
+}
+
+export interface ApiBudgetRow {
+  SN: number;
+  BudgetInfoID: number;
+  BudgetInfoName: string;
+  FiscalYear?: string;
+  FiscalYearID?: number;
+  FiscalYearName?: string;
+  FileUpload?: string;
+  DocumentUrl?: string;
+}
+
+export interface FetchBudgetsParams {
+  search: string;
+  fiscalYear: string;
+  start: number;
+  length: number;
+  signal?: AbortSignal;
+}
+
+export interface FetchBudgetsResult {
+  budgets: Budget[];
+  total: number;
+  filtered: number;
+}
+
 
 
 

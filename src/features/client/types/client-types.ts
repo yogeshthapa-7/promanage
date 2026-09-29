@@ -19,6 +19,40 @@ export interface CreateClientDrawerProps {
   editingClient?: Client | null;
 }
 
+export interface ApiClientResponse {
+  draw: number;
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: ApiClientRow[];
+}
+
+export interface ApiClientRow {
+  SN: number;
+  ClientInfoID: number;
+  ClientCode: string;
+  ClientName: string;
+  ClientStatus: number;
+  ContactNo: string;
+  ContactPerson: string;
+  Email: string;
+  Logo: string;
+  Address: string;
+  Status: number;
+}
+
+export interface FetchClientsParams {
+  search: string;
+  start: number;
+  length: number;
+  signal?: AbortSignal;
+}
+
+export interface FetchClientsResult {
+  clients: Client[];
+  total: number;
+  filtered: number;
+}
+
 
 
 

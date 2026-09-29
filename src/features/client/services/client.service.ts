@@ -1,41 +1,7 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Client } from '@/features/client/types/client-types';
+import type { Client, ApiClientResponse, ApiClientRow, FetchClientsParams, FetchClientsResult } from '@/features/client/types/client-types';
 
-interface ApiClientResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiClientRow[];
-}
-
-interface ApiClientRow {
-  SN: number;
-  ClientInfoID: number;
-  ClientCode: string;
-  ClientName: string;
-  ClientStatus: number;
-  ContactNo: string;
-  ContactPerson: string;
-  Email: string;
-  Logo: string;
-  Address: string;
-  Status: number;
-}
-
-interface FetchClientsParams {
-  search: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
-
-interface FetchClientsResult {
-  clients: Client[];
-  total: number;
-  filtered: number;
-}
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+export const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/ClientInfo/ServerSearch`;
 
 function buildSearchBody(params: FetchClientsParams) {

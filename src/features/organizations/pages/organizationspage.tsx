@@ -108,12 +108,12 @@ export default function OrganizationPage() {
       key: 'parentOrganizationName',
       render: (value: string) => <span className="text-slate-600">{value || ''}</span>,
     },
-    {
-      title: 'Parent ID',
-      dataIndex: 'parentOrganizationId',
-      key: 'parentOrganizationId',
-      render: (value: number | string) => <span className="text-slate-600">{value || ''}</span>,
-    },
+    // {
+    //   title: 'Parent ID',
+    //   dataIndex: 'parentOrganizationId',
+    //   key: 'parentOrganizationId',
+    //   render: (value: number | string) => <span className="text-slate-600">{value || ''}</span>,
+    // },
     {
       title: 'Actions',
       key: 'actions',

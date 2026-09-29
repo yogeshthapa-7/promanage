@@ -1,39 +1,7 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Expense } from '@/features/expense/types/expense-types';
+import type { Expense, ApiExpenseResponse, ApiExpenseRow, FetchExpensesParams, FetchExpensesResult } from '@/features/expense/types/expense-types';
 
-interface ApiExpenseResponse {
-  draw: number;
-  recordsTotal: number;
-  recordsFiltered: number;
-  data: ApiExpenseRow[];
-}
 
-interface ApiExpenseRow {
-  SN: number;
-  ExpenseInfoID: number;
-  ExpenseTitle: string;
-  ExpenseCode: string;
-  FiscalYear?: string;
-  FiscalYearID?: number;
-  FiscalYearName?: string;
-  FileUpload?: string;
-  DocumentUrl?: string;
-}
-
-interface FetchExpensesParams {
-  search: string;
-  fiscalYear: string;
-  expenseCode: string;
-  start: number;
-  length: number;
-  signal?: AbortSignal;
-}
-
-interface FetchExpensesResult {
-  expenses: Expense[];
-  total: number;
-  filtered: number;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/ExpenseInfo/ServerSearch`;

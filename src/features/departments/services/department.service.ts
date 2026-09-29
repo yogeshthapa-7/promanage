@@ -1,34 +1,9 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
-import type { Department, DepartmentSelectOption } from '@/features/departments/types/departments-types';
+import type { Department, DepartmentSelectOption, ApiDepartmrntResponse, ApiDepartmentRow,
+  ApiSelectItem, FetchDepartmentsParams, FetchDepartmentsResult
+ } from '@/features/departments/types/departments-types';
 
-interface ApiDepartmentResponse {
-  data: ApiDepartmentRow[];
-  recordsTotal: number;
-  recordsFiltered: number;
-}
 
-interface ApiDepartmentRow {
-  SN: number;
-  DepartmentID: number;
-  DepartmentCode: string;
-  DepartmentName: string;
-  OrderKey: number;
-  ParentDepartmentID: number;
-  ParentDepartmentName: string;
-  Status: number;
-}
-
-interface ApiSelectItem {
-  DepartmentID?: number | string;
-  DepartmentInfoID?: number | string;
-  DepartmentName?: string;
-  name?: string;
-  id?: number | string;
-  ID?: number | string;
-  Value?: number | string;
-  Text?: string;
-  text?: string;
-}
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/Department/ServerSearch`;
@@ -74,22 +49,6 @@ export async function fetchDepartmentSelectList(
   }
 }
 
-interface FetchDepartmentsParams {
-  search: string;
-  start: number;
-  length: number;
-  name?: string;
-  code?: string;
-  mainDept?: string;
-  departmentId?: string;
-  signal?: AbortSignal;
-}
-
-interface FetchDepartmentsResult {
-  departments: Department[];
-  total: number;
-  filtered: number;
-}
 
 function buildSearchBody(params: FetchDepartmentsParams) {
   const parsedDeptId = params.departmentId ? Number(params.departmentId) : 0;

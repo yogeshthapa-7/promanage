@@ -1,18 +1,9 @@
 import { apiCall } from '@/lib/api/api.service';
+import type { TimelineItem } from '@/features/projects/types/projects-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const TIMELINE_API = `${API_BASE}/ProjectTimelineInfo/ServerSearch`;
 
-export interface TimelineItem {
-  ProjectInfoID: number;
-  Remarks: string;
-  TraceKey: number;
-  TraceID: number;
-  TraceKeyName: string;
-  CreatedDate: string;
-  CreatedTime: string;
-  CreateDateTime: string;
-}
 
 export async function fetchTimeline(projectId: string | number, signal?: AbortSignal): Promise<TimelineItem[]> {
   const res = await apiCall(TIMELINE_API, {
