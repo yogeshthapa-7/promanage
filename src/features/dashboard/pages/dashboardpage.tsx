@@ -6,13 +6,11 @@ import RecentProjectsCard from '../components/RecentProjectsCard';
 import EntitySummaryCard from '../components/EntitySummaryCard';
 import ProjectsTable from '../components/ProjectsTable';
 import { type Project, type ProjectStatus, type ApiProject } from '@/features/projects/types/projects-types';
-import { mapApiProjectToProject } from '@/features/projects/services/project.service';
+import { mapApiProjectToProject, fetchProjects } from '@/features/projects/services/project.service';
 import { fetchAllProjectTaskCounts } from '@/features/tasks/services/task.service';
 import Topbar from '@/shared/components/Topbar';
 import { useDashboardStats } from '../components/useDashboardStats';
-import { apiCall } from '@/lib/api/api.service';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'All'>('All');
@@ -26,66 +24,40 @@ export default function DashboardPage() {
     const controller = new AbortController();
 
     async function load() {
-      setLoading(true);
+  setLoading(true);
+  try {
+    const result = await fetchProjects({ search: '', start: 0, length: 20, signal: controller.signal });
+    let mapped = result.items;
+
+    if (mapped.length > 0) {
       try {
-        const body = {
-          model: {
-            draw: 1,
-            start: 0,
-            length: 20,
-            columns: [
-              { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-              { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-              { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            ],
-            search: { value: '', regex: '' },
-            order: [{ column: 0, dir: 'desc' }],
-          },
-          param: {
-            ProjectInfoID: 0,
-          },
-        };
-
-        const res = await apiCall(`${API_BASE}/ProjectInfo/ServerSearch`, {
-          method: 'POST',
-          body: JSON.stringify(body),
-          signal: controller.signal,
+        const countsById = await fetchAllProjectTaskCounts(controller.signal);
+        mapped = mapped.map((p) => {
+          const c = countsById[Number(p.id)];
+          if (!c) return p;
+          return {
+            ...p,
+            totalTasks: c.total || 0,
+            tasksCompleted: c.completed || 0,
+            taskStatusCounts: c.byStatus || {},
+          };
         });
-
-        if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
-        const json = await res.json();
-        const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
-        let mapped = rows.map(mapApiProjectToProject);
-
-        if (mapped.length > 0) {
-          try {
-            const countsById = await fetchAllProjectTaskCounts(controller.signal);
-            mapped = mapped.map((p) => {
-              const c = countsById[Number(p.id)];
-              if (!c) return p;
-              return {
-                ...p,
-                totalTasks: c.total || 0,
-                tasksCompleted: c.completed || 0,
-                taskStatusCounts: c.byStatus || {},
-              };
-            });
-          } catch {
-            // keep mapped projects without task counts
-          }
-        }
-
-        if (!cancelled) {
-          setProjects(mapped.length > 0 ? mapped : []);
-          setLoading(false);
-        }
       } catch {
-        if (!cancelled) {
-          setProjects([]);
-          setLoading(false);
-        }
+        // keep mapped projects without task counts
       }
     }
+
+    if (!cancelled) {
+      setProjects(mapped.length > 0 ? mapped : []);
+      setLoading(false);
+    }
+  } catch {
+    if (!cancelled) {
+      setProjects([]);
+      setLoading(false);
+    }
+  }
+}
 
     load();
     return () => {

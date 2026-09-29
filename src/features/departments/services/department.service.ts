@@ -2,7 +2,9 @@ import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Department, DepartmentSelectOption, ApiDepartmrntResponse, ApiDepartmentRow,
   ApiSelectItem, FetchDepartmentsParams, FetchDepartmentsResult
  } from '@/features/departments/types/departments-types';
-
+ export async function saveDepartment(body: Record<string, unknown>): promise<{success: boolean; message?: string; data?: unknown}>
+ export async function deleteDepartment(id: number): promise<{success: boolean; message?: string }>
+ 
 
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');

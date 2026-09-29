@@ -91,10 +91,6 @@ const ProjectRow = React.memo(function ProjectRow({ project }: { project: Projec
       </td>
 
       <td className="px-4 py-2.5">
-        <AvatarStack items={project.team.map(m => ({ id: m.id, src: m.avatar, alt: m.name }))} size={24} extra={project.extraTeam} />
-      </td>
-
-      <td className="px-4 py-2.5">
         <Badge variant="priority" style={{ background: priorityCfg.bg, color: priorityCfg.color }}>
           {project.priority}
         </Badge>
@@ -195,7 +191,6 @@ export default function ProjectsTable({
                 { key: 'progress', label: 'Progress' },
                 { key: 'startDate', label: 'Start Date' },
                 { key: 'dueDate', label: 'Due Date' },
-                { key: null, label: 'Team' },
                 { key: 'priority', label: 'Priority' },
               ].map((col) => (
                 <th

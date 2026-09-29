@@ -14,8 +14,7 @@ import AppTable from '@/shared/components/ui/AppTable';
 import Button from '@/shared/components/ui/Button';
 import Drawer from '@/shared/components/drawer';
 import CreateDepartmentDrawer from './Create';
-import { apiCall } from '@/lib/api/api.service';
-import { fetchDepartments, fetchDepartmentSelectList } from '@/features/departments/services/department.service';
+import { fetchDepartments, fetchDepartmentSelectList, saveDepartment, deleteDepartment } from '@/features/departments/services/department.service';
 import type { Department, DepartmentSelectOption } from '@/features/departments/types/departments-types';
 import {
   fetchMainBranchSelectList,
@@ -164,14 +163,12 @@ export default function DepartmentPage() {
       okType: 'danger',
       onOk: async () => {
          try {
-           const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-           await apiCall(
-             `${API_BASE}/DeleteDepartment?id=${dept.id}`,
-             { method: 'GET' }
-           );
-           message.success('Deleted successfully');
-           queryClient.invalidateQueries({ queryKey: ['departments', 'search'] });
-           refreshDepartments();
+           await deleteDepartment (dept.id);
+           message.success('Department deleted successfully');
+           queryClient.invalidateQueries({
+            queryKey:['departments', 'search']});
+            refreshDepartments();
+           
         } catch {
           message.error('Failed to delete department');
         }
@@ -192,10 +189,10 @@ export default function DepartmentPage() {
       const code = formData.get('code') as string;
       const parentId = formData.get('parentId') as string;
 
-      const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-      const url = editingDept
-        ? `${API_BASE}/SaveDepartment`
-        : `${API_BASE}/SaveDepartment`;
+      // const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+      // const url = editingDept
+      //   ? `${API_BASE}/SaveDepartment`
+      //   : `${API_BASE}/SaveDepartment`;
 
       const body = {
         DepartmentID: Number(editingDept!.id),
@@ -204,12 +201,15 @@ export default function DepartmentPage() {
         ParentDepartmentID: Number(parentId) || 0,
       };
 
-      const res = await apiCall(url, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
+      // const res = await apiCall(url, {
+      //   method: 'POST',
+      //   body: JSON.stringify(body),
+      // });
 
-      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      // if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+      const result = await saveDepartment(body);
+      if(!result.success) throw new error (result.message || 'Failed to save Department');
 
       message.success('Department updated successfully');
       queryClient.invalidateQueries({ queryKey: ['departments', 'search'] });

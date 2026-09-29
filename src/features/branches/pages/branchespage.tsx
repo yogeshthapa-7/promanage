@@ -5,8 +5,7 @@ import { Modal, message, Select, Input } from 'antd';
 import Pagination from '@/shared/components/ui/Pagination';
 import AppTable from '@/shared/components/ui/AppTable';
 import Button from '@/shared/components/ui/Button';
-import { apiCall } from '@/lib/api/api.service';
-import { fetchBranches, fetchBranchSelectList } from '@/features/branches/services/branch.service';
+import { fetchBranches, fetchBranchSelectList, deleteBranch } from '@/features/branches/services/branch.service';
 import type { Branch, BranchSelectOption, BranchPageProps } from '@/features/branches/types/branches-types';
 import {
   fetchMainBranchSelectList,
@@ -167,17 +166,13 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
       okType: 'danger',
       onOk: async () => {
         try {
-          const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-          await apiCall(
-            `${API_BASE}/DeleteBranch?id=${branch.id}`,
-            { method: 'GET' }
-          );
-          message.success('Deleted successfully');
-          queryClient.invalidateQueries({ queryKey: ['branches', 'search'] });
-          refetch();
-        } catch {
-          message.error('Failed to delete branch');
-        }
+    await deleteBranch(branch.id);
+    message.success('Deleted successfully');
+    queryClient.invalidateQueries({ queryKey: ['branches', 'search'] });
+    refetch();
+  } catch {
+    message.error('Failed to delete branch');
+  }
       },
     });
   };
