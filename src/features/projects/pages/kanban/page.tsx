@@ -11,8 +11,10 @@ import {
   ClipboardList,
   FolderOpen,
 } from 'lucide-react';
-import { apiCall } from '@/lib/api/api.service';
-import { deleteTask } from '@/features/tasks/services/task.service';
+// import { apiCall } from '@/lib/api/api.service';
+// import { deleteTask } from '@/features/tasks/services/task.service';
+import { deleteTask, fetchWorkStatuses, fetchTasks, changeTaskStatus } from '@/features/tasks/services/task.service';
+import { fetchProjectDetailData } from '@/features/projects/services/project.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
 import Card from '@/shared/components/ui/Card';
 import Button from '@/shared/components/ui/Button';
@@ -22,7 +24,7 @@ import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
 import type { WorkStatus, Task, Project, TaskByStatus } from '@/features/projects/types/projects-types';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+// const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
 const priorityLabelMap: Record<number, string> = {
   1: 'Urgent',
@@ -78,7 +80,8 @@ const COLUMN_SHADOW =
 
 export default function KanbanBoard() {
   const navigate = useNavigate();
-  const { projectId } = useParams<{ projectId: string }>();
+  const params = useParams<{ id?: string; projectId?: string }>();
+  const projectId = params.id || params.projectId;
 
   const [project, setProject] = useState<Project | null>(null);
   const [workStatuses, setWorkStatuses] = useState<WorkStatus[]>([]);
@@ -96,116 +99,85 @@ export default function KanbanBoard() {
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
-  const fetchProject = useCallback(async () => {
-    try {
-      const sanitizedId = encodeURIComponent(projectId || '');
-      const res = await apiCall(`${API_BASE}/GetProjectDetailData?id=${sanitizedId}`);
-      if (!res.ok) throw new Error('Failed to fetch project');
-      const data = await res.json();
-      const projectInfo = data?.Data?.ProjectInfo || data?.data?.ProjectInfo || data?.ProjectInfo;
-      if (projectInfo) {
-        setProject({
-          ProjectInfoID: projectInfo.ProjectInfoID,
-          ProjectName: projectInfo.ProjectName,
-          ProjectCode: projectInfo.ProjectCode,
-          Description: projectInfo.Description,
-          WorkStatusName: projectInfo.WorkStatusName,
-          WorkStatusColor: projectInfo.WorkStatusColor,
-          Priority: projectInfo.Priority,
-          PriorityName: projectInfo.PriorityName,
-          ProjectType: projectInfo.ProjectType,
-          ProjectTypeName: projectInfo.ProjectTypeName,
-          TotalBudget: projectInfo.TotalBudget,
-          StartDate: projectInfo.StartDate,
-          EndDate: projectInfo.EndDate,
-        });
-      }
-    } catch (err) {
-      console.error('Failed to fetch project:', err);
-      message.error('Failed to load project details');
-    }
-  }, [projectId]);
-
-  const fetchWorkStatuses = useCallback(async () => {
-    try {
-      const res = await apiCall(`${API_BASE}/WorkStatus/SelectList`);
-      if (!res.ok) throw new Error('Failed to fetch work statuses');
-      const data = await res.json();
-      const statuses = Array.isArray(data) ? data : [];
-      setWorkStatuses(statuses);
-      return statuses;
-    } catch (err) {
-      console.error('Failed to fetch work statuses:', err);
-      message.error('Failed to load work statuses');
-      return [];
-    }
-  }, []);
-
-  const fetchTasks = useCallback(async (statuses: WorkStatus[]) => {
-    try {
-      const res = await apiCall(`${API_BASE}/TaskInfo/ServerSearch`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: {
-            draw: 1,
-            start: 0,
-            length: 1000,
-            columns: [
-              { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-              { data: 'TaskName', name: 'TaskName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            ],
-            search: { value: '', regex: '' },
-            order: [{ column: 0, dir: 'asc' }],
-          },
-          param: { ProjectInfoID: Number(projectId) },
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to fetch tasks');
-
-      const data = await res.json();
-      const allTasks = Array.isArray(data?.data) ? data.data : [];
-
-      const grouped: TasksByStatus = {};
-      statuses.forEach(status => {
-        grouped[status.WorkStatusInfoID] = [];
-      });
-
-      allTasks.forEach((task: any) => {
-        const mappedTask: Task = {
-          TaskInfoID: task.TaskInfoID,
-          TaskName: task.TaskName || task.TaskTitle,
-          Description: task.Description || '',
-          WorkStatusID: task.WorkStatusID,
-          Priority: task.Priority || task.PriorityName || 'Medium',
-          DueDate: task.DueDate || '',
-          ProjectInfoID: task.ProjectInfoID,
-          ProjectName: task.ProjectName,
-          AssignedTo: task.AssignedTo || task.TaskManagerName,
-          Progress: task.Progress || 0,
-        };
-
-        if (grouped[task.WorkStatusID]) {
-          grouped[task.WorkStatusID].push(mappedTask);
-        }
-      });
-
-      setTasks(grouped);
-    } catch (err) {
-      console.error('Failed to load tasks:', err);
-      message.error('Failed to load tasks');
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
+  // const fetchProject = useCallback(async () => {
+  //   try {
+  //     const sanitizedId = encodeURIComponent(projectId || '');
+  //     const res = await apiCall(`${API_BASE}/GetProjectDetailData?id=${sanitizedId}`);
+  //     if (!res.ok) throw new Error('Failed to fetch project');
+  //     const data = await res.json();
+  //     const projectInfo = data?.Data?.ProjectInfo || data?.data?.ProjectInfo || data?.ProjectInfo;
+  //     if (projectInfo) {
+  //       setProject({
+  //         ProjectInfoID: projectInfo.ProjectInfoID,
+  //         ProjectName: projectInfo.ProjectName,
+  //         ProjectCode: projectInfo.ProjectCode,
+  //         Description: projectInfo.Description,
+  //         WorkStatusName: projectInfo.WorkStatusName,
+  //         WorkStatusColor: projectInfo.WorkStatusColor,
+  //         Priority: projectInfo.Priority,
+  //         PriorityName: projectInfo.PriorityName,
+  //         ProjectType: projectInfo.ProjectType,
+  //         ProjectTypeName: projectInfo.ProjectTypeName,
+  //         TotalBudget: projectInfo.TotalBudget,
+  //         StartDate: projectInfo.StartDate,
+  //         EndDate: projectInfo.EndDate,
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error('Failed to fetch project:', err);
+  //     message.error('Failed to load project details');
+  //   }
+  // }, [projectId]);
+  // const data = await fetchProjectDetailData(projectId || '');
 
   const refreshBoard = useCallback(async () => {
-    const statuses = await fetchWorkStatuses();
-    if (statuses.length > 0) {
-      await fetchTasks(statuses);
+    if (!projectId) return;
+    const controller = new AbortController();
+    try {
+      const [statusesResult, tasksResult] = await Promise.allSettled([
+        fetchWorkStatuses(),
+        fetchTasks({ projectId: Number(projectId), page: 1, pageSize: 200, signal: controller.signal }),
+      ]);
+      if (controller.signal.aborted) return;
+
+      const statuses = statusesResult.status === 'fulfilled' ? statusesResult.value : [];
+      setWorkStatuses(statuses);
+
+      if (statuses.length > 0 && tasksResult.status === 'fulfilled') {
+        const allTasks = Array.isArray(tasksResult.value.items) ? tasksResult.value.items : [];
+        const grouped: TasksByStatus = {};
+        statuses.forEach(status => { grouped[status.WorkStatusInfoID] = []; });
+        allTasks.forEach((task: any) => {
+          const statusId = Number(task.WorkStatusID || 0);
+          let matchedStatusId = statusId;
+          if (!grouped[matchedStatusId] && task.WorkStatusName) {
+            const foundStatus = statuses.find(s => s.StatusName?.toLowerCase() === task.WorkStatusName?.toLowerCase());
+            if (foundStatus) matchedStatusId = foundStatus.WorkStatusInfoID;
+          }
+          const mappedTask: Task = {
+            TaskInfoID: task.TaskInfoID,
+            TaskName: task.TaskName || task.TaskTitle,
+            Description: task.Description || '',
+            WorkStatusID: matchedStatusId || statusId,
+            Priority: task.Priority || task.PriorityName || 'Medium',
+            DueDate: task.DueDate || '',
+            ProjectInfoID: task.ProjectInfoID,
+            ProjectName: task.ProjectName || task.ProjectInfoName,
+            AssignedTo: task.AssignedTo || task.TaskManagerName,
+            Progress: task.Progress || 0,
+          };
+          if (grouped[matchedStatusId]) {
+            grouped[matchedStatusId].push(mappedTask);
+          } else if (statuses.length > 0) {
+            grouped[statuses[0].WorkStatusInfoID].push(mappedTask);
+          }
+        });
+        setTasks(grouped);
+      }
+    } catch (err) {
+      console.error('Refresh error:', err);
     }
-  }, [fetchWorkStatuses, fetchTasks]);
+  }, [projectId]);
 
   const stopAutoScroll = useCallback(() => {
     if (scrollFrameRef.current !== null) {
@@ -257,25 +229,89 @@ export default function KanbanBoard() {
     setDraggedTask(null);
   }, [stopAutoScroll]);
 
-  useEffect(() => {
+    useEffect(() => {
+    if (!projectId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    const controller = new AbortController();
+
     const loadData = async () => {
       try {
-        await fetchProject();
-        const statuses = await fetchWorkStatuses();
-        if (statuses.length > 0) {
-          await fetchTasks(statuses);
-        } else {
-          setLoading(false);
+        const [projectResult, statusesResult, tasksResult] = await Promise.allSettled([
+          fetchProjectDetailData(projectId),
+          fetchWorkStatuses(),
+          fetchTasks({ projectId: Number(projectId), page: 1, pageSize: 200, signal: controller.signal }),
+        ]);
+
+        if (controller.signal.aborted) return;
+
+        if (projectResult.status === 'fulfilled' && projectResult.value) {
+          const p = projectResult.value;
+          setProject({
+            ProjectInfoID: p.ProjectInfoID,
+            ProjectName: p.ProjectName,
+            ProjectCode: p.ProjectCode,
+            Description: p.Description,
+            WorkStatusName: p.WorkStatusName,
+            WorkStatusColor: p.WorkStatusColor,
+            Priority: p.Priority,
+            PriorityName: p.PriorityName,
+            ProjectType: p.ProjectType,
+            ProjectTypeName: p.ProjectTypeName,
+            TotalBudget: p.TotalBudget,
+            StartDate: p.StartDate,
+            EndDate: p.EndDate,
+          });
+        }
+
+        const statuses = statusesResult.status === 'fulfilled' ? statusesResult.value : [];
+        setWorkStatuses(statuses);
+
+        if (statuses.length > 0 && tasksResult.status === 'fulfilled') {
+          const allTasks = Array.isArray(tasksResult.value.items) ? tasksResult.value.items : [];
+          const grouped: TasksByStatus = {};
+          statuses.forEach(status => {
+            grouped[status.WorkStatusInfoID] = [];
+          });
+          allTasks.forEach((task: any) => {
+            const statusId = Number(task.WorkStatusID || 0);
+            let matchedStatusId = statusId;
+            if (!grouped[matchedStatusId] && task.WorkStatusName) {
+              const foundStatus = statuses.find(s => s.StatusName?.toLowerCase() === task.WorkStatusName?.toLowerCase());
+              if (foundStatus) matchedStatusId = foundStatus.WorkStatusInfoID;
+            }
+            const mappedTask: Task = {
+              TaskInfoID: task.TaskInfoID,
+              TaskName: task.TaskName || task.TaskTitle,
+              Description: task.Description || '',
+              WorkStatusID: matchedStatusId || statusId,
+              Priority: task.Priority || task.PriorityName || 'Medium',
+              DueDate: task.DueDate || '',
+              ProjectInfoID: task.ProjectInfoID,
+              ProjectName: task.ProjectName || task.ProjectInfoName,
+              AssignedTo: task.AssignedTo || task.TaskManagerName,
+              Progress: task.Progress || 0,
+            };
+            if (grouped[matchedStatusId]) {
+              grouped[matchedStatusId].push(mappedTask);
+            } else if (statuses.length > 0) {
+              grouped[statuses[0].WorkStatusInfoID].push(mappedTask);
+            }
+          });
+          setTasks(grouped);
         }
       } catch (err) {
         console.error('Load error:', err);
-        setLoading(false);
+        message.error('Failed to load kanban data');
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => controller.abort();
   }, [projectId]);
 
   useEffect(() => {
@@ -309,16 +345,7 @@ export default function KanbanBoard() {
     }
 
     try {
-      const res = await apiCall(`${API_BASE}/TaskInfo/ChangeWorkStatus`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          TaskInfoID: taskId,
-          WorkStatusID: targetStatusId,
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to update task status');
+      await changeTaskStatus(taskId, targetStatusId);
 
       message.success('Task status updated');
 

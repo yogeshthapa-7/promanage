@@ -434,7 +434,7 @@ export async function fetchWorkStatuses(signal?: AbortSignal): Promise<
   }));
 }
 
-export async function changeTaskStatus(taskId: number, workStatusId: number): Promise<void> {
+export async function changeTaskStatus(taskId: number, workStatusId: number): Promise<{ success: boolean }> {
   const res = await apiCall(TASK_STATUS_CHANGE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -444,6 +444,7 @@ export async function changeTaskStatus(taskId: number, workStatusId: number): Pr
     }),
   });
   if (!res.ok) throw new Error(`Failed to update task status: ${res.statusText}`);
+  return { success: true };
 }
 
 export async function postServerSearch<T>(
