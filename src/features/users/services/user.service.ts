@@ -145,6 +145,38 @@ export async function deleteUser(userId: number): Promise<{ success: boolean; me
   return { success: json.Success !== false, message: json.Message };
 }
 
+ export async function checkUserExists(userName: string, excludeUserId?: number): Promise<boolean> {
+   try {
+      const body = {
+      model: {
+        draw: 1,
+        start: 0,
+        length: 10,
+        columns: [
+          { data: 'UserId', name: 'UserId', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'UserName', name: 'UserName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+        ],
+        search: { value: '', regex: '' },
+        order: [{ column: 1, dir: 'desc' }],
+      },
+      param: {
+        UserId: excludeUserId ?? 0,
+        UserName: userName,
+        FullName: '',
+        Password: '',
+        UserGroupId: 0,
+        UserGroupName: '',
+        Theme: '',
+      },
+    };
+     const res = await apiCall(API_URL, { method: 'POST', body: JSON.stringify(body) });
+     if (!res.ok) return false;
+     const json = await res.json();
+     const rows = Array.isArray(json?.data) ? json.data : [];
+     return rows.some((user) => (user.UserName as string)?.toLowerCase() === userName.toLowerCase() && user.UserId !== excludeUserId);
+   } catch { return false; }
+ }
+
 
 
 
