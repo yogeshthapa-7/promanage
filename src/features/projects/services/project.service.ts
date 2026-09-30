@@ -1,11 +1,11 @@
-import { apiCall } from '@/lib/api/api.service';
+import { apiCall, API_BASE } from '@/lib/api/api.service';
 import { convertAdToBs, convertBsToAd } from '@/shared/utils/nepali-date';
 import type { Project, ProjectStatus, ProjectFormData, ApiProject, SelectListItem,
   ExcelImportCaches, ServerSearchResponse, FetchResult
  } from '@/features/projects/types/projects-types';
 import { Smartphone, Globe, Megaphone, Server, ShieldCheck, FolderKanban } from 'lucide-react';
 
-export const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 export const API_URL = `${API_BASE}/ProjectInfo/ServerSearch`;
 export const PROJECT_DETAIL_URL = `${API_BASE}/GetProjectDetailData`;
 export const SAVE_PROJECT_URL = `${API_BASE}/SaveProjectInfo`;

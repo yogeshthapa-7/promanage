@@ -1,7 +1,7 @@
-import { apiCall } from '@/lib/api/api.service';
+import { apiCall, API_BASE } from '@/lib/api/api.service';
 import type { TimelineItem } from '@/features/projects/types/projects-types';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 export const TIMELINE_API = `${API_BASE}/ProjectTimelineInfo/ServerSearch`;
 
 

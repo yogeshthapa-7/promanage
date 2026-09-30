@@ -1,7 +1,7 @@
-import { apiCall } from '@/lib/api/api.service';
+import { apiCall, API_BASE } from '@/lib/api/api.service';
 import type { ApiProject, IssueItem } from '@/features/projects/types/projects-types';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 export const ISSUES_API = `${API_BASE}/Issues/ServerSearch`;
 export const SAVE_ISSUE_URL = `${API_BASE}/SaveIssues`;
 export const DELETE_ISSUE_URL = `${API_BASE}/DeleteIssues`;

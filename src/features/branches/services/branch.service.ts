@@ -2,9 +2,9 @@ import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Branch, BranchSelectOption, ApiBranchResponse, ApiBranchRow, ApiSelectItem,
   FetchBranchesParams, FetchBranchesResult
  } from '@/features/branches/types/branches-types';
+ import { API_BASE } from '@/lib/api/api.service';
 
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/Branch/ServerSearch`;
 
 const SELECT_LIST_URL = `${API_BASE}/Branch/SelectList`;

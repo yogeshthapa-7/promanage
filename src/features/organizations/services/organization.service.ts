@@ -1,11 +1,10 @@
-import { apiCall, cachedQuery } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { Organization, ApiOrganizationResponse, ApiOrganizationRow, ApiSelectItem,
   FetchOrganizationsParams, FetchOrganizationsResult
  } from '@/features/organizations/types/organizations-types';
 
 
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/Organization/ServerSearch`;
 const SELECT_LIST_URL = `${API_BASE}/Organization/SelectList`;
 

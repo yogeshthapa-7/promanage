@@ -1,7 +1,6 @@
-import { apiCall } from '@/lib/api/api.service';
+import { apiCall, API_BASE } from '@/lib/api/api.service';
 import type { ApiProject, MilestoneItem } from '@/features/projects/types/projects-types';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const MILESTONES_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
 export const SAVE_MILESTONE_URL = `${API_BASE}/SaveProjectMilestone`;
 export const DELETE_MILESTONE_URL = `${API_BASE}/DeleteProjectMilestone`;

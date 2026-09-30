@@ -1,7 +1,8 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Client, ApiClientResponse, ApiClientRow, FetchClientsParams, FetchClientsResult } from '@/features/client/types/client-types';
+import { API_BASE } from '@/lib/api/api.service';
 
-export const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 export const API_URL = `${API_BASE}/ClientInfo/ServerSearch`;
 
 function buildSearchBody(params: FetchClientsParams) {

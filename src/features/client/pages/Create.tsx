@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
-import { saveClient, API_BASE } from '@/features/client/services/client.service';
+import { saveClient } from '@/features/client/services/client.service';
 import { useQueryClient } from '@tanstack/react-query';
 import type { CLient, CreateClientDrawerProps } from '@/features/client/types/client-types';
 import DocumentUploadField from '@/shared/components/DocumentUploadField';
+import { API_BASE } from '@/lib/api/api.service';
 
 export default function CreateClientDrawer({ open, onClose, onSuccess, editingClient }: CreateClientDrawerProps) {
   const [documentUrl, setDocumentUrl] = useState('');

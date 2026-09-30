@@ -8,6 +8,8 @@ import {
 
 const DEFAULT_TIMEOUT_MS = 30000;
 
+export const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 export async function apiCall(
   url: string,
   options: RequestInit = {},

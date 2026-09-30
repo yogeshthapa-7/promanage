@@ -1,9 +1,6 @@
-import { apiCall, cachedQuery } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { Employee, ApiEmployeeResponse, FetchEmployeesParams, FetchEmployeesResult } from '@/features/employee/types/employees-types';
 
-
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/EmployeeInfo/ServerSearch`;
 
 function buildSearchBody(params: FetchEmployeesParams) {

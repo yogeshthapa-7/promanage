@@ -1,9 +1,8 @@
-import { apiCall, cachedQuery } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { Expense, ApiExpenseResponse, ApiExpenseRow, FetchExpensesParams, FetchExpensesResult } from '@/features/expense/types/expense-types';
 
 
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/ExpenseInfo/ServerSearch`;
 
 function buildSearchBody(params: FetchExpensesParams) {

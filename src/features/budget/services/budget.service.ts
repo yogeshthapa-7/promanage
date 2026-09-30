@@ -1,7 +1,8 @@
 import { apiCall, cachedQuery } from '@/lib/api/api.service';
 import type { Budget, ApiBudgetResponse, ApiBudgetRow, FetchBudgetsParams, FetchBudgetsResult } from '@/features/budget/types/budget-types';
+import { API_BASE } from '@/lib/api/api.service';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 export const API_URL = `${API_BASE}/BudgetInfo/ServerSearch`;
 
 function buildSearchBody(params: FetchBudgetsParams) {

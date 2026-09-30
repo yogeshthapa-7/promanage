@@ -1,11 +1,10 @@
-import { apiCall, cachedQuery } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { MainBranch, MainBranchSelectOption,ApiMainBranchResponse, ApiMainBranchRow,
   ApiSelectItem, FetchMainBranchesParams, FetchMainBranchesResult
  } from '@/features/main-branches/types/main-branches-types';
 
 
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE}/MainBranch/ServerSearch`;
 
 const SELECT_LIST_URL = `${API_BASE}/MainBranch/SelectList`;

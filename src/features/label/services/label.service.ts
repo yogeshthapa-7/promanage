@@ -1,8 +1,7 @@
-import { apiCall, cachedQuery } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { Label, ApiLabelResponse, ApiLabelRow, FetchLabelsParams, FetchLabelsResult } from '@/features/label/types/label-types';
 
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const API_URL = `${API_BASE}/LabelInfo/ServerSearch`;
 
 function buildSearchBody(params: FetchLabelsParams) {

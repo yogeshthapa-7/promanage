@@ -1,4 +1,4 @@
-import { apiCall, cachedQuery } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
 import type { FiscalYearSelectOption, FiscalYearItem, ApiFiscalYearResponse, ApiFiscalYearRow,
   ApiSelectItem, FetchFIscalYearsParams, FetchFiscalYearResult
@@ -6,7 +6,6 @@ import type { FiscalYearSelectOption, FiscalYearItem, ApiFiscalYearResponse, Api
 
 
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 export const SELECT_LIST_URL = `${API_BASE}/FiscalYear/SelectList`;
 export const SERVER_SEARCH_URL = `${API_BASE}/FiscalYear/ServerSearch`;
 

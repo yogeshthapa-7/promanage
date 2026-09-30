@@ -1,8 +1,8 @@
-import { apiCall } from '@/lib/api/api.service';
+import { apiCall, API_BASE } from '@/lib/api/api.service';
 import type { TaskItem, SubTaskItem, TaskStats, ProjectTaskCounts } from '@/features/projects/types/tasks-types';
 import type { ApiProject, ServerSearchResponse, FetchResult,  } from '@/features/projects/types/projects-types';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 export const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
 export const SUBTASKS_API = `${API_BASE}/SubTaskInfo/ServerSearch`;
 export const TASK_STATUS_CHANGE_URL = `${API_BASE}/TaskInfo/ChangeWorkStatus`;

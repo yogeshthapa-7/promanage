@@ -1,6 +1,6 @@
-import { apiCall } from '@/lib/api/api.service';
+import { apiCall, API_BASE } from '@/lib/api/api.service';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
+
 
 export async function fetchProjectCount(): Promise<number> {
   const res = await apiCall(`${API_BASE}/ProjectInfo/ServerSearch`, {
