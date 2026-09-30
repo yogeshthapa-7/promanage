@@ -131,6 +131,23 @@ export async function fetchBranchesSelect(signal?: AbortSignal): Promise<{ id: n
   }));
 }
 
+export async function fetchEmployeesSelectList(signal?: AbortSignal): Promise<{ id: number | string; name: string }[]> {
+  const res = await apiCall(`${API_BASE}/EmployeeInfo/SelectList`, { method: 'GET', signal }, 30000);
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows: Record<string, unknown>[] = Array.isArray(json)
+    ? json
+    : Array.isArray(json?.data)
+      ? json.data
+      : Array.isArray(json?.Data)
+        ? json.Data
+        : [];
+  return rows.map((item) => ({
+    id: Number(item.EmployeeInfoID ?? item.EmployeeID ?? item.Value ?? item.id ?? 0),
+    name: String(item.Fullname ?? item.FullName ?? item.Name ?? item.name ?? item.Text ?? ''),
+  }));
+}
+
 
 
 

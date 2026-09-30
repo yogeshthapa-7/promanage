@@ -2,49 +2,11 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
-import { apiCall } from '@/lib/api/api.service';
-import { saveTask } from '@/features/tasks/services/task.service';
+import { saveTask, fetchWorkStatuses } from '@/features/tasks/services/task.service';
+// import { fetchEmployeesSelectList } from '@/features/employee/services/employee.service';
+import { fetchSelectList } from '@/features/projects/services/project.service';
 import type { TaskItem } from '@/features/tasks/types/tasks-types';
 import type { ApiProject } from '@/features/projects/types/projects-types';
-
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
-
-const SELECT_LIST_ENDPOINTS = {
-  projectHead: `${API_BASE}/EmployeeInfo/SelectList`,
-  status: `${API_BASE}/WorkStatus/SelectList`,
-  project: `${API_BASE}/ProjectInfo/SelectList`,
-};
-
-const mapToSelectOptions = (items: { id: number | string; name: string }[]): { value: string; label: string }[] => {
-  return items.map((item) => ({
-    value: String(item.id),
-    label: item.name,
-  }));
-};
-
-const extractIdAndName = (obj: Record<string, unknown>): { id: number | string; name: string } | null => {
-  if (obj.Value !== undefined && obj.Name !== undefined) {
-    return { id: Number(obj.Value), name: String(obj.Name) };
-  }
-  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
-  let id: number | string | undefined;
-  let name: string | undefined;
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null || value === undefined) continue;
-    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
-      id = value as number | string;
-    }
-    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
-      name = String(value);
-    }
-    if (id !== undefined && name !== undefined) break;
-  }
-  if (id !== undefined && name !== undefined) {
-    return { id: id as number | string, name };
-  }
-  return null;
-};
 
 const priorityOptions = [
   { label: 'Urgent', value: 1 },
@@ -83,6 +45,7 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [statusOptions, setStatusOptions] = useState<{ value: string; label: string }[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const isEdit = !!editingTask;
 
@@ -95,71 +58,80 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
     setProjectsLoading(true);
     setOptionsLoading(true);
 
-    Promise.allSettled([
-      apiCall(SELECT_LIST_ENDPOINTS.projectHead, { signal: controller.signal }),
-      apiCall(SELECT_LIST_ENDPOINTS.project, { signal: controller.signal }),
-      apiCall(SELECT_LIST_ENDPOINTS.status, { signal: controller.signal }),
+     Promise.allSettled([
+      fetchSelectList('/EmployeeInfo/SelectList', controller.signal ),
+      fetchSelectList('/ProjectInfo/SelectList', controller.signal ),
+      fetchWorkStatuses(controller.signal ),
     ]).then((results) => {
       const [managersResult, projectsResult, statusResult] = results as [
-        PromiseSettledResult<Response>,
-        PromiseSettledResult<Response>,
-        PromiseSettledResult<Response>,
+        PromiseSettledResult<{ id: number | string; name: string }[]>,
+        PromiseSettledResult<{ id: number | string; name: string }[]>,
+        PromiseSettledResult<{ WorkStatusInfoID: number; StatusName: string; StatusCode: string; Color?: string; IconName?: string }[]>,
       ];
 
-      if (managersResult.status === 'fulfilled' && managersResult.value.ok) {
-        managersResult.value.json().then((json: unknown) => {
-          const data = Array.isArray(json) ? json : Array.isArray((json as { data?: unknown[] })?.data) ? (json as { data: unknown[] }).data : [];
-          const mapped = data.map(extractIdAndName).filter((item): item is { id: number | string; name: string } => item !== null);
-          setManagers(mapped);
-        });
+      if (managersResult.status === 'fulfilled' && managersResult.value) {
+        setManagers(managersResult.value);
       }
       setManagersLoading(false);
 
-      if (projectsResult.status === 'fulfilled' && projectsResult.value.ok) {
-        projectsResult.value.json().then((json: unknown) => {
-          const data = Array.isArray(json) ? json : Array.isArray((json as { data?: unknown[] })?.data) ? (json as { data: unknown[] }).data : [];
-          const mapped = data.map(extractIdAndName).filter((item): item is { id: number | string; name: string } => item !== null);
-          setProjects(mapped);
-        });
+      if (projectsResult.status === 'fulfilled' && projectsResult.value) {
+        setProjects(projectsResult.value);
       }
       setProjectsLoading(false);
 
-      if (statusResult.status === 'fulfilled' && statusResult.value.ok) {
-        statusResult.value.json().then((json: unknown) => {
-          const data = Array.isArray(json) ? json : Array.isArray((json as { data?: unknown[] })?.data) ? (json as { data: unknown[] }).data : [];
-          const mapped = data.map(extractIdAndName).filter((item): item is { id: number | string; name: string } => item !== null);
-          setStatusOptions(mapToSelectOptions(mapped));
-        });
+      if (statusResult.status === 'fulfilled' && statusResult.value) {
+        setStatusOptions(statusResult.value.map((s) => ({ value: String(s.WorkStatusInfoID), label: s.StatusName })));
       }
       setOptionsLoading(false);
+      setDataLoaded(true);
     });
 
     return () => controller.abort();
   }, [open]);
 
   useEffect(() => {
-    if (open) {
+    if (open && dataLoaded) {
       if (editingTask) {
-        const statusId = statusOptions.find((o) => o.label === editingTask.WorkStatusName)?.value;
-        const managerId = managers.find((m) => m.name === editingTask.TaskManagerName)?.id;
+        const rawTask = editingTask as Record<string, any>;
+        const rawProjectId = rawTask.ProjectInfoID ?? rawTask.ProjectId ?? rawTask.projectId;
+        const rawManagerId = rawTask.TaskManagerID ?? rawTask.TaskManagerId ?? rawTask.managerId ?? rawTask.SubTaskManagerID;
+        const rawStatusId = rawTask.WorkStatusID ?? rawTask.WorkStatusId ?? rawTask.workStatusId;
+        const rawPriority = rawTask.Priority ?? rawTask.priority;
+        const rawTitle = rawTask.TaskTitle ?? rawTask.taskTitle ?? rawTask.title;
+        const rawCode = rawTask.TaskCode ?? rawTask.taskCode;
+        const rawDesc = rawTask.Description ?? rawTask.description;
+        const rawDueDate = rawTask.DueDate ?? rawTask.dueDate;
+
+        const matchedStatus = statusOptions.find(
+          (o) => String(o.value) === String(rawStatusId) || (rawTask.WorkStatusName && o.label === rawTask.WorkStatusName)
+        )?.value;
+
+        const matchedManager = managers.find(
+          (m) => String(m.id) === String(rawManagerId) || (rawTask.TaskManagerName && m.name === rawTask.TaskManagerName)
+        )?.id;
+
+        const matchedProject = projects.find(
+          (p) => String(p.id) === String(rawProjectId)
+        )?.id;
+
         form.setFieldsValue({
-          taskTitle: editingTask.TaskTitle,
-          taskCode: editingTask.TaskCode,
-          projectId: editingTask.ProjectInfoID,
-          managerId: managerId ? String(managerId) : String(editingTask.TaskManagerID),
-          priority: editingTask.Priority,
-          workStatusId: statusId || editingTask.WorkStatusID,
-          description: editingTask.Description,
-          dueDate: normalizeBs(editingTask.DueDate),
+          taskTitle: rawTitle || '',
+          taskCode: rawCode || '',
+          projectId: matchedProject !== undefined ? String(matchedProject) : rawProjectId !== undefined ? String(rawProjectId) : undefined,
+          managerId: matchedManager !== undefined ? String(matchedManager) : rawManagerId !== undefined ? String(rawManagerId) : undefined,
+          priority: rawPriority !== undefined ? Number(rawPriority) : undefined,
+          workStatusId: matchedStatus !== undefined ? String(matchedStatus) : rawStatusId !== undefined ? String(rawStatusId) : undefined,
+          description: rawDesc || '',
+          dueDate: normalizeBs(rawDueDate),
         });
       } else {
         form.resetFields();
         if (project) {
-          form.setFieldsValue({ projectId: project.ProjectInfoID });
+          form.setFieldsValue({ projectId: String(project.ProjectInfoID) });
         }
       }
     }
-  }, [open, form, editingTask, project, statusOptions, managers]);
+  }, [open, form, editingTask, project, statusOptions, managers, projects, dataLoaded]);
 
   const handleSubmit = async () => {
     try {
@@ -247,7 +219,7 @@ export default function CreateTaskDrawer({ open, onClose, onSuccess, editingTask
           >
             <Select
               placeholder={projectsLoading ? 'Loading projects...' : 'Select project'}
-              options={projects.map((p) => ({ value: p.id, label: p.name }))}
+              options={projects.map((p) => ({ value: String(p.id), label: p.name }))}
               className="rounded-lg"
               loading={projectsLoading}
               disabled={!!project}

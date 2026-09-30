@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
-import { apiCall } from "@/lib/api/api.service";
 import type { ApiProject } from "@/features/projects/types/projects-data";
 import type { TaskItem } from "@/features/tasks/types/tasks-types";
 import Pagination from "@/shared/components/ui/Pagination";
@@ -12,12 +11,11 @@ import SearchInput from "@/shared/components/ui/SearchInput";
 import Badge from "@/shared/components/ui/Badge";
 import AppTable from "@/shared/components/ui/AppTable";
 import { usePaginatedList, type PaginatedListParams } from "@/shared/hooks/usePaginatedList";
-import { statusColor, priorityColor } from "@/features/tasks/services/task.service";
+import { statusColor, priorityColor, deleteTask, fetchWorkStatuses, fetchProjectInfo, fetchTasks } from "@/features/tasks/services/task.service";
+import { fetchSelectList } from "@/features/projects/services/project.service";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
 
-const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
-const TASKS_API = `${API_BASE}/TaskInfo/ServerSearch`;
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 const NEPALI_NUMERALS: Record<string, string> = {
@@ -40,68 +38,69 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const extractIdAndName = (obj: Record<string, unknown>): { id: number | string; name: string } | null => {
-  if (obj.Value !== undefined && obj.Name !== undefined) {
-    return { id: Number(obj.Value), name: String(obj.Name) };
-  }
-  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
-  let id: number | string | undefined;
-  let name: string | undefined;
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null || value === undefined) continue;
-    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
-      id = value as number | string;
-    }
-    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
-      name = String(value);
-    }
-    if (id !== undefined && name !== undefined) break;
-  }
-  if (id !== undefined && name !== undefined) {
-    return { id: id as number | string, name };
-  }
-  return null;
-};
+// const extractIdAndName = (obj: Record<string, unknown>): { id: number | string; name: string } | null => {
+//   if (obj.Value !== undefined && obj.Name !== undefined) {
+//     return { id: Number(obj.Value), name: String(obj.Name) };
+//   }
+//   const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
+//   const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
+//   let id: number | string | undefined;
+//   let name: string | undefined;
+//   for (const [key, value] of Object.entries(obj)) {
+//     if (value === null || value === undefined) continue;
+//     if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
+//       id = value as number | string;
+//     }
+//     if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
+//       name = String(value);
+//     }
+//     if (id !== undefined && name !== undefined) break;
+//   }
+//   if (id !== undefined && name !== undefined) {
+//     return { id: id as number | string, name };
+//   }
+//   return null;
+// };
 
-const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, managerName?: string) => ({
-  model: {
-    draw: 1,
-    start,
-    length,
-    columns: [
-      { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: search || "", regex: '' } },
-      { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      { data: 'TaskCode', name: 'TaskCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      { data: 'ProjectInfoName', name: 'ProjectInfoName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      { data: 'TaskManagerName', name: 'TaskManagerName', searchable: true, orderable: true, search: { value: managerName || "", regex: '' } },
-      { data: 'WorkStatusName', name: 'WorkStatusName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-    ],
-    search: { value: search || "", regex: "" },
-    order: [{ column: 1, dir: 'desc' }],
-  },
-  param: {
-    TaskInfoID: 0,
-    ProjectInfoID: projectId ?? 0,
-    TaskTitle: "",
-    TaskManagerName: managerName || "",
-    ProjectInfoName: "",
-  },
-});
+// const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, managerName?: string) => ({
+//   model: {
+//     draw: 1,
+//     start,
+//     length,
+//     columns: [
+//       { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: search || "", regex: '' } },
+//       { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
+//       { data: 'TaskCode', name: 'TaskCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
+//       { data: 'ProjectInfoName', name: 'ProjectInfoName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+//       { data: 'TaskManagerName', name: 'TaskManagerName', searchable: true, orderable: true, search: { value: managerName || "", regex: '' } },
+//       { data: 'WorkStatusName', name: 'WorkStatusName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+//       { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
+//     ],
+//     search: { value: search || "", regex: "" },
+//     order: [{ column: 1, dir: 'desc' }],
+//   },
+//   param: {
+//     TaskInfoID: 0,
+//     ProjectInfoID: projectId ?? 0,
+//     TaskTitle: "",
+//     TaskManagerName: managerName || "",
+//     ProjectInfoName: "",
+//   },
+// });
 
-function fetchTasksPage(params: PaginatedListParams & { projectId?: number; taskId?: number; projectIdSearch?: number; managerName?: string }): Promise<{ items: TaskItem[]; total: number }> {
-  return apiCall(TASKS_API, {
-    method: "POST",
-    body: JSON.stringify(buildTaskSearchBody(params.start as number, params.length as number, params.search as string, params.projectId, params.managerName)),
-    signal: params.signal,
-  }).then(async (res) => {
-    if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-    const json = await res.json();
-    const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
-    return { items: rows, total: json.recordsTotal ?? rows.length };
-  });
-}
+ function fetchTasksPage(params: PaginatedListParams & { projectId?: number; managerName?: string }): Promise<{ items: TaskItem[]; total: number }> {
+   const page = Math.floor((params.start as number) / (params.length as number)) + 1;
+   return fetchTasks({
+     projectId: params.projectId || 0,
+     page,
+     pageSize: params.length as number,
+     search: params.search as string || '',
+     signal: params.signal,
+   }).then((result) => ({
+     items: result.items,
+     total: result.total,
+   }));
+ }
 
 export default function TasksPage() {
   const location = useLocation();
@@ -177,10 +176,8 @@ export default function TasksPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          const API_BASE = (import.meta.env.VITE_BASE_API_URL || "").replace(/\/$/, "");
-          const deleteUrl = `${API_BASE}/DeleteTaskInfo?id=${task.TaskInfoID}`;
-          const res = await apiCall(deleteUrl, { method: "GET" });
-          if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+         const result = await deleteTask(task.TaskInfoID);
+         if (!result.success) throw new Error(result.message || 'Failed to delete task');
           message.success("Task deleted successfully");
           refetch();
         } catch (err) {
@@ -194,28 +191,17 @@ export default function TasksPage() {
     const controller = new AbortController();
     setSelectLoading(true);
     Promise.allSettled([
-      apiCall(`${API_BASE}/TaskInfo/SelectList`, { method: 'GET', signal: controller.signal }),
-      apiCall(`${API_BASE}/ProjectInfo/SelectList`, { method: 'GET', signal: controller.signal }),
+      fetchSelectList('/TaskInfo/SelectList',  controller.signal ),
+      fetchSelectList('/ProjectInfo/SelectList', controller.signal ),
     ]).then((results) => {
-      const [taskResult, projectResult] = results as [
-        PromiseSettledResult<Response>,
-        PromiseSettledResult<Response>,
-      ];
+      const [taskResult, projectResult] = results;
 
-      if (taskResult.status === 'fulfilled' && taskResult.value.ok) {
-        taskResult.value.json().then((json: unknown) => {
-          const data = Array.isArray(json) ? json : Array.isArray((json as { data?: unknown[] })?.data) ? (json as { data: unknown[] }).data : Array.isArray((json as { Data?: unknown[] })?.Data) ? (json as { Data: unknown[] }).Data : [];
-          const mapped = data.map((obj: Record<string, unknown>) => extractIdAndName(obj)).filter((item): item is { id: number | string; name: string } => item !== null);
-          setTaskOptions(mapped.map((item) => ({ value: String(item.id), label: item.name })));
-        });
+      if (taskResult.status === 'fulfilled' && taskResult.value) {
+        setTaskOptions(taskResult.value.map((item) => ({ value: String(item.id), label: item.name })));
       }
 
-      if (projectResult.status === 'fulfilled' && projectResult.value.ok) {
-        projectResult.value.json().then((json: unknown) => {
-          const data = Array.isArray(json) ? json : Array.isArray((json as { data?: unknown[] })?.data) ? (json as { data: unknown[] }).data : Array.isArray((json as { Data?: unknown[] })?.Data) ? (json as { Data: unknown[] }).Data : [];
-          const mapped = data.map((obj: Record<string, unknown>) => extractIdAndName(obj)).filter((item): item is { id: number | string; name: string } => item !== null);
-          setProjectOptions(mapped.map((item) => ({ value: String(item.id), label: item.name })));
-        });
+      if (projectResult.status === 'fulfilled' && projectResult.value) {
+        setProjectOptions(projectResult.value.map((item) => ({ value: String(item.id), label: item.name })));
       }
 
       setSelectLoading(false);

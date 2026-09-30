@@ -26,22 +26,27 @@ export const SELECT_LIST_URLS = {
 
 
 export function extractIdAndName(obj: Record<string, unknown>): SelectListItem | null {
-  if (obj.Value !== undefined && obj.Name !== undefined) {
-    return { id: Number(obj.Value), name: String(obj.Name) };
+  if (!obj || typeof obj !== 'object') return null;
+
+  const valueVal = obj.Value ?? obj.value ?? obj.Key ?? obj.key;
+  const textVal = obj.Text ?? obj.text ?? obj.Name ?? obj.name ?? obj.Title ?? obj.title ?? obj.Label ?? obj.label;
+
+  if (valueVal !== undefined && valueVal !== null && textVal !== undefined && textVal !== null && String(textVal).trim() !== '') {
+    return { id: Number(valueVal) || String(valueVal), name: String(textVal) };
   }
 
-  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label', 'Number', 'number'];
+  const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key', 'Value', 'value'];
+  const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label', 'Number', 'number', 'text', 'Text'];
 
   let id: number | string | undefined;
   let name: string | undefined;
 
   for (const [key, value] of Object.entries(obj)) {
     if (value === null || value === undefined) continue;
-    if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
+    if (id === undefined && idSuffixes.some((s) => key === s || key.endsWith(s))) {
       id = value as number | string;
     }
-    if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
+    if (name === undefined && nameSuffixes.some((s) => key === s || key.endsWith(s))) {
       name = String(value);
     }
     if (id !== undefined && name !== undefined) break;
@@ -63,8 +68,6 @@ export function mapToSelectOptions(items: SelectListItem[]): { value: string; la
 
 export async function fetchSelectList(path: string, signal?: AbortSignal): Promise<SelectListItem[]> {
   try {
-    // If path is already a full URL (starts with http), use it directly;
-    // otherwise prepend API_BASE.
     const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
     const res = await apiCall(url, { method: 'GET', signal });
     if (!res.ok) return [];

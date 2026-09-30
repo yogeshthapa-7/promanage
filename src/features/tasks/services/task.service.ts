@@ -418,12 +418,18 @@ export async function fetchWorkStatuses(signal?: AbortSignal): Promise<
   const res = await apiCall(WORK_STATUS_SELECT_LIST_URL, { signal });
   if (!res.ok) return [];
   const data = await res.json();
-  const list: Record<string, unknown>[] = Array.isArray(data) ? data : Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
+  const list: Record<string, unknown>[] = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.data)
+      ? (data.data as Record<string, unknown>[])
+      : Array.isArray(data?.Data)
+        ? (data.Data as Record<string, unknown>[])
+        : [];
   return list.map((item) => ({
-    WorkStatusInfoID: Number(item.WorkStatusInfoID ?? item.Value ?? 0),
-    StatusName: String(item.StatusName ?? item.Name ?? ''),
-    StatusCode: String(item.StatusCode ?? ''),
-    Color: item.Color as string | undefined,
+    WorkStatusInfoID: Number(item.WorkStatusInfoID ?? item.WorkStatusID ?? item.Value ?? item.id ?? 0),
+    StatusName: String(item.StatusName ?? item.WorkStatusName ?? item.Name ?? item.name ?? item.Text ?? ''),
+    StatusCode: String(item.StatusCode ?? item.Code ?? ''),
+    Color: (item.Color ?? item.WorkStatusColor) as string | undefined,
     IconName: item.IconName as string | undefined,
   }));
 }
