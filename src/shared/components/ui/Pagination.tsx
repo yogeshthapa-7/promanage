@@ -9,7 +9,7 @@ export default function Pagination({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [5, 10, 20],
+  pageSizeOptions = [10, 20, 50, 100],
 }: PaginationProps) {
   const [pageSizeVal, setPageSizeVal] = useState(pageSize);
 
@@ -17,6 +17,7 @@ export default function Pagination({
     setPageSizeVal(size);
     onPageSizeChange?.(size);
   };
+  
 
   return (
     <div className="flex items-center justify-end px-4 py-3 border-t border-gray-100/80">
@@ -29,6 +30,7 @@ export default function Pagination({
               onChange={handlePageSizeChange}
               size="small"
               className="text-xs"
+              style={{minWidth: 70}}
               options={pageSizeOptions.map((size) => ({ value: size, label: `${size}` }))}
             />
           </div>

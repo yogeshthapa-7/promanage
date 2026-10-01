@@ -9,7 +9,7 @@ import {
   Download
 } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
-import Pagination from '@/shared/components/ui/Pagination';
+// import Pagination from '@/shared/components/ui/Pagination';
 import AppTable from '@/shared/components/ui/AppTable';
 import Button from '@/shared/components/ui/Button';
 import Drawer from '@/shared/components/drawer';
@@ -97,7 +97,6 @@ export default function DepartmentPage() {
     refetch,
   } = usePaginatedList<Department>({
     fetcher: fetchDepartmentsPage,
-    initialPageSize: 20,
     extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab, mainBranchOptionsForBranch],
     extraParams: {
       departmentId: filterDeptId,
@@ -460,11 +459,20 @@ export default function DepartmentPage() {
          dataSource={departments}
          loading={loading}
          rowKey={(dept, index) => dept.id ?? `dept-${index}`}
+         total={totalFiltered}
+         currentPage={currentPage}
+         pageSize={pageSize}
+         onPageChange={setCurrentPage}
+         onPageSizeChange={(size) => {
+          setPageSize(size);
+          setCurrentPage(1);
+         }}
+         
        />
 
 
       {/* 5. Pagination */}
-      <div className="flex justify-end pt-2 no-print">
+      {/* <div className="flex justify-end pt-2 no-print">
         <Pagination
           total={totalFiltered}
           currentPage={currentPage}
@@ -476,7 +484,7 @@ export default function DepartmentPage() {
           }}
           pageSizeOptions={[10, 20, 50]}
         />
-      </div>
+      </div> */}
         </div>
       )}
 

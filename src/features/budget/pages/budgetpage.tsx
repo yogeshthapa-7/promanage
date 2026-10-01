@@ -89,7 +89,6 @@ export default function BudgetPage() {
       search: searchQuery,
       fiscalYear: fiscalYearId,
     }),
-    initialPageSize: 20,
     extraDeps: [searchQuery, fiscalYearId],
     extraParams: {
       fiscalYear: fiscalYearId,
@@ -312,22 +311,6 @@ export default function BudgetPage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          {/* <div className="flex items-center gap-3">
-            <span className="text-base text-slate-500">Show</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="w-20 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm"
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span className="text-base text-slate-500">entries</span>
-          </div> */}
           <span className="text-base text-slate-500">
             {totalFiltered} total records
           </span>
@@ -356,6 +339,13 @@ export default function BudgetPage() {
              dataSource={budgets}
              rowKey={(budget) => budget.id}
              cardClassName="mt-4"
+             total={totalFiltered}
+             currentPage={currentPage}
+             pageSize={pageSize}
+             onPageChange={setCurrentPage}
+             onPageSizeChange={(size) => {setPageSize(size);
+              setCurrentPage(1);
+             }}
            />
          ) : (
 
@@ -420,17 +410,17 @@ export default function BudgetPage() {
           </div>
         )}
 
-        {!loading && budgets.length > 0 && (
+        {viewMode === 'grid' && !loading && budgets.length > 0 &&(
           <Pagination
-            total={totalFiltered}
-            currentPage={currentPage}
-            pageSize={pageSize}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setCurrentPage(1);
-            }}
-            pageSizeOptions={[20, 50, 100]}
+          total={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+         
           />
         )}
       </div>

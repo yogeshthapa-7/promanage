@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, Edit2, Trash2, Copy, Printer } from 'lucide-react';
 import { Modal, message, Button } from 'antd';
-import Pagination from '@/shared/components/ui/Pagination';
+// import Pagination from '@/shared/components/ui/Pagination';
 import { TableSkeleton } from '@/shared/components/ui/Loaders';
 import AppTable from '@/shared/components/ui/AppTable';
 import SearchInput from '@/shared/components/ui/SearchInput';
@@ -91,7 +91,6 @@ export default function EmployeePage() {
         total,
       };
     },
-    initialPageSize: 20,
     extraDeps: [debouncedSearch, debouncedFullname, debouncedAddress, debouncedPhone],
   });
 
@@ -306,20 +305,19 @@ export default function EmployeePage() {
             dataSource={employees}
             rowKey={(record) => record.EmployeeInfoID}
             cardClassName="no-print"
+            total={totalFiltered}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+            
           />
         )}
 
-         <Pagination
-           total={totalFiltered}
-           currentPage={currentPage}
-           pageSize={pageSize}
-           onPageChange={setCurrentPage}
-           onPageSizeChange={(size) => {
-             setPageSize(size);
-             setCurrentPage(1);
-           }}
-           pageSizeOptions={[20, 50, 100]}
-         />
+         
       </div>
 
       <EmployeeSetupModal

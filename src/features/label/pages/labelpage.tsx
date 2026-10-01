@@ -49,7 +49,7 @@ export default function LabelPage() {
       ...params, 
       search: searchQuery  
     }),
-    initialPageSize: 20,
+    
     extraDeps: [searchQuery],
   });
 
@@ -235,10 +235,18 @@ export default function LabelPage() {
             columns={labelColumns}
             dataSource={labels}
             rowKey={(record) => record.id}
+            total={totalFiltered}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
           />
         )}
 
-        {!loading && labels.length > 0 && (
+        {viewMode === 'grid' && !loading && labels.length > 0 && (
           <Pagination
             total={totalFiltered}
             currentPage={currentPage}
@@ -248,7 +256,7 @@ export default function LabelPage() {
               setPageSize(size);
               setCurrentPage(1);
             }}
-            pageSizeOptions={[20, 50, 100]}
+            
           />
         )}
       </div>

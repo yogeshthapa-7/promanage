@@ -46,7 +46,6 @@ export default function WardInfoPage() {
     refetch,
   } = usePaginatedList<Ward>({
     fetcher: fetchWardsPage,
-    initialPageSize: 20,
     extraDeps: [debouncedSearchQuery],
     extraParams: {
       search: debouncedSearchQuery,
@@ -234,10 +233,18 @@ export default function WardInfoPage() {
             columns={wardColumns}
             dataSource={wards}
             rowKey={(record) => record.id}
+            total={totalFiltered}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
           />
         )}
 
-        {!loading && wards.length > 0 && (
+        {viewMode === 'grid' && !loading && wards.length > 0 && (
           <Pagination
             total={totalFiltered}
             currentPage={currentPage}
@@ -247,7 +254,7 @@ export default function WardInfoPage() {
               setPageSize(size);
               setCurrentPage(1);
             }}
-            pageSizeOptions={[20, 50, 100]}
+           
           />
         )}
       </div>

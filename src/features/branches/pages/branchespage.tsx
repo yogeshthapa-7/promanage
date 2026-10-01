@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, FileSpreadsheet, Printer, Pencil, Trash2, Download } from 'lucide-react';
 import { Modal, message, Select, Input } from 'antd';
-import Pagination from '@/shared/components/ui/Pagination';
 import AppTable from '@/shared/components/ui/AppTable';
 import Button from '@/shared/components/ui/Button';
 import { fetchBranches, fetchBranchSelectList, deleteBranch } from '@/features/branches/services/branch.service';
@@ -127,7 +126,6 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
     refetch,
   } = usePaginatedList<Branch>({
     fetcher: fetchBranchesPage,
-    initialPageSize: 20,
     extraDeps: [debouncedSearchCode, branchNameId, mainBranchId, departmentId],
     extraParams: {
       code: debouncedSearchCode,
@@ -403,30 +401,22 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
        <AppTable
          columns={columns}
          dataSource={branches}
-         loading={loading}
-         rowKey={(branch, index) => branch.id ?? `branch-${index}`}
+         rowKey={(record) => record.id}
+         total={totalFiltered}
+         currentPage={currentPage}
+         pageSize={pageSize}
+         onPageChange={setCurrentPage}
+         onPageSizeChange={(size) => {setPageSize(size);
+          setCurrentPage(1);
+         }}
        />
-
-
-      <div className="flex justify-end pt-2 no-print">
-        <Pagination
-          total={totalFiltered}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setCurrentPage(1);
-          }}
-          pageSizeOptions={[10, 20, 50]}
-        />
-      </div>
 
       <CreateBranchDrawer
         open={showFormModal}
         onClose={() => setShowFormModal(false)}
         onSuccess={refreshBranches}
         editingBranch={editingBranch}
+
         //localbodylevel:
         disabledMainBranch={disabledMainBranch}
         defaultMainBranchId={defaultMainBranchId}

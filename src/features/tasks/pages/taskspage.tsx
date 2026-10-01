@@ -16,8 +16,6 @@ import { fetchSelectList } from "@/features/projects/services/project.service";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
 
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
-
 const NEPALI_NUMERALS: Record<string, string> = {
   "0": "०", "1": "१", "2": "२", "3": "३", "4": "४",
   "5": "५", "6": "६", "7": "७", "8": "८", "9": "९",
@@ -37,56 +35,6 @@ function useDebounce<T>(value: T, delay: number): T {
   }, [value, delay]);
   return debouncedValue;
 }
-
-// const extractIdAndName = (obj: Record<string, unknown>): { id: number | string; name: string } | null => {
-//   if (obj.Value !== undefined && obj.Name !== undefined) {
-//     return { id: Number(obj.Value), name: String(obj.Name) };
-//   }
-//   const idSuffixes = ['id', 'ID', 'Id', 'InfoID', 'Code', 'code', 'Key'];
-//   const nameSuffixes = ['name', 'Name', 'title', 'Title', 'fullname', 'Fullname', 'label', 'Label'];
-//   let id: number | string | undefined;
-//   let name: string | undefined;
-//   for (const [key, value] of Object.entries(obj)) {
-//     if (value === null || value === undefined) continue;
-//     if (id === undefined && key.length > 1 && idSuffixes.some((s) => key.endsWith(s))) {
-//       id = value as number | string;
-//     }
-//     if (name === undefined && key.length > 1 && nameSuffixes.some((s) => key.endsWith(s))) {
-//       name = String(value);
-//     }
-//     if (id !== undefined && name !== undefined) break;
-//   }
-//   if (id !== undefined && name !== undefined) {
-//     return { id: id as number | string, name };
-//   }
-//   return null;
-// };
-
-// const buildTaskSearchBody = (start: number, length: number, search?: string, projectId?: number, managerName?: string) => ({
-//   model: {
-//     draw: 1,
-//     start,
-//     length,
-//     columns: [
-//       { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: search || "", regex: '' } },
-//       { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
-//       { data: 'TaskCode', name: 'TaskCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-//       { data: 'ProjectInfoName', name: 'ProjectInfoName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-//       { data: 'TaskManagerName', name: 'TaskManagerName', searchable: true, orderable: true, search: { value: managerName || "", regex: '' } },
-//       { data: 'WorkStatusName', name: 'WorkStatusName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-//       { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-//     ],
-//     search: { value: search || "", regex: "" },
-//     order: [{ column: 1, dir: 'desc' }],
-//   },
-//   param: {
-//     TaskInfoID: 0,
-//     ProjectInfoID: projectId ?? 0,
-//     TaskTitle: "",
-//     TaskManagerName: managerName || "",
-//     ProjectInfoName: "",
-//   },
-// });
 
  function fetchTasksPage(params: PaginatedListParams & { projectId?: number; managerName?: string }): Promise<{ items: TaskItem[]; total: number }> {
    const page = Math.floor((params.start as number) / (params.length as number)) + 1;
@@ -136,7 +84,6 @@ export default function TasksPage() {
     refetch,
   } = usePaginatedList<TaskItem>({
     fetcher,
-    initialPageSize: 20,
     extraDeps: [debouncedManagerName, activeProjectFilter],
   });
 
@@ -221,9 +168,9 @@ export default function TasksPage() {
     return matchesTask && matchesProject && matchesManager;
   });
 
-  const filteredTotal = filteredTasks.length;
-  const start = filteredTotal === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const end = Math.min(currentPage * pageSize, filteredTotal);
+  const totalFiltered = filteredTasks.length;
+  const start = totalFiltered === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, totalFiltered);
 
   const taskColumns = [
     {
@@ -371,7 +318,7 @@ export default function TasksPage() {
       </div> */}
 
       <div className="text-base text-slate-500 font-medium mt-2">
-        Showing {start} to {end} of {filteredTotal} entries
+        Showing {start} to {end} of {totalFiltered} entries
       </div>
 
        {loading ? (
@@ -392,6 +339,14 @@ export default function TasksPage() {
             dataSource={filteredTasks}
             rowKey={(record) => record.TaskInfoID}
             cardClassName="mt-4"
+            total={totalFiltered}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
           />
         ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
@@ -455,8 +410,9 @@ export default function TasksPage() {
        )}
 
       <div className="flex justify-end pt-2">
+        {viewMode ==='grid' && !loading && tasks.length > 0 && (
         <Pagination
-          total={filteredTotal}
+          total={totalFiltered}
           currentPage={currentPage}
           pageSize={pageSize}
           onPageChange={setCurrentPage}
@@ -464,8 +420,8 @@ export default function TasksPage() {
             setPageSize(Number(size));
             setCurrentPage(1);
           }}
-          pageSizeOptions={PAGE_SIZE_OPTIONS}
         />
+        )}
       </div>
 
       <CreateTaskDrawer

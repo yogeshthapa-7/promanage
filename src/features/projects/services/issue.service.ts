@@ -9,17 +9,21 @@ export const STATUS_SELECT_LIST_URL = `${API_BASE}/WorkStatus/SelectList`;
 export const LABEL_INFO_SELECT_LIST_URL = `${API_BASE}/LabelInfo/SelectList`;
 
 
-export async function fetchIssues(project: ApiProject, signal?: AbortSignal): Promise<IssueItem[]> {
+export async function fetchIssues(
+  project: ApiProject,
+  params: { start: number; length: number; search?: string },
+  signal?: AbortSignal
+): Promise<{ items: IssueItem[]; total: number; filtered: number }> {
   const res = await apiCall(ISSUES_API, {
     method: 'POST',
     body: JSON.stringify({
       model: {
         draw: 1,
-        start: 0,
-        length: 20,
+        start: params.start,
+        length: params.length,
         columns: [
-          { data: 'IssuesID', name: 'IssuesID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'IssuesTitle', name: 'IssuesTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'IssuesID', name: 'IssuesID', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
+          { data: 'IssuesTitle', name: 'IssuesTitle', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
           { data: 'Comments', name: 'Comments', searchable: true, orderable: true, search: { value: '', regex: '' } },
           { data: 'RaisedBy', name: 'RaisedBy', searchable: true, orderable: true, search: { value: '', regex: '' } },
           { data: 'CreatedDate', name: 'CreatedDate', searchable: true, orderable: true, search: { value: '', regex: '' } },
@@ -30,12 +34,12 @@ export async function fetchIssues(project: ApiProject, signal?: AbortSignal): Pr
           { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
           { data: 'WorkStatusColor', name: 'WorkStatusColor', searchable: true, orderable: true, search: { value: '', regex: '' } },
         ],
-        search: { value: '', regex: '' },
+        search: { value: params.search || '', regex: '' },
         order: [{ column: 0, dir: 'desc' }],
       },
       param: {
         IssuesID: 0,
-        IssuesTitle: '',
+        IssuesTitle: params.search || '',
         LabelInfoID: 0,
         Comments: '',
         Attachments: '',
@@ -59,7 +63,11 @@ export async function fetchIssues(project: ApiProject, signal?: AbortSignal): Pr
   if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
   const json = await res.json();
   const data = Array.isArray(json?.data) ? json.data : [];
-  return data as IssueItem[];
+  return {
+    items: data as IssueItem[],
+    total: json.recordsTotal ?? data.length,
+    filtered: json.recordsFiltered ?? data.length,
+  };
 }
 
 export async function saveIssue(body: Record<string, unknown>): Promise<void> {

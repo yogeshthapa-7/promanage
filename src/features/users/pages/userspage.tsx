@@ -3,7 +3,6 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { Button, Input, Select } from 'antd';
-import Pagination from '@/shared/components/ui/Pagination';
 import { TableSkeleton } from '@/shared/components/ui/Loaders';
 import AppTable from '@/shared/components/ui/AppTable';
 import { useQueryClient } from '@tanstack/react-query';
@@ -58,7 +57,6 @@ export default function UsersPage() {
         items: result.users,
         total: result.filtered,
       })),
-    initialPageSize: 20,
     extraDeps: [debouncedSearch, titleFilter, roleFilter],
   });
 
@@ -248,20 +246,18 @@ export default function UsersPage() {
             dataSource={paginatedUsers}
             rowKey={(record) => record.id}
             cardClassName="no-print"
+            total={totalFiltered}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
           />
         )}
 
-        <Pagination
-          total={totalFiltered}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setCurrentPage(1);
-          }}
-          pageSizeOptions={[20, 50, 100]}
-        />
+       
       </div>
 
       <UserFormModal

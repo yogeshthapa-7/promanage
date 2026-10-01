@@ -9,36 +9,64 @@ import AppTable from "@/shared/components/ui/AppTable";
 import MilestoneCreate from "./Create";
 import MilestoneSearch from "./Search";
 import { fetchMilestones, deleteMilestone, type MilestoneItem } from "@/features/projects/services/milestone.service";
-
+import Pagination from '@/shared/components/ui/Pagination';
+import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
 
 export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
-  const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
-  const [milestonesLoading, setMilestonesLoading] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
+  // const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
+  // const [milestonesLoading, setMilestonesLoading] = useState(false);
+  // const [isCreateOpen, setIsCreateOpen] = useState(false);
+  // const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
+  // const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  // const [isSearchOpen, setIsSearchOpen] = useState(false);
+  // const [isSearchActive, setIsSearchActive] = useState(false);
+  // const [allMilestones, setAllMilestones] = useState<MilestoneItem[]>([]);
+  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
+  const [isCreateOpen, setIsCreayeOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [allMilestones, setAllMilestones] = useState<MilestoneItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const loadMilestones = async () => {
-    setMilestonesLoading(true);
-    setMilestones([]);
+  const {
+    data: milestones = [],
+    total: totalFiltered,
+    loading: milestonesLoading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch
+  } = usePaginatedList<MilestoneItem>({
+    fetcher: (params: PaginatedListParams) => {
+      if(!project?.ProjectInfoID) return { items: [], total: 0 };
+      return fetchMilestones(project, {
+        start: params.start as number,
+        length: params.length as number,
+        search: (params.search as string) || searchQuery,
+      }, params.signal);
+    },
+    extraDeps: [project, searchQuery],
+  });
 
-    try {
-      const data = await fetchMilestones(project);
-      setMilestones(data);
-      setAllMilestones(data);
-    } catch {
-      console.error('Failed to fetch milestones');
-    } finally {
-      setMilestonesLoading(false);
-    }
-  };
+  // const loadMilestones = async () => {
+  //   setMilestonesLoading(true);
+  //   setMilestones([]);
 
-  useEffect(() => {
-    loadMilestones();
-  }, [project]);
+  //   try {
+  //     const data = await fetchMilestones(project);
+  //     setMilestones(data);
+  //     setAllMilestones(data);
+  //   } catch {
+  //     console.error('Failed to fetch milestones');
+  //   } finally {
+  //     setMilestonesLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   loadMilestones();
+  // }, [project]);
 
   const handleEdit = (milestone: MilestoneItem) => {
     if (onEdit) {
@@ -60,7 +88,7 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
         try {
           await deleteMilestone(milestone.ProjectMilestoneID);
           message.success("Milestone deleted successfully");
-          setMilestones((prev) => prev.filter((m) => m.ProjectMilestoneID !== milestone.ProjectMilestoneID));
+          refetch();
         } catch {
           message.error("Failed to delete milestone");
         }
@@ -76,7 +104,7 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
   const handleClearMilestoneSearch = () => {
     setIsSearchOpen(false);
     setIsSearchActive(false);
-    setMilestones(allMilestones);
+    setSearchQuery('');
   };
 
   const columns = [
@@ -234,15 +262,8 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
             const searchTitle = String(values.MilestoneTitle || '').toLowerCase();
             const searchStatusID = values.WorkStatusID ? Number(values.WorkStatusID) : null;
             setIsSearchActive(true);
-            setMilestones(() => {
-              if (!searchTitle && !searchStatusID) return allMilestones;
-              return allMilestones.filter((milestone) => {
-                const matchesTitle = !searchTitle || milestone.MilestoneTitle.toLowerCase().includes(searchTitle);
-                const matchesStatus = !searchStatusID || milestone.WorkStatusID === searchStatusID;
-                return matchesTitle && matchesStatus;
-              });
-            });
-          }}
+            setSearchQuery(searchTitle);
+           }}
            project={project}
            modal={false}
           />
@@ -255,57 +276,79 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
           rowKey="ProjectMilestoneID"
           rowHoverClassName="hover:bg-slate-50/60"
           cardClassName="mt-4"
+          total={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {milestones.map((milestone) => {
-            const calculatedProgress = calculateProgressFromDates(milestone.StartDate, milestone.EndDate, milestone.Progress);
-            const progressColor =
-              calculatedProgress >= 75
-                ? "#10B981"
-                : calculatedProgress >= 40
-                ? "#3B82F6"
-                : calculatedProgress > 0
-                ? "#F59E0B"
-                : "#D1D5DB";
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {milestones.map((milestone) => {
+              const calculatedProgress = calculateProgressFromDates(milestone.StartDate, milestone.EndDate, milestone.Progress);
+              const progressColor =
+                calculatedProgress >= 75
+                  ? "#10B981"
+                  : calculatedProgress >= 40
+                  ? "#3B82F6"
+                  : calculatedProgress > 0
+                  ? "#F59E0B"
+                  : "#D1D5DB";
 
-            return (
-              <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
-                  <span className="text-sm font-bold text-slate-700">{calculatedProgress}%</span>
-                </div>
+              return (
+                <Card key={milestone.ProjectMilestoneID} hover className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-base font-bold text-slate-900 truncate">{milestone.MilestoneTitle}</h3>
+                    <span className="text-sm font-bold text-slate-700">{calculatedProgress}%</span>
+                  </div>
 
-                {milestone.Summary && (
-                  <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>
-                )}
+                  {milestone.Summary && (
+                    <p className="text-base text-slate-500 line-clamp-3">{milestone.Summary}</p>
+                  )}
 
-                <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
+                  <ProgressBar value={Math.min(calculatedProgress, 100)} color={progressColor} />
 
-                <div className="flex items-center justify-between text-base text-muted-foreground">
-                  <span>Start: {convertAdToBs(milestone.StartDate) || "—"}</span>
-                  <span>End: {convertAdToBs(milestone.EndDate) || "—"}</span>
-                </div>
+                  <div className="flex items-center justify-between text-base text-muted-foreground">
+                    <span>Start: {convertAdToBs(milestone.StartDate) || "—"}</span>
+                    <span>End: {convertAdToBs(milestone.EndDate) || "—"}</span>
+                  </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <span className="text-base text-muted-foreground">Milestone Cost</span>
-                  <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
-                </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <span className="text-base text-muted-foreground">Milestone Cost</span>
+                    <span className="text-sm font-semibold text-slate-700">{milestone.MilestoneCost.toLocaleString()}</span>
+                  </div>
 
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                  <Button size="small" onClick={() => handleEdit(milestone)}>Edit</Button>
-                  <Button size="small" danger onClick={() => handleDelete(milestone)}>Delete</Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <Button size="small" onClick={() => handleEdit(milestone)}>Edit</Button>
+                    <Button size="small" danger onClick={() => handleDelete(milestone)}>Delete</Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+          {viewMode === 'grid' && !milestonesLoading && milestones.length > 0 && (
+            <Pagination
+              total={totalFiltered}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+        </>
       )}
 
       <MilestoneCreate
         open={isCreateOpen}
         onClose={() => { setIsCreateOpen(false); setEditingMilestone(null); }}
-        onSuccess={() => { setIsCreateOpen(false); setEditingMilestone(null); loadMilestones(); }}
+        onSuccess={() => { setIsCreateOpen(false); setEditingMilestone(null); refetch(); }}
         project={project}
         editingMilestone={editingMilestone}
       />

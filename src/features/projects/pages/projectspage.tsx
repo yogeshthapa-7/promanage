@@ -129,7 +129,6 @@ export default function ProjectsPage() {
     refetch,
   } = usePaginatedList<Project>({
     fetcher: fetchProjectsPage,
-    initialPageSize: 20,
     extraDeps: [searchQuery, filterStatus, sortField, sortDirection],
     extraParams: {
       search: searchQuery,
@@ -722,10 +721,18 @@ export default function ProjectsPage() {
                   rowKey={(record) => record.id}
                   cardClassName="mt-4 overflow-x-auto"
                   rowHoverClassName="hover:bg-slate-50/60"
+                  total={displayProjects.length}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
                 />
               )}
 
-            {!loading && projects.length > 0 && (
+            {viewMode === 'grid' && !loading && projects.length > 0 && (
               <Pagination
                 total={displayProjects.length}
                 currentPage={currentPage}
@@ -735,7 +742,6 @@ export default function ProjectsPage() {
                   setPageSize(size);
                   setCurrentPage(1);
                 }}
-                pageSizeOptions={[ 20, 50, 100]}
               />
             )}
           </div>

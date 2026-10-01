@@ -9,36 +9,42 @@ import DiscussionSearch from "./Search";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
 import { fetchDiscussions, deleteDiscussion, type ProjectDiscussionItem } from "@/features/projects/services/discussion.service";
 import type { DiscussionTabProps } from '@/features/projects/types/projects-types'
+import Pagination from '@/shared/components/ui/Pagination';
+import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
 
 export default function DiscussionTab({ project }: DiscussionTabProps) {
-  const [discussions, setDiscussions] = useState<ProjectDiscussionItem[]>([]);
-  const [allDiscussions, setAllDiscussions] = useState<ProjectDiscussionItem[]>([]);
-  const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDiscussion, setEditingDiscussion] = useState<ProjectDiscussionItem | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const discussionsRefetch = async () => {
-    setDiscussionsLoading(true);
-    setDiscussions([]);
-
-    try {
-      const data = await fetchDiscussions(project);
-      setDiscussions(data);
-      setAllDiscussions(data);
-    } catch {
-      console.error('Failed to fetch discussions');
-    } finally {
-      setDiscussionsLoading(false);
-    }
-  };
+  const {
+    data: discussions = [],
+    total: totalFiltered,
+    loading: discussionsLoading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<ProjectDiscussionItem>({
+    fetcher: (params: PaginatedListParams) => {
+      if(!project?.ProjectInfoID) return { items: [], total: 0 };
+      return fetchDiscussions(project, {
+        start: params.start as number,
+        length: params.length as number,
+        search: (params.search as string) || searchQuery,
+      }, params.signal);
+    },
+    extraDeps: [project, searchQuery],
+  });
 
   const handleClearDiscussionSearch = () => {
     setIsSearchOpen(false);
     setIsSearchActive(false);
-    setDiscussions(allDiscussions);
+    setSearchQuery('');
   };
 
   const handleEditDiscussion = (discussion: ProjectDiscussionItem) => {
@@ -57,17 +63,13 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         try {
           await deleteDiscussion(discussion.ProjectDiscussionID);
           message.success('Discussion deleted successfully');
-          setDiscussions((prev) => prev.filter((d) => d.ProjectDiscussionID !== discussion.ProjectDiscussionID));
+          refetch();
         } catch {
           message.error('Failed to delete discussion');
         }
       },
     });
   };
-
-  useEffect(() => {
-    discussionsRefetch();
-  }, [project]);
 
   const columns = [
     {
@@ -132,14 +134,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
           const searchTitle = String(values.DiscussionTitle || '').toLowerCase();
           const priority = Number(values.Priority);
           setIsSearchActive(true);
-          setDiscussions(() => {
-            if (!searchTitle && !priority) return allDiscussions;
-            return allDiscussions.filter((d) => {
-              const matchesTitle = !searchTitle || d.DiscussionTitle.toLowerCase().includes(searchTitle);
-              const matchesPriority = !priority || d.Priority === priority;
-              return matchesTitle && matchesPriority;
-            });
-          });
+          setSearchQuery(searchTitle);
         }}
         onClear={handleClearDiscussionSearch}
         project={project}
@@ -163,8 +158,17 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
         rowKey="ProjectDiscussionID"
         rowHoverClassName="hover:bg-slate-50/60"
         cardClassName="mt-4"
+        total={totalFiltered}
+        pageSize={pageSize}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size);
+          setCurrentPage(1);
+        }}
       />
     ) : (
+      <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {discussions.map((d) => (
           <Card key={d.ProjectDiscussionID} hover className="flex flex-col">
@@ -185,6 +189,19 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
           </Card>
         ))}
       </div>
+      {viewMode === 'grid' && !discussionsLoading && discussions.length > 0 && (
+        <Pagination
+          total={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+        />
+      )}
+      </>
     )}
     <DiscussionCreate
       open={isCreateOpen}
@@ -192,7 +209,7 @@ export default function DiscussionTab({ project }: DiscussionTabProps) {
       onSuccess={() => {
         setIsCreateOpen(false);
         setEditingDiscussion(null);
-        discussionsRefetch();
+        refetch();
       }}
       project={project}
       editingDiscussion={editingDiscussion}

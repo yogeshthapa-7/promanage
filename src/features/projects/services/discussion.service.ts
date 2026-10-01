@@ -7,17 +7,21 @@ export const SAVE_DISCUSSION_URL = `${API_BASE}/SaveProjectDiscussion`;
 export const DELETE_DISCUSSION_URL = `${API_BASE}/DeleteProjectDiscussion`;
 
 
-export async function fetchDiscussions(project: ApiProject, signal?: AbortSignal): Promise<ProjectDiscussionItem[]> {
+export async function fetchDiscussions(
+  project: ApiProject,
+  params: { start: number; length: number; search?: string },
+  signal?: AbortSignal
+): Promise<{ items: ProjectDiscussionItem[]; total: number; filtered: number }> {
   const res = await apiCall(DISCUSSIONS_API, {
     method: 'POST',
     body: JSON.stringify({
       model: {
         draw: 1,
-        start: 0,
-        length: 20,
+        start: params.start,
+        length: params.length,
         columns: [
-          { data: 'ProjectDiscussionID', name: 'ProjectDiscussionID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'DiscussionTitle', name: 'DiscussionTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
+          { data: 'ProjectDiscussionID', name: 'ProjectDiscussionID', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
+          { data: 'DiscussionTitle', name: 'DiscussionTitle', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
           { data: 'Priority', name: 'Priority', searchable: true, orderable: true, search: { value: '', regex: '' } },
           { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
           { data: 'CreatedDate', name: 'CreatedDate', searchable: true, orderable: true, search: { value: '', regex: '' } },
@@ -27,12 +31,12 @@ export async function fetchDiscussions(project: ApiProject, signal?: AbortSignal
           { data: 'HasUserRightToEdit', name: 'HasUserRightToEdit', searchable: true, orderable: true, search: { value: '', regex: '' } },
           { data: 'HasUserRightToDelete', name: 'HasUserRightToDelete', searchable: true, orderable: true, search: { value: '', regex: '' } },
         ],
-        search: { value: '', regex: '' },
+        search: { value: params.search || '', regex: '' },
         order: [{ column: 0, dir: 'desc' }],
       },
       param: {
         ProjectDiscussionID: 0,
-        DiscussionTitle: '',
+        DiscussionTitle: params.search || '',
         ProjectInfoID: project.ProjectInfoID ?? 0,
         Priority: 0,
         PriorityName: '',
@@ -49,8 +53,14 @@ export async function fetchDiscussions(project: ApiProject, signal?: AbortSignal
   if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
   const json = await res.json();
   const data = Array.isArray(json?.data) ? json.data : [];
-  return data as ProjectDiscussionItem[];
+  return {
+    items: data as ProjectDiscussionItem[],
+    total: json.recordsTotal ?? data.length,
+    filtered: json.recordsFiltered ?? data.length,
+  };
 }
+
+
 
 export async function saveDiscussion(body: Record<string, unknown>): Promise<void> {
   const res = await apiCall(SAVE_DISCUSSION_URL, {

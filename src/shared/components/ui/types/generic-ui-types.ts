@@ -133,3 +133,23 @@ export interface ViewToggleProps {
   onViewModeChange: (mode: ViewMode) => void;
   className?: string;
 }
+
+//App Table
+export interface AppTableProps<T> extends Omit<TableProps<T>, 'columns'> {
+  columns: ColumnsType<T>;
+  loading?: boolean;
+  emptyText?: string;
+  cardClassName?: string;
+  cardStyle?: React.CSSProperties;
+  toolbar?: React.ReactNode;
+  rowHoverClassName?: string;
+}
+
+export interface ServerPaginationProps {
+    total: number;
+    currentPage: number;
+    pageSize: number;
+    onPageChange: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
+    pageSizeOptions?: number[];
+}

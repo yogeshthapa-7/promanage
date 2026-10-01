@@ -47,7 +47,6 @@ export default function OrganizationPage() {
       ...params, 
       search: searchQuery  
     }),
-    initialPageSize: 20,
     extraDeps: [searchQuery],
   });
   const handleSearch = () => {
@@ -108,12 +107,6 @@ export default function OrganizationPage() {
       key: 'parentOrganizationName',
       render: (value: string) => <span className="text-slate-600">{value || ''}</span>,
     },
-    // {
-    //   title: 'Parent ID',
-    //   dataIndex: 'parentOrganizationId',
-    //   key: 'parentOrganizationId',
-    //   render: (value: number | string) => <span className="text-slate-600">{value || ''}</span>,
-    // },
     {
       title: 'Actions',
       key: 'actions',
@@ -239,10 +232,18 @@ export default function OrganizationPage() {
             columns={organizationColumns}
             dataSource={organizations}
             rowKey={(record) => record.id}
+            total={totalFiltered}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1)
+;            }}
           />
         )}
 
-        {!loading && organizations.length > 0 && (
+        {viewMode === 'grid' && !loading && organizations.length > 0 && (
           <Pagination
             total={totalFiltered}
             currentPage={currentPage}
@@ -252,7 +253,7 @@ export default function OrganizationPage() {
               setPageSize(size);
               setCurrentPage(1);
             }}
-            pageSizeOptions={[20, 50, 100]}
+            
           />
         )}
       </div>

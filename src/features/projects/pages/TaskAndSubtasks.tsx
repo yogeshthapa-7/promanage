@@ -26,13 +26,15 @@ import Button from '@/shared/components/ui/Button';
 import Badge from '@/shared/components/ui/Badge';
 import {
   fetchProjectInfo,
-  fetchProjectTasks,
+  fetchTasks,
   deleteTask,
 } from '@/features/tasks/services/task.service';
 import type { TaskItem } from '@/features/projects/types/tasks-types';
 import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
 import SubtaskDrawer from '@/features/projects/pages/subtasks/page';
+import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
+import Pagination from '@/shared/components/ui/Pagination';
 
 const IssuesPanel = lazy(() => import('./issues/IssueTab'));
 const DiscussionsPanel = lazy(() => import('./discussions/DiscussionTab'));
@@ -222,19 +224,34 @@ export default function ProjectTasksPage() {
   const [subtaskDrawerOpen, setSubtaskDrawerOpen] = useState(false);
   const [subtaskDrawerTask, setSubtaskDrawerTask] = useState<TaskItem | null>(null);
 
+  const {
+    data: tasks = [],
+    total: totalFiltered,
+    loading: tasksLoading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<TaskItem>({
+    fetcher: (params: PaginatedListParams) => {
+      if (!id) return { items: [], total: 0 };
+      return fetchTasks({
+        projectId: Number(id),
+        page: Math.floor(params.start / params.length) + 1,
+        pageSize: params.length,
+        search: (params.search as string) || '',
+        signal: params.signal,
+      });
+    },
+    extraDeps: [id],
+  });
+
   const { data: project, isLoading, isError, error } = useQuery({
     queryKey: ['project-detail', id],
     queryFn: ({ signal }) => fetchProjectInfo(id!, signal),
     enabled: Boolean(id),
     staleTime: 5 * 60 * 1000,
-    retry: 1,
-  });
-
-  const { data: tasks = [], isLoading: tasksLoading, refetch } = useQuery({
-    queryKey: ['project-tasks', id],
-    queryFn: ({ signal }) => fetchProjectTasks(id!, signal),
-    enabled: Boolean(id),
-    staleTime: 3 * 60 * 1000,
     retry: 1,
   });
 
@@ -456,25 +473,47 @@ export default function ProjectTasksPage() {
               <Card className="p-8 text-center">
                 <p className="text-muted-foreground">No tasks found</p>
               </Card>
-            ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                {tasks.map((task, i) => (
-                   <TaskGridCard
-                     key={pick(task, TASK_KEYS.idKeys, i)}
-                     task={task}
-                     onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
-                     onEdit={() => openEditTask(task)}
-                     onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys), extractEntity(task, TASK_KEYS).title)}
-                     onViewSubtasks={() => openSubtasksModal(task)}
-                   />
-                ))}
-              </div>
-            ) : (
+           ) : viewMode === 'grid' ? (
+  <>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      {tasks.map((task, i) => (
+        <TaskGridCard
+          key={pick(task, TASK_KEYS.idKeys, i)}
+          task={task}
+          onView={() => { setSelectedTaskId(pick(task, TASK_KEYS.idKeys)); setViewDrawerOpen(true); }}
+          onEdit={() => openEditTask(task)}
+          onDelete={() => handleDeleteTask(pick(task, TASK_KEYS.idKeys), extractEntity(task, TASK_KEYS).title)}
+          onViewSubtasks={() => openSubtasksModal(task)}
+        />
+      ))}
+    </div>
+    {viewMode === 'grid' && !tasksLoading && tasks.length > 0 && (
+      <Pagination
+        total={totalFiltered}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size);
+          setCurrentPage(1);
+        }}
+      />
+    )}
+  </>
+) : (
               <AppTable
                 columns={taskColumns}
                 dataSource={tasks}
                 rowKey={(record) => pick(record, TASK_KEYS.idKeys)}
                 cardClassName="mt-4 overflow-x-auto"
+                total={totalFiltered}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
               />
             )}
           </div>

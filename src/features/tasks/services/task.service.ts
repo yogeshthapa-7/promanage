@@ -497,15 +497,37 @@ export async function fetchProjectInfo(projectId: string | number, signal?: Abor
   return project as ApiProject;
 }
 
-export async function fetchProjectTasks(projectId: string | number, signal?: AbortSignal): Promise<any[]> {
+export async function fetchProjectTasks(
+  projectIdOrOptions: string | number | { projectId: number; page?: number; pageSize?: number; search?: string; signal?: AbortSignal },
+  signal?: AbortSignal
+): Promise<any[]> {
+  if (typeof projectIdOrOptions === 'object' && projectIdOrOptions !== null) {
+    const res = await fetchTasks({
+      projectId: projectIdOrOptions.projectId,
+      page: projectIdOrOptions.page ?? 1,
+      pageSize: projectIdOrOptions.pageSize ?? 50,
+      search: projectIdOrOptions.search ?? '',
+      signal: projectIdOrOptions.signal ?? signal,
+    });
+    return res.items;
+  }
+
+  const pid = Number(projectIdOrOptions);
   return postServerSearch<any>(
     '/TaskInfo/ServerSearch',
     {
       TaskInfoID: 0,
-      ProjectInfoID: Number(projectId),
       TaskTitle: '',
-      TaskName: '',
-      TaskManagerName: '',
+      TaskCode: '',
+      TaskManagerID: 0,
+      InvolvedEmployees: '',
+      Weightage: 0,
+      OrderKey: 0,
+      Priority: 0,
+      WorkStatusID: 0,
+      Description: '',
+      Attachments: '',
+      ProjectInfoID: isNaN(pid) ? 0 : pid,
     },
     signal
   );

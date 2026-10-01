@@ -87,7 +87,6 @@ export default function PolicyPage() {
       search: searchQuery,
       fiscalYear: selectedFiscalYearId,
     }),
-    initialPageSize: 20,
     extraDeps: [searchQuery, selectedFiscalYearId],
     extraParams: {
       fiscalYear: selectedFiscalYearId,
@@ -325,7 +324,20 @@ export default function PolicyPage() {
             <p className="text-base text-slate-400">No policies found</p>
           </div>
         ) : viewMode === 'list' ? (
-          <AppTable columns={columns} dataSource={policies} rowKey="id" cardClassName="mt-4" />
+          <AppTable 
+          columns={columns} 
+          dataSource={policies} 
+          rowKey="id" 
+          cardClassName="mt-4" 
+          total={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {policies.map((policy) => (
@@ -388,7 +400,7 @@ export default function PolicyPage() {
           </div>
         )}
 
-        {!loading && policies.length > 0 && (
+        {viewMode ==='grid' && !loading && policies.length > 0 && (
           <Pagination
             total={totalFiltered}
             currentPage={currentPage}
@@ -398,7 +410,6 @@ export default function PolicyPage() {
               setPageSize(size);
               setCurrentPage(1);
             }}
-            pageSizeOptions={[20, 50, 100]}
           />
         )}
       </div>

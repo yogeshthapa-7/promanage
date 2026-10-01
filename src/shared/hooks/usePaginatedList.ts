@@ -4,7 +4,7 @@ import type { PaginatedListParams, PaginatedListResult, UsePaginatedListOptions,
 
 export function usePaginatedList<T>({
   fetcher,
-  initialPageSize = 20,
+  initialPageSize = 10,
   extraDeps = [],
   extraParams,
 }: UsePaginatedListOptions<T>): UsePaginatedListReturn<T> {

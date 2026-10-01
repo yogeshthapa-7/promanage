@@ -97,7 +97,6 @@ export default function ExpensePage() {
       fiscalYear: fiscalYearId,
       expenseCode: expenseCodeQuery,
     }),
-    initialPageSize: 20,
     extraDeps: [searchQuery, fiscalYearId, expenseCodeQuery],
     extraParams: {
       fiscalYear: fiscalYearId,
@@ -352,7 +351,11 @@ export default function ExpensePage() {
 
         {loading ? (
           viewMode === 'list' ? (
-            <AppTable columns={columns} dataSource={[]} loading rowKey="id" cardClassName="mt-4" />
+            <AppTable 
+            columns={columns} 
+            dataSource={[]} 
+            loading rowKey="id" 
+            cardClassName="mt-4" />
           ) : (
             <CardGridSkeleton count={8} />
           )
@@ -361,7 +364,21 @@ export default function ExpensePage() {
             <p className="text-base text-slate-400">No expenses found</p>
           </div>
         ) : viewMode === 'list' ? (
-          <AppTable columns={columns} dataSource={expenses} rowKey="id" cardClassName="mt-4" />
+          <AppTable 
+          columns={columns} 
+          dataSource={expenses} 
+          rowKey="id" 
+          cardClassName="mt-4"
+          total={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          
+          />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {expenses.map((expense) => (
@@ -428,7 +445,7 @@ export default function ExpensePage() {
           </div>
         )}
 
-        {!loading && expenses.length > 0 && (
+        {viewMode === 'grid' && !loading && expenses.length > 0 && (
           <Pagination
             total={totalFiltered}
             currentPage={currentPage}
@@ -438,7 +455,7 @@ export default function ExpensePage() {
               setPageSize(size);
               setCurrentPage(1);
             }}
-            pageSizeOptions={[20, 50, 100]}
+           
           />
         )}
       </div>

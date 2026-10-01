@@ -48,7 +48,6 @@ export default function ClientPage() {
       ...params, 
       search: searchQuery  
     }),
-    initialPageSize: 20,
     extraDeps: [searchQuery],
   });
 
@@ -263,10 +262,19 @@ export default function ClientPage() {
             columns={clientColumns}
             dataSource={clients}
             rowKey={(record) => record.id}
+            total={totalFiltered}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+           
           />
         )}
 
-        {!loading && clients.length > 0 && (
+        {viewMode === 'grid' &&!loading && clients.length > 0 && (
           <Pagination
             total={totalFiltered}
             currentPage={currentPage}
@@ -276,7 +284,7 @@ export default function ClientPage() {
               setPageSize(size);
               setCurrentPage(1);
             }}
-            pageSizeOptions={[20, 50, 100]}
+          
           />
         )}
       </div>

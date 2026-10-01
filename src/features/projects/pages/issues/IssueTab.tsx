@@ -11,16 +11,45 @@ import IssueSearch from "./Search";
 import AppTable from '@/shared/components/ui/AppTable';
 import { TableSkeleton } from '@/shared/components/ui/Loaders';
 import type { IssueItem,IssueTabProps } from '@/features/projects/types/projects-types';
+import Pagination from '@/shared/components/ui/Pagination';
+import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
 
 export default function IssueTab({ project }: IssueTabProps) {
-  const [issues, setIssues] = useState<IssueItem[]>([]);
-  const [issuesLoading, setIssuesLoading] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  // const [issues, setIssues] = useState<IssueItem[]>([]);
+  // const [issuesLoading, setIssuesLoading] = useState(false);
+  // const [isCreateOpen, setIsCreateOpen] = useState(false);
+  // const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
+  // const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  // const [isSearchOpen, setIsSearchOpen] = useState(false);
+  // const [isSearchActive, setIsSearchActive] = useState(false);
+  // const [allIssues, setAllIssues] = useState<IssueItem[]>([]);
   const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [allIssues, setAllIssues] = useState<IssueItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const{
+    data: issues = [],
+    total: totalFiltered,
+    loading: issuesLoading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<IssueItem>({
+    fetcher: (params: PaginatedListParams) => {
+      if (!project?.ProjectInfoID) return { items: [], total: 0 };
+      return fetchIssues(project, {
+        start: params.start as number,
+        length: params.length as number,
+        search: (params.search as string) || searchQuery,
+      }, params.signal);
+    },
+    extraDeps: [project, searchQuery],
+  });
 
   const handleDeleteIssue = (issue: IssueItem) => {
     Modal.confirm({
@@ -32,7 +61,7 @@ export default function IssueTab({ project }: IssueTabProps) {
         try {
           await deleteIssue(issue.IssuesID);
           message.success('Issue deleted successfully');
-          setIssues((prev) => prev.filter((i) => i.IssuesID !== issue.IssuesID));
+          refetch();
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Failed to delete issue');
         }
@@ -40,36 +69,10 @@ export default function IssueTab({ project }: IssueTabProps) {
     });
   };
 
-  const loadIssues = async (signal?: AbortSignal) => {
-    setIssuesLoading(true);
-    setIssues([]);
-
-    try {
-      const data = await fetchIssues(project, signal);
-      setIssues(data);
-      setAllIssues(data);
-    } catch (err) {
-      if (!(err instanceof Error && err.name === 'AbortError')) {
-        console.error(err);
-      }
-    } finally {
-      setIssuesLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    loadIssues(controller.signal);
-
-    return () => {
-      controller.abort();
-    };
-  }, [project]);
-
   const handleClearIssueSearch = () => {
     setIsSearchOpen(false);
     setIsSearchActive(false);
-    setIssues(allIssues);
+    setSearchQuery('');
   };
 
   const handleAdd = () => {
@@ -169,14 +172,7 @@ export default function IssueTab({ project }: IssueTabProps) {
             const searchTitle = String(values.IssuesTitle || '').toLowerCase();
             const searchRaisedBy = String(values.RaisedBy || '').toLowerCase();
             setIsSearchActive(true);
-            setIssues(() => {
-              if (!searchTitle && !searchRaisedBy) return allIssues;
-              return allIssues.filter((issue) => {
-                const matchesTitle = !searchTitle || issue.IssuesTitle.toLowerCase().includes(searchTitle);
-                const matchesRaisedBy = !searchRaisedBy || issue.RaisedBy.toLowerCase().includes(searchRaisedBy);
-                return matchesTitle && matchesRaisedBy;
-              });
-            });
+            setSearchQuery(searchTitle);
           }}
           onClear={handleClearIssueSearch}
           project={project}
@@ -199,52 +195,74 @@ export default function IssueTab({ project }: IssueTabProps) {
           rowKey={(record) => record.IssuesID}
           cardClassName="mt-4 overflow-x-auto"
           rowHoverClassName="hover:bg-slate-50/60"
+          total={totalFiltered}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {issues.map((issue) => (
-            <Card key={issue.IssuesID} hover className="flex flex-col">
-              <div className="flex-1 min-w-0">
-                <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
-                  {issue.LabelInfoName && (
-                    <Badge
-                      style={{
-                        background: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
-                        color: issue.LabelColor || undefined,
-                        borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
-                      }}
-                    >
-                      {issue.LabelInfoName}
-                    </Badge>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {issues.map((issue) => (
+              <Card key={issue.IssuesID} hover className="flex flex-col">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-base font-bold text-slate-900 truncate">{issue.IssuesTitle}</h4>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-base text-muted-foreground">
+                    {issue.LabelInfoName && (
+                      <Badge
+                        style={{
+                          background: issue.LabelColor ? `${issue.LabelColor}15` : undefined,
+                          color: issue.LabelColor || undefined,
+                          borderColor: issue.LabelColor ? `${issue.LabelColor}40` : undefined,
+                        }}
+                      >
+                        {issue.LabelInfoName}
+                      </Badge>
+                    )}
+                    {issue.WorkStatusName && (
+                      <Badge>{issue.WorkStatusName}</Badge>
+                    )}
+                    <span>•</span>
+                    <span>Raised by: {issue.RaisedBy || ""}</span>
+                    <span>•</span>
+                    <span>{convertAdToBs(issue.CreatedDate)}</span>
+                  </div>
+                  {issue.Comments && (
+                    <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>
                   )}
-                  {issue.WorkStatusName && (
-                    <Badge>{issue.WorkStatusName}</Badge>
-                  )}
-                  <span>•</span>
-                  <span>Raised by: {issue.RaisedBy || ""}</span>
-                  <span>•</span>
-                   <span>{convertAdToBs(issue.CreatedDate)}</span>
                 </div>
-                {issue.Comments && (
-                  <p className="mt-2 text-base text-slate-500 line-clamp-2">{issue.Comments}</p>
-                )}
-              </div>
-              <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-slate-100">
-                {issue.HasUserRightToEdit && <Button size="small" onClick={() => handleEdit(issue)}>Edit</Button>}
-                {issue.HasUserRightToDelete && (
-                  <Button size="small" danger onClick={() => handleDeleteIssue(issue)}>Delete</Button>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
+                <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-slate-100">
+                  {issue.HasUserRightToEdit && <Button size="small" onClick={() => handleEdit(issue)}>Edit</Button>}
+                  {issue.HasUserRightToDelete && (
+                    <Button size="small" danger onClick={() => handleDeleteIssue(issue)}>Delete</Button>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+          {viewMode === 'grid' && !issuesLoading && issues.length > 0 && (
+            <Pagination
+              total={totalFiltered}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+        </>
       )}
 
       <IssueCreate
         open={isCreateOpen}
         onClose={() => { setIsCreateOpen(false); setEditingIssue(null); }}
-        onSuccess={() => { setIsCreateOpen(false); setEditingIssue(null); loadIssues(); }}
+        onSuccess={() => { setIsCreateOpen(false); setEditingIssue(null); refetch(); }}
         project={project}
         editingIssue={editingIssue}
       />
