@@ -39,7 +39,7 @@ export default function EmployeePage() {
   const queryClient = useQueryClient();
 
   const {
-    data: employees,
+    data: employees = [],
     total: totalFiltered,
     loading,
     currentPage,
@@ -48,50 +48,20 @@ export default function EmployeePage() {
     setPageSize,
     refetch,
   } = usePaginatedList<Employee>({
-    fetcher: async (params: PaginatedListParams) => {
-      const isLocalFilterActive = debouncedFullname !== '' || debouncedAddress !== '' || debouncedPhone !== '';
-      const fetchStart = isLocalFilterActive ? 0 : (params.start as number);
-      const fetchLength = isLocalFilterActive ? 10000 : (params.length as number);
-      
-      const result = await fetchEmployees({
+    fetcher: async (params: PaginatedListParams) => 
+      fetchEmployees({
         search: debouncedSearch,
-        start: fetchStart,
-        length: fetchLength,
-        fullname: '', // Disable server-side filtering for these as backend doesn't support it
-        address: '',
-        phone: '',
+        start: params.start as number,
+        length: params. length as number,
+        fullname: debouncedFullname,
+        address: debouncedAddress,
+        phone: debouncedPhone,
         signal: params.signal,
-      });
-
-      let items = result.employees;
-      let total = result.filtered;
-
-      if (isLocalFilterActive) {
-        items = items.filter((emp) => {
-          const matchFullname =
-            debouncedFullname === '' ||
-            (emp.Fullname || '').toLowerCase().includes(debouncedFullname.trim().toLowerCase());
-          const matchAddress =
-            debouncedAddress === '' ||
-            (emp.Address || '').toLowerCase().includes(debouncedAddress.trim().toLowerCase());
-          const matchPhone =
-            debouncedPhone === '' ||
-            (emp.Phone || '').toLowerCase().includes(debouncedPhone.trim().toLowerCase());
-          return matchFullname && matchAddress && matchPhone;
-        });
-        total = items.length;
-        
-        const pageStart = params.start as number;
-        const pageLength = params.length as number;
-        items = items.slice(pageStart, pageStart + pageLength);
-      }
-
-      return {
-        items,
-        total,
-      };
-    },
-    extraDeps: [debouncedSearch, debouncedFullname, debouncedAddress, debouncedPhone],
+      }).then((result) => ({
+        items: result.employees,
+        total: result.filtered,
+      })),
+      extraDeps: [debouncedSearch, debouncedFullname, debouncedAddress, debouncedPhone],
   });
 
   const handleEditEmployee = (employee: Employee) => {

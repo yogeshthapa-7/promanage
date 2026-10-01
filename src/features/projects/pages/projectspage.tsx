@@ -53,7 +53,7 @@ const PRIORITY_MAP: Record<string, number> = {
   low: 4,
 };
 
-async function fetchProjectsPage(
+  async function fetchProjectsPage(
   params: PaginatedListParams
 ): Promise<{ items: Project[]; total: number }> {
   const { length, signal, search, status, sort, sortDirection } = params;
@@ -62,12 +62,10 @@ async function fetchProjectsPage(
   const sortField = (sort as SortField) || 'name';
   const sortDirectionParam = (sortDirection as 'asc' | 'desc') || 'asc';
 
-  const needsAllData = filterStatus !== 'All' || sortField !== 'name' || sortDirectionParam !== 'asc';
-
   const res = await fetchProjects({
     search: searchQuery,
-    start: 0,
-    length: needsAllData ? 1000 : Math.max(1, length as number),
+    start: params.start as number,
+    length: Math.max(1, length as number),
     signal,
   });
 
@@ -121,6 +119,7 @@ export default function ProjectsPage() {
 
   const {
     data: projects,
+    total: totalFiltered,
     loading,
     currentPage,
     pageSize,
@@ -137,43 +136,6 @@ export default function ProjectsPage() {
       sortDirection: sortDirection,
     },
   });
-
-  const displayProjects = useMemo(() => {
-    let result = [...projects];
-
-    if (filterStatus !== 'All') {
-      result = result.filter(p => p.status === filterStatus);
-    }
-
-    result.sort((a, b) => {
-      let cmp = 0;
-      switch (sortField) {
-        case 'name':
-          cmp = (a.title || a.name).localeCompare(b.title || b.name);
-          break;
-        case 'status':
-          cmp = a.status.localeCompare(b.status);
-          break;
-        case 'priority':
-          cmp = (PRIORITY_MAP[a.priority] ?? 99) - (PRIORITY_MAP[b.priority] ?? 99);
-          break;
-        case 'progress':
-          cmp = a.progress - b.progress;
-          break;
-        case 'dueDate':
-          cmp = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-          break;
-      }
-      return sortDirection === 'asc' ? cmp : -cmp;
-    });
-
-    return result;
-  }, [projects, filterStatus, sortField, sortDirection]);
-
-  const paginatedProjects = displayProjects.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
 
   useEffect(() => {
     let cancelled = false;
@@ -650,13 +612,13 @@ export default function ProjectsPage() {
               <div className="flex items-center gap-3">
                 <h2 className="text-lg font-bold text-foreground">Projects</h2>
                 <span className="text-base text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                  {displayProjects.length} total
+                  {totalFiltered} total
                 </span>
               </div>
 
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {paginatedProjects.map((project) => {
+                  {projects.map((project) => {
                   const Icon = project.icon;
                   const projectTitle = project.title || project.name || 'Untitled Project';
                   return (
@@ -717,11 +679,11 @@ export default function ProjectsPage() {
               ) : (
                 <AppTable
                   columns={projectColumns}
-                  dataSource={paginatedProjects}
+                  dataSource={projects}
                   rowKey={(record) => record.id}
                   cardClassName="mt-4 overflow-x-auto"
                   rowHoverClassName="hover:bg-slate-50/60"
-                  total={displayProjects.length}
+                  total={totalFiltered}
                   currentPage={currentPage}
                   pageSize={pageSize}
                   onPageChange={setCurrentPage}
@@ -734,7 +696,7 @@ export default function ProjectsPage() {
 
             {viewMode === 'grid' && !loading && projects.length > 0 && (
               <Pagination
-                total={displayProjects.length}
+                total={totalFiltered}
                 currentPage={currentPage}
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}

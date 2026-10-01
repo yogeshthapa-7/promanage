@@ -13,8 +13,8 @@ import type { ApiProject, SubtaskDrawerProps } from '@/features/projects/types/p
 import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-types';
 import { fetchSubTasks, deleteSubTask, statusColor, priorityColor } from '@/features/tasks/services/task.service';
 import SubTaskCreate from './Create';
-
-const PAGE_SIZE = 20;
+import Pagination from '@/shared/components/ui/Pagination';
+import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
 
 function SubTaskGridView({ subtasks, onEdit, onDelete }: { subtasks: SubTaskItem[]; onEdit: (id: number) => void; onDelete: (id: number) => void }) {
   return (
@@ -84,28 +84,42 @@ function SubTaskGridView({ subtasks, onEdit, onDelete }: { subtasks: SubTaskItem
 export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskDrawerProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingSubtask, setEditingSubtask] = useState<SubTaskItem | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [searchQuery, setSearchQuery] = useState('');
+  
 
   const projectId = project?.ProjectInfoID ?? null;
   const taskId = task?.TaskInfoID ?? null;
 
-  const { data: subtasks = [], isLoading, refetch } = useQuery({
-    queryKey: ['project-subtasks', projectId, taskId],
-    queryFn: ({ signal }) =>
-      fetchSubTasks({
-        projectId: projectId!,
-        taskInfoId: taskId!,
-        page: 1,
-        pageSize: PAGE_SIZE,
-        signal,
-      }).then((result) => result.items),
-    enabled: open && Boolean(projectId) && Boolean(taskId),
-    staleTime: 60 * 1000,
-    retry: 1,
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const {
+    data: subtasks = [],
+    total: totalFiltered,
+    loading: subtasksLoading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch,
+  } = usePaginatedList<SubTaskItem>({
+    fetcher: (params: PaginatedListParams) => {
+      if (!projectId || !taskId) return { items: [], total: 0 };
+      return fetchSubTasks({
+        projectId,
+        taskInfoId: taskId,
+        page: Math.floor(params.start / params.length) + 1,
+        pageSize: params.length,
+        search: (params.search as string) || searchQuery,
+        signal: params.signal,
+      }).then((result) => ({
+        items: result.items,
+        total: result.total,
+      }));
+    },
+    extraDeps: [projectId, taskId, searchQuery],
   });
 
-  const filteredSubTasks = useMemo(() => {
+  const displayedSubTasks = useMemo(() => {
     if (!searchQuery.trim()) return subtasks;
     const query = searchQuery.toLowerCase();
     return subtasks.filter((subtask) => {
@@ -237,7 +251,7 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
       <div className="space-y-6">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-slate-600">{filteredSubTasks.length} subtask{filteredSubTasks.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm font-medium text-slate-600">{displayedSubTasks.length} subtask{displayedSubTasks.length !== 1 ? 's' : ''}</p>
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-white/70 border border-border rounded-xl p-0.5 shadow-xs">
                 <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
@@ -307,32 +321,55 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
           />
         )}
 
-        {isLoading ? (
+               {subtasksLoading ? (
           <Card className="p-6 text-center">
             <p className="text-sm text-slate-400">Loading subtasks...</p>
           </Card>
-        ) : filteredSubTasks.length === 0 ? (
+        ) : displayedSubTasks.length === 0 ? (
           <Card className="p-6 text-center">
             <p className="text-sm text-slate-400">No subtasks found</p>
           </Card>
-        ) : viewMode === 'grid' ? (
-          <SubTaskGridView
-            subtasks={filteredSubTasks}
-            onEdit={(id) => {
-              const found = filteredSubTasks.find((s) => s.SubTaskInfoID === id);
-              if (found) handleOpenEdit(found);
-            }}
-            onDelete={(id) => {
-              const found = filteredSubTasks.find((s) => s.SubTaskInfoID === id);
-              if (found) handleDelete(found);
+        ) : viewMode === 'list' ? (
+          <AppTable
+            columns={subtaskColumns}
+            dataSource={displayedSubTasks}
+            rowKey={(record) => record.SubTaskInfoID}
+            cardClassName="mt-4"
+            total={totalFiltered}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
             }}
           />
         ) : (
-          <AppTable
-            columns={subtaskColumns}
-            dataSource={filteredSubTasks}
-            rowKey={(record) => record.SubTaskInfoID}
-          />
+          <>
+            <SubTaskGridView
+              subtasks={displayedSubTasks}
+              onEdit={(id) => {
+                const found = displayedSubTasks.find((s) => s.SubTaskInfoID === id);
+                if (found) handleOpenEdit(found);
+              }}
+              onDelete={(id) => {
+                const found = displayedSubTasks.find((s) => s.SubTaskInfoID === id);
+                if (found) handleDelete(found);
+              }}
+            />
+            {viewMode === 'grid' && !subtasksLoading && subtasks.length > 0 && (
+              <Pagination
+                total={totalFiltered}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+              />
+            )}
+          </>
         )}
       </div>
     </Drawer>
