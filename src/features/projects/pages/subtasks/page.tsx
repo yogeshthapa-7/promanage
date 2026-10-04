@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Modal, message } from 'antd';
 import { Plus, Pencil, Trash2, LayoutGrid, List, Search } from 'lucide-react';
 import Drawer from '@/shared/components/drawer';
@@ -91,6 +92,8 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const queryClient = useQueryClient();
+
   const {
     data: subtasks = [],
     total: totalFiltered,
@@ -117,6 +120,11 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
     },
     extraDeps: [projectId, taskId, searchQuery],
   });
+
+  const invalidateAndRefetch = () => {
+    queryClient.invalidateQueries({ queryKey: ['subtasks', 'search'] });
+    refetch();
+  };
 
   const displayedSubTasks = useMemo(() => {
     if (!searchQuery.trim()) return subtasks;
@@ -149,7 +157,7 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
   };
 
   const handleSuccess = () => {
-    refetch();
+    invalidateAndRefetch();
     setCreateOpen(false);
     setEditingSubtask(null);
   };
@@ -166,7 +174,7 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
           const result = await deleteSubTask(subtask.SubTaskInfoID);
           if (!result.success) throw new Error(result.message || 'Failed');
           message.success('Subtask deleted successfully');
-          refetch();
+          invalidateAndRefetch();
         } catch {
           message.error('Failed to delete subtask');
         }

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { Button, message, Select, Modal } from "antd";
 import type { ApiProject } from "@/features/projects/types/projects-data";
@@ -74,6 +75,8 @@ export default function TasksPage() {
 
   const fetcher = useCallback((params: PaginatedListParams) => fetchTasksPage({ ...params, projectId: activeProjectFilter, managerName: debouncedManagerName }), [activeProjectFilter, debouncedManagerName]);
 
+  const queryClient = useQueryClient();
+
   const {
     data: tasks,
     loading,
@@ -86,6 +89,11 @@ export default function TasksPage() {
     fetcher,
     extraDeps: [debouncedManagerName, activeProjectFilter],
   });
+
+  const invalidateAndRefetch = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['tasks', 'search'] });
+    refetch();
+  }, [queryClient, refetch]);
 
   const handleTaskSelect = (value: string | undefined) => {
     setSelectedTaskId(value);
@@ -126,7 +134,7 @@ export default function TasksPage() {
          const result = await deleteTask(task.TaskInfoID);
          if (!result.success) throw new Error(result.message || 'Failed to delete task');
           message.success("Task deleted successfully");
-          refetch();
+          invalidateAndRefetch();
         } catch (err) {
           message.error(err instanceof Error ? err.message : "Failed to delete task");
         }
@@ -301,22 +309,6 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
-          <span>Show</span>
-          <Select
-            value={pageSize}
-            onChange={(value) => {
-              setPageSize(Number(value));
-              setCurrentPage(1);
-            }}
-            className="w-20"
-            options={PAGE_SIZE_OPTIONS.map((size) => ({ value: size, label: `${size}` }))}
-          />
-          <span>entries</span>
-        </div>
-      </div> */}
-
       <div className="text-base text-slate-500 font-medium mt-2">
         Showing {start} to {end} of {totalFiltered} entries
       </div>
@@ -427,7 +419,7 @@ export default function TasksPage() {
       <CreateTaskDrawer
         open={showFormModal}
         onClose={() => { setShowFormModal(false); setEditingTask(null); }}
-        onSuccess={refetch}
+        onSuccess={invalidateAndRefetch}
         editingTask={editingTask}
         project={project}
       />
