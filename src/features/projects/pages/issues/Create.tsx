@@ -154,7 +154,7 @@ export default function IssueCreate({
         ProjectInfoID: projectId,
         LabelInfoID: Number(values.LabelInfoID),
         Attachments: documentUrl || '',
-        ProjectInfoName: project.ProjectName || '',
+        ProjectInfoName: project?.ProjectName || '',
         WorkStatusName: statusOption?.label || '',
         LabelInfoName: labelOption?.label || '',
         LabelColor: '',

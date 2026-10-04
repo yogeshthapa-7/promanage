@@ -144,7 +144,7 @@ export interface DiscussionCreateProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  project: {
+  project?: {
     ProjectInfoID: number;
     ProjectName?: string;
   };
@@ -166,7 +166,7 @@ export interface DiscussionSearchProps {
   onClose: () => void;
   onSearch: (values: Record<string, unknown>) => void;
   onClear?: () => void;
-  project: {
+  project?: {
     ProjectInfoID: number;
     ProjectName?: string;
   };
@@ -178,7 +178,7 @@ export interface IssueCreateProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  project: {
+  project?: {
     ProjectInfoID: number;
     ProjectName?: string;
   };
@@ -224,7 +224,7 @@ export interface IssueSearchProps {
   onClose: () => void;
   onSearch: (values: Record<string, unknown>) => void;
   onClear?: () => void;
-  project: {
+  project?: {
     ProjectInfoID: number;
     ProjectName?: string;
   };
@@ -261,7 +261,7 @@ export interface MilestoneCreateProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  project: {
+  project?: {
     ProjectInfoID: number;
     ProjectName?: string;
   };
@@ -286,7 +286,7 @@ export interface MilestoneSearchProps {
   open: boolean;
   onClose: () => void;
   onSearch: (values: Record<string, unknown>) => void;
-  project: {
+  project?: {
     ProjectInfoID: number;
     ProjectName?: string;
   };
@@ -298,7 +298,7 @@ export interface SubTaskCreateProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  project: {
+  project?: {
     ProjectInfoID: number;
     ProjectName?: string;
   };
