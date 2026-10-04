@@ -97,7 +97,8 @@ export default function DepartmentPage() {
     refetch,
   } = usePaginatedList<Department>({
     fetcher: fetchDepartmentsPage,
-    extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab, mainBranchOptionsForBranch],
+    // extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab, mainBranchOptionsForBranch],
+    extraDeps: [filterDeptId, debouncedDeptCode, debouncedMainDept, isDepartmentTab],
     extraParams: {
       departmentId: filterDeptId,
       code: debouncedDeptCode,
@@ -161,9 +162,9 @@ export default function DepartmentPage() {
       okText: 'Delete',
       okType: 'danger',
       onOk: async () => {
-         try {
-           await deleteDepartment (dept.id);
-           message.success('Department deleted successfully');
+          try {
+            await deleteDepartment(Number(dept.id));
+            message.success('Department deleted successfully');
            queryClient.invalidateQueries({
             queryKey:['departments', 'search']});
             refreshDepartments();
@@ -208,7 +209,7 @@ export default function DepartmentPage() {
       // if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
       const result = await saveDepartment(body);
-      if(!result.success) throw new error (result.message || 'Failed to save Department');
+      if(!result.success) throw new Error(result.message || 'Failed to save Department');
 
       message.success('Department updated successfully');
       queryClient.invalidateQueries({ queryKey: ['departments', 'search'] });
@@ -424,23 +425,6 @@ export default function DepartmentPage() {
 
       {/* 3. Table Controls Bar (Entries + Export utilities) */}
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
-           <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
-             <span>Show</span>
-             <Select
-               value={pageSize}
-               onChange={(value) => {
-                 setPageSize(Number(value));
-                 setCurrentPage(1);
-               }}
-               className="w-20"
-               options={[
-                 { value: 10, label: '10' },
-                 { value: 20, label: '20' },
-                 { value: 50, label: '50' },
-               ]}
-             />
-             <span>entries</span>
-           </div>
 
            <div className="flex items-center gap-2">
               <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />} onClick={handleCsvExport}>CSV</Button>
@@ -448,10 +432,6 @@ export default function DepartmentPage() {
               <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
            </div>
          </div>
-
-      <div className="text-base text-slate-500 font-medium mt-3 no-print">
-        Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
-      </div>
 
       {/* 4. ONLY Table is in a White Container Card */}
        <AppTable

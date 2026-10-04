@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Popover, Input } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import NepaliFunctions from '@sajanm/nepali-functions';
-import type { AntdNepaliDatePicker } from '@/shared/components/types/generic-components-types';
+import type { AntdNepaliDatePickerProps } from '@/shared/components/types/generic-components-types';
 
 const NEPALI_CALENDAR_STYLE_ID = 'nepali-calendar-dark-override';
 
@@ -121,14 +121,20 @@ export default function AntdNepaliDatePicker({
             const m = parseInt(parts[1], 10);
             const d = parseInt(parts[2], 10);
             if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-              const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as {
-                year: number;
-                month: number;
-                day: number;
-              };
-              setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
-              setViewYear(bs.year);
-              setViewMonth(bs.month);
+              if (y >= 2000) {
+                setSelectedBs({ year: y, month: m, date: d });
+                setViewYear(y);
+                setViewMonth(m);
+              } else {
+                const bs = NepaliFunctions.AD2BS({ year: y, month: m, day: d }) as {
+                  year: number;
+                  month: number;
+                  day: number;
+                };
+                setSelectedBs({ year: bs.year, month: bs.month, date: bs.day });
+                setViewYear(bs.year);
+                setViewMonth(bs.month);
+              }
             }
           }
         }

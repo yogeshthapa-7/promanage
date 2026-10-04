@@ -13,6 +13,8 @@ export interface EntitySummaryCardProps {
   loading?: boolean;
 }
 
+import type { Project, ProjectStatus } from '@/features/projects/types/projects-types';
+
 export interface ProjectOverviewSectionProps {
   projects: Project[];
   loading?: boolean;

@@ -52,8 +52,8 @@ function fetchBranchesPage(params: PaginatedListParams): Promise<{ items: Branch
     items: result.branches,
     total: result.filtered,
   })).catch(() => ({
-    // items: mockBranches,
-    // total: mockBranches.length,
+    items: [] as Branch[],
+    total: 0,
   }));
 }
 
@@ -118,7 +118,6 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
   const {
     data: branches,
     total: totalFiltered,
-    loading,
     currentPage,
     pageSize,
     setCurrentPage,
@@ -164,7 +163,7 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
       okType: 'danger',
       onOk: async () => {
         try {
-    await deleteBranch(branch.id);
+    await deleteBranch(Number(branch.id));
     message.success('Deleted successfully');
     queryClient.invalidateQueries({ queryKey: ['branches', 'search'] });
     refetch();
@@ -369,23 +368,6 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
       </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
-          <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
-            <span>Show</span>
-            <Select
-              value={pageSize}
-              onChange={(value) => {
-                setPageSize(Number(value));
-                setCurrentPage(1);
-              }}
-              className="w-20"
-              options={[
-                { value: 10, label: '10' },
-                { value: 20, label: '20' },
-                { value: 50, label: '50' },
-              ]}
-            />
-            <span>entries</span>
-          </div>
 
           <div className="flex items-center gap-2">
             <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />} onClick={handleCsvExport}>CSV</Button>
@@ -393,10 +375,6 @@ export default function BranchPage( { disabledMainBranch, defaultMainBranchId, d
             <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>
-
-      <div className="text-base text-slate-500 font-medium mt-3 no-print">
-        Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
-      </div>
 
        <AppTable
          columns={columns}

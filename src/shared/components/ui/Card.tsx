@@ -1,4 +1,4 @@
-import type { ReactNode, HTMLAttributes } from 'react';
+
 import { Card as AntCard } from 'antd';
 import type { CardProps } from '@/shared/components/ui/types/generic-ui-types';
 

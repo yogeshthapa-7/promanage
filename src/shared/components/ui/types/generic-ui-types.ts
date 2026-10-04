@@ -1,3 +1,12 @@
+import type { ReactNode, HTMLAttributes } from 'react';
+import type { TableProps, ColumnsType } from 'antd/es/table';
+
+//AppIcon ui
+export type IconVariant = 'outline' | 'solid';
+export type IconType = 'default' | 'primary' | 'success' | 'warning' | 'danger';
+export type StatIconType = 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
+export type ViewMode = 'grid' | 'list';
+
 //AppIcon ui
 export interface IconProps {
     name: string;
@@ -121,7 +130,7 @@ export interface StatCardProps {
   trendUp: boolean;
   iconBg?: string;
   iconColor?: string;
-  iconType?: IconType;
+  iconType?: StatIconType;
   icon?: React.ReactNode;
   sparklineData?: number[];
   sparklineColor?: string;

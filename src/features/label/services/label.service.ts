@@ -4,21 +4,6 @@ import type { Label, ApiLabelResponse, ApiLabelRow, FetchLabelsParams, FetchLabe
 
 export const API_URL = `${API_BASE}/LabelInfo/ServerSearch`;
 
-function buildSearchBody(params: FetchLabelsParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: params.search, regex: '' }, 
-    },
-    param: {
-      LabelInfoID: 0,
-      LabelInfoName: params.search,
-    },
-  };
-}
-
 export async function fetchLabels(
   params: FetchLabelsParams
 ): Promise<FetchLabelsResult> {
@@ -39,7 +24,15 @@ async function doFetchLabels(
 ): Promise<FetchLabelsResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { LabelInfoID: 0 },
+    }),
     signal,
   });
 

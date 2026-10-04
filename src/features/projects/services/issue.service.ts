@@ -1,4 +1,4 @@
-import { apiCall, API_BASE } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { ApiProject, IssueItem } from '@/features/projects/types/projects-types';
 
 
@@ -14,48 +14,28 @@ export async function fetchIssues(
   params: { start: number; length: number; search?: string },
   signal?: AbortSignal
 ): Promise<{ items: IssueItem[]; total: number; filtered: number }> {
+  return await cachedQuery(
+    ['issues', 'search', project.ProjectInfoID, params.search, params.start, params.length],
+    (signal) => doFetchIssues(project, params, signal),
+    signal
+  );
+}
+
+async function doFetchIssues(
+  _project: ApiProject,
+  params: { start: number; length: number; search?: string },
+  signal?: AbortSignal
+): Promise<{ items: IssueItem[]; total: number; filtered: number }> {
   const res = await apiCall(ISSUES_API, {
     method: 'POST',
     body: JSON.stringify({
       model: {
         draw: 1,
-        start: params.start,
-        length: params.length,
-        columns: [
-          { data: 'IssuesID', name: 'IssuesID', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
-          { data: 'IssuesTitle', name: 'IssuesTitle', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
-          { data: 'Comments', name: 'Comments', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'RaisedBy', name: 'RaisedBy', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'CreatedDate', name: 'CreatedDate', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'WorkStatusName', name: 'WorkStatusName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'LabelInfoName', name: 'LabelInfoName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'LabelColor', name: 'LabelColor', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'Priority', name: 'Priority', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'WorkStatusColor', name: 'WorkStatusColor', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: params.search || '', regex: '' },
-        order: [{ column: 0, dir: 'desc' }],
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
       },
-      param: {
-        IssuesID: 0,
-        IssuesTitle: params.search || '',
-        LabelInfoID: 0,
-        Comments: '',
-        Attachments: '',
-        ProjectInfoID: project.ProjectInfoID ?? Number(project.ProjectInfoID),
-        WorkStatusID: 0,
-        ProjectInfoName: '',
-        WorkStatusName: '',
-        LabelInfoName: '',
-        LabelColor: '',
-        CreatedDate: '',
-        RaisedBy: '',
-        WorkStatusColor: '',
-        CanChangeStatus: true,
-        CanEdit: true,
-        CanDelete: true,
-      },
+      param: { IssuesID: 0, ProjectInfoID: _project.ProjectInfoID },
     }),
     signal,
   });

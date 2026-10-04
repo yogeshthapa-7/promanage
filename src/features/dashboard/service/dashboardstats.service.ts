@@ -1,112 +1,143 @@
-import { apiCall, API_BASE } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
+
 
 
 
 export async function fetchProjectCount(): Promise<number> {
-  const res = await apiCall(`${API_BASE}/ProjectInfo/ServerSearch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: {
-        draw: 1,
-        start: 0,
-        length: 1,
-        columns: [
-          { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: '', regex: '' },
-        order: [{ column: 0, dir: 'desc' }],
-      },
-      param: { ProjectInfoID: 0 },
-    }),
-  }, 60000);
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-  const json = await res.json();
-  return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+  return await cachedQuery(
+    ['projectCount'],
+    async (signal) => {
+      const res = await apiCall(`${API_BASE}/ProjectInfo/ServerSearch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: {
+            draw: 1,
+            start: 0,
+            length: 1,
+            search: { value: '', regex: '' },
+          },
+          param: { ProjectInfoID: 0 },
+        }),
+        signal,
+      }, 60000);
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const json = await res.json();
+      return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+    },
+    undefined
+  );
 }
 
 export async function fetchTaskCount(): Promise<number> {
-  const res = await apiCall(`${API_BASE}/TaskInfo/ServerSearch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: {
-        draw: 1,
-        start: 0,
-        length: 1,
-        search: { value: '', regex: '' },
-      },
-      param: {
-        TaskInfoID: 0,
-        ProjectInfoID: 0,
-      },
-    }),
-  }, 60000);
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-  const json = await res.json();
-  return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+  return await cachedQuery(
+    ['taskCount'],
+    async (signal) => {
+      const res = await apiCall(`${API_BASE}/TaskInfo/ServerSearch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: {
+            draw: 1,
+            start: 0,
+            length: 1,
+            search: { value: '', regex: '' },
+          },
+          param: { TaskInfoID: 0 },
+        }),
+        signal,
+      }, 60000);
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const json = await res.json();
+      return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+    },
+    undefined
+  );
 }
 
 export async function fetchOrganizationCount(): Promise<number> {
-  const res = await apiCall(`${API_BASE}/Organization/ServerSearch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: { draw: 1, start: 0, length: 1, search: { value: '', regex: '' } },
-      param: { OrganizationID: 0, Title: '', ParentOrganizationID: 0 },
-    }),
-  }, 60000);
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-  const json = await res.json();
-  return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+  return await cachedQuery(
+    ['organizationCount'],
+    async (signal) => {
+      const res = await apiCall(`${API_BASE}/Organization/ServerSearch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: { draw: 1, start: 0, length: 1, search: { value: '', regex: '' } },
+          param: { OrganizationID: 0 },
+        }),
+        signal,
+      }, 60000);
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const json = await res.json();
+      return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+    },
+    undefined
+  );
 }
 
 export async function fetchDepartmentCount(): Promise<number> {
-  const res = await apiCall(`${API_BASE}/Department/ServerSearch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: { draw: 1, start: 0, length: 1, search: { value: '', regex: '' } },
-      param: { search: '', DepartmentName: '', DepartmentCode: '', DepartmentID: 0, MainDepartmentID: 0 },
-    }),
-  }, 60000);
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-  const json = await res.json();
-  return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+  return await cachedQuery(
+    ['departmentCount'],
+    async (signal) => {
+      const res = await apiCall(`${API_BASE}/Department/ServerSearch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: { draw: 1, start: 0, length: 1, search: { value: '', regex: '' } },
+          param: { DepartmentID: 0 },
+        }),
+        signal,
+      }, 60000);
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const json = await res.json();
+      return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+    },
+    undefined
+  );
 }
 
 export async function fetchUsersCount(): Promise<number> {
-    const res = await apiCall(`${API_BASE}/Users/ServerSearch`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify ({
-            model: { draw: 1, start: 0, length: 1, search: {value: '', regex: ''}},
-            param: { search: '', UserID: 0,UserName: '', FullName: '', Password: '', Theme: '', UserGroupID: 0, UserGroupName: ''}
-        }),
-    }, 60000);
-    if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-    const json = await res.json();
-    return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+  return await cachedQuery(
+    ['usersCount'],
+    async (signal) => {
+      const res = await apiCall(`${API_BASE}/Users/ServerSearch`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify ({
+              model: { draw: 1, start: 0, length: 1, search: {value: '', regex: ''}},
+              param: { UserId: 0 }
+          }),
+          signal,
+      }, 60000);
+      if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+      const json = await res.json();
+      return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+    },
+    undefined
+  );
 }
 
 export async function fetchEmployeeCount(): Promise<number> {
-    const res = await apiCall(`${API_BASE}/EmployeeInfo/ServerSearch`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify ({
-            model: {draw: 1, start: 0, length: 1, search: {value: '', regex: ''}},
-            param: { search: '', Address: '', DOB: '', DepartmentID: 0, DepartmentName: '', Email: '', EmployeeInfoID: 0,
-                Fullname: '', Password: '', Username: '', Gender: 0, Phone: ''
-            }
-        }),
-    }, 60000);
-    if(!res.ok) throw new Error (`Failed: ${res.statusText}`);
-    const json = await res.json();
-    return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+  return await cachedQuery(
+    ['employeeCount'],
+    async (signal) => {
+      const res = await apiCall(`${API_BASE}/EmployeeInfo/ServerSearch`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify ({
+              model: {draw: 1, start: 0, length: 1, search: {value: '', regex: ''}},
+              param: { EmployeeInfoID: 0 }
+          }),
+          signal,
+      }, 60000);
+      if(!res.ok) throw new Error (`Failed: ${res.statusText}`);
+      const json = await res.json();
+      return json?.recordsFiltered ?? json?.recordsTotal ?? 0;
+    },
+    undefined
+  );
 }
-
 
 
 

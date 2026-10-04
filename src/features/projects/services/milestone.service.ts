@@ -1,5 +1,7 @@
-import { apiCall, API_BASE } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { ApiProject, MilestoneItem } from '@/features/projects/types/projects-types';
+
+export type { MilestoneItem } from '@/features/projects/types/projects-types';
 
 export const MILESTONES_API = `${API_BASE}/ProjectMilestone/ServerSearch`;
 export const SAVE_MILESTONE_URL = `${API_BASE}/SaveProjectMilestone`;
@@ -12,35 +14,28 @@ export async function fetchMilestones(
   params: { start: number; length: number; search?: string },
   signal?: AbortSignal
 ): Promise<{ items: MilestoneItem[]; total: number; filtered: number }> {
+  return await cachedQuery(
+    ['milestones', 'search', project.ProjectInfoID, params.search, params.start, params.length],
+    (signal) => doFetchMilestones(project, params, signal),
+    signal
+  );
+}
+
+async function doFetchMilestones(
+  _project: ApiProject,
+  params: { start: number; length: number; search?: string },
+  signal?: AbortSignal
+): Promise<{ items: MilestoneItem[]; total: number; filtered: number }> {
   const res = await apiCall(MILESTONES_API, {
     method: 'POST',
     body: JSON.stringify({
       model: {
         draw: 1,
-        start: params.start,
-        length: params.length,
-        columns: [
-          { data: 'ProjectMilestoneID', name: 'ProjectMilestoneID', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
-          { data: 'MilestoneTitle', name: 'MilestoneTitle', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
-          { data: 'StartDate', name: 'StartDate', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'EndDate', name: 'EndDate', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'Progress', name: 'Progress', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'MilestoneCost', name: 'MilestoneCost', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: params.search || '', regex: '' },
-        order: [{ column: 0, dir: 'desc' }],
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
       },
-      param: {
-        ProjectMilestoneID: 0,
-        ProjectInfoID: project.ProjectInfoID ?? Number(project.ProjectInfoID),
-        MilestoneTitle: params.search || '',
-        WorkStatusID: 0,
-        MilestoneCost: 0,
-        StartDate: '',
-        EndDate: '',
-        Summary: '',
-        Progress: 0,
-      },
+      param: { ProjectMilestoneID: 0, ProjectInfoID: _project.ProjectInfoID },
     }),
     signal,
   });

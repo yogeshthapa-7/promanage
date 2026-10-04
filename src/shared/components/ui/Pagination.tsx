@@ -9,7 +9,7 @@ export default function Pagination({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = [12, 24, 36, 48],
 }: PaginationProps) {
   const [pageSizeVal, setPageSizeVal] = useState(pageSize);
 

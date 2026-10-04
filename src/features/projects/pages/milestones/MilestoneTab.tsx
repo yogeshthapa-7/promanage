@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Modal, message, Button } from "antd";
-import type { ApiProject, MilestoneTabProps } from "@/features/projects/types/projects-types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { MilestoneTabProps } from "@/features/projects/types/projects-types";
 import { calculateProgressFromDates, convertAdToBs } from "@/shared/utils/nepali-date";
 import Card from "@/shared/components/ui/Card";
 import ProgressBar from "@/shared/components/ui/ProgressBar";
@@ -11,62 +12,16 @@ import MilestoneSearch from "./Search";
 import { fetchMilestones, deleteMilestone, type MilestoneItem } from "@/features/projects/services/milestone.service";
 import Pagination from '@/shared/components/ui/Pagination';
 import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
+import { fetchProjectInfo } from '@/features/tasks/services/task.service';
 
-export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
-  // const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
-  // const [milestonesLoading, setMilestonesLoading] = useState(false);
-  // const [isCreateOpen, setIsCreateOpen] = useState(false);
-  // const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
-  // const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
-  // const [isSearchOpen, setIsSearchOpen] = useState(false);
-  // const [isSearchActive, setIsSearchActive] = useState(false);
-  // const [allMilestones, setAllMilestones] = useState<MilestoneItem[]>([]);
-  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
-  const [isCreateOpen, setIsCreayeOpen] = useState(false);
+export default function MilestoneTab({ project: propProject, onEdit }: MilestoneTabProps) {
+  const queryClient = useQueryClient();
+  const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const {
-    data: milestones = [],
-    total: totalFiltered,
-    loading: milestonesLoading,
-    currentPage,
-    pageSize,
-    setCurrentPage,
-    setPageSize,
-    refetch
-  } = usePaginatedList<MilestoneItem>({
-    fetcher: (params: PaginatedListParams) => {
-      if(!project?.ProjectInfoID) return { items: [], total: 0 };
-      return fetchMilestones(project, {
-        start: params.start as number,
-        length: params.length as number,
-        search: (params.search as string) || searchQuery,
-      }, params.signal);
-    },
-    extraDeps: [project, searchQuery],
-  });
-
-  // const loadMilestones = async () => {
-  //   setMilestonesLoading(true);
-  //   setMilestones([]);
-
-  //   try {
-  //     const data = await fetchMilestones(project);
-  //     setMilestones(data);
-  //     setAllMilestones(data);
-  //   } catch {
-  //     console.error('Failed to fetch milestones');
-  //   } finally {
-  //     setMilestonesLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   loadMilestones();
-  // }, [project]);
 
   const handleEdit = (milestone: MilestoneItem) => {
     if (onEdit) {
@@ -88,6 +43,7 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
         try {
           await deleteMilestone(milestone.ProjectMilestoneID);
           message.success("Milestone deleted successfully");
+          queryClient.invalidateQueries({ queryKey: ['milestones'] });
           refetch();
         } catch {
           message.error("Failed to delete milestone");
@@ -106,6 +62,34 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
     setIsSearchActive(false);
     setSearchQuery('');
   };
+
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ['project-detail', propProject?.ProjectInfoID],
+    queryFn: ({ signal }) => fetchProjectInfo(propProject!.ProjectInfoID, signal),
+    enabled: Boolean(propProject?.ProjectInfoID),
+  });
+
+  const {
+    data: milestones = [],
+    total: totalFiltered,
+    loading: milestonesLoading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    refetch
+  } = usePaginatedList<MilestoneItem>({
+    fetcher: (params: PaginatedListParams) => {
+      if(!project?.ProjectInfoID) return Promise.resolve({ items: [], total: 0 });
+      return fetchMilestones(project, {
+        start: params.start as number,
+        length: params.length as number,
+        search: (params.search as string) || searchQuery,
+      }, params.signal);
+    },
+    extraDeps: [project, searchQuery],
+    queryKey: ['milestones'],
+  });
 
   const columns = [
     {
@@ -169,6 +153,29 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
     },
   ];
 
+  if (projectLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <Button icon={<Search size={16} />} onClick={() => setIsSearchOpen(true)}>
+              Search
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-white/70 border border-border rounded-2xl p-0.5 shadow-xs">
+              <Button type="text" onClick={() => setViewMode('grid')} icon={<LayoutGrid className="w-4 h-4" />} />
+              <Button type="text" onClick={() => setViewMode('list')} icon={<List className="w-4 h-4" />} />
+            </div>
+          </div>
+        </div>
+        <Card>
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading milestones...</div>
+        </Card>
+      </div>
+    );
+  }
+
   if (milestonesLoading) {
     return (
       <div className="space-y-4">
@@ -222,13 +229,18 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
             {isSearchActive ? 'No milestones match your search.' : 'No milestones found.'}
           </div>
         </Card>
-        <MilestoneCreate
-          open={isCreateOpen}
-          onClose={() => { setIsCreateOpen(false); setEditingMilestone(null); }}
-          onSuccess={() => { setIsCreateOpen(false); setEditingMilestone(null); loadMilestones(); }}
-          project={project}
-          editingMilestone={editingMilestone}
-        />
+      <MilestoneCreate
+        open={isCreateOpen}
+        onClose={() => { setIsCreateOpen(false); setEditingMilestone(null); }}
+        onSuccess={() => { 
+          setIsCreateOpen(false); 
+          setEditingMilestone(null); 
+          queryClient.invalidateQueries({ queryKey: ['milestones'] });
+          refetch(); 
+        }}
+        project={project}
+        editingMilestone={editingMilestone}
+      />
       </div>
     );
   }
@@ -259,11 +271,10 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
           open={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
            onSearch={(values) => {
-            const searchTitle = String(values.MilestoneTitle || '').toLowerCase();
-            const searchStatusID = values.WorkStatusID ? Number(values.WorkStatusID) : null;
-            setIsSearchActive(true);
-            setSearchQuery(searchTitle);
-           }}
+              const searchTitle = String(values.MilestoneTitle || '').toLowerCase();
+              setIsSearchActive(true);
+              setSearchQuery(searchTitle);
+             }}
            project={project}
            modal={false}
           />
@@ -348,17 +359,18 @@ export default function MilestoneTab({ project, onEdit }: MilestoneTabProps) {
       <MilestoneCreate
         open={isCreateOpen}
         onClose={() => { setIsCreateOpen(false); setEditingMilestone(null); }}
-        onSuccess={() => { setIsCreateOpen(false); setEditingMilestone(null); refetch(); }}
+        onSuccess={() => { 
+          setIsCreateOpen(false); 
+          setEditingMilestone(null); 
+          queryClient.invalidateQueries({ queryKey: ['milestones'] });
+          refetch(); 
+        }}
         project={project}
         editingMilestone={editingMilestone}
       />
     </div>
   );
 }
-
-
-
-
 
 
 

@@ -217,23 +217,6 @@ export default function UsersPage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-base text-slate-500">Show</span>
-            <Select
-              value={pageSize}
-              onChange={(value) => {
-                setPageSize(Number(value));
-                setCurrentPage(1);
-              }}
-              className="w-20"
-              options={[
-                { value: 20, label: '20' },
-                { value: 50, label: '50' },
-                { value: 100, label: '100' },
-              ]}
-            />
-            <span className="text-base text-slate-500">entries</span>
-          </div>
           <span className="text-base text-slate-500">
             {titleFilter ? paginatedUsers.length : totalFiltered} total records
           </span>

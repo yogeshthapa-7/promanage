@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
 import { fetchEmployees } from '@/features/employee/services/employee.service';
 import type { Employee } from '@/features/employee/types/employees-types';
-import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-types';
 import { fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
 import { saveSubTask } from '@/features/tasks/services/task.service';
 import Drawer from '@/shared/components/drawer';

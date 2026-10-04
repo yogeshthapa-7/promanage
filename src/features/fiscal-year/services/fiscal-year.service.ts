@@ -1,8 +1,8 @@
 import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import { convertAdToBs } from '@/shared/utils/nepali-date';
 import type { FiscalYearSelectOption, FiscalYearItem, ApiFiscalYearResponse, ApiFiscalYearRow,
-  ApiSelectItem, FetchFIscalYearsParams, FetchFiscalYearResult
- } from '@/features/fiscal-year/types/fiscal-year-types';
+  ApiSelectItem, FetchFiscalYearsParams, FetchFiscalYearsResult
+  } from '@/features/fiscal-year/types/fiscal-year-types';
 
 
 
@@ -16,7 +16,7 @@ function mapSelectItem(item: ApiSelectItem): FiscalYearSelectOption {
   const value = String(
     item.FiscalYearID ?? item.FiscalYear ?? item.FiscalYearName ?? item.name ?? item.Text ?? label
   );
-  return { value, label, isRunning: item.IsRunning };
+  return { value, label, isRunning: item.IsRunning ?? 0 };
 }
 
 export async function fetchFiscalYearSelectList(
@@ -48,29 +48,6 @@ export async function fetchFiscalYearSelectList(
   }
 }
 
-function buildSearchBody(params: FetchFiscalYearsParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      columns: [
-        { data: 'FiscalYearID', name: 'FiscalYearID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        { data: 'FiscalYearName', name: 'FiscalYearName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        { data: 'FiscalYearCode', name: 'FiscalYearCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-      ],
-      search: { value: params.search, regex: '' },
-      order: [{ column: 1, dir: 'desc' }],
-    },
-    param: {
-      FiscalYearID: 0,
-      FiscalYearName: '',
-      FiscalYearCode: '',
-      Status: params.status === 'Active' ? 1 : params.status === 'Inactive' ? 0 : undefined,
-    },
-  };
-}
-
 export async function fetchFiscalYears(
   params: FetchFiscalYearsParams
 ): Promise<FetchFiscalYearsResult> {
@@ -92,7 +69,15 @@ async function doFetchFiscalYears(
   const res = await apiCall(SERVER_SEARCH_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { FiscalYearID: 0 },
+    }),
     signal,
   });
 

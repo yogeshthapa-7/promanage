@@ -29,7 +29,7 @@ import {
   fetchTasks,
   deleteTask,
 } from '@/features/tasks/services/task.service';
-import type { TaskItem } from '@/features/projects/types/tasks-types';
+import type { TaskItem } from '@/features/tasks/types/tasks-types';
 import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
 import SubtaskDrawer from '@/features/projects/pages/subtasks/page';
@@ -235,7 +235,7 @@ export default function ProjectTasksPage() {
     refetch,
   } = usePaginatedList<TaskItem>({
     fetcher: (params: PaginatedListParams) => {
-      if (!id) return { items: [], total: 0 };
+      if (!id) return Promise.resolve({ items: [], total: 0 });
       return fetchTasks({
         projectId: Number(id),
         page: Math.floor(params.start / params.length) + 1,
@@ -294,6 +294,7 @@ export default function ProjectTasksPage() {
           const result = await deleteTask(taskId);
           if (!result.success) throw new Error(result.message || 'Failed');
           message.success('Task deleted successfully');
+          queryClient.invalidateQueries({ queryKey: ['tasks'] });
           refetch();
         } catch (err) {
           message.error('Delete failed');
@@ -531,7 +532,11 @@ export default function ProjectTasksPage() {
       <CreateTaskDrawer
         open={taskDrawerOpen}
         onClose={() => { setTaskDrawerOpen(false); setEditingTask(null); }}
-        onSuccess={() => { refetch(); setEditingTask(null); }}
+        onSuccess={() => { 
+          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          refetch(); 
+          setEditingTask(null); 
+        }}
         editingTask={editingTask as any}
         project={project}
       />

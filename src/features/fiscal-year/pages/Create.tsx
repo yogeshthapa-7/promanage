@@ -3,7 +3,7 @@ import { Form, Input, Button, message, Checkbox } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import { saveFiscalYear } from '@/features/fiscal-year/services/fiscal-year.service';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
-import type { FiscalYearItem, CreateFiscalYearDrawerProps } from '@/features/fiscal-year/types/fiscal-year-types';
+import type { CreateFiscalYearDrawerProps } from '@/features/fiscal-year/types/fiscal-year-types';
 
 export default function CreateFiscalYearDrawer({ open, onClose, onSuccess, editingYear }: CreateFiscalYearDrawerProps) {
   const [form] = Form.useForm();

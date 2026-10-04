@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, message } from 'antd';
 import Drawer from '@/shared/components/drawer';
 import { saveOrganization, fetchOrganizationSelectList } from '@/features/organizations/services/organization.service';
-import type { Organization, OrganizationModalProps, ParentOrgOption } from '@/features/organizations/types/organizations-types';
+import type { OrganizationModalProps, ParentOrgOption } from '@/features/organizations/types/organizations-types';
 
 
 export default function CreateOrganizationModal({

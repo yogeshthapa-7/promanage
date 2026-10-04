@@ -7,26 +7,6 @@ export const API_URL = `${API_BASE}/Users/ServerSearch`;
 export const USER_GROUP_API_URL = `${API_BASE}/UserGroup/SelectList`;
 export const ORGANIZATION_API_URL = `${API_BASE}/Organization/SelectList`;
 
-function buildSearchBody(params: FetchUsersParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: params.search, regex: '' },
-    },
-param: {
-      UserId: 0,
-      UserName: '',
-      FullName: '',
-      Password: '',
-      UserGroupId: 0,
-      UserGroupName: params.role || '',
-      Theme: params.theme || '',
-    },
-  };
-}
-
 export async function fetchUsers(
   params: FetchUsersParams
 ): Promise<FetchUsersResult> {
@@ -47,7 +27,15 @@ async function doFetchUsers(
 ): Promise<FetchUsersResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { UserId: 0 },
+    }),
     signal,
   });
   if (!res.ok) throw new Error(`Failed to fetch users: ${res.statusText}`);
@@ -124,7 +112,7 @@ export const ROLE_STYLE: Record<UserRole, string> = {
 };
 
 export async function saveUser(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
-  const res = await apiCall(`${API_BASE}/SaveUserPublic`, {
+  const res = await apiCall(`${API_BASE}/SaveUser`, {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -144,37 +132,26 @@ export async function deleteUser(userId: number): Promise<{ success: boolean; me
   return { success: json.Success !== false, message: json.Message };
 }
 
- export async function checkUserExists(userName: string, excludeUserId?: number): Promise<boolean> {
-   try {
-      const body = {
-      model: {
-        draw: 1,
-        start: 0,
-        length: 10,
-        columns: [
-          { data: 'UserId', name: 'UserId', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'UserName', name: 'UserName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: '', regex: '' },
-        order: [{ column: 1, dir: 'desc' }],
-      },
-      param: {
-        UserId: excludeUserId ?? 0,
-        UserName: userName,
-        FullName: '',
-        Password: '',
-        UserGroupId: 0,
-        UserGroupName: '',
-        Theme: '',
-      },
-    };
-     const res = await apiCall(API_URL, { method: 'POST', body: JSON.stringify(body) });
-     if (!res.ok) return false;
-     const json = await res.json();
-     const rows = Array.isArray(json?.data) ? json.data : [];
-     return rows.some((user) => (user.UserName as string)?.toLowerCase() === userName.toLowerCase() && user.UserId !== excludeUserId);
-   } catch { return false; }
- }
+  export async function checkUserExists(userName: string, excludeUserId?: number): Promise<boolean> {
+     try {
+        const body = {
+        model: {
+          draw: 1,
+          start: 0,
+          length: 12,
+          search: { value: '', regex: '' },
+        },
+        param: {
+          UserId: excludeUserId ?? 0,
+        },
+      };
+      const res = await apiCall(API_URL, { method: 'POST', body: JSON.stringify(body) });
+      if (!res.ok) return false;
+      const json = await res.json();
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      return rows.some((user: Record<string, unknown>) => (user.UserName as string)?.toLowerCase() === userName.toLowerCase() && user.UserId !== excludeUserId);
+    } catch { return false; }
+  }
 
 
 

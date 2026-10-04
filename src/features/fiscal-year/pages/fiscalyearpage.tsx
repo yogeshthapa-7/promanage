@@ -16,7 +16,7 @@ import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePa
 function fetchFiscalYearsPage(params: PaginatedListParams): Promise<{ items: FiscalYearItem[]; total: number }> {
   return fetchFiscalYears({
     search: (params.search as string) || '',
-    status: 'Active',
+    status: undefined,
     start: params.start as number,
     length: params.length as number,
     signal: params.signal,

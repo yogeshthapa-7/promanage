@@ -11,7 +11,7 @@ import SearchInput from "@/shared/components/ui/SearchInput";
 import Badge from "@/shared/components/ui/Badge";
 import AppTable from "@/shared/components/ui/AppTable";
 import { usePaginatedList, type PaginatedListParams } from "@/shared/hooks/usePaginatedList";
-import { statusColor, priorityColor, deleteTask, fetchWorkStatuses, fetchProjectInfo, fetchTasks } from "@/features/tasks/services/task.service";
+import { statusColor, priorityColor, deleteTask, fetchTasks } from "@/features/tasks/services/task.service";
 import { fetchSelectList } from "@/features/projects/services/project.service";
 import CreateTaskDrawer from "./createtasks";
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
@@ -45,9 +45,9 @@ function useDebounce<T>(value: T, delay: number): T {
      search: params.search as string || '',
      signal: params.signal,
    }).then((result) => ({
-     items: result.items,
-     total: result.total,
-   }));
+      items: result.items,
+      total: result.filtered,
+    }));
  }
 
 export default function TasksPage() {

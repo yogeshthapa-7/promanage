@@ -4,8 +4,7 @@ import { Save } from 'lucide-react';
 import Drawer from '@/shared/components/drawer';
 import AntdNepaliDatePicker from '@/shared/components/AntdNepaliDatePicker';
 import DocumentUploadField from '@/shared/components/DocumentUploadField';
-import type { ApiProject, ProjectFormModalProps } from '@/features/projects/types/projects-types';
-import type { SelectListItem } from '@/features/projects/services/project.service';
+import type { ProjectFormModalProps, SelectListItem } from '@/features/projects/types/projects-types';
 import { saveProject, fetchSelectList, SELECT_LIST_URLS, mapToSelectOptions } from '@/features/projects/services/project.service';
 import { API_BASE } from '@/lib/api/api.service';
 

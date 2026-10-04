@@ -19,7 +19,7 @@ export interface ViewPolicyDrawerProps {
   open: boolean;
   onClose: () => void;
   policy: Policy | null;
-  fiscalYearOptions?: FiscalYearSelectOption[];
+  fiscalYearOptions?: import('@/features/fiscal-year/types/fiscal-year-types').FiscalYearSelectOption[];
 }
 
 export interface ApiPolicyResponse {

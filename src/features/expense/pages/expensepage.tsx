@@ -351,11 +351,17 @@ export default function ExpensePage() {
 
         {loading ? (
           viewMode === 'list' ? (
-            <AppTable 
-            columns={columns} 
-            dataSource={[]} 
-            loading rowKey="id" 
-            cardClassName="mt-4" />
+            <AppTable
+            columns={columns}
+            dataSource={[]}
+            loading
+            rowKey="id"
+            cardClassName="mt-4"
+            total={totalFiltered}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+           />
           ) : (
             <CardGridSkeleton count={8} />
           )

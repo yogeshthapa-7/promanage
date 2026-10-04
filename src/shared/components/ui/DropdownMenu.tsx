@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+
 import { Dropdown as AntDropdown } from 'antd';
 import type { MenuProps } from 'antd';
 import type { DropdownMenuProps } from '@/shared/components/ui/types/generic-ui-types';

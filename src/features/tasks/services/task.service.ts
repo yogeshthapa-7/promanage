@@ -1,5 +1,5 @@
-import { apiCall, API_BASE } from '@/lib/api/api.service';
-import type { TaskItem, SubTaskItem, TaskStats, ProjectTaskCounts } from '@/features/projects/types/tasks-types';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
+import type { TaskItem, SubTaskItem, TaskStats, ProjectTaskCounts } from '@/features/tasks/types/tasks-types';
 import type { ApiProject, ServerSearchResponse, FetchResult,  } from '@/features/projects/types/projects-types';
 
 
@@ -35,273 +35,163 @@ export async function fetchTasks(params: {
   const { projectId, page, pageSize, search = '', signal } = params;
   const start = (page - 1) * pageSize;
 
-  try {
-    const res = await apiCall(TASKS_API, {
-      method: 'POST',
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start,
-          length: pageSize,
-          columns: [
-            { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: search, regex: '' } },
-            { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: search, regex: '' } },
-          ],
-          search: { value: search, regex: '' },
-          order: [{ column: 1, dir: 'desc' }],
-        },
-        param: {
-          TaskInfoID: 0,
-          TaskTitle: '',
-          TaskCode: '',
-          TaskManagerID: 0,
-          InvolvedEmployees: '',
-          Weightage: 0,
-          OrderKey: 0,
-          Priority: 0,
-          WorkStatusID: 0,
-          Description: '',
-          Attachments: '',
-          ProjectInfoID: projectId,
-        },
-      }),
-      signal,
-    }, 60000);
-
-    if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.statusText}`);
-    const json = (await res.json()) as ServerSearchResponse;
-    const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
-
-    return {
-      items: rows,
-      total: json.recordsTotal ?? 0,
-      filtered: json.recordsFiltered ?? 0,
-    };
-  } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw err;
-    }
-    console.error("API Call structural error failure:", err);
-    return { items: [], total: 0, filtered: 0 };
-  }
+  return await cachedQuery(
+    ['tasks', 'search', projectId, search, start, pageSize],
+    (signal) => doFetchTasks({ projectId, start, length: pageSize, search }, signal),
+    signal
+  );
 }
 
-function buildTaskSearchBody(params: {
-  start: number;
-  length: number;
-  search?: string;
-  orderColumn?: number;
-  orderDir?: 'asc' | 'desc';
-  projectId?: number;
-  statusName?: string;
-  priorityName?: string;
-}) {
-  const {
-    start,
-    length,
-    search = '',
-    orderColumn = 1,
-    orderDir = 'desc',
-    projectId,
-    statusName,
-    priorityName,
-  } = params;
-
-  const searchValue = search.trim();
-
-  return {
-    model: {
-      draw: 1,
-      start,
-      length,
-      columns: [
-        { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: searchValue, regex: '' } },
-        { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: searchValue, regex: '' } },
-        { data: 'TaskCode', name: 'TaskCode', searchable: true, orderable: true, search: { value: searchValue, regex: '' } },
-        { data: 'WorkStatusName', name: 'WorkStatusName', searchable: true, orderable: true, search: { value: statusName || '', regex: '' } },
-        { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: priorityName || '', regex: '' } },
-      ],
-      search: { value: searchValue, regex: '' },
-      order: [{ column: orderColumn, dir: orderDir }],
-    },
-    param: {
-      TaskInfoID: 0,
-      ProjectInfoID: projectId ?? 0,
-      TaskTitle: '',
-      TaskManagerName: '',
-      ProjectInfoName: '',
-      WorkStatusName: statusName || '',
-      PriorityName: priorityName || '',
-    },
-  };
-}
-
-export async function fetchAllTasks(params: {
-  page: number;
-  pageSize: number;
-  search?: string;
-  statusName?: string;
-  priorityName?: string;
-  projectId?: number;
-  sortBy?: 'name' | 'status' | 'priority' | 'dueDate';
-  orderDir?: 'asc' | 'desc';
-  signal?: AbortSignal;
-}): Promise<FetchResult<TaskItem>> {
-  const {
-    page,
-    pageSize,
-    search = '',
-    statusName,
-    priorityName,
-    projectId,
-    sortBy = 'name',
-    orderDir = 'desc',
-    signal,
-  } = params;
-  const start = (page - 1) * pageSize;
-
-  let orderColumn = 1;
-  if (sortBy === 'status') orderColumn = 3;
-  else if (sortBy === 'priority') orderColumn = 4;
-  else if (sortBy === 'dueDate') orderColumn = 12;
-
-  try {
-    const res = await apiCall(TASKS_API, {
-      method: 'POST',
-      body: JSON.stringify(buildTaskSearchBody({
-        start,
-        length: pageSize,
-        search,
-        orderColumn,
-        orderDir,
-        projectId,
-        statusName,
-        priorityName,
-      })),
-      signal,
-    }, 60000);
-
-    if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.statusText}`);
-    const json = (await res.json()) as ServerSearchResponse;
-    const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
-
-    return {
-      items: rows,
-      total: json.recordsTotal ?? json.recordsFiltered ?? rows.length ?? 0,
-      filtered: json.recordsFiltered ?? 0,
-    };
-  } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw err;
-    }
-    return { items: [], total: 0, filtered: 0 };
-  }
-}
-
-export async function fetchTaskStats(projectId: number, signal?: AbortSignal): Promise<TaskStats> {
+async function doFetchTasks(
+  params: { projectId: number; start: number; length: number; search?: string },
+  signal?: AbortSignal
+): Promise<FetchResult<TaskItem>> {
   const res = await apiCall(TASKS_API, {
     method: 'POST',
     body: JSON.stringify({
       model: {
         draw: 1,
-        start: 0,
-        length: 50,
-        columns: [
-          { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: '', regex: '' },
-        order: [{ column: 1, dir: 'desc' }],
+        start: params.start,
+        length: params.length,
+        search: { value: (params.search || '').trim(), regex: '' },
       },
-      param: {
-        TaskInfoID: 0,
-        TaskTitle: '',
-        TaskCode: '',
-        TaskManagerID: 0,
-        InvolvedEmployees: '',
-        Weightage: 0,
-        OrderKey: 0,
-        Priority: 0,
-        WorkStatusID: 0,
-        Description: '',
-        Attachments: '',
-        ProjectInfoID: projectId,
-      },
+      param: { TaskInfoID: 0, ProjectInfoID: params.projectId },
     }),
     signal,
   }, 60000);
 
-  if (!res.ok) throw new Error(`Failed to fetch task stats: ${res.statusText}`);
+  if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.statusText}`);
   const json = (await res.json()) as ServerSearchResponse;
   const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
 
-  const stats: TaskStats = { total: json.recordsTotal ?? 0 };
-  rows.forEach((task) => {
-    stats[task.WorkStatusName] = (stats[task.WorkStatusName] || 0) + 1;
-  });
+  return {
+    items: rows,
+    total: json.recordsTotal ?? 0,
+    filtered: json.recordsFiltered ?? 0,
+  };
+}
 
-  return stats;
+
+
+export async function fetchAllTasks(params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  projectId?: number;
+  signal?: AbortSignal;
+}): Promise<FetchResult<TaskItem>> {
+  const { page, pageSize, search = '', projectId, signal } = params;
+  const start = (page - 1) * pageSize;
+
+  return await cachedQuery(
+    ['allTasks', 'search', projectId, search, start, pageSize],
+    (signal) => doFetchAllTasks({ start, length: pageSize, search }, signal),
+    signal
+  );
+}
+
+async function doFetchAllTasks(
+  params: { start: number; length: number; search?: string },
+  signal?: AbortSignal
+): Promise<FetchResult<TaskItem>> {
+  const res = await apiCall(TASKS_API, {
+    method: 'POST',
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start,
+        length: params.length,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { TaskInfoID: 0 },
+    }),
+    signal,
+  }, 60000);
+
+  if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.statusText}`);
+  const json = (await res.json()) as ServerSearchResponse;
+  const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
+
+  return {
+    items: rows,
+    total: json.recordsTotal ?? json.recordsFiltered ?? rows.length ?? 0,
+    filtered: json.recordsFiltered ?? 0,
+  };
+}
+
+export async function fetchTaskStats(projectId: number, signal?: AbortSignal): Promise<TaskStats> {
+  return await cachedQuery(
+    ['taskStats', projectId],
+    async (signal) => {
+      const res = await apiCall(TASKS_API, {
+        method: 'POST',
+        body: JSON.stringify({
+          model: {
+            draw: 1,
+            start: 0,
+            length: 50,
+            search: { value: '', regex: '' },
+          },
+          param: { TaskInfoID: 0 },
+        }),
+        signal,
+      }, 60000);
+
+      if (!res.ok) throw new Error(`Failed to fetch task stats: ${res.statusText}`);
+      const json = (await res.json()) as ServerSearchResponse;
+      const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
+
+      const stats: TaskStats = { total: json.recordsTotal ?? 0 };
+      rows.forEach((task) => {
+        stats[task.WorkStatusName] = (stats[task.WorkStatusName] || 0) + 1;
+      });
+
+      return stats;
+    },
+    signal
+  );
 }
 
 export async function fetchAllProjectTaskCounts(
   signal?: AbortSignal
 ): Promise<Record<number, ProjectTaskCounts>> {
-  const result: Record<number, ProjectTaskCounts> = {};
-  try {
-    const res = await apiCall(TASKS_API, {
-      method: 'POST',
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start: 0,
-          length: 1000,
-          columns: [
-            { data: 'TaskInfoID', name: 'TaskInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            { data: 'TaskTitle', name: 'TaskTitle', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          ],
-          search: { value: '', regex: '' },
-          order: [{ column: 1, dir: 'desc' }],
-        },
-        param: {
-          TaskInfoID: 0,
-          TaskTitle: '',
-          TaskCode: '',
-          TaskManagerID: 0,
-          InvolvedEmployees: '',
-          Weightage: 0,
-          OrderKey: 0,
-          Priority: 0,
-          WorkStatusID: 0,
-          Description: '',
-          Attachments: '',
-          ProjectInfoID: 0,
-        },
-      }),
-      signal,
-    }, 60000);
+  return await cachedQuery(
+    ['allProjectTaskCounts'],
+    async (signal) => {
+      const res = await apiCall(TASKS_API, {
+        method: 'POST',
+        body: JSON.stringify({
+          model: {
+            draw: 1,
+            start: 0,
+            length: 1000,
+            search: { value: '', regex: '' },
+          },
+          param: { TaskInfoID: 0 },
+        }),
+        signal,
+      }, 60000);
 
-    if (!res.ok) throw new Error(`Failed to fetch task counts: ${res.statusText}`);
-    const json = (await res.json()) as ServerSearchResponse;
-    const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
+      if (!res.ok) throw new Error(`Failed to fetch task counts: ${res.statusText}`);
+      const json = (await res.json()) as ServerSearchResponse;
+      const rows = Array.isArray(json?.data) ? (json.data as TaskItem[]) : [];
 
-    for (const t of rows) {
-      const pid = Number(t.ProjectInfoID);
-      if (!pid) continue;
-      if (!result[pid]) result[pid] = { total: 0, completed: 0, byStatus: {} };
-      const status = t.WorkStatusName || 'Unknown';
-      result[pid].total += 1;
-      result[pid].byStatus[status] = (result[pid].byStatus[status] || 0) + 1;
-      if (status.toLowerCase() === 'completed') {
-        result[pid].completed += 1;
+      const result: Record<number, ProjectTaskCounts> = {};
+      for (const t of rows) {
+        const pid = Number(t.ProjectInfoID);
+        if (!pid) continue;
+        if (!result[pid]) result[pid] = { total: 0, completed: 0, byStatus: {} };
+        const status = t.WorkStatusName || 'Unknown';
+        result[pid].total += 1;
+        result[pid].byStatus[status] = (result[pid].byStatus[status] || 0) + 1;
+        if (status.toLowerCase() === 'completed') {
+          result[pid].completed += 1;
+        }
       }
-    }
-    return result;
-  } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw err;
-    }
-    return result;
-  }
+      return result;
+    },
+    signal
+  );
 }
 
 export async function fetchSubTasks(params: {
@@ -311,61 +201,44 @@ export async function fetchSubTasks(params: {
   pageSize: number;
   search?: string;
   signal?: AbortSignal;
-  priority?: number;
-  workStatusId?: number;
-  managerId?: number;
 }): Promise<FetchResult<SubTaskItem>> {
-  const { projectId, taskInfoId, page, pageSize, search = '', signal, priority, workStatusId, managerId } = params;
+  const { projectId, taskInfoId, page, pageSize, search = '', signal } = params;
   const start = (page - 1) * pageSize;
 
-  try {
-    const res = await apiCall(SUBTASKS_API, {
-      method: 'POST',
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start,
-          length: pageSize,
-          columns: [
-            { data: 'SubTaskInfoID', name: 'SubTaskInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            { data: 'SubTaskTitle', name: 'SubTaskTitle', searchable: true, orderable: true, search: { value: search, regex: '' } },
-          ],
-          search: { value: search, regex: '' },
-          order: [{ column: 1, dir: 'desc' }],
-        },
-        param: {
-          SubTaskInfoID: 0,
-          SubTaskTitle: '',
-          SubTaskCode: '',
-          SubTaskManagerID: managerId ?? 0,
-          InvolvedEmployees: '',
-          Weightage: 0,
-          OrderKey: 0,
-          Priority: priority ?? 0,
-          WorkStatusID: workStatusId ?? 0,
-          TaskInfoID: taskInfoId,
-          ProjectInfoID: projectId,
-        },
-      }),
-      signal,
-    }, 60000);
+  return await cachedQuery(
+    ['subtasks', 'search', taskInfoId, search, start, pageSize],
+    (signal) => doFetchSubTasks({ start, length: pageSize, search, taskInfoId, projectId }, signal),
+    signal
+  );
+}
 
-    if (!res.ok) throw new Error(`Failed to fetch subtasks: ${res.statusText}`);
-    const json = (await res.json()) as ServerSearchResponse;
-    const rows = Array.isArray(json?.data) ? (json.data as SubTaskItem[]) : [];
+async function doFetchSubTasks(
+  params: { start: number; length: number; search?: string; taskInfoId: number; projectId: number },
+  signal?: AbortSignal
+): Promise<FetchResult<SubTaskItem>> {
+  const res = await apiCall(SUBTASKS_API, {
+    method: 'POST',
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start,
+        length: params.length,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { SubTaskInfoID: 0 },
+    }),
+    signal,
+  }, 60000);
 
-    return {
-      items: rows,
-      total: json.recordsTotal ?? 0,
-      filtered: json.recordsFiltered ?? 0,
-    };
-  } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw err;
-    }
-    console.error("API Call structural error failure:", err);
-    return { items: [], total: 0, filtered: 0 };
-  }
+  if (!res.ok) throw new Error(`Failed to fetch subtasks: ${res.statusText}`);
+  const json = (await res.json()) as ServerSearchResponse;
+  const rows = Array.isArray(json?.data) ? (json.data as SubTaskItem[]) : [];
+
+  return {
+    items: rows,
+    total: json.recordsTotal ?? 0,
+    filtered: json.recordsFiltered ?? 0,
+  };
 }
 
 export async function saveTask(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
@@ -449,24 +322,16 @@ export async function changeTaskStatus(taskId: number, workStatusId: number): Pr
 
 export async function postServerSearch<T>(
   endpoint: string,
-  param: Record<string, any>,
   signal?: AbortSignal
 ): Promise<T[]> {
   const payload = {
     model: {
-      columns: Object.keys(param).map((key) => ({
-        data: key,
-        name: key,
-        searchable: true,
-        orderable: true,
-      })),
       draw: 1,
       start: 0,
       length: 200,
-      order: [{ column: 1, dir: 'desc' }],
       search: { value: '', regex: '' },
     },
-    param,
+    param: { TaskInfoID: 0 },
   };
 
   const res = await apiCall(`${API_BASE}${endpoint}`, {
@@ -512,23 +377,8 @@ export async function fetchProjectTasks(
     return res.items;
   }
 
-  const pid = Number(projectIdOrOptions);
   return postServerSearch<any>(
     '/TaskInfo/ServerSearch',
-    {
-      TaskInfoID: 0,
-      TaskTitle: '',
-      TaskCode: '',
-      TaskManagerID: 0,
-      InvolvedEmployees: '',
-      Weightage: 0,
-      OrderKey: 0,
-      Priority: 0,
-      WorkStatusID: 0,
-      Description: '',
-      Attachments: '',
-      ProjectInfoID: isNaN(pid) ? 0 : pid,
-    },
     signal
   );
 }

@@ -72,8 +72,8 @@ export interface TopbarProps {
   onSearchChange?: (value: string) => void;
   showSearch?: boolean;
   showFilters?: boolean;
-  filterStatus?: ProjectStatus | 'All';
-  onFilterChange?: (status: ProjectStatus | 'All') => void;
+  filterStatus?: import('@/features/projects/types/projects-types').ProjectStatus | 'All';
+  onFilterChange?: (status: import('@/features/projects/types/projects-types').ProjectStatus | 'All') => void;
   sortField?: string;
   sortDir?: 'asc' | 'desc';
   onSortChange?: (field: string) => void;
@@ -105,6 +105,7 @@ export interface UsePaginatedListOptions<T> {
   initialPageSize?: number;
   extraDeps?: unknown[];
   extraParams?: Record<string, unknown>;
+  queryKey?: unknown[];
 }
 
 export interface UsePaginatedListReturn<T> {

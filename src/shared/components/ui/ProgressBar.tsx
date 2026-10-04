@@ -9,9 +9,9 @@ export default function ProgressBar({
 }: ProgressBarProps) {
   return (
     <AntProgress
-      percent={value}
+      percent={value ?? 0}
       showInfo={false}
-      strokeColor={color}
+      strokeColor={color ?? '#3B82F6'}
       railColor="var(--muted)"
       size={{ height }}
     />

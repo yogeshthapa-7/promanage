@@ -5,9 +5,9 @@ import TaskProgressChart from '../components/TaskProgressChart';
 import RecentProjectsCard from '../components/RecentProjectsCard';
 import EntitySummaryCard from '../components/EntitySummaryCard';
 import ProjectsTable from '../components/ProjectsTable';
-import { type Project, type ProjectStatus, type ApiProject } from '@/features/projects/types/projects-types';
-import { mapApiProjectToProject, fetchProjects } from '@/features/projects/services/project.service';
 import { fetchAllProjectTaskCounts } from '@/features/tasks/services/task.service';
+import { fetchProjects } from '@/features/projects/services/project.service';
+import type { Project, ProjectStatus } from '@/features/projects/types/projects-types';
 import Topbar from '@/shared/components/Topbar';
 import { useDashboardStats } from '../components/useDashboardStats';
 

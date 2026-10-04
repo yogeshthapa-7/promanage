@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Modal, message } from 'antd';
 import { Plus, Pencil, Trash2, LayoutGrid, List, Search } from 'lucide-react';
 import Drawer from '@/shared/components/drawer';
@@ -9,8 +8,8 @@ import Card from '@/shared/components/ui/Card';
 import AppTable from '@/shared/components/ui/AppTable';
 import SearchInput from '@/shared/components/ui/SearchInput';
 import { Avatar } from '@/shared/components/ui/Avatar';
-import type { ApiProject, SubtaskDrawerProps } from '@/features/projects/types/projects-types';
-import type { TaskItem, SubTaskItem } from '@/features/projects/types/tasks-types';
+import type { SubtaskDrawerProps } from '@/features/projects/types/projects-types';
+import type { SubTaskItem } from '@/features/tasks/types/tasks-types';
 import { fetchSubTasks, deleteSubTask, statusColor, priorityColor } from '@/features/tasks/services/task.service';
 import SubTaskCreate from './Create';
 import Pagination from '@/shared/components/ui/Pagination';
@@ -103,7 +102,7 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
     refetch,
   } = usePaginatedList<SubTaskItem>({
     fetcher: (params: PaginatedListParams) => {
-      if (!projectId || !taskId) return { items: [], total: 0 };
+      if (!projectId || !taskId) return Promise.resolve({ items: [], total: 0 });
       return fetchSubTasks({
         projectId,
         taskInfoId: taskId,
@@ -112,9 +111,9 @@ export default function SubtaskDrawer({ open, onClose, project, task }: SubtaskD
         search: (params.search as string) || searchQuery,
         signal: params.signal,
       }).then((result) => ({
-        items: result.items,
-        total: result.total,
-      }));
+         items: result.items,
+         total: result.filtered,
+       }));
     },
     extraDeps: [projectId, taskId, searchQuery],
   });

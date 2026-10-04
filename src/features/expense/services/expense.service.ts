@@ -5,23 +5,6 @@ import type { Expense, ApiExpenseResponse, ApiExpenseRow, FetchExpensesParams, F
 
 export const API_URL = `${API_BASE}/ExpenseInfo/ServerSearch`;
 
-function buildSearchBody(params: FetchExpensesParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: '', regex: '' },
-    },
-    param: {
-      ExpenseInfoID: 0,
-      ExpenseTitle: params.search,
-      ExpenseCode: params.expenseCode || '',
-      FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
-    },
-  };
-}
-
 export async function fetchExpenses(
   params: FetchExpensesParams
 ): Promise<FetchExpensesResult> {
@@ -42,7 +25,15 @@ async function doFetchExpenses(
 ): Promise<FetchExpensesResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { ExpenseInfoID: 0 },
+    }),
     signal,
   });
 

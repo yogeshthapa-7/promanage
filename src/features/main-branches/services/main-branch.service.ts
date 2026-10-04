@@ -50,26 +50,6 @@ export async function fetchMainBranchSelectList(
 
 
 
-function buildSearchBody(params: FetchMainBranchesParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: params.search, regex: '' },
-    },
-    param: {
-      search: params.search,
-      MainBranchID: params.mainBranchId || 0,
-      MainBranchName: params.name || '',
-      MainBranchCode: params.code || '',
-      DepartmentID: params.departmentId || 0,
-      DepartmentName: params.departmentName || '',
-      OrderKey: params.orderKey || 0,
-    },
-  };
-}
-
 export async function fetchMainBranches(
   params: FetchMainBranchesParams
 ): Promise<FetchMainBranchesResult> {
@@ -90,7 +70,15 @@ async function doFetchMainBranches(
 ): Promise<FetchMainBranchesResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { MainBranchID: 0 },
+    }),
     signal,
   }, 120000);
 

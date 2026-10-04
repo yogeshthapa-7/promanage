@@ -317,14 +317,18 @@ export default function BudgetPage() {
         </div>
 
          {loading ? (
-           viewMode === 'list' ? (
-             <AppTable
-               columns={columns}
-               dataSource={[]}
-               loading={true}
-               rowKey={(budget) => budget.id}
-               cardClassName="mt-4"
-             />
+            viewMode === 'list' ? (
+              <AppTable
+                columns={columns}
+                dataSource={[]}
+                loading={true}
+                rowKey={(budget) => budget.id}
+                cardClassName="mt-4"
+                total={totalFiltered}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+              />
            ) : (
              <CardGridSkeleton count={8} />
            )

@@ -2,6 +2,8 @@
 export type ProjectStatus = 'In Progress' | 'Completed' | 'On Hold' | 'Not Started' | 'Overdue' | 'Started' | 'In Progress Final';
 export type ProjectPriority = 'Urgent' | 'High' | 'Medium' | 'Low';
 
+import type { TaskItem, SubTaskItem } from '@/features/tasks/types/tasks-types';
+
 export interface ProjectFormData {
   id?: string;
   title: string;
@@ -57,6 +59,17 @@ export interface Project {
   tasksCompleted: number;
   totalTasks: number;
   taskStatusCounts?: Record<string, number>;
+  ProjectInfoID: number;
+  ProjectName: string;
+  ProjectCode?: string;
+  WorkStatusName?: string;
+  WorkStatusColor?: string;
+  Priority?: number;
+  PriorityName?: string;
+  ProjectType?: number;
+  ProjectTypeName?: string;
+  TotalBudget?: number;
+  EndDate?: string;
 }
 
 export interface ApiProject {
@@ -237,22 +250,6 @@ export interface Task {
   ProjectName?: string;
   AssignedTo?: string;
   Progress?: number;
-}
-
-export interface Project {
-  ProjectInfoID: number;
-  ProjectName: string;
-  ProjectCode?: string;
-  Description?: string;
-  WorkStatusName?: string;
-  WorkStatusColor?: string;
-  Priority?: number;
-  PriorityName?: string;
-  ProjectType?: number;
-  ProjectTypeName?: string;
-  TotalBudget?: number;
-  StartDate?: string;
-  EndDate?: string;
 }
 
 export interface TasksByStatus {

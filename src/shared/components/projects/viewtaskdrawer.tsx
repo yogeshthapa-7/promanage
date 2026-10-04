@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Drawer from '@/shared/components/drawer';
 import { apiCall } from '@/lib/api/api.service';
-import type { TaskItem } from '@/features/projects/types/tasks-types';
+import type { TaskItem } from '@/features/tasks/types/tasks-types';
 import Badge from '@/shared/components/ui/Badge';
 import { Avatar } from '@/shared/components/ui/Avatar';
 import type { ViewTaskDrawerProps } from '@/shared/components/types/generic-components-types';

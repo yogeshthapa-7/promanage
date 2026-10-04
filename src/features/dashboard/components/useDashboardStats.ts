@@ -26,28 +26,33 @@ export function useDashboardStats(projectCount = 0) {
     async function load() {
       setStats((s) => ({ ...s, loading: true }));
       try {
-        const [usersCount, employeesCount, departmentsCount, organizationsCount, projectsCount, tasksCount] = await Promise.all([
-          fetchUsersCount({ search: '', start: 0, length: 1, signal: controller.signal }),
-          fetchEmployeeCount({ search: '', start: 0, length: 1, signal: controller.signal }),
-          fetchDepartmentCount({ search: '', start: 0, length: 1, signal: controller.signal }),
-          fetchOrganizationCount({ search: '', start: 0, length: 1, signal: controller.signal }),
-          fetchProjectCount({ search: '', start: 0, length: 1, signal: controller.signal }),
+        const results = await Promise.allSettled([
+          fetchUsersCount(),
+          fetchEmployeeCount(),
+          fetchDepartmentCount(),
+          fetchOrganizationCount(),
+          fetchProjectCount(),
           fetchTaskCount(),
-        ]);
+        ])
 
-        if (!cancelled) {
-          setStats({
-            users: usersCount,
-            employees: employeesCount,
-            departments: departmentsCount,
-            organizations: organizationsCount,
-            projects: projectsCount,
-            tasks: tasksCount,
-            loading: false,
-          });
-        }
+        if (cancelled) return;
+
+        const pick = (r: PromiseSettledResult<number>) => r.status === 'fulfilled' ? r.value: 0;
+        setStats({
+          users: pick(results[0]),
+          employees: pick(results[1]),
+          departments: pick(results[2]),
+          organizations: pick(results[3]),
+          projects: pick(results[4]),
+          tasks: pick(results[5]),
+          loading: false,
+        });
+
+        results.forEach((r, i) => {
+          if (r.status === 'rejected') console.error(`Stat ${i} failed:`, r.reason);
+        });
       } catch (err) {
-        console.error('stats failed:',err);
+        console.error('status failed:', err);
         if (!cancelled) {
           setStats({
             projects: projectCount || 0,
@@ -55,7 +60,6 @@ export function useDashboardStats(projectCount = 0) {
             employees: 0,
             departments: 0,
             organizations: 0,
-            projects: 0,
             tasks: 0,
             loading: false,
           });
@@ -64,17 +68,15 @@ export function useDashboardStats(projectCount = 0) {
     }
 
     load();
-    return () => {
+    return() => {
       cancelled = true;
       controller.abort();
     };
-  }, []);
+  }, [projectCount]);
 
   return stats;
+
 }
-
-
-
 
 
 

@@ -2,9 +2,9 @@ import { memo, useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from 'antd';
 import Highcharts from 'highcharts';
-import type { StatCardProps } from '@/shared/components/ui/types/generic-ui-types';
+import type { StatCardProps, StatIconType } from '@/shared/components/ui/types/generic-ui-types';
 
-type IconType = 'folder' | 'clock' | 'check' | 'alert' | 'users' | 'dollar' | 'trending' | 'user-square' | 'building-2' | 'folder-open';
+type IconType = StatIconType;
 
 
 const iconMap: Record<IconType, React.ReactNode> = {

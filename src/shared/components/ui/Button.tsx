@@ -1,4 +1,4 @@
-import { memo, forwardRef, type ReactNode } from 'react';
+import { memo, forwardRef } from 'react';
 import { Button as AntButton } from 'antd';
 import type { ButtonProps } from '@/shared/components/ui/types/generic-ui-types';
 

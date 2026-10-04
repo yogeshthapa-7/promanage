@@ -1,10 +1,7 @@
 import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
-import type { Department, DepartmentSelectOption, ApiDepartmrntResponse, ApiDepartmentRow,
+import type { Department, DepartmentSelectOption, ApiDepartmentResponse, ApiDepartmentRow,
   ApiSelectItem, FetchDepartmentsParams, FetchDepartmentsResult
- } from '@/features/departments/types/departments-types';
- export async function saveDepartment(body: Record<string, unknown>): promise<{success: boolean; message?: string; data?: unknown}>
- export async function deleteDepartment(id: number): promise<{success: boolean; message?: string }>
- 
+  } from '@/features/departments/types/departments-types';
 
 const API_URL = `${API_BASE}/Department/ServerSearch`;
 
@@ -50,27 +47,6 @@ export async function fetchDepartmentSelectList(
 }
 
 
-function buildSearchBody(params: FetchDepartmentsParams) {
-  const parsedDeptId = params.departmentId ? Number(params.departmentId) : 0;
-  const parsedMainDeptId = params.mainDept ? Number(params.mainDept) : 0;
-
-  return {
-    model: {
-      draw: 1,
-      start: params.start || 0,
-      length: params.length || 20,
-      search: { value: params.search || '', regex: '' },
-    },
-    param: {
-      search: params.search || '',
-      DepartmentName: params.name || '',
-      DepartmentCode: params.code || '',
-      DepartmentID: isNaN(parsedDeptId) ? 0 : parsedDeptId,
-      MainDepartmentID: isNaN(parsedMainDeptId) ? 0 : parsedMainDeptId,
-    },
-  };
-}
-
 export async function fetchDepartments(
   params: FetchDepartmentsParams
 ): Promise<FetchDepartmentsResult> {
@@ -103,7 +79,15 @@ async function doFetchDepartments(
     API_URL,
     {
       method: 'POST',
-      body: JSON.stringify(buildSearchBody(params)),
+      body: JSON.stringify({
+        model: {
+          draw: 1,
+          start: params.start || 0,
+          length: params.length || 12,
+          search: { value: (params.search || '').trim(), regex: '' },
+        },
+        param: { DepartmentID: 0 },
+      }),
       signal,
     },
     120000

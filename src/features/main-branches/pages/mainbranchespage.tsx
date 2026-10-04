@@ -132,7 +132,7 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
       okType: 'danger',
       onOk: async () => {
         try {
-          await deleteMainBranch(branch.id);
+          await deleteMainBranch(Number(branch.id));
           message.success('Deleted successfully');
           queryClient.invalidateQueries({ queryKey: ['mainBranches', 'search'] });
           refetch();
@@ -311,23 +311,6 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
       </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
-          <div className="flex items-center gap-2 text-base text-slate-500 font-medium">
-            <span>Show</span>
-            <Select
-              value={pageSize}
-              onChange={(value) => {
-                setPageSize(Number(value));
-                setCurrentPage(1);
-              }}
-              className="w-20"
-              options={[
-                { value: 10, label: '10' },
-                { value: 20, label: '20' },
-                { value: 50, label: '50' },
-              ]}
-            />
-            <span>entries</span>
-          </div>
 
           <div className="flex items-center gap-2">
             <Button size="sm" icon={<FileSpreadsheet className="w-3.5 h-3.5" />} onClick={handleCsvExport}>CSV</Button>
@@ -335,10 +318,6 @@ export default function MainBranchPage({ disabledDepartment, defaultDepartmentId
             <Button size="sm" icon={<Printer className="w-3.5 h-3.5" />} onClick={handlePrint}>Print</Button>
           </div>
         </div>
-
-      <div className="text-base text-slate-500 font-medium mt-3 no-print">
-        Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} entries
-      </div>
 
       <AppTable
         columns={columns}

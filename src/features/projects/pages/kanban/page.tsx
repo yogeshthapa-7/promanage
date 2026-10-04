@@ -22,7 +22,7 @@ import Badge from '@/shared/components/ui/Badge';
 import { BlockSkeleton } from '@/shared/components/ui/Loaders';
 import CreateTaskDrawer from '@/features/tasks/pages/createtasks';
 import ViewTaskDrawer from '@/shared/components/projects/viewtaskdrawer';
-import type { WorkStatus, Task, Project, TaskByStatus } from '@/features/projects/types/projects-types';
+import type { WorkStatus, Task, TasksByStatus, ApiProject } from '@/features/projects/types/projects-types';
 
 // const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 
@@ -83,7 +83,7 @@ export default function KanbanBoard() {
   const params = useParams<{ id?: string; projectId?: string }>();
   const projectId = params.id || params.projectId;
 
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<ApiProject | null>(null);
   const [workStatuses, setWorkStatuses] = useState<WorkStatus[]>([]);
   const [tasks, setTasks] = useState<TasksByStatus>({});
   const [loading, setLoading] = useState(true);
@@ -249,21 +249,7 @@ export default function KanbanBoard() {
 
         if (projectResult.status === 'fulfilled' && projectResult.value) {
           const p = projectResult.value;
-          setProject({
-            ProjectInfoID: p.ProjectInfoID,
-            ProjectName: p.ProjectName,
-            ProjectCode: p.ProjectCode,
-            Description: p.Description,
-            WorkStatusName: p.WorkStatusName,
-            WorkStatusColor: p.WorkStatusColor,
-            Priority: p.Priority,
-            PriorityName: p.PriorityName,
-            ProjectType: p.ProjectType,
-            ProjectTypeName: p.ProjectTypeName,
-            TotalBudget: p.TotalBudget,
-            StartDate: p.StartDate,
-            EndDate: p.EndDate,
-          });
+          setProject({ ...p });
         }
 
         const statuses = statusesResult.status === 'fulfilled' ? statusesResult.value : [];
@@ -503,10 +489,10 @@ export default function KanbanBoard() {
           <div className="shrink-0 lg:text-right lg:min-w-[200px]">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Total Budget</p>
             <p className="text-2xl font-bold text-foreground tabular-nums tracking-tight">{formatCurrency(project?.TotalBudget)}</p>
-            {(project?.StartDate || project?.EndDate) && (
+            {(project?.StartDate || project?.LastDateOfSubmission) && (
               <p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
                 {project?.StartDate ? convertAdToBs(project.StartDate) : '—'}
-                {project?.EndDate ? ` – ${convertAdToBs(project.EndDate)}` : ''}
+                {project?.LastDateOfSubmission ? ` – ${convertAdToBs(project.LastDateOfSubmission)}` : ''}
               </p>
             )}
           </div>

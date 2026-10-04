@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+
 import { Tag as AntTag } from 'antd';
 import type { BadgeProps } from '@/shared/components/ui/types/generic-ui-types';
 

@@ -146,22 +146,22 @@ export default function EmployeeSetupModal({
   }, [open, editingEmployee, form]);
 
 const orgOfficeOptions = orgOffices.map((item) => ({
-   value: String(item.id),
-   label: item.name,
- }));
+   value: String(item.OrganizationOfficeID),
+   label: item.OrganizationOfficeName,
+  }));
 
  const departmentOptions = departments.map((item) => ({
-   value: String(item.id),
-   label: item.name,
- }));
+   value: String(item.DepartmentInfoID),
+   label: item.DepartmentName,
+  }));
 
   if (
     editingEmployee?.DepartmentID &&
     Number(editingEmployee.DepartmentID) !== 0 &&
-    !departmentOptions.some((opt) => opt.value === Number(editingEmployee.DepartmentID))
+    !departmentOptions.some((opt) => opt.value === String(editingEmployee.DepartmentID))
   ) {
     departmentOptions.push({
-      value: Number(editingEmployee.DepartmentID),
+      value: String(editingEmployee.DepartmentID),
       label: editingEmployee.DepartmentName || `Department ${editingEmployee.DepartmentID}`,
     });
   }
@@ -169,24 +169,24 @@ const orgOfficeOptions = orgOffices.map((item) => ({
   const filteredMainBranchOptions = mainBranches
     .filter((item) => {
       if (!selectedDepartmentId) return true;
-      if (Number(item.departmentId) === Number(selectedDepartmentId)) return true;
+      if (Number(item.DepartmentID) === Number(selectedDepartmentId)) return true;
       if (editingEmployee && Number(item.MainBranchID) === Number(editingEmployee.MainBranchID)) {
         return true;
       }
       return false;
     })
     .map((item) => ({
-      value: String(item.id),
-      label: item.name,
+      value: String(item.MainBranchID),
+      label: item.MainBranchName,
     }));
 
   if (
     editingEmployee?.MainBranchID &&
     Number(editingEmployee.MainBranchID) !== 0 &&
-    !filteredMainBranchOptions.some((opt) => opt.value === Number(editingEmployee.MainBranchID))
+    !filteredMainBranchOptions.some((opt) => opt.value === String(editingEmployee.MainBranchID))
   ) {
     filteredMainBranchOptions.push({
-      value: Number(editingEmployee.MainBranchID),
+      value: String(editingEmployee.MainBranchID),
       label: editingEmployee.MainBranchName || `Main Branch ${editingEmployee.MainBranchID}`,
     });
   }
@@ -194,24 +194,24 @@ const orgOfficeOptions = orgOffices.map((item) => ({
   const filteredBranchOptions = branches
     .filter((item) => {
       if (!selectedMainBranchId) return true;
-      if (Number(item.mainBranchId) === Number(selectedMainBranchId)) return true;
+      if (Number(item.MainBranchID) === Number(selectedMainBranchId)) return true;
       if (editingEmployee && Number(item.BranchID) === Number(editingEmployee.BranchID)) {
         return true;
       }
       return false;
     })
     .map((item) => ({
-      value: String(item.id),
-      label: item.name,
+      value: String(item.BranchID),
+      label: item.BranchName,
     }));
 
   if (
     editingEmployee?.BranchID &&
     Number(editingEmployee.BranchID) !== 0 &&
-    !filteredBranchOptions.some((opt) => opt.value === Number(editingEmployee.BranchID))
+    !filteredBranchOptions.some((opt) => opt.value === String(editingEmployee.BranchID))
   ) {
     filteredBranchOptions.push({
-      value: Number(editingEmployee.BranchID),
+      value: String(editingEmployee.BranchID),
       label: editingEmployee.BranchName || `Branch ${editingEmployee.BranchID}`,
     });
   }
@@ -241,16 +241,16 @@ const orgOfficeOptions = orgOffices.map((item) => ({
 
          const employeeId = isEdit ? Number(editingEmployee?.EmployeeInfoID) : 0;
 
-          const selectedDept = departments.find((d) => Number(d.id) === Number(values.DepartmentID));
-          const selectedMainBranch = mainBranches.find((mb) => Number(mb.id) === Number(values.MainBranchID));
-          const selectedBranch = branches.find((b) => Number(b.id) === Number(values.BranchID));
+          const selectedDept = departments.find((d) => Number(d.DepartmentInfoID) === Number(values.DepartmentID));
+          const selectedMainBranch = mainBranches.find((mb) => Number(mb.MainBranchID) === Number(values.MainBranchID));
+          const selectedBranch = branches.find((b) => Number(b.BranchID) === Number(values.BranchID));
 
           let photoPath = documentUrl || '';
           if (photoPath.startsWith(API_BASE + '/')) {
             photoPath = photoPath.replace(API_BASE + '/', '');
           }
 
-         const body: Record<string, unknown> = {
+          const body: Record<string, unknown> = {
   EmployeeInfoID: employeeId,
   Fullname: values.Fullname,
   Address: values.Address || '',
@@ -260,11 +260,11 @@ const orgOfficeOptions = orgOffices.map((item) => ({
   DOB: values.DOB ? values.DOB.replace(/\//g, '-') : '',
   OrganizationOfficeID: Number(values.OrganizationOfficeID),
   DepartmentID: Number(values.DepartmentID) || 0,
-  DepartmentName: selectedDept ? selectedDept.name : '',
+  DepartmentName: selectedDept ? selectedDept.DepartmentName : '',
   BranchID: Number(values.BranchID) || 0,
-  BranchName: selectedBranch ? selectedBranch.name : '',
+  BranchName: selectedBranch ? selectedBranch.BranchName : '',
   MainBranchID: Number(values.MainBranchID) || 0,
-  MainBranchName: selectedMainBranch ? selectedMainBranch.name : '',
+  MainBranchName: selectedMainBranch ? selectedMainBranch.MainBranchName : '',
   Photo: photoPath,
   EmpStatus: values.EmployeeStatus || 1,
 };

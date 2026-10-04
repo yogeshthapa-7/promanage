@@ -2,7 +2,7 @@ import * as HeroIcons from '@heroicons/react/24/outline';
 import * as HeroIconsSolid from '@heroicons/react/24/solid';
 import type { IconProps } from '@/shared/components/ui/types/generic-ui-types'
 
-type IconVariant = 'outline' | 'solid';
+
 
 function Icon({
     name,

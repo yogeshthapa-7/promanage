@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, ArrowRight } from 'lucide-react';
 import Button from '@/shared/components/ui/Button';
 import Badge from '@/shared/components/ui/Badge';
-import { AvatarStack } from '@/shared/components/ui/Avatar';
 import Card from '@/shared/components/ui/Card';
 import ProgressBar from '@/shared/components/ui/ProgressBar';
 import type { Project, ProjectStatus, ProjectPriority } from '@/features/projects/types/projects-types';

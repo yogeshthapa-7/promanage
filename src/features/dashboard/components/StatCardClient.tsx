@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import StatCard from '@/shared/components/ui/StatCard';
-import type { StatCardCLientProps } from '@/features/dashboard/types/dashboard-types';
+import type { StatCardClientProps } from '@/features/dashboard/types/dashboard-types';
 
 const StatCardClient = memo(function StatCardClient({
   title,

@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { fetchFiscalYearSelectList } from '@/features/fiscal-year/services/fiscal-year.service';
 import { type FiscalYearSelectOption } from '@/features/fiscal-year/types/fiscal-year-types';
 import DocumentUploadField from '@/shared/components/DocumentUploadField';
-import type { Expense, CreateExpenseDrawerProps } from '@/features/expense/types/expense-types';
+import type { CreateExpenseDrawerProps } from '@/features/expense/types/expense-types';
 
 const API_BASE = (import.meta.env.VITE_BASE_API_URL || '').replace(/\/$/, '');
 

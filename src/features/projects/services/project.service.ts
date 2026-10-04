@@ -1,4 +1,4 @@
-import { apiCall, API_BASE } from '@/lib/api/api.service';
+import { apiCall, API_BASE, cachedQuery } from '@/lib/api/api.service';
 import { convertAdToBs, convertBsToAd } from '@/shared/utils/nepali-date';
 import type { Project, ProjectStatus, ProjectFormData, ApiProject, SelectListItem,
   ExcelImportCaches, ServerSearchResponse, FetchResult
@@ -384,6 +384,8 @@ export function mapApiProjectToProject(api: ApiProject): Project {
     id: String(api.ProjectInfoID),
     name: api.ProjectName,
     title: api.ProjectName,
+    ProjectInfoID: api.ProjectInfoID,
+    ProjectName: api.ProjectName,
     category,
     status,
     progress: finalProgress,
@@ -506,13 +508,7 @@ export async function fetchProjectById(id: number | string): Promise<ApiProject 
           draw: 1,
           start: 0,
           length: 1,
-          columns: [
-            { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-            { data: 'ProjectCode', name: 'ProjectCode', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          ],
           search: { value: '', regex: '' },
-          order: [{ column: 0, dir: 'desc' }],
         },
         param: { ProjectInfoID: Number(id) },
       }),
@@ -533,82 +529,41 @@ export async function fetchProjects(params: {
   length: number;
   signal?: AbortSignal;
 }): Promise<FetchResult<Project>> {
-  const { search, start, length, signal } = params;
+  return await cachedQuery(
+    ['projects', 'search', params.search, params.start, params.length],
+    (signal) => doFetchProjects(params, signal),
+    params.signal
+  );
+}
 
-  try {
-    const res = await apiCall(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        model: {
-          draw: 1,
-          start,
-          length,
-          columns: [
-            { data: 'ProjectInfoID', name: 'ProjectInfoID', searchable: true, orderable: true, search: { value: search, regex: '' } },
-            { data: 'ProjectName', name: 'ProjectName', searchable: true, orderable: true, search: { value: search, regex: '' } },
-          ],
-          search: { value: search, regex: '' },
-          order: [{ column: 1, dir: 'desc' }],
-        },
-        param: {
-          ProjectInfoID: 0,
-          ProjectName: '',
-          ProjectCode: '',
-          Description: '',
-          ProjectType: 0,
-          ProjectTypeName: '',
-          TotalBudget: 0,
-          WorkStatusID: 0,
-          ClientInfoID: 0,
-          ProjectHeadEmpID: 0,
-          ExpenseInfoID: 0,
-          DepartmentID: 0,
-          WorkStatusName: '',
-          WorkStatusColor: '',
-          ProjectHeadEmpName: '',
-          ProjectHeadEmpPhoto: '',
-          BudgetSourceID: 0,
-          LastDateOfSubmission: '',
-          Suchikrit_ServiceGroupTypeIDs: '',
-          Suchikrit_ServiceTypeIDs: '',
-          TargetVendorIDs: '',
-          ProjectOpenDate: '',
-          Attachments: '',
-          TOR: '',
-          PolicyProgramIDs: '',
-          BudgetInfoIDs: '',
-          BankGuranteeExpiryDate: '',
-          BankGuranteeIssueDate: '',
-          WorkStatusCode: '',
-          PublicAgentID: 0,
-          ExpenseCode: '',
-          BudgetInfoName: '',
-          DepartmentName: '',
-          Tippani: '',
-          Samghauta: '',
-          Kalyades: '',
-          Status: 0,
-          CanEdit: false,
-          CanDelete: false,
-          CanChangeStatus: false,
-        },
-      }),
-      signal,
-    }, 120000);
+async function doFetchProjects(
+  params: { search: string; start: number; length: number },
+  signal?: AbortSignal
+): Promise<FetchResult<Project>> {
+  const res = await apiCall(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { ProjectInfoID: 0 },
+    }),
+    signal,
+  }, 120000);
 
-    if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
-    const json = (await res.json()) as ServerSearchResponse;
-    const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
-    const mapped = rows.map(mapApiProjectToProject);
+  if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
+  const json = (await res.json()) as ServerSearchResponse;
+  const rows = Array.isArray(json?.data) ? (json.data as ApiProject[]) : [];
+  const mapped = rows.map(mapApiProjectToProject);
 
-    return {
-      items: mapped,
-      total: json.recordsTotal ?? rows.length,
-      filtered: json.recordsFiltered ?? rows.length,
-    };
-  } catch {
-    return { items: [], total: 0, filtered: 0 };
-  }
+  return {
+    items: mapped,
+    total: json.recordsTotal ?? rows.length,
+    filtered: json.recordsFiltered ?? rows.length,
+  };
 }
 
 export async function saveProject(body: Record<string, unknown>): Promise<{ success: boolean; message?: string; data?: unknown }> {
@@ -644,7 +599,7 @@ export async function fetchProjectDetail(projectId: string | number): Promise<Ap
   return project;
 }
 
-export async function fetchProjectDetailData(projectId: string | number, signal?: AbortSignal): Promise<ApiProject> {
+export async function fetchProjectDetailData(projectId: string | number, signal?: AbortSignal): Promise<ApiProject & { ClientInfo?: Record<string, unknown> }> {
   const sanitizedId = encodeURIComponent(String(projectId));
   const res = await apiCall(`${PROJECT_DETAIL_URL}?id=${sanitizedId}`, { method: 'GET', signal }, 10000);
   if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
@@ -653,7 +608,7 @@ export async function fetchProjectDetailData(projectId: string | number, signal?
   const data = json?.Data ?? json?.data;
   const project = data?.ProjectInfo ?? data?.projectInfo;
   if (!project || !project.ProjectInfoID) throw new Error('Project details not found');
-  return project;
+  return { ...project, ClientInfo: data?.ClientInfo };
 }
 
 export async function fetchAllSelectLists(signal?: AbortSignal): Promise<{

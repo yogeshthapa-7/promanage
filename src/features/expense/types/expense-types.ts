@@ -20,7 +20,7 @@ export interface ViewExpenseDrawerProps {
   open: boolean;
   onClose: () => void;
   expense: Expense | null;
-  fiscalYearOptions?: FiscalYearSelectOption[];
+  fiscalYearOptions?: import('@/features/fiscal-year/types/fiscal-year-types').FiscalYearSelectOption[];
 }
 
 export interface ApiExpenseResponse {

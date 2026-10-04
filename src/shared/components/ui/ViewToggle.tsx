@@ -2,7 +2,7 @@ import { LayoutGrid, List } from 'lucide-react';
 import Button from './Button';
 import type { ViewToggleProps } from '@/shared/components/ui/types/generic-ui-types';
 
-type ViewMode = 'grid' | 'list';
+
 
 export default function ViewToggle({ viewMode, onViewModeChange, className = '' }: ViewToggleProps) {
   return (

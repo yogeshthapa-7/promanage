@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Card from '@/shared/components/ui/Card';
 import Button from '@/shared/components/ui/Button';
 import Badge from '@/shared/components/ui/Badge';
-import type { Project } from '@/features/projects/types/projects-types';
 import type { RecentProjectsCardProps } from '@/features/dashboard/types/dashboard-types';
 
 function formatDate(dateStr: string) {

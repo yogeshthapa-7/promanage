@@ -1,5 +1,5 @@
 import NepaliFunctions from '@sajanm/nepali-functions';
-import type { BSDate } from '@/shared/utils/types/generic-utils-types';
+
 
 
 export const NEPALI_MONTHS_EN = [

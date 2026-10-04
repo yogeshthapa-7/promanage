@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import type { ApiProject } from "@/features/projects/types/projects-data";
+import { useState } from "react";
 import { convertAdToBs } from "@/shared/utils/nepali-date";
 import { fetchIssues, deleteIssue } from "@/features/projects/services/issue.service";
 import { Modal, message, Button } from "antd";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Card from "@/shared/components/ui/Card";
 import Badge from "@/shared/components/ui/Badge";
 import { LayoutGrid, List, Pencil, Trash2, Plus, Search, RotateCcw } from "lucide-react";
@@ -13,22 +13,22 @@ import { TableSkeleton } from '@/shared/components/ui/Loaders';
 import type { IssueItem,IssueTabProps } from '@/features/projects/types/projects-types';
 import Pagination from '@/shared/components/ui/Pagination';
 import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
+import { fetchProjectInfo } from '@/features/tasks/services/task.service';
 
-export default function IssueTab({ project }: IssueTabProps) {
-  // const [issues, setIssues] = useState<IssueItem[]>([]);
-  // const [issuesLoading, setIssuesLoading] = useState(false);
-  // const [isCreateOpen, setIsCreateOpen] = useState(false);
-  // const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
-  // const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
-  // const [isSearchOpen, setIsSearchOpen] = useState(false);
-  // const [isSearchActive, setIsSearchActive] = useState(false);
-  // const [allIssues, setAllIssues] = useState<IssueItem[]>([]);
+export default function IssueTab({ project: propProject }: IssueTabProps) {
+  const queryClient = useQueryClient();
   const [editingIssue, setEditingIssue] = useState<IssueItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ['project-detail', propProject?.ProjectInfoID],
+    queryFn: ({ signal }) => fetchProjectInfo(propProject!.ProjectInfoID, signal),
+    enabled: Boolean(propProject?.ProjectInfoID),
+  });
 
   const{
     data: issues = [],
@@ -41,7 +41,7 @@ export default function IssueTab({ project }: IssueTabProps) {
     refetch,
   } = usePaginatedList<IssueItem>({
     fetcher: (params: PaginatedListParams) => {
-      if (!project?.ProjectInfoID) return { items: [], total: 0 };
+      if (!project?.ProjectInfoID) return Promise.resolve({ items: [], total: 0 });
       return fetchIssues(project, {
         start: params.start as number,
         length: params.length as number,
@@ -49,7 +49,16 @@ export default function IssueTab({ project }: IssueTabProps) {
       }, params.signal);
     },
     extraDeps: [project, searchQuery],
+    queryKey: ['issues'],
   });
+
+  if (projectLoading) {
+    return (
+      <Card>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-base text-muted-foreground">Loading project...</div>
+      </Card>
+    );
+  }
 
   const handleDeleteIssue = (issue: IssueItem) => {
     Modal.confirm({
@@ -61,6 +70,7 @@ export default function IssueTab({ project }: IssueTabProps) {
         try {
           await deleteIssue(issue.IssuesID);
           message.success('Issue deleted successfully');
+          queryClient.invalidateQueries({ queryKey: ['issues'] });
           refetch();
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Failed to delete issue');
@@ -170,7 +180,6 @@ export default function IssueTab({ project }: IssueTabProps) {
           onClose={() => setIsSearchOpen(false)}
           onSearch={(values) => {
             const searchTitle = String(values.IssuesTitle || '').toLowerCase();
-            const searchRaisedBy = String(values.RaisedBy || '').toLowerCase();
             setIsSearchActive(true);
             setSearchQuery(searchTitle);
           }}
@@ -262,7 +271,12 @@ export default function IssueTab({ project }: IssueTabProps) {
       <IssueCreate
         open={isCreateOpen}
         onClose={() => { setIsCreateOpen(false); setEditingIssue(null); }}
-        onSuccess={() => { setIsCreateOpen(false); setEditingIssue(null); refetch(); }}
+        onSuccess={() => { 
+          setIsCreateOpen(false); 
+          setEditingIssue(null); 
+          queryClient.invalidateQueries({ queryKey: ['issues'] });
+          refetch(); 
+        }}
         project={project}
         editingIssue={editingIssue}
       />

@@ -5,22 +5,6 @@ import type { Policy, ApiPolicyResponse, ApiPolicyRow, FetchPoliciesParams, Fetc
 
 export const API_URL = `${API_BASE}/PolicyProgram/ServerSearch`;
 
-function buildSearchBody(params: FetchPoliciesParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: '', regex: '' },
-    },
-    param: {
-      PolicyProgramID: 0,
-      PolicyProgramName: params.search,
-      FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
-    },
-  };
-}
-
 export async function fetchPolicies(
   params: FetchPoliciesParams
 ): Promise<FetchPoliciesResult> {
@@ -41,7 +25,15 @@ async function doFetchPolicies(
 ): Promise<FetchPoliciesResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { PolicyProgramID: 0 },
+    }),
     signal,
   });
 

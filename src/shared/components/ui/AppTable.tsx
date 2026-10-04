@@ -1,5 +1,5 @@
 import { Table } from 'antd';
-import type { ColumnsType, TableProps } from 'antd/es/table';
+import type { TableProps } from 'antd/es/table';
 import Card from './Card';
 import type { AppTableProps, ServerPaginationProps } from '@/shared/components/ui/types/generic-ui-types';
 import Pagination from './Pagination';
@@ -29,7 +29,7 @@ export default function AppTable<T>({
     pageSize,
     onPageChange,
     onPageSizeChange,
-    pageSizeOptions = [10, 20, 50, 100],
+    pageSizeOptions = [12, 24, 36, 48],
   } = rest as ServerPaginationProps;
 
   const hasPagination = typeof total === 'number' && typeof onPageChange === 'function';

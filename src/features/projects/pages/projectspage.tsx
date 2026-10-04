@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, message } from 'antd';
 import {
@@ -18,6 +18,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/shared/components/ui/Card';
 import Pagination from '@/shared/components/ui/Pagination';
 import { CardGridSkeleton } from '@/shared/components/ui/Loaders';
@@ -36,10 +37,8 @@ import {
   SELECT_LIST_URLS,
   fetchProjectById,
   saveProject,
-  type SelectListItem,
-  type ExcelImportCaches,
 } from '@/features/projects/services/project.service';
-import type { ProjectStatus, Project, ApiProject } from '@/features/projects/types/projects-types';
+import type { ProjectStatus, Project, ApiProject, SelectListItem, ExcelImportCaches } from '@/features/projects/types/projects-types';
 import { fetchProjectCount, fetchTaskCount, fetchOrganizationCount, fetchDepartmentCount } from '@/features/projects/services/projectstat.service';
 import ProjectFormModal from './Create';
 import { usePaginatedList, type PaginatedListParams } from '@/shared/hooks/usePaginatedList';
@@ -96,11 +95,12 @@ const PRIORITY_MAP: Record<string, number> = {
     return sortDirectionParam === 'asc' ? cmp : -cmp;
   });
 
-  return { items, total: res.total };
+  return { items, total: res.filtered };
 }
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'All'>('All');
@@ -116,6 +116,21 @@ export default function ProjectsPage() {
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const refetchStats = useCallback(async () => {
+    const results = await Promise.allSettled([
+      fetchProjectCount(),
+      fetchTaskCount(),
+      fetchOrganizationCount(),
+      fetchDepartmentCount(),
+    ]);
+    setStats({
+      projects: results[0].status === 'fulfilled' ? results[0].value : 0,
+      tasks: results[1].status === 'fulfilled' ? results[1].value : 0,
+      organizations: results[2].status === 'fulfilled' ? results[2].value : 0,
+      departments: results[3].status === 'fulfilled' ? results[3].value : 0,
+    });
+  }, []);
 
   const {
     data: projects,
@@ -143,24 +158,7 @@ export default function ProjectsPage() {
     setStatsLoading(true);
     (async () => {
       try {
-        const results = await Promise.allSettled([
-          fetchProjectCount(),
-          fetchTaskCount(),
-          fetchOrganizationCount(),
-          fetchDepartmentCount(),
-        ]);
-        if (cancelled) return;
-        setStats({
-          projects: results[0].status === 'fulfilled' ? results[0].value : 0,
-          tasks: results[1].status === 'fulfilled' ? results[1].value : 0,
-          organizations: results[2].status === 'fulfilled' ? results[2].value : 0,
-          departments: results[3].status === 'fulfilled' ? results[3].value : 0,
-        });
-        results.forEach((result, idx) => {
-          if (result.status === 'rejected') {
-            console.error(`Stats fetch ${idx} failed:`, result.reason);
-          }
-        });
+        await refetchStats();
       } catch (err) {
         console.error('Stats fetch error:', err);
       } finally {
@@ -173,7 +171,7 @@ export default function ProjectsPage() {
       cancelled = true;
       controller.abort();
     };
-  }, []);
+  }, [refetchStats]);
 
   const statusOptions: (ProjectStatus | 'All')[] = [
     'All', 'Started', 'In Progress', 'In Progress Final', 'Completed', 'On Hold', 'Not Started', 'Overdue',
@@ -206,8 +204,10 @@ export default function ProjectsPage() {
   }, []);
 
   const handleModalSuccess = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
     refetch();
-  }, [refetch]);
+    refetchStats();
+  }, [queryClient, refetch, refetchStats]);
 
   const handleViewProject = (project: Project) => {
     navigate(`/projects/${project.id}`);
@@ -359,7 +359,7 @@ export default function ProjectsPage() {
             console.error(
               `Row ${i + 1} ("${body.ProjectName}") is missing required fields: ${missingFields.join(', ')}.\n` +
               `Excel columns found: [${rowKeys}]\n` +
-              `Available employees (${caches.employee.length}): ${caches.employee.slice(0, 10).map(e => `"${e.name}" (ID:${e.id})`).join(', ')}${caches.employee.length > 10 ? '...' : ''}\n`
+              `Available employees (${caches.employee.length}): ${caches.employee.slice(0, 10).map((e: SelectListItem) => `"${e.name}" (ID:${e.id})`).join(', ')}${caches.employee.length > 10 ? '...' : ''}\n`
             );
             message.error(`Row ${i + 1} ("${body.ProjectName}"): Missing ${missingFields.join(', ')}. Check column names and values.`);
             failCount++;
@@ -418,7 +418,9 @@ export default function ProjectsPage() {
           const result = await deleteProject(Number(project.id));
           if (!result.success) throw new Error(result.message || 'Delete failed');
           message.success('Project deleted successfully');
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
           refetch();
+          refetchStats();
         } catch (err) {
           message.error(err instanceof Error ? err.message : 'Delete failed');
         }

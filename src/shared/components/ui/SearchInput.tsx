@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+
 import { Input } from 'antd';
 import type { SearchInputProps } from '@/shared/components/ui/types/generic-ui-types';
 

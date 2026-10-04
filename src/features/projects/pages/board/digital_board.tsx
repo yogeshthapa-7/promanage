@@ -91,10 +91,7 @@ const DigitalBoardPage = () => {
     fetchProjectDetailData(id)
       .then((project) => {
         if (!cancelled) {
-          setProject({
-            ...project,
-            ClientInfo: (project as any).ClientInfo,
-          });
+          setProject(project);
         }
       })
       .catch((err) => {

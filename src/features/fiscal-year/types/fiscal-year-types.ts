@@ -51,11 +51,12 @@ export interface ApiSelectItem {
   id?: number | string;
   Value?: number | string;
   Text?: string;
+  IsRunning?: number;
 }
 
 export interface FetchFiscalYearsParams {
   search: string;
-  status: string;
+  status?: string;
   start: number;
   length: number;
   signal?: AbortSignal;

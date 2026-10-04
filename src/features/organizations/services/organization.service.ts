@@ -32,24 +32,6 @@ export async function fetchOrganizationSelectList(signal?: AbortSignal): Promise
   }
 }
 
-
-
-function buildSearchBody(params: FetchOrganizationsParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: '', regex: '' },
-    },
-    param: {
-      OrganizationID: 0,
-      Title: params.search,
-      ParentOrganizationID: 0,
-    },
-  };
-}
-
 export async function fetchOrganizations(
   params: FetchOrganizationsParams
 ): Promise<FetchOrganizationsResult> {
@@ -70,7 +52,15 @@ async function doFetchOrganizations(
 ): Promise<FetchOrganizationsResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { OrganizationID: 0 },
+    }),
     signal,
   });
   if (!res.ok) throw new Error(`Failed to fetch organizations: ${res.statusText}`);

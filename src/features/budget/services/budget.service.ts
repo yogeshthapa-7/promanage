@@ -5,22 +5,6 @@ import { API_BASE } from '@/lib/api/api.service';
 
 export const API_URL = `${API_BASE}/BudgetInfo/ServerSearch`;
 
-function buildSearchBody(params: FetchBudgetsParams) {
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: '', regex: '' },
-    },
-    param: {
-      BudgetInfoID: 0,
-      BudgetInfoName: params.search,
-      FiscalYearID: params.fiscalYear ? Number(params.fiscalYear) : 0,
-    },
-  };
-}
-
 export async function fetchBudgets(
   params: FetchBudgetsParams
 ): Promise<FetchBudgetsResult> {
@@ -41,7 +25,15 @@ async function doFetchBudgets(
 ): Promise<FetchBudgetsResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { BudgetInfoID: 0 },
+    }),
     signal,
   });
 

@@ -1,7 +1,6 @@
 import StatCardClient from './StatCardClient';
 import { getStatCards } from './statCardsData';
-import { type Project } from '@/features/projects/types/projects-types';
-import type { StatCardRowProps } from '@/features/dashboard/types/dashboard-types';
+import type { StatCardsRowProps } from '@/features/dashboard/types/dashboard-types';
 
 export default function StatCardsRow({ projects, stats, loading = false }: StatCardsRowProps) {
   const cards = stats

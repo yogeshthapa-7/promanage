@@ -1,4 +1,4 @@
-import { apiCall, API_BASE } from '@/lib/api/api.service';
+import { apiCall, cachedQuery, API_BASE } from '@/lib/api/api.service';
 import type { ApiProject, ProjectDiscussionItem } from '@/features/projects/types/projects-types';
 
 
@@ -12,40 +12,28 @@ export async function fetchDiscussions(
   params: { start: number; length: number; search?: string },
   signal?: AbortSignal
 ): Promise<{ items: ProjectDiscussionItem[]; total: number; filtered: number }> {
+  return await cachedQuery(
+    ['discussions', 'search', project.ProjectInfoID, params.search, params.start, params.length],
+    (signal) => doFetchDiscussions(project, params, signal),
+    signal
+  );
+}
+
+async function doFetchDiscussions(
+  _project: ApiProject,
+  params: { start: number; length: number; search?: string },
+  signal?: AbortSignal
+): Promise<{ items: ProjectDiscussionItem[]; total: number; filtered: number }> {
   const res = await apiCall(DISCUSSIONS_API, {
     method: 'POST',
     body: JSON.stringify({
       model: {
         draw: 1,
-        start: params.start,
-        length: params.length,
-        columns: [
-          { data: 'ProjectDiscussionID', name: 'ProjectDiscussionID', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
-          { data: 'DiscussionTitle', name: 'DiscussionTitle', searchable: true, orderable: true, search: { value: params.search || '', regex: '' } },
-          { data: 'Priority', name: 'Priority', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'PriorityName', name: 'PriorityName', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'CreatedDate', name: 'CreatedDate', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'RaisedBy', name: 'RaisedBy', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'Comments', name: 'Comments', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'Attachments', name: 'Attachments', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'HasUserRightToEdit', name: 'HasUserRightToEdit', searchable: true, orderable: true, search: { value: '', regex: '' } },
-          { data: 'HasUserRightToDelete', name: 'HasUserRightToDelete', searchable: true, orderable: true, search: { value: '', regex: '' } },
-        ],
-        search: { value: params.search || '', regex: '' },
-        order: [{ column: 0, dir: 'desc' }],
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
       },
-      param: {
-        ProjectDiscussionID: 0,
-        DiscussionTitle: params.search || '',
-        ProjectInfoID: project.ProjectInfoID ?? 0,
-        Priority: 0,
-        PriorityName: '',
-        RaisedBy: '',
-        CreatedDate: '',
-        CanChangeStatus: true,
-        CanEdit: true,
-        CanDelete: true,
-      },
+      param: { ProjectDiscussionID: 0, ProjectInfoID: _project.ProjectInfoID },
     }),
     signal,
   });
@@ -59,8 +47,6 @@ export async function fetchDiscussions(
     filtered: json.recordsFiltered ?? data.length,
   };
 }
-
-
 
 export async function saveDiscussion(body: Record<string, unknown>): Promise<void> {
   const res = await apiCall(SAVE_DISCUSSION_URL, {

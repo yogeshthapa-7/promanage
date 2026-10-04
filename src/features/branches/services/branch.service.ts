@@ -48,52 +48,23 @@ export async function fetchBranchSelectList(
   }
 }
 
-function buildSearchBody(params: FetchBranchesParams) {
-  const parsedMainBranchId = params.mainBranchId ? Number(params.mainBranchId) : 0;
-  const parsedDepartmentId = params.departmentId ? Number(params.departmentId) : 0;
-
-  return {
-    model: {
-      draw: 0,
-      start: params.start || 0,
-      length: params.length || 20,
-      search: { value: params.search || '', regex: '' },
-    },
-    param: {
-      BranchID: 0,
-      BranchName: params.name || '',
-      BranchCode: params.code || '',
-      MainBranchID: isNaN(parsedMainBranchId) ? 0 : parsedMainBranchId,
-      MainBranchName: params.mainBranchName || '',
-      DepartmentID: isNaN(parsedDepartmentId) ? 0 : parsedDepartmentId,
-      DepartmentName: params.departmentName || '',
-      OrderKey: params.orderKey || 0,
-    },
-  };
-}
-
 export async function fetchBranches(
   params: FetchBranchesParams
 ): Promise<FetchBranchesResult> {
-  const depId = params.departmentId ? String(params.departmentId) : '';
-  const depName = params.departmentName || '';
-  const mainId = params.mainBranchId ? String(params.mainBranchId) : '';
-  const mainName = params.mainBranchName || '';
-
   try {
     return await cachedQuery(
       [
-        'branches', 
-        'search', 
-        params.search, 
-        params.start, 
-        params.length, 
-        params.name, 
-        params.code, 
-        mainId, 
-        mainName, 
-        depId, 
-        depName, 
+        'branches',
+        'search',
+        params.search,
+        params.start,
+        params.length,
+        params.name,
+        params.code,
+        params.mainBranchId,
+        params.departmentId,
+        params.mainBranchName,
+        params.departmentName,
         params.orderKey
       ],
       (signal) => doFetchBranches(params, signal),
@@ -110,7 +81,15 @@ async function doFetchBranches(
 ): Promise<FetchBranchesResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { BranchID: 0 },
+    }),
     signal,
   }, 120000);
 

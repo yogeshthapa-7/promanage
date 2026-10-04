@@ -5,26 +5,6 @@ import { API_BASE } from '@/lib/api/api.service';
 
 export const API_URL = `${API_BASE}/ClientInfo/ServerSearch`;
 
-function buildSearchBody(params: FetchClientsParams) {
-  const param: Record<string, unknown> = {
-    ClientInfoID: 0,
-  };
-
-  if (params.search.trim()) {
-    param.ClientName = params.search.trim();
-  }
-
-  return {
-    model: {
-      draw: 1,
-      start: params.start,
-      length: params.length,
-      search: { value: '', regex: '' },
-    },
-    param,
-  };
-}
-
 export async function fetchClients(
   params: FetchClientsParams
 ): Promise<FetchClientsResult> {
@@ -45,7 +25,15 @@ async function doFetchClients(
 ): Promise<FetchClientsResult> {
   const res = await apiCall(API_URL, {
     method: 'POST',
-    body: JSON.stringify(buildSearchBody(params)),
+    body: JSON.stringify({
+      model: {
+        draw: 1,
+        start: params.start || 0,
+        length: params.length || 12,
+        search: { value: (params.search || '').trim(), regex: '' },
+      },
+      param: { ClientInfoID: 0 },
+    }),
     signal,
   });
 
